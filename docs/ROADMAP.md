@@ -1,4 +1,4 @@
-# FileOrganizer Roadmap (Consolidated)
+# filez Roadmap (Consolidated)
 
 This roadmap synthesizes the full analysis, library evaluation, and your requirements into a phased implementation plan. All tasks support the goals of **extreme robustness, plugin architecture, cross-platform CLI-first design, and empirical benchmarking**.
 

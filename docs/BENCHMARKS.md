@@ -6,7 +6,7 @@
 
 ## Summary
 
-This document records the performance benchmarks for the core components of FileOrganizer: File Scanning and Hashing.
+This document records the performance benchmarks for the core components of filez: File Scanning and Hashing.
 
 ## 1. File Scanning
 

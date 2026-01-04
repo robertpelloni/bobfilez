@@ -1,10 +1,10 @@
-# Doxyfile for FileOrganizer API Documentation
+# Doxyfile for filez API Documentation
 # Generated configuration for Doxygen 1.9+
 
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "FileOrganizer"
+PROJECT_NAME           = "filez"
 PROJECT_BRIEF          = "A modular file organization and duplicate detection engine"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = docs/api

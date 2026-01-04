@@ -17,7 +17,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     fo::core::register_all_providers();
 
-    setWindowTitle(QString("FileOrganizer v%1").arg(fo::core::FO_VERSION));
+    setWindowTitle(QString("filez v%1").arg(fo::core::FO_VERSION));
     resize(1024, 768);
 
     setupMenuBar();
@@ -114,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     cfg.db_path = "fo_gui.db";
     engine = std::make_unique<fo::core::Engine>(cfg);
 
-    log("FileOrganizer GUI initialized.");
+    log("filez GUI initialized.");
 }
 
 MainWindow::~MainWindow() {
@@ -128,8 +128,8 @@ void MainWindow::setupMenuBar() {
 
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     helpMenu->addAction("&About", [this]() {
-        QMessageBox::about(this, "About FileOrganizer",
-            QString("FileOrganizer v%1\n\nA powerful file organization tool.").arg(fo::core::FO_VERSION));
+        QMessageBox::about(this, "About filez",
+            QString("filez v%1\n\nA powerful file organization tool.").arg(fo::core::FO_VERSION));
     });
 }
 

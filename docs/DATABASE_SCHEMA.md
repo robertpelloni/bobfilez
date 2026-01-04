@@ -1,6 +1,6 @@
 # Database Schema Design
 
-FileOrganizer uses **SQLite3** for local, embedded persistence. The schema supports:
+filez uses **SQLite3** for local, embedded persistence. The schema supports:
 - File metadata (paths, sizes, timestamps, hashes)
 - EXIF/date information
 - Duplicate grouping

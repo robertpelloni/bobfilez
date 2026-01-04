@@ -45,6 +45,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          FileOrganizer-*-win64.zip
+          filez-*-win64.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

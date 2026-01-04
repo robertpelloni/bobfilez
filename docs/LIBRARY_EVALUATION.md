@@ -1,6 +1,6 @@
 # Library Evaluation Matrix
 
-This document provides a detailed comparison of candidate libraries for each feature area in FileOrganizer, supporting the plugin architecture and benchmarking goals.
+This document provides a detailed comparison of candidate libraries for each feature area in filez, supporting the plugin architecture and benchmarking goals.
 
 ## Evaluation Criteria
 
@@ -135,8 +135,8 @@ Radare2 is a comprehensive open-source framework for binary analysis, disassembl
 - Plugin architecture for custom analysis
 - Scripting support (Python, JavaScript, etc.)
 
-**Relevance to FileOrganizer:**  
-Radare2 is **not** a file organizer, metadata extractor, or duplicate finder. It is designed for analyzing executable binaries, firmware, and malware. Unless FileOrganizer plans to add binary analysis features (e.g., executable signature detection, malware classification), radare2 is likely an **unused vendored library** that can be safely removed or excluded from builds.
+**Relevance to filez:**  
+Radare2 is **not** a file organizer, metadata extractor, or duplicate finder. It is designed for analyzing executable binaries, firmware, and malware. Unless filez plans to add binary analysis features (e.g., executable signature detection, malware classification), radare2 is likely an **unused vendored library** that can be safely removed or excluded from builds.
 
 **Recommendation**: Remove `libs/radare2` unless binary analysis is a planned feature. Keep the project lean by excluding unrelated dependencies.
 

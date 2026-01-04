@@ -45,7 +45,7 @@ def generate_markdown(submodules):
     
     md += "## Project Structure\n\n"
     md += "The project is organized as follows:\n\n"
-    md += "- **core/**: Contains the core logic of the FileOrganizer application (scanning, hashing, database, etc.).\n"
+    md += "- **core/**: Contains the core logic of the filez application (scanning, hashing, database, etc.).\n"
     md += "- **cli/**: Contains the Command Line Interface (CLI) application.\n"
     md += "- **libs/**: Contains all external dependencies included as git submodules.\n"
     md += "- **docs/**: Project documentation.\n"

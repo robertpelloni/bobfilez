@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 VERSION=$(cat VERSION.md | tr -d '[:space:]')
 
 echo "========================================"
-echo "FileOrganizer Packaging Script v$VERSION"
+echo "filez Packaging Script v$VERSION"
 echo "========================================"
 
 # Detect platform
@@ -67,7 +67,7 @@ chmod +x dist/fo_cli
 
 # Create archive
 echo "[5/5] Creating archive..."
-ARCHIVE_NAME="FileOrganizer-${VERSION}-${ARCHIVE_SUFFIX}.zip"
+ARCHIVE_NAME="filez-${VERSION}-${ARCHIVE_SUFFIX}.zip"
 cd dist
 zip -r "../$ARCHIVE_NAME" .
 cd ..

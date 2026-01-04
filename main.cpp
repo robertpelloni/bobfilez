@@ -1,4 +1,4 @@
-#include "OpenFileOrganizer.h"
+#include "Openfilez.h"
 
 
 
@@ -15,10 +15,10 @@ int main(int argc, char* argv[])
     //setlocale(LC_ALL, "en.UTF-8")
 
     QApplication a(argc, argv);
-    OpenFileOrganizer w;
+    Openfilez w;
     w.show();
 
-    qInstallMessageHandler(OpenFileOrganizer::QMessageOutput);
+    qInstallMessageHandler(Openfilez::QMessageOutput);
 
     return a.exec();
 

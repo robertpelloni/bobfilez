@@ -1,6 +1,6 @@
-# FileOrganizer Developer Guide
+# filez Developer Guide
 
-This guide covers everything you need to contribute to the FileOrganizer project.
+This guide covers everything you need to contribute to the filez project.
 
 ---
 
@@ -119,7 +119,7 @@ cmake -S . -B build -DFO_BUILD_TESTS=ON -DFO_BUILD_GUI=OFF
 ## Project Architecture
 
 ```
-FileOrganizer/
+filez/
 ├── core/                    # fo_core static library
 │   ├── include/fo/core/     # Public headers
 │   │   ├── interfaces.hpp   # Provider interfaces (IFileScanner, IHasher, etc.)

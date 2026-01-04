@@ -1,6 +1,6 @@
 # Scanner Providers: Windows vs. dirent vs. C++ std::filesystem
 
-This document records the current status, analysis, and findings for the first pluggable choice in FileOrganizer: the directory scanner and file metadata provider. It is designed to guide future contributors and AI agents.
+This document records the current status, analysis, and findings for the first pluggable choice in filez: the directory scanner and file metadata provider. It is designed to guide future contributors and AI agents.
 
 ---
 
@@ -125,4 +125,4 @@ Notes: <edge cases, errors>
 
 ---
 
-Maintained by: FileOrganizer core team
+Maintained by: filez core team

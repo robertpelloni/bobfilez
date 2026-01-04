@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Portable Packaging**: Scripts for creating distributable ZIP archives.
     - `scripts/package.bat`: Windows packaging script.
     - `scripts/package.sh`: Linux/macOS packaging script.
-    - Generates `FileOrganizer-{version}-{platform}.zip` with CLI, docs, and license.
+    - Generates `filez-{version}-{platform}.zip` with CLI, docs, and license.
 - **Phase 7 Completion**: All documentation and packaging infrastructure in place.
 
 ### Changed
@@ -294,6 +294,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-11-14
 
 ### Added
-- Initial release of FileOrganizer CLI.
+- Initial release of filez CLI.
 - Scanners: `std`, `win32`, `dirent`.
 - Basic benchmarking tools.

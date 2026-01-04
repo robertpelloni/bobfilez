@@ -1,7 +1,7 @@
-#include "OpenFileOrganizer.h"
+#include "Openfilez.h"
 
 //==============================================================================================================================================================
-OpenFileOrganizer::OpenFileOrganizer(QWidget* parent)
+Openfilez::Openfilez(QWidget* parent)
 	: QMainWindow(parent)
 {//==============================================================================================================================================================
 	ui.setupUi(this);
@@ -24,25 +24,25 @@ OpenFileOrganizer::OpenFileOrganizer(QWidget* parent)
 
 
 	//Connect button signal to appropriate slot
-	connect(ui.startPushButton, &QPushButton::released, this, &OpenFileOrganizer::handleStartButton);
-	connect(ui.clearPushButton, &QPushButton::released, this, &OpenFileOrganizer::handleClearButton);
-	connect(ui.addDirPushButton, &QPushButton::released, this, &OpenFileOrganizer::handleAddDirButton);
-	connect(ui.removeDirPushButton, &QPushButton::released, this, &OpenFileOrganizer::handleRemoveDirButton);
-	connect(ui.ignoreDirsPushButton, &QPushButton::released, this, &OpenFileOrganizer::handleIgnoreDirsButton);
-	//connect(ui.startPushButton, &QPushButton::clicked, this, &OpenFileOrganizer::handleButton);
+	connect(ui.startPushButton, &QPushButton::released, this, &Openfilez::handleStartButton);
+	connect(ui.clearPushButton, &QPushButton::released, this, &Openfilez::handleClearButton);
+	connect(ui.addDirPushButton, &QPushButton::released, this, &Openfilez::handleAddDirButton);
+	connect(ui.removeDirPushButton, &QPushButton::released, this, &Openfilez::handleRemoveDirButton);
+	connect(ui.ignoreDirsPushButton, &QPushButton::released, this, &Openfilez::handleIgnoreDirsButton);
+	//connect(ui.startPushButton, &QPushButton::clicked, this, &Openfilez::handleButton);
 }
 
-OpenFileOrganizer::~OpenFileOrganizer()
+Openfilez::~Openfilez()
 {}
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::QMessageOutput(QtMsgType, const QMessageLogContext&, const QString& msg)
+void Openfilez::QMessageOutput(QtMsgType, const QMessageLogContext&, const QString& msg)
 {//==============================================================================================================================================================
 	std::wcout << msg.toStdWString() << std::endl;
 }
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::initWorker(Worker* worker)
+void Openfilez::initWorker(Worker* worker)
 {//==============================================================================================================================================================
 
 	//get current application directory to make portable
@@ -95,7 +95,7 @@ void OpenFileOrganizer::initWorker(Worker* worker)
 }
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::handleStartButton()
+void Openfilez::handleStartButton()
 {//==============================================================================================================================================================
 
 	Worker* worker = new Worker();
@@ -116,7 +116,7 @@ void OpenFileOrganizer::handleStartButton()
 
 	QThread* thread = new QThread;
 	worker->moveToThread(thread);
-	//connect( worker, &error, this, &OpenFileOrganizer::errorString);
+	//connect( worker, &error, this, &Openfilez::errorString);
 	connect(thread, &QThread::started, worker, &Worker::process);
 	connect(worker, &Worker::finished, thread, &QThread::quit);
 	connect(worker, &Worker::finished, worker, &Worker::deleteLater);
@@ -125,7 +125,7 @@ void OpenFileOrganizer::handleStartButton()
 
 }
 //==============================================================================================================================================================
-void OpenFileOrganizer::handleIgnoreDirsButton()
+void Openfilez::handleIgnoreDirsButton()
 {//==============================================================================================================================================================
 	
 	Worker* worker = new Worker();
@@ -146,7 +146,7 @@ void OpenFileOrganizer::handleIgnoreDirsButton()
 
 	QThread* thread = new QThread;
 	worker->moveToThread(thread);
-	//connect( worker, &error, this, &OpenFileOrganizer::errorString);
+	//connect( worker, &error, this, &Openfilez::errorString);
 	connect(thread, &QThread::started, worker, &Worker::processIgnore);
 	connect(worker, &Worker::finished, thread, &QThread::quit);
 	connect(worker, &Worker::finished, worker, &Worker::deleteLater);
@@ -156,13 +156,13 @@ void OpenFileOrganizer::handleIgnoreDirsButton()
 }
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::handleClearButton()
+void Openfilez::handleClearButton()
 {//==============================================================================================================================================================
 	ui.consoleOutputPlainTextEdit->clear();
 }
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::handleAddDirButton()
+void Openfilez::handleAddDirButton()
 {//==============================================================================================================================================================
 	//QFileDialog dialog(this);
 	//dialog.setFileMode(QFileDialog::AnyFile);
@@ -180,7 +180,7 @@ void OpenFileOrganizer::handleAddDirButton()
 }
 
 //==============================================================================================================================================================
-void OpenFileOrganizer::handleRemoveDirButton()
+void Openfilez::handleRemoveDirButton()
 {//==============================================================================================================================================================
 
 	QList<QListWidgetItem*> items = ui.listWidget->selectedItems();

@@ -1,6 +1,6 @@
 # Project Structure
 
-This document outlines the directory layout of the FileOrganizer project.
+This document outlines the directory layout of the filez project.
 
 ## Top-Level Directories
 

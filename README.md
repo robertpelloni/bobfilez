@@ -1,8 +1,8 @@
-# FileOrganizer
+# filez
 
 **An extremely robust, cross-platform file organization and deduplication engine with plugin architecture and empirical benchmarking.**
 
-FileOrganizer is built for power users who need:
+filez is built for power users who need:
 - **Accurate duplicate detection** with multiple verification strategies
 - **Flexible metadata extraction** (EXIF, filename parsing, OCR)
 - **Perceptual image hashing** for near-duplicate photos
@@ -10,7 +10,7 @@ FileOrganizer is built for power users who need:
 - **CLI-first architecture** with optional Qt/Electron GUIs
 - **Complete control** over scanning, hashing, and organization workflows
 
-Unlike other tools that crash, misidentify duplicates, or sacrifice speed for features, FileOrganizer lets you **choose your trade-offs** via swappable providers and detailed benchmarking.
+Unlike other tools that crash, misidentify duplicates, or sacrifice speed for features, filez lets you **choose your trade-offs** via swappable providers and detailed benchmarking.
 
 ---
 
@@ -79,12 +79,12 @@ See [`README_CLI.md`](README_CLI.md) for detailed CLI usage.
 
 ### GUI (Legacy Qt App)
 
-The original Qt GUI (`OpenFileOrganizer`) is being refactored to use the CLI engine as a backend. For now, build with:
+The original Qt GUI (`Openfilez`) is being refactored to use the CLI engine as a backend. For now, build with:
 
 ```bash
 # Open in Visual Studio (Windows)
 # or Qt Creator (cross-platform)
-OpenFileOrganizer.sln / OpenFileOrganizer.pro
+Openfilez.sln / Openfilez.pro
 ```
 
 GUI decoupling roadmap: see [`docs/ROADMAP.md`](docs/ROADMAP.md).
@@ -107,7 +107,7 @@ GUI decoupling roadmap: see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Architecture
 
-FileOrganizer uses a **plugin architecture** where:
+filez uses a **plugin architecture** where:
 - **Core engine** (`fo_core`) is a portable C++20 library with provider interfaces
 - **Providers** (scanners, hashers, metadata, OCR) are swappable implementations
 - **CLI** (`fo_cli`) is the primary user interface; GUIs are thin clients
@@ -217,7 +217,7 @@ See [`docs/LIBRARY_EVALUATION.md`](docs/LIBRARY_EVALUATION.md) for benchmarks an
 ## FAQ
 
 **Q: Why not just use rmlint / jdupes / dupeGuru?**  
-A: They're excellent but have trade-offs. FileOrganizer offers:
+A: They're excellent but have trade-offs. filez offers:
 - More verification modes (hash-only, byte-compare, crypto)
 - Metadata fusion (combine EXIF/filename/mtime dates intelligently)
 - Plugin architecture (benchmark and choose your own providers)

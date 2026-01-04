@@ -186,7 +186,7 @@ void Exporter::to_html(std::ostream& out,
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FileOrganizer Report</title>
+<title>filez Report</title>
 <style>
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
 h1, h2 { color: #333; }
@@ -205,7 +205,7 @@ tr:nth-child(even) { background: #f8f9fa; }
 </style>
 </head>
 <body>
-<h1>FileOrganizer Report</h1>
+<h1>filez Report</h1>
 )";
 
     // Stats section

@@ -19,7 +19,7 @@
 using namespace std::chrono;
 
 static void print_usage() {
-    std::cout << "FileOrganizer v" << fo::core::FO_VERSION << "\n";
+    std::cout << "filez v" << fo::core::FO_VERSION << "\n";
     std::cout << "Usage: fo_cli <command> [options] [paths...]\n"
               << "Commands:\n"
               << "  scan         Scan for files\n"
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         return 0;
     }
     if (command == "-v" || command == "--version") {
-        std::cout << "FileOrganizer v" << fo::core::FO_VERSION << "\n";
+        std::cout << "filez v" << fo::core::FO_VERSION << "\n";
         std::cout << "Build Date: " << __DATE__ << " " << __TIME__ << "\n";
         return 0;
     }

@@ -99,7 +99,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="OpenFileOrganizer.h" />
+    <ClInclude Include="filez.h" />
     <ClCompile Include="libs\getopt.c" />
     <ClCompile Include="libs\libexif-0.6.24\libexif\exif-byte-order.c" />
     <ClCompile Include="libs\libexif-0.6.24\libexif\exif-content.c" />
@@ -114,7 +114,7 @@
     <ClCompile Include="libs\libexif-0.6.24\libexif\exif-mnote-data.c" />
     <ClCompile Include="libs\libexif-0.6.24\libexif\exif-tag.c" />
     <ClCompile Include="libs\libexif-0.6.24\libexif\exif-utils.c" />
-    <ClCompile Include="OpenFileOrganizer.cpp">
+    <ClCompile Include="filez.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
     </ClCompile>

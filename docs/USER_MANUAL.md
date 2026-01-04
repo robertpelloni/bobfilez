@@ -1,9 +1,9 @@
-# FileOrganizer CLI User Manual
+# filez CLI User Manual
 
 **Version**: 1.0  
 **Last Updated**: December 2024
 
-FileOrganizer is a cross-platform file organization and deduplication engine with a plugin architecture. This manual covers the CLI tool (`fo_cli`), the primary user interface.
+filez is a cross-platform file organization and deduplication engine with a plugin architecture. This manual covers the CLI tool (`fo_cli`), the primary user interface.
 
 ---
 
@@ -31,8 +31,8 @@ FileOrganizer is a cross-platform file organization and deduplication engine wit
 
 ```powershell
 # Clone the repository
-git clone https://github.com/robertpelloni/FileOrganizer.git
-cd FileOrganizer
+git clone https://github.com/robertpelloni/filez.git
+cd filez
 
 # Quick build (recommended)
 .\build.bat
@@ -52,8 +52,8 @@ cmake --build build --config Release
 sudo apt install build-essential cmake libsqlite3-dev
 
 # Clone and build
-git clone https://github.com/robertpelloni/FileOrganizer.git
-cd FileOrganizer
+git clone https://github.com/robertpelloni/filez.git
+cd filez
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 
@@ -556,7 +556,7 @@ These options apply to all commands:
 
 ### Database
 
-FileOrganizer stores all metadata in a SQLite database:
+filez stores all metadata in a SQLite database:
 
 ```bash
 # Default location

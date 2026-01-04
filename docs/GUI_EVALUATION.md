@@ -1,6 +1,6 @@
 # GUI Library Evaluation
 
-This document evaluates potential GUI frameworks for the FileOrganizer project, considering the existing C++ codebase, performance requirements, and cross-platform goals.
+This document evaluates potential GUI frameworks for the filez project, considering the existing C++ codebase, performance requirements, and cross-platform goals.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ This document evaluates potential GUI frameworks for the FileOrganizer project, 
 2.  **Performance**: Must handle lists of 100,000+ files and render thumbnails without UI freezing.
 3.  **Cross-Platform**: Windows, Linux, macOS.
 4.  **Maintainability**: Should align with the project's goal of robustness and longevity.
-5.  **Legacy Compatibility**: The project has an existing Qt codebase (`OpenFileOrganizer.cpp`).
+5.  **Legacy Compatibility**: The project has an existing Qt codebase (`Openfilez.cpp`).
 
 ## Candidates
 
@@ -20,7 +20,7 @@ This document evaluates potential GUI frameworks for the FileOrganizer project, 
     *   **Native C++**: Seamless integration with `fo_core`.
     *   **Mature**: Industry standard for C++ desktop apps.
     *   **Virtual Scrolling**: `QListView`/`QTableView` handle millions of rows efficiently.
-    *   **Existing Code**: The legacy `OpenFileOrganizer.cpp` is already written in Qt Widgets.
+    *   **Existing Code**: The legacy `Openfilez.cpp` is already written in Qt Widgets.
     *   **Tools**: Qt Creator and Designer are excellent.
 *   **Cons**:
     *   **Binary Size**: Large DLLs/shared libraries.
@@ -76,19 +76,19 @@ This document evaluates potential GUI frameworks for the FileOrganizer project, 
 
 ## Recommendation: Qt (Qt Widgets)
 
-**Verdict**: **Qt** is the best fit for FileOrganizer.
+**Verdict**: **Qt** is the best fit for filez.
 
 **Reasoning**:
-1.  **Inertia**: The project already has a significant amount of Qt code (`OpenFileOrganizer.cpp`, `.ui` files). Porting this to a clean architecture (Model-View-Controller) is easier than rewriting the UI layer in a new language.
+1.  **Inertia**: The project already has a significant amount of Qt code (`Openfilez.cpp`, `.ui` files). Porting this to a clean architecture (Model-View-Controller) is easier than rewriting the UI layer in a new language.
 2.  **Performance**: Qt's `QAbstractItemModel` is specifically designed for the "millions of items" use case we have (file lists).
 3.  **Integration**: We can link `fo_core` directly as a static library. No IPC overhead.
 4.  **Build System**: CMake has first-class support for Qt (`find_package(Qt6)`).
 
 ### Implementation Plan
 
-1.  **Decouple**: Continue extracting logic from `OpenFileOrganizer.cpp` into `fo_core`.
+1.  **Decouple**: Continue extracting logic from `Openfilez.cpp` into `fo_core`.
 2.  **Scaffold**: Create a new `gui/` subdirectory with a modern CMake setup.
-3.  **Refactor**: Move the legacy `OpenFileOrganizer` class into the new structure, stripping out the direct SQLite/Worker logic and replacing it with calls to `fo::core::Engine`.
+3.  **Refactor**: Move the legacy `Openfilez` class into the new structure, stripping out the direct SQLite/Worker logic and replacing it with calls to `fo::core::Engine`.
 4.  **Modernize**: Eventually migrate from `.ui` files to hand-coded layouts or QML if a custom look is desired, but Widgets are fine for a utility app.
 
 ## Alternative: Electron (Long Term)

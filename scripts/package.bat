@@ -8,7 +8,7 @@ set /p VERSION=<VERSION.md
 set VERSION=%VERSION: =%
 
 echo ========================================
-echo FileOrganizer Packaging Script v%VERSION%
+echo filez Packaging Script v%VERSION%
 echo ========================================
 
 :: Initialize Visual Studio Environment
@@ -60,7 +60,7 @@ if not exist dist\fo_cli.exe (
 
 :: Create ZIP archive
 echo [5/5] Creating ZIP archive...
-set ZIPNAME=FileOrganizer-%VERSION%-win64.zip
+set ZIPNAME=filez-%VERSION%-win64.zip
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path 'dist\*' -DestinationPath '%ZIPNAME%' -Force"
 if errorlevel 1 (
     echo ERROR: Failed to create ZIP archive

@@ -483,7 +483,7 @@ Documents folder.
 ## AI Multimodel Development Playbook
 
 ### Goals
-- Support “heavy AI assisted development” with orchestrated multi-model subagents that can plan, code, review, and test within FileOrganizer.
+- Support “heavy AI assisted development” with orchestrated multi-model subagents that can plan, code, review, and test within filez.
 - Ensure the codebase, tooling, and documentation give agents clear, safe entry points and guardrails.
 
 ### Knowledge & Context Surfaces

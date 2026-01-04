@@ -1,4 +1,4 @@
-# FileOrganizer CLI Engine (prototype)
+# filez CLI Engine (prototype)
 
 This is a cross-platform, console-first engine scaffold extracted from the monolithic Qt app. It scans directories, computes a fast prefilter hash, and groups potential duplicates by size + hash. It is designed for a plugin architecture so multiple providers (scanner, hasher, metadata, OCR, DB) can be swapped and benchmarked.
 

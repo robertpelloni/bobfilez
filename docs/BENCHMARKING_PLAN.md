@@ -1,6 +1,6 @@
 # Benchmarking Plan
 
-FileOrganizer maintains multiple implementations per feature (scanners, hashers, metadata providers) to enable empirical comparison and optimization. This document defines datasets, metrics, methodology, and reporting.
+filez maintains multiple implementations per feature (scanners, hashers, metadata providers) to enable empirical comparison and optimization. This document defines datasets, metrics, methodology, and reporting.
 
 ---
 

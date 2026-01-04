@@ -6,7 +6,7 @@
 
 The project is organized as follows:
 
-- **core/**: Contains the core logic of the FileOrganizer application (scanning, hashing, database, etc.).
+- **core/**: Contains the core logic of the filez application (scanning, hashing, database, etc.).
 - **cli/**: Contains the Command Line Interface (CLI) application.
 - **libs/**: Contains all external dependencies included as git submodules.
 - **docs/**: Project documentation.

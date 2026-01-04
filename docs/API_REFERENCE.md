@@ -1,4 +1,4 @@
-# FileOrganizer API Reference
+# filez API Reference
 
 ## Generating API Documentation
 

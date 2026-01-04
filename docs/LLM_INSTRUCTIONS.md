@@ -1,6 +1,6 @@
 # Universal LLM Instructions
 
-This document serves as the central instruction file for all AI agents (GitHub Copilot, Claude, Gemini, GPT, etc.) working on the FileOrganizer project.
+This document serves as the central instruction file for all AI agents (GitHub Copilot, Claude, Gemini, GPT, etc.) working on the filez project.
 
 **Current Version:** See `VERSION.md` (Single Source of Truth)
 
@@ -99,7 +99,7 @@ static auto reg = []() {
 ## 5. Project Structure
 
 ```
-FileOrganizer/
+filez/
 ├── core/                    # fo_core static library
 │   ├── include/fo/core/     # Public headers
 │   └── src/                 # Implementation

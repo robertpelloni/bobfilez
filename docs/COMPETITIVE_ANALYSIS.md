@@ -90,7 +90,7 @@ This document analyzes other major file management and organization software to 
 
 ## Summary
 
-| Feature                 | dupeGuru | rmlint | jdupes | Czkawka | FileOrganizer (Planned) |
+| Feature                 | dupeGuru | rmlint | jdupes | Czkawka | filez (Planned) |
 | ----------------------- | :------: | :----: | :----: | :-----: | :---------------------: |
 | GUI                     |   Yes    |   No   |   No   |   Yes   |           Yes           |
 | CLI                     |    No    |  Yes   |  Yes   |   Yes   |           Yes           |

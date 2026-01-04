@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OpenFileOrganizerClass</class>
- <widget class="QMainWindow" name="OpenFileOrganizerClass">
+ <class>filezClass</class>
+ <widget class="QMainWindow" name="filezClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>OpenFileOrganizer</string>
+   <string>filez</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -225,7 +225,7 @@
  </widget>
  <layoutdefault spacing="6" margin="9"/>
  <resources>
-   <include location="OpenFileOrganizer.qrc"/>
+   <include location="filez.qrc"/>
  </resources>
  <connections/>
  <designerdata>

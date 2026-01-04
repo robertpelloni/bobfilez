@@ -85,7 +85,7 @@ using std::wstring;
 #include <sqlite3.h>
 
 #include <QtWidgets/QMainWindow>
-#include "ui_OpenFileOrganizer.h"
+#include "ui_filez.h"
 #include <QPlainTextEdit>
 #include <qthread.h>
 #include <QFileDialog>
@@ -571,20 +571,20 @@ private:
 
 
 //==============================================================================================================================================================
-class OpenFileOrganizer : public QMainWindow
+class filez : public QMainWindow
 {//==============================================================================================================================================================
 	Q_OBJECT
 
 public:
-	OpenFileOrganizer(QWidget* parent = nullptr);
-	~OpenFileOrganizer();
+	filez(QWidget* parent = nullptr);
+	~filez();
 
 	static void QMessageOutput(QtMsgType, const QMessageLogContext&, const QString& msg);
 
 	void initWorker(Worker* worker);
 
 private:
-	Ui::OpenFileOrganizerClass ui;
+	Ui::filezClass ui;
 
 	// MessageHandler for display and ThreadLogStream for redirecting cout
 	MessageHandler* msgHandler = Q_NULLPTR;

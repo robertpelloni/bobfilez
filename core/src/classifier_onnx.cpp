@@ -15,7 +15,7 @@ namespace fo::core {
 
 class OnnxRuntimeClassifier : public IImageClassifier {
 public:
-    OnnxRuntimeClassifier() : env_(ORT_LOGGING_LEVEL_WARNING, "FileOrganizer") {
+    OnnxRuntimeClassifier() : env_(ORT_LOGGING_LEVEL_WARNING, "filez") {
         // Initialize session options
         session_options_.SetIntraOpNumThreads(1);
         session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_BASIC);
