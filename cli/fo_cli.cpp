@@ -16,6 +16,8 @@
 #include <sstream>
 #include <ctime>
 
+void lint_command(const std::vector<std::string>& args);
+
 using namespace std::chrono;
 
 static void print_usage() {
@@ -32,6 +34,7 @@ static void print_usage() {
               << "  organize     Organize files based on rules\n"
               << "  delete-duplicates Delete duplicate files\n"
               << "  rename       Rename files based on pattern\n"
+              << "  lint         Lint filesystem for empty files/broken links\n"
               << "  export       Export scan results to JSON/CSV/HTML\n"
               << "  undo         Undo the last file operation\n"
               << "  history      Show operation history\n"

@@ -1,18 +1,11 @@
 #include "fo/core/registry.hpp"
 #include "fo/core/lint_interface.hpp"
-#include "fo/core/interfaces.hpp"
-#include "fo/core/engine.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
+#include <filesystem>
 
-// Add to CLI commands
 void lint_command(const std::vector<std::string>& args) {
-    if (args.empty()) {
-        std::cerr << "Usage: fo_cli lint <path> [options]\n";
-        return;
-    }
-
     auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
     if (!linter) {
         std::cerr << "Error: Standard linter not found.\n";
@@ -26,13 +19,22 @@ void lint_command(const std::vector<std::string>& args) {
         }
     }
 
+    if (paths.empty()) {
+        std::cerr << "Usage: fo_cli lint <path> [options]\n";
+        return;
+    }
+
     auto results = linter->lint(paths);
 
     std::cout << "Lint Results:\n";
     for (const auto& res : results) {
-        std::cout << "[" << (res.type == fo::core::LintType::EmptyFile ? "EMPTY FILE" :
-                             res.type == fo::core::LintType::EmptyDirectory ? "EMPTY DIR" :
-                             res.type == fo::core::LintType::BrokenSymlink ? "BROKEN LINK" : "TEMP FILE") 
-                  << "] " << res.path.string() << " (" << res.details << ")\n";
+        std::string type_str;
+        switch (res.type) {
+            case fo::core::LintType::EmptyFile: type_str = "EMPTY FILE"; break;
+            case fo::core::LintType::EmptyDirectory: type_str = "EMPTY DIR"; break;
+            case fo::core::LintType::BrokenSymlink: type_str = "BROKEN LINK"; break;
+            case fo::core::LintType::TempFile: type_str = "TEMP FILE"; break;
+        }
+        std::cout << "[" << type_str << "] " << res.path.string() << " (" << res.details << ")\n";
     }
 }
