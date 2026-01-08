@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-01-04 01:07:11
+**Last Updated:** 2026-01-08 02:11:04
 
 ## Project Structure
 
@@ -158,3 +158,4 @@ The project is organized as follows:
 | vcpkg | `vcpkg` | 2025.12.12 | `e7d511847f` | 2025-12-30 | 27344 | [Link](https://github.com/microsoft/vcpkg) |
 | ai-file-sorter | `ai-file-sorter` | v1.4.0 | `8e65ce9` | 2025-12-31 | 345 | [Link](https://github.com/hyperfield/ai-file-sorter) |
 | Local-File-Organizer | `Local-File-Organizer` | new_version | `a195599` | 2024-09-30 | 33 | [Link](https://github.com/QiuYannnn/Local-File-Organizer) |
+| VERT | `VERT` | - | `838a6c7` | 2026-01-02 | 734 | [Link](https://github.com/VERT-sh/VERT) |
