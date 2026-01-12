@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-01-09 | **Commit:** 212ee4c5 | **Branch:** main | **Version:** 2.1.0
+**Generated:** 2026-01-12 | **Commit:** 1bfa2831 | **Branch:** main | **Version:** 2.1.0
 
 > Full guidelines: [docs/LLM_INSTRUCTIONS.md](docs/LLM_INSTRUCTIONS.md)
 
@@ -102,6 +102,46 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-01-12
+**Author:** Sisyphus (Claude)
+
+**Scope:** Java 21 port - complete migration of filez to Java with JNI support
+
+**Status:**
+- ✅ Created `filez-java/` - full Java 21 port with multi-module Gradle structure
+- ✅ Core types as Java records: `FileInfo`, `Hashes`, `DuplicateGroup`, `ScanResult`, etc.
+- ✅ Interfaces: `FileScanner`, `Hasher`, `MetadataProvider`, `OCRProvider`, `Classifier`
+- ✅ Registry pattern for provider management (same as C++ version)
+- ✅ Implementations: `NioFileScanner`, `JavaHasher` (SHA-256, MD5, XXH64)
+- ✅ Database layer: `DatabaseManager`, `FileRepository`, `DuplicateRepository` (SQLite)
+- ✅ CLI with picocli: `scan`, `hash`, `duplicates`, `metadata`, `organize` commands
+- ✅ JNI stubs: `Blake3Jni`, `XxHash64Jni`, `NativeHasher` with auto-fallback
+- ✅ 30 JUnit 5 tests (all passing): `NioFileScannerTest`, `JavaHasherTest`, `FileRepositoryTest`
+- ✅ Run scripts: `filez.bat`, `filez.sh` with memory flags
+- ✅ Committed and pushed: `1bfa2831`
+
+**Project Structure:**
+```
+filez-java/
+├── core/           # Types, interfaces, implementations, database
+├── cli/            # picocli commands (FilezApp entry point)
+├── native/         # JNI wrappers (com.filez.jni package)
+├── build/          # Compiled classes
+└── *.jar           # Dependencies (picocli, sqlite-jdbc, junit, slf4j)
+```
+
+**Next:**
+1. Build native library (`filez_native.dll`/`.so`) with BLAKE3/XXHash64 JNI implementations
+2. Add Gradle wrapper (`gradlew`) for proper build automation
+3. Create fat JAR for single-file distribution
+4. Add more tests for CLI commands and DuplicateRepository
+5. Consider GraalVM native-image for startup performance
+
+**Handoff Note:**
+Java port is functional and tested. CLI works: `filez scan`, `filez duplicates`, etc. JNI stubs ready for native implementation. The C++ version remains the production codebase; Java port is for cross-platform distribution and JVM ecosystem integration.
 
 ---
 
