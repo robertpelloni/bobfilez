@@ -6,12 +6,12 @@
 
 ## Overview
 
-C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), optional Qt GUI, 130+ library submodules.
+**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), optional Qt GUI, 130+ library submodules. Part of the bob software ecosystem.
 
 ## Structure
 
 ```
-filez/
+bobfilez/
 ├── core/           # fo_core static library (interfaces, providers, engine, DB)
 ├── cli/            # fo_cli executable (15+ commands)
 ├── gui/            # fo_gui Qt6 application (optional)

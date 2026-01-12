@@ -1,8 +1,10 @@
-# filez
+# bobfilez
 
 **An extremely robust, cross-platform file organization and deduplication engine with plugin architecture and empirical benchmarking.**
 
-filez is built for power users who need:
+*Part of the bob software ecosystem by Robert Pelloni.*
+
+bobfilez is built for power users who need:
 - **Accurate duplicate detection** with multiple verification strategies
 - **Flexible metadata extraction** (EXIF, filename parsing, OCR)
 - **Perceptual image hashing** for near-duplicate photos
@@ -10,7 +12,7 @@ filez is built for power users who need:
 - **CLI-first architecture** with optional Qt/Electron GUIs
 - **Complete control** over scanning, hashing, and organization workflows
 
-Unlike other tools that crash, misidentify duplicates, or sacrifice speed for features, filez lets you **choose your trade-offs** via swappable providers and detailed benchmarking.
+Unlike other tools that crash, misidentify duplicates, or sacrifice speed for features, bobfilez lets you **choose your trade-offs** via swappable providers and detailed benchmarking.
 
 ---
 

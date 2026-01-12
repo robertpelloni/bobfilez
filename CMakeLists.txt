@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(filezEngine LANGUAGES C CXX)
+project(bobfilezEngine LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,11 +36,11 @@ endif()
 # --- CPack Configuration ---
 if(FO_BUILD_CLI)
     # Set package information
-    set(CPACK_PACKAGE_NAME "filez")
-    set(CPACK_PACKAGE_VENDOR "filez Team")
+    set(CPACK_PACKAGE_NAME "bobfilez")
+    set(CPACK_PACKAGE_VENDOR "bobfilez Team")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance file organization tool")
     set(CPACK_PACKAGE_VERSION "${FO_VERSION_STRING}")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "filez")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "bobfilez")
     set(CPACK_PACKAGE_CONTACT "maintainer@example.com")
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
     set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
