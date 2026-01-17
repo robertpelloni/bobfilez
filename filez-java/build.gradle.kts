@@ -12,21 +12,53 @@ allprojects {
     }
     
     subprojects {
-        apply(plugin = "java")
-        
-        java {
-            toolchain {
-                languageVersion.set(JavaLanguageVersion.of(21))
-            }
+        project(":gui") {
+            apply(plugin = "javafx")
         }
         
-        tasks.withType<JavaCompile> {
-            options.encoding = "UTF-8"
-            options.compilerArgs.addAll(listOf("-Xlint:all"))
+        project(":cli") {
+            apply(plugin = "application")
         }
         
-        tasks.withType<Test> {
-            useJUnitPlatform()
+        project(":core") {
+            apply(plugin = "java-library")
         }
+        
+        project(":native") {
+            apply(plugin = "java-library")
+        }
+    }
+}
+
+dependencies {
+    implementation(project(":core"))
+    implementation(project(":cli"))
+    
+    implementation("org.openjfx:javafx-controls:21.0.2")
+    implementation("org.openjfx:javafx-fxml:21.0.2")
+    
+    implementation("org.openjfx:javafx-swing:21.0.2")
+    
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core:3.25.3")
+    testImplementation("org.testfx:junit-jupiter:5.11.1")
+}
+
+application {
+    mainClass.set("com.filez.gui.FilezApplication")
+    
+    applicationDefaultJvmArgs = listOf(
+        "-Dprism.forceGPU=false",
+        "-Dprism.verbose=true"
+    )
+    
+    application {
+        name = "filez"
+        
+        jvmArgs = listOf(
+            "-Xmx256m",
+            "-Xms64m"
+        )
     }
 }
