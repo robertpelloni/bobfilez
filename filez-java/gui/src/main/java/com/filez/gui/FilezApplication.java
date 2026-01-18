@@ -1,5 +1,4 @@
-package com.filez.gui;
-
+import com.filez.cli.FilezApp;
 import com.filez.cli.FilezApp;
 import javafx.application.Application;
 import javafx.concurrent.Task;
@@ -9,12 +8,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+
+import com.filez.gui.ExportDialog;
 
 public class FilezApplication extends Application {
     
@@ -58,6 +58,12 @@ public class FilezApplication extends Application {
         
         Button duplicatesButton = new Button("Find Duplicates");
         duplicatesButton.setOnAction(e -> findDuplicates());
+        
+        Button exportButton = new Button("Export Results");
+        exportButton.setOnAction(e -> openExportDialog());
+        
+        Button exportButton = new Button("Export Results");
+        exportButton.setOnAction(e -> openExportDialog());
         
         HBox pathBox = new HBox(10, new TextField(pathField));
         HBox.setHgrow(pathField);
