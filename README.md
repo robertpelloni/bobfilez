@@ -1,3 +1,5 @@
+# EXTREME WIP ALPHA DEVELOPED "IN THE OPEN," DON'T BOTHER TRYING TO USE IT UNLESS YOU PLAN ON HACKING ON IT TO GET IT WORKING
+
 # bobfilez
 
 **An extremely robust, cross-platform file organization and deduplication engine with plugin architecture and empirical benchmarking.**
