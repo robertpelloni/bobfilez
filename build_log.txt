@@ -1,0 +1,198 @@
+[INFO] Found vcvars64 at: "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat"
+[INFO] Initializing environment...
+**********************************************************************
+** Visual Studio 2026 Developer Command Prompt v18.3.0-insiders
+** Copyright (c) 2025 Microsoft Corporation
+**********************************************************************
+[vcvarsall.bat] Environment initialized for: 'x64'
+[INFO] Environment initialized. Checking tools...
+C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64\cl.exe
+C:\Users\hyper\AppData\Local\Microsoft\WinGet\Packages\Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe\ninja.exe
+C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe
+C:\Program Files\CMake\bin\cmake.exe
+C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe
+[INFO] Cleaning build directory...
+[INFO] Running CMake Configure...
+-- Running vcpkg install
+Detecting compiler hash for triplet x64-windows...
+Compiler found: C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+The following packages will be built and installed:
+    benchmark:x64-windows@1.9.5
+    blake3:x64-windows@1.8.3
+    gtest:x64-windows@1.17.0#2
+    nlohmann-json:x64-windows@3.12.0#2
+    sqlite3[core,json1]:x64-windows@3.51.2
+  * vcpkg-cmake:x64-windows@2024-04-23
+  * vcpkg-cmake-config:x64-windows@2024-05-23
+    yaml-cpp:x64-windows@0.8.0#3
+Additional packages (*) will be modified to complete this operation.
+Restored 8 package(s) from C:\Users\hyper\AppData\Local\vcpkg\archives in 990 ms. Use --debug to see more details.
+Installing 1/8 vcpkg-cmake-config:x64-windows@2024-05-23...
+Elapsed time to handle vcpkg-cmake-config:x64-windows: 43 ms
+vcpkg-cmake-config:x64-windows package ABI: d95d10e35b78d5a79cf8cfe2dd63c0f09d81ea5308960aa95263786d40716133
+Installing 2/8 vcpkg-cmake:x64-windows@2024-04-23...
+Elapsed time to handle vcpkg-cmake:x64-windows: 37.1 ms
+vcpkg-cmake:x64-windows package ABI: b8c74699039605aef25f7fff6d30271f32522e8e02091d8eac983f48d8a445b0
+Installing 3/8 benchmark:x64-windows@1.9.5...
+Elapsed time to handle benchmark:x64-windows: 140 ms
+benchmark:x64-windows package ABI: 9ebe99b18513101f5682fe5f4e7ab4b8607ec0e9fb38c5835e9d776088a8546f
+Installing 4/8 blake3:x64-windows@1.8.3...
+Elapsed time to handle blake3:x64-windows: 64.7 ms
+blake3:x64-windows package ABI: 865addef66353e55b491ff8689903f491d9a92507ec556180cc74a254abfc36d
+Installing 5/8 gtest:x64-windows@1.17.0#2...
+Elapsed time to handle gtest:x64-windows: 283 ms
+gtest:x64-windows package ABI: 6360ae2b5a549a4c47cde14c5ec176cf6426738cf945c876750e73ef54b997d5
+Installing 6/8 nlohmann-json:x64-windows@3.12.0#2...
+Elapsed time to handle nlohmann-json:x64-windows: 180 ms
+nlohmann-json:x64-windows package ABI: 1c6a7fdf39d697d5bd7155d129ec6a10e711b05cdd2d8f755547f7d79acd18de
+Installing 7/8 sqlite3[core,json1]:x64-windows@3.51.2...
+Elapsed time to handle sqlite3:x64-windows: 86 ms
+sqlite3:x64-windows package ABI: 8179b7e64e9f06b6405dad5dbd5dae338f6d0a9ed2ac5646cc5dafe14603d2cc
+Installing 8/8 yaml-cpp:x64-windows@0.8.0#3...
+Elapsed time to handle yaml-cpp:x64-windows: 155 ms
+yaml-cpp:x64-windows package ABI: 51e18dfbfe155b7eeb03d2510b5f5f646f8a5d5d09b68b4d58c029f6b6d1baf1
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Packages installed in this vcpkg installation declare the following licenses:
+(CC0-1.0 OR Apache-2.0)
+Apache-2.0
+BSD-3-Clause
+MIT
+blessing
+benchmark provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(benchmark CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE benchmark::benchmark benchmark::benchmark_main)
+
+benchmark provides pkg-config modules:
+
+  # Google microbenchmark framework
+  benchmark
+
+  # Google microbenchmark framework (with main() function)
+  benchmark_main
+
+blake3 provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(blake3 CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE BLAKE3::blake3)
+
+blake3 provides pkg-config modules:
+
+  # BLAKE3 C implementation
+  libblake3
+
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+The package nlohmann-json provides CMake targets:
+
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
+
+The package nlohmann-json can be configured to not provide implicit conversions via a custom triplet file:
+
+    set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+
+For more information, see the docs here:
+    
+    https://json.nlohmann.me/api/macros/json_use_implicit_conversions/
+
+sqlite3 provides pkgconfig bindings.
+sqlite3 provides CMake targets:
+
+    find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE unofficial::sqlite3::sqlite3)
+
+yaml-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(yaml-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE yaml-cpp::yaml-cpp)
+
+yaml-cpp provides pkg-config modules:
+
+  # A YAML parser and emitter for C++
+  yaml-cpp
+
+All requested installations completed successfully in: 1 s
+-- Running vcpkg install - done
+-- The C compiler identification is MSVC 19.50.35723.0
+-- The CXX compiler identification is MSVC 19.50.35723.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found BLAKE3, enabling blake3 hasher
+-- Configuring done (24.6s)
+-- Generating done (0.3s)
+-- Build files have been written to: C:/Users/hyper/workspace/bobfilez/build
+[INFO] Running CMake Build...
+[1/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\tinyxml2\tinyxml2.cpp.obj
+[2/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\TinyEXIF\TinyEXIF.cpp.obj
+[3/58] Building CXX object core\CMakeFiles\fo_core.dir\src\classifier_onnx.cpp.obj
+[4/58] Building CXX object core\CMakeFiles\fo_core.dir\src\ocr_tesseract.cpp.obj
+[5/58] Building CXX object core\CMakeFiles\fo_core.dir\src\scan_session_repository.cpp.obj
+[6/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\register_all_providers.cpp.obj
+[7/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\tesseract\tesseract_ocr_provider.cpp.obj
+[8/58] Building CXX object core\CMakeFiles\fo_core.dir\src\duplicate_repository.cpp.obj
+[9/58] Building C object core\CMakeFiles\fo_core.dir\__\libs\dirent\src\dirent.c.obj
+C:\Users\hyper\workspace\bobfilez\libs\dirent\src\dirent.c(53): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\hyper\workspace\bobfilez\libs\dirent\src\dirent.c(53): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+[10/58] Building CXX object core\CMakeFiles\fo_core.dir\src\duplicate_finders.cpp.obj
+[11/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\blake3\blake3_hasher.cpp.obj
+[12/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\sha256.cpp.obj
+[13/58] Building CXX object core\CMakeFiles\fo_core.dir\src\database.cpp.obj
+[14/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\sha1.cpp.obj
+[15/58] Building CXX object core\CMakeFiles\fo_core.dir\src\hasher_xxhash.cpp.obj
+[16/58] Building CXX object core\CMakeFiles\fo_core.dir\src\hasher_blake3.cpp.obj
+[17/58] Building CXX object core\CMakeFiles\fo_core.dir\src\operation_repository.cpp.obj
+[18/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\md5.cpp.obj
+[19/58] Building CXX object core\CMakeFiles\fo_core.dir\src\hasher_sha256.cpp.obj
+[20/58] Building CXX object core\CMakeFiles\fo_core.dir\src\dupe_size_fast.cpp.obj
+[21/58] Building CXX object core\CMakeFiles\fo_core.dir\src\engine.cpp.obj
+[22/58] Building CXX object core\CMakeFiles\fo_core.dir\src\thumbnail.cpp.obj
+[23/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\exiv2\exiv2_metadata_provider.cpp.obj
+[24/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\crc32.cpp.obj
+[25/58] Building CXX object core\CMakeFiles\fo_core.dir\src\metadata_tinyexif.cpp.obj
+C:\Users\hyper\workspace\bobfilez\core\src\metadata_tinyexif.cpp(20): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+[26/58] Building CXX object core\CMakeFiles\fo_core.dir\src\hasher_fast64.cpp.obj
+[27/58] Building CXX object core\CMakeFiles\fo_core.dir\src\scanner_win32.cpp.obj
+[28/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\keccak.cpp.obj
+C:\Users\hyper\workspace\bobfilez\libs\hash-library\keccak.cpp(155): warning C4456: declaration of 'one' hides previous local declaration
+C:\Users\hyper\workspace\bobfilez\libs\hash-library\keccak.cpp(122): note: see declaration of 'one'
+[29/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\dhash_reg.cpp.obj
+[30/58] Building CXX object core\CMakeFiles\fo_core.dir\src\perceptual_opencv.cpp.obj
+[31/58] Building CXX object core\CMakeFiles\fo_core.dir\src\scanner_dirent.cpp.obj
+[32/58] Building CXX object core\CMakeFiles\fo_core.dir\src\metadata_exiv2.cpp.obj
+[33/58] Building CXX object core\CMakeFiles\fo_core.dir\src\scanner_std.cpp.obj
+[34/58] Building CXX object core\CMakeFiles\fo_core.dir\src\export.cpp.obj
+[35/58] Building CXX object core\CMakeFiles\fo_core.dir\src\file_repository.cpp.obj
+C:\Users\hyper\workspace\bobfilez\core\src\file_repository.cpp(193): warning C4996: 'std::filesystem::u8path': warning STL4021: The std::filesystem::u8path() overloads are deprecated in C++20. The constructors of std::filesystem::path provide equivalent functionality via construction from u8string, u8string_view, or iterators with value_type char8_t. You can define _SILENCE_CXX20_U8PATH_DEPRECATION_WARNING or _SILENCE_ALL_CXX20_DEPRECATION_WARNINGS to suppress this warning.
+C:\Users\hyper\workspace\bobfilez\core\src\file_repository.cpp(300): warning C4996: 'std::filesystem::u8path': warning STL4021: The std::filesystem::u8path() overloads are deprecated in C++20. The constructors of std::filesystem::path provide equivalent functionality via construction from u8string, u8string_view, or iterators with value_type char8_t. You can define _SILENCE_CXX20_U8PATH_DEPRECATION_WARNING or _SILENCE_ALL_CXX20_DEPRECATION_WARNINGS to suppress this warning.
+[36/58] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\dhash.cpp.obj
+C:\Users\hyper\workspace\bobfilez\core\src\providers\dhash.cpp(36): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+[37/58] Building CXX object core\CMakeFiles\fo_core.dir\__\libs\hash-library\sha3.cpp.obj
+C:\Users\hyper\workspace\bobfilez\libs\hash-library\sha3.cpp(157): warning C4456: declaration of 'one' hides previous local declaration
+C:\Users\hyper\workspace\bobfilez\libs\hash-library\sha3.cpp(124): note: see declaration of 'one'
+[38/58] Building CXX object core\CMakeFiles\fo_core.dir\src\ads_cache.cpp.obj
+[39/58] Building CXX object cli\CMakeFiles\fo_cli.dir\cmd_lint.cpp.obj
+[40/58] Building CXX object core\CMakeFiles\fo_core.dir\src\rule_engine.cpp.obj
+Defining YAML_CPP_API for DLL import
+C:\Users\hyper\workspace\bobfilez\core\src\rule_engine.cpp(90): warning C4996: 'gmtime': This function or variable may be unsafe. Consider using gmtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\hyper\workspace\bobfilez\core\src\rule_engine.cpp(79): warning C4100: 'tags': unreferenced parameter
+[41/58] Building CXX object core\CMakeFiles\fo_core.dir\src\ignore_repository.cpp.obj
+[42/58] Building CXX object benchmarks\CMakeFiles\fo_benchmarks.dir\fo_benchmarks.cpp.obj

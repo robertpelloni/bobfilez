@@ -33,7 +33,7 @@ void lint_command(const std::vector<std::string>& args) {
             case fo::core::LintType::EmptyFile: type_str = "EMPTY FILE"; break;
             case fo::core::LintType::EmptyDirectory: type_str = "EMPTY DIR"; break;
             case fo::core::LintType::BrokenSymlink: type_str = "BROKEN LINK"; break;
-            case fo::core::LintType::TempFile: type_str = "TEMP FILE"; break;
+            case fo::core::LintType::TemporaryFile: type_str = "TEMP FILE"; break;
         }
         std::cout << "[" << type_str << "] " << res.path.string() << " (" << res.details << ")\n";
     }

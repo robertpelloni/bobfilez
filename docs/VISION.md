@@ -381,7 +381,8 @@ Configurable via `--date-priority` flag.
 | 4. Benchmarking | ✅ Complete | Google Benchmark integration |
 | 5. GUI Decoupling | ✅ Complete | Qt6 frontend |
 | 6. Advanced Features | ✅ Complete | AI classification, rule engine |
-| 7. Polish & Release | 🔄 In Progress | Installers, fuzzing, v1.0 launch |
+| 7. Polish & Release | ✅ Complete | Installers, fuzzing, v1.0 launch |
+| 8. Distribution & Maintenance | 🔄 In Progress | MSI/AppImage installers, Chocolatey/Winget packages |
 
 ---
 

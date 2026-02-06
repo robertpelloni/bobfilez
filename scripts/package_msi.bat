@@ -32,7 +32,7 @@ candle wix\main.wxs -out wix\output\main.wixobj -arch x64
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
 echo [INFO] Linking MSI...
-light wix\output\main.wixobj -out filez-2.1.0-win64.msi -b wix
+light wix\output\main.wixobj -out filez-2.2.0-win64.msi -b wix
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
-echo [SUCCESS] MSI package created: filez-2.1.0-win64.msi
+echo [SUCCESS] MSI package created: filez-2.2.0-win64.msi

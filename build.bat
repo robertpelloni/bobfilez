@@ -17,6 +17,6 @@ if exist "C:\Program Files\Microsoft Visual Studio\2022\Preview\VC\Auxiliary\Bui
     exit /b 1
 )
 
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON
+cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON
 cmake --build build
 

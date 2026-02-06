@@ -2,7 +2,7 @@
 
 **Generated:** 2026-01-12 | **Commit:** 1bfa2831 | **Branch:** main | **Version:** 2.1.0
 
-> Full guidelines: [docs/LLM_INSTRUCTIONS.md](docs/LLM_INSTRUCTIONS.md)
+> Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
 ## Overview
 

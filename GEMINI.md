@@ -1,6 +1,6 @@
 # Gemini Instructions
 
-> **IMPORTANT**: Please refer to [docs/LLM_INSTRUCTIONS.md](docs/LLM_INSTRUCTIONS.md) for the universal instructions, versioning protocol, and coding standards.
+> **IMPORTANT**: Please refer to [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md) for the universal instructions, versioning protocol, and coding standards.
 
 ## Gemini-Specific Guidelines
 

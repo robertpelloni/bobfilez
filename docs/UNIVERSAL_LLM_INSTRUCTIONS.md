@@ -126,14 +126,14 @@ filez/
 | `AGENTS.md` | Quick reference for AI agents |
 | `docs/ROADMAP.md` | Feature roadmap |
 | `docs/SUBMODULES.md` | Submodule dashboard |
-| `docs/LLM_INSTRUCTIONS.md` | This file |
+| `docs/UNIVERSAL_LLM_INSTRUCTIONS.md` | This file |
 | `vcpkg.json` | Package dependencies |
 
 ---
 
 ## 7. Handoff Protocol
 
-When finishing a session, update `AGENTS.md` handoff log (in docs/LLM_INSTRUCTIONS.md or separate):
+When finishing a session, update `AGENTS.md` handoff log (in `docs/UNIVERSAL_LLM_INSTRUCTIONS.md` or separate):
 
 ```markdown
 ### Update: YYYY-MM-DD

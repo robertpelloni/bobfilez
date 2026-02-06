@@ -369,3 +369,8 @@ build/
 
 core/include/fo/core/version.hpp
 .aider*
+
+# vcpkg
+vcpkg/
+vcpkg_installed/
+
