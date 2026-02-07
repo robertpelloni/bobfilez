@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
         DeleteDuplicatesCommand.class,
         UndoCommand.class,
         HistoryCommand.class,
+        SimilarCommand.class,
         CommandLine.HelpCommand.class
     }
 )
