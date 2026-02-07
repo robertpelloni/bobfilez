@@ -3,6 +3,7 @@ package com.filez.core.impl;
 import com.filez.core.interfaces.FileScanner;
 import com.filez.core.interfaces.Hasher;
 import com.filez.core.interfaces.MetadataProvider;
+import com.filez.core.interfaces.OCRProvider;
 import com.filez.core.interfaces.PerceptualHasher;
 import com.filez.core.registry.Registry;
 
@@ -16,5 +17,6 @@ public final class CoreModule {
         Registry.of(MetadataProvider.class).register("java", JavaMetadataProvider::new);
         Registry.of(PerceptualHasher.class).register("dhash", () -> new JavaPerceptualHasher("dhash"));
         Registry.of(PerceptualHasher.class).register("ahash", () -> new JavaPerceptualHasher("ahash"));
+        Registry.of(OCRProvider.class).register("tesseract", JavaOCRProvider::new);
     }
 }

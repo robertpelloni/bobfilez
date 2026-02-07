@@ -9,6 +9,9 @@ dependencies {
     // Metadata extraction (EXIF, etc.)
     api("com.drewnoakes:metadata-extractor:2.19.0")
     
+    // OCR
+    api("net.sourceforge.tess4j:tess4j:5.9.0")
+    
     // Null safety annotations
     compileOnly("org.jetbrains:annotations:24.1.0")
     

@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
         UndoCommand.class,
         HistoryCommand.class,
         SimilarCommand.class,
+        OCRCommand.class,
         CommandLine.HelpCommand.class
     }
 )
