@@ -33,7 +33,7 @@ public class MetadataCommand implements Callable<Integer> {
             defaultValue = "jpg,jpeg,png,tiff,heic,raw,cr2,nef,arw")
     private Set<String> extensions;
 
-    @Option(names = {"--provider"}, description = "Metadata provider to use", defaultValue = "exiv2")
+    @Option(names = {"--provider"}, description = "Metadata provider to use", defaultValue = "java")
     private String providerName;
 
     @Option(names = {"--format"}, description = "Output format (text, json)", defaultValue = "text")
@@ -86,7 +86,7 @@ public class MetadataCommand implements Callable<Integer> {
 
     private void printText(Path path, ImageMetadata meta) {
         System.out.println("=== " + path.getFileName() + " ===");
-        meta.date().ifPresent(d -> System.out.println("  Date: " + d));
+        meta.date().ifPresent(d -> d.bestDate().ifPresent(date -> System.out.println("  Date: " + date)));
         meta.cameraMake().ifPresent(v -> System.out.println("  Camera Make: " + v));
         meta.cameraModel().ifPresent(v -> System.out.println("  Camera Model: " + v));
         meta.width().ifPresent(w -> meta.height().ifPresent(h -> 
@@ -100,7 +100,8 @@ public class MetadataCommand implements Callable<Integer> {
     private void printJson(Path path, ImageMetadata meta) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"path\":\"").append(escapeJson(path.toString())).append("\"");
-        meta.date().ifPresent(d -> sb.append(",\"date\":\"").append(d).append("\""));
+        meta.date().flatMap(d -> d.bestDate()).ifPresent(date -> 
+            sb.append(",\"date\":\"").append(date).append("\""));
         meta.cameraMake().ifPresent(v -> sb.append(",\"cameraMake\":\"").append(escapeJson(v)).append("\""));
         meta.cameraModel().ifPresent(v -> sb.append(",\"cameraModel\":\"").append(escapeJson(v)).append("\""));
         meta.width().ifPresent(w -> sb.append(",\"width\":").append(w));
