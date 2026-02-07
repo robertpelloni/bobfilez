@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-02-07
+
+### Fixed
+- **Submodules**: Updated `ai-file-sorter` submodule to a valid commit (`95a23a5`) after upstream force-push broke historical references.
+- **Submodule Dashboard**: Regenerated `docs/SUBMODULES.md` with updated submodule states.
+
 ## [2.2.0] - 2026-02-05
 
 ### Added

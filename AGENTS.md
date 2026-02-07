@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-01-12 | **Commit:** 1bfa2831 | **Branch:** main | **Version:** 2.1.0
+**Generated:** 2026-02-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.1
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -90,8 +90,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.1.0)
+## Current Status (v2.2.1)
 
+- ✅ Fixed `ai-file-sorter` submodule clone error (invalid ref `c038d3e`).
 - ✅ 15+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, etc.)
 - ✅ 59 passing tests
 - ✅ Qt6 GUI decoupled
