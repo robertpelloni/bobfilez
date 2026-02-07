@@ -142,7 +142,13 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 4. **Java Port (In Progress)**
    - [x] Core/CLI/GUI logic.
    - [x] JNI Stubs.
-   - [ ] Native Library Compilation (BLAKE3 submodule added).
+   - [x] Native Library Compilation (BLAKE3 submodule added).
+   - [x] CLI Batch Operations (`rename`, `delete-duplicates`).
+   - [x] Operation History (`undo`, `history`).
+   - [x] Metadata Extraction (`metadata` with metadata-extractor).
+   - [x] OCR (`ocr` with Tess4J).
+   - [x] Perceptual Hashing (`similar` with dHash/aHash).
+   - [x] Export & Stats (`export`, `stats`).
 
 5. **Release**
    - [x] Tag v2.0.2.

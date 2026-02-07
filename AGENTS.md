@@ -112,28 +112,29 @@ Update this section when finishing a session:
 
 ---
 
-### Update: 2026-02-07
+### Update: 2026-02-07 (Session 2)
 **Author:** Sisyphus (Gemini)
 
-**Scope:** Documentation, Submodules, Java Native Build Prep, Java CLI Features
+**Scope:** Java Port Feature Completion
 
 **Status:**
-- ✅ **Documentation**: Created `docs/UNIVERSAL_LLM_INSTRUCTIONS.md`, updated all model files.
-- ✅ **Submodules**: Added `libs/BLAKE3` for Java JNI build. Updated `docs/SUBMODULES.md`.
-- ✅ **Java Native**: Added `filez-java/native/compile_native_win.bat`.
-- ✅ **Java CLI**: Implemented `rename` and `delete-duplicates` commands.
-- ✅ **Java DB**: Added `OperationRepository` and `operations` table for history tracking.
-- ✅ **Versioning**: Bumped to 2.2.2.
-- ✅ **Packaging**: MSI WiX script `wix/main.wxs` updated to 2.2.1.
+- ✅ **Java Features**: Implemented near-full parity with C++ CLI.
+  - `undo`, `history`: Operation tracking and rollback.
+  - `metadata`: Using `metadata-extractor` (EXIF/IPTC/XMP).
+  - `ocr`: Using `tess4j` (Tesseract wrapper).
+  - `similar`: Perceptual hashing (dHash/aHash) with pure Java implementation.
+  - `export`: JSON/CSV/HTML export.
+  - `stats`: File statistics.
+  - `rename`, `delete-duplicates`: Batch operations.
+- ✅ **Infrastructure**: Added `libs/BLAKE3` submodule and native build script.
 
 **Next Steps:**
-1. **Java Native Build**: Run `compile_native_win.bat` on a machine with VS2019/2022.
-2. **MSI Installer**: Install WiX Toolset and run `scripts/package_msi.bat`.
-3. **Fuzzing**: Implement libFuzzer tests.
-4. **Java Undo**: Implement `UndoCommand` in Java CLI using `OperationRepository`.
+1. **Native Build**: Run `filez-java/native/compile_native_win.bat` (requires MSVC).
+2. **Packaging**: Build MSI and Java fat JARs.
+3. **AI Classification**: Implement `classify` command in Java (deferred, requires ONNX).
 
 **Handoff Note:**
-Significant progress on Java port feature parity. CLI now supports batch operations (`rename`, `delete-duplicates`). Database schema updated to track operations. Native build infrastructure is ready but requires MSVC environment.
+The Java port is now feature-complete for all core file organization tasks (deduplication, metadata, OCR, perceptual hash, organization). Only AI object classification is missing compared to the C++ version.
 
 ---
 

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.3] - 2026-02-07
+
+### Added
+- **Java Port Features**: Implemented full suite of CLI commands in Java port:
+    - `history`: View operation log.
+    - `undo`: Revert last move/rename/copy operation.
+    - `metadata`: Extract EXIF/metadata using `metadata-extractor`.
+    - `ocr`: Extract text using Tesseract (via Tess4J).
+    - `similar`: Find visually similar images using dHash/aHash (pure Java implementation).
+    - `export`: Export results to JSON/CSV/HTML.
+    - `stats`: Show file statistics.
+- **Java Infrastructure**: Added Tess4J dependency for OCR.
+
 ## [2.2.2] - 2026-02-07
 
 ### Added
