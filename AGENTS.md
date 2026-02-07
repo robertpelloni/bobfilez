@@ -115,22 +115,25 @@ Update this section when finishing a session:
 ### Update: 2026-02-07
 **Author:** Sisyphus (Gemini)
 
-**Scope:** Documentation, Submodules, Java Native Build Prep
+**Scope:** Documentation, Submodules, Java Native Build Prep, Java CLI Features
 
 **Status:**
 - ✅ **Documentation**: Created `docs/UNIVERSAL_LLM_INSTRUCTIONS.md`, updated all model files.
 - ✅ **Submodules**: Added `libs/BLAKE3` for Java JNI build. Updated `docs/SUBMODULES.md`.
-- ✅ **Java**: Added `filez-java/native/compile_native_win.bat` for Windows JNI compilation.
+- ✅ **Java Native**: Added `filez-java/native/compile_native_win.bat`.
+- ✅ **Java CLI**: Implemented `rename` and `delete-duplicates` commands.
+- ✅ **Java DB**: Added `OperationRepository` and `operations` table for history tracking.
 - ✅ **Versioning**: Bumped to 2.2.2.
 - ✅ **Packaging**: MSI WiX script `wix/main.wxs` updated to 2.2.1.
 
 **Next Steps:**
-1. **Java Native Build**: Run `compile_native_win.bat` on a machine with VS2019/2022 to build `filez_native.dll`.
-2. **MSI Installer**: Install WiX Toolset and run `scripts/package_msi.bat` to verify installer creation.
+1. **Java Native Build**: Run `compile_native_win.bat` on a machine with VS2019/2022.
+2. **MSI Installer**: Install WiX Toolset and run `scripts/package_msi.bat`.
 3. **Fuzzing**: Implement libFuzzer tests.
+4. **Java Undo**: Implement `UndoCommand` in Java CLI using `OperationRepository`.
 
 **Handoff Note:**
-The project is structurally sound. Documentation is unified. The immediate blocker for the "100% complete" goal is compiling the native artifacts (DLLs, MSIs) which requires specific environment tools (MSVC, WiX) that were not present in this session's environment. The scripts are ready to run.
+Significant progress on Java port feature parity. CLI now supports batch operations (`rename`, `delete-duplicates`). Database schema updated to track operations. Native build infrastructure is ready but requires MSVC environment.
 
 ---
 

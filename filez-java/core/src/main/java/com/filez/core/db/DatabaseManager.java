@@ -90,6 +90,19 @@ public class DatabaseManager implements AutoCloseable {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_files_size ON files(size)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_file_hashes_fast64 ON file_hashes(fast64)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_duplicate_groups_fast64 ON duplicate_groups(fast64)");
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS operations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT NOT NULL,
+                    source_path TEXT NOT NULL,
+                    dest_path TEXT,
+                    timestamp INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    details TEXT
+                )
+                """);
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_operations_timestamp ON operations(timestamp)");
         }
     }
 

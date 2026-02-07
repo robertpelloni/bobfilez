@@ -20,6 +20,8 @@ import java.util.concurrent.Callable;
         DuplicatesCommand.class,
         MetadataCommand.class,
         OrganizeCommand.class,
+        RenameCommand.class,
+        DeleteDuplicatesCommand.class,
         CommandLine.HelpCommand.class
     }
 )
