@@ -26,6 +26,8 @@ import java.util.concurrent.Callable;
         HistoryCommand.class,
         SimilarCommand.class,
         OCRCommand.class,
+        ExportCommand.class,
+        StatsCommand.class,
         CommandLine.HelpCommand.class
     }
 )
