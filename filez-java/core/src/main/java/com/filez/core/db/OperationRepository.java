@@ -66,6 +66,14 @@ public class OperationRepository {
         return Optional.empty();
     }
 
+    public void delete(long id) throws SQLException {
+        String sql = "DELETE FROM operations WHERE id = ?";
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
     private Operation mapRow(ResultSet rs) throws SQLException {
         return new Operation(
             rs.getLong("id"),

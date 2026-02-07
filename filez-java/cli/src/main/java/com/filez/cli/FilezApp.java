@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
         OrganizeCommand.class,
         RenameCommand.class,
         DeleteDuplicatesCommand.class,
+        UndoCommand.class,
         CommandLine.HelpCommand.class
     }
 )
