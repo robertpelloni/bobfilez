@@ -415,3 +415,6 @@
 [submodule "VERT"]
 	path = VERT
 	url = https://github.com/VERT-sh/VERT
+[submodule "libs/BLAKE3"]
+	path = libs/BLAKE3
+	url = https://github.com/BLAKE3-team/BLAKE3.git

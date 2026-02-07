@@ -131,7 +131,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 2. **Packaging**
    - [x] Portable ZIP scripts.
-   - [ ] Windows: MSI installer (WiX/NSIS).
+   - [x] Windows: MSI installer (WiX script added).
    - [ ] Linux: AppImage/Flatpak.
    - [ ] macOS: .dmg.
 
@@ -139,7 +139,12 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
    - [x] Unit and Integration tests.
    - [ ] Fuzz testing.
 
-4. **Release**
+4. **Java Port (In Progress)**
+   - [x] Core/CLI/GUI logic.
+   - [x] JNI Stubs.
+   - [ ] Native Library Compilation (BLAKE3 submodule added).
+
+5. **Release**
    - [x] Tag v2.0.2.
    - [x] Tag v2.1.0 (Submodule Sync).
    - [ ] Publish on GitHub Releases.
@@ -148,6 +153,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ## Next Immediate Steps
 
-1. **Installers**: Create MSI installer using WiX.
-2. **Automation**: Implement Automated Submodule Dashboard Updates in CI/CD.
+1. **Java Native Build**: Compile `filez_native.dll` using the new build script.
+2. **Installers**: Verify MSI creation on a machine with WiX installed.
 3. **Fuzzing**: Set up libFuzzer for the scanner and parser.
+

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2026-02-07
+
+### Added
+- **Java Native Build**: Added `libs/BLAKE3` submodule and `filez-java/native/compile_native_win.bat` for building JNI native library on Windows.
+- **Documentation**: Generated `docs/SUBMODULES.md` with BLAKE3.
+
+### Changed
+- **Versioning**: Bumped version to 2.2.2.
+- **LLM Instructions**: Updated all model-specific instruction files to reference `docs/UNIVERSAL_LLM_INSTRUCTIONS.md`.
+
 ## [2.2.1] - 2026-02-07
 
 ### Fixed

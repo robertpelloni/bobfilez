@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-02-07 04:36:23
+**Last Updated:** 2026-02-07 04:48:20
 
 ## Project Structure
 
@@ -157,3 +157,4 @@ The project is organized as follows:
 | libs/Bringing-Old-Photos-Back-to-Life | `libs/Bringing-Old-Photos-Back-to-Life` | v1.0 | `33875ec` | 2022-07-23 | 108 | [Link](https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life) |
 | ai-file-sorter | `ai-file-sorter` | v1.6.0 | `95a23a5` | 2026-02-06 | 514 | [Link](https://github.com/hyperfield/ai-file-sorter) |
 | VERT | `VERT` | - | `12b4319` | 2026-01-29 | 738 | [Link](https://github.com/VERT-sh/VERT) |
+| libs/BLAKE3 | `libs/BLAKE3` | 1.8.3 | `8b829b6` | 2026-01-08 | 762 | [Link](https://github.com/BLAKE3-team/BLAKE3.git) |

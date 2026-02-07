@@ -112,72 +112,25 @@ Update this section when finishing a session:
 
 ---
 
-### Update: 2026-01-17
-**Author:** Sisyphus (Claude)
+### Update: 2026-02-07
+**Author:** Sisyphus (Gemini)
 
-**Scope:** JavaFX GUI - basic desktop application with CLI backend integration
+**Scope:** Documentation, Submodules, Java Native Build Prep
 
 **Status:**
-- ✅ Created `filez-java/` - full Java 21 port with multi-module Gradle structure
-- ✅ Added `filez-java/gui/` - JavaFX desktop application module
-  - `FilezApplication.java` - Main GUI class with path browser, scan/duplicates buttons, results tables, log area
-  - `filez-gui.bat` - Windows launcher script that wraps CLI fat JAR as backend
-  - `build.gradle.kts` - Gradle configuration with JavaFX plugin
-  - `settings.gradle.kts` - Settings for GUI module inclusion
-- ✅ Integrated CLI commands via ProcessBuilder:
-    - `scan` - Scans directories and displays file table
-    - `duplicates` - Finds duplicate files and displays duplicate groups
-    - CLI output parsed and displayed in log area
-    - Progress bars for long-running operations
-- ✅ GUI build configuration:
-  - JavaFX 21.0.2 dependencies (controls, fxml, swing)
-  - Reduced memory settings: -Xmx256m, -Xms128m
-  - JVM arguments for GPU/prism control
-- ✅ Launcher script: Simple Windows batch file (`filez-gui.bat`)
-  - Checks for CLI fat JAR existence
-  - Launches with appropriate JVM memory flags
-  - Handles errors gracefully
-- ✅ Cross-platform: Works on Windows (filez-gui.bat), Linux/macOS (filez.sh)
-- ✅ Verified end-to-end: `filez-gui.bat scan --help` and `filez-gui.bat scan --format=json` both functional
+- ✅ **Documentation**: Created `docs/UNIVERSAL_LLM_INSTRUCTIONS.md`, updated all model files.
+- ✅ **Submodules**: Added `libs/BLAKE3` for Java JNI build. Updated `docs/SUBMODULES.md`.
+- ✅ **Java**: Added `filez-java/native/compile_native_win.bat` for Windows JNI compilation.
+- ✅ **Versioning**: Bumped to 2.2.2.
+- ✅ **Packaging**: MSI WiX script `wix/main.wxs` updated to 2.2.1.
 
-**Code Health:**
-- GUI: Functional with basic UI components (TableView, TableLayout, ProgressBar, DirectoryChooser, TextArea)
-- Architecture: Thin client design - GUI delegates to CLI via ProcessBuilder
-- CLI Integration: Uses existing, tested CLI commands (scan, duplicates, etc.)
-- Memory: Configured for low-resource systems (256MB max heap)
-
-**Project Structure:**
-```
-filez-java/
-├── core/           # Types, interfaces, implementations, database
-├── cli/            # picocli commands (FilezApp entry point)
-├── gui/            # JavaFX desktop application
-│   ├── src/main/java/com/filez/gui/
-│   │   ├── FilezApplication.java (main GUI class)
-│   │   └── build.gradle.kts (GUI module config)
-│   ├── gradle/         # Gradle wrapper infrastructure
-│   ├── build/          # Compiled GUI classes
-│   ├── *.jar           # JavaFX dependencies
-│   ├── filez.sh, filez-gui.bat  # Run scripts
-│   └── filez-gui.bat  # Windows launcher
-└── native/         # JNI wrappers (com.filez.jni package)
-    ├── src/main/c/filez_native.c (JNI C source ready to compile)
-    └── build.gradle.kts (Native module config)
-```
-
-**Next:**
-1. Enhance GUI with additional features:
-   - File selection multi-select
-   - Export functionality (HTML, JSON, CSV)
-   - Progress indicators per operation
-   - Configuration options (hasher selection, database path)
-2. Add more comprehensive tests for CLI commands and GUI integration
-3. Build native library (filez_native.dll/.so) when C compiler available
-4. Add FXML-based layout for improved UI design
-5. Consider web-based GUI for future modernization
+**Next Steps:**
+1. **Java Native Build**: Run `compile_native_win.bat` on a machine with VS2019/2022 to build `filez_native.dll`.
+2. **MSI Installer**: Install WiX Toolset and run `scripts/package_msi.bat` to verify installer creation.
+3. **Fuzzing**: Implement libFuzzer tests.
 
 **Handoff Note:**
-JavaFX GUI (`filez-java/gui/`) is now functional as a basic desktop application that wraps the existing CLI fat JAR. The GUI provides directory browsing, file scanning, duplicate finding, and log display. All CLI commands work through the ProcessBuilder-based integration. This provides an immediate working GUI solution while avoiding Gradle build system complexity. The architecture follows a thin client pattern where the CLI serves as the backend service. Future enhancements can build on this foundation.
+The project is structurally sound. Documentation is unified. The immediate blocker for the "100% complete" goal is compiling the native artifacts (DLLs, MSIs) which requires specific environment tools (MSVC, WiX) that were not present in this session's environment. The scripts are ready to run.
 
 ---
 
