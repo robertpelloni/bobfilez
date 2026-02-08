@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-02-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.1
+**Generated:** 2026-02-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.4
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -106,9 +106,19 @@ Update this section when finishing a session:
 
 ---
 
-## Handoff Protocol
+### Update: 2026-02-07 (Session 3)
+**Author:** Sisyphus (Gemini)
 
-Update this section when finishing a session:
+**Scope:** Submodule Fix and Version Bump
+
+**Status:**
+- ✅ **Submodule Fix**: Rolled back `ai-file-sorter` to `f29262a` to resolve cloning issues on proxied/mirrored environments (like Jules's).
+- ✅ **Dashboard**: Regenerated `docs/SUBMODULES.md` with the updated submodule state.
+- ✅ **Version Bump**: Updated to `2.2.4` and documented in `CHANGELOG.md`.
+
+**Next Steps:**
+1. **Verification**: Confirm with Jules if the clone now works.
+2. **Maintenance**: Continue with packaging and distribution tasks.
 
 ---
 
