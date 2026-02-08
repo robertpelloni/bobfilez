@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-02-07 04:48:20
+**Last Updated:** 2026-02-07 20:05:08
 
 ## Project Structure
 
@@ -155,6 +155,6 @@ The project is organized as follows:
 | libs/ADSman | `libs/ADSman` | - | `eb3c900` | 2025-06-18 | 2 | [Link](https://github.com/8gudbits/ADSman) |
 | libs/ADSFileSystem | `libs/ADSFileSystem` | - | `60b6710` | 2016-06-09 | 9 | [Link](https://github.com/marcelogm/ADSFileSystem) |
 | libs/Bringing-Old-Photos-Back-to-Life | `libs/Bringing-Old-Photos-Back-to-Life` | v1.0 | `33875ec` | 2022-07-23 | 108 | [Link](https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life) |
-| ai-file-sorter | `ai-file-sorter` | v1.6.0 | `95a23a5` | 2026-02-06 | 514 | [Link](https://github.com/hyperfield/ai-file-sorter) |
+| ai-file-sorter | `ai-file-sorter` | v1.6.0 | `f29262a` | 2026-02-06 | 513 | [Link](https://github.com/hyperfield/ai-file-sorter) |
 | VERT | `VERT` | - | `12b4319` | 2026-01-29 | 738 | [Link](https://github.com/VERT-sh/VERT) |
 | libs/BLAKE3 | `libs/BLAKE3` | 1.8.3 | `8b829b6` | 2026-01-08 | 762 | [Link](https://github.com/BLAKE3-team/BLAKE3.git) |
