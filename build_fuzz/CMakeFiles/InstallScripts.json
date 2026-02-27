@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/hyper/workspace/bobfilez/build_fuzz/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build_fuzz/core/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build_fuzz/fuzz/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

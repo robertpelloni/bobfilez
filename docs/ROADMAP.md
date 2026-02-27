@@ -160,7 +160,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ## Next Immediate Steps
 
-1. **Java Native Build**: Compile `filez_native.dll` using the new build script.
+1. ~~**Java Native Build**: Compile `filez_native.dll` using the new build script.~~ (Completed)
 2. **Installers**: Verify MSI creation on a machine with WiX installed.
 3. **Fuzzing**: Execute extensive libFuzzer campaigns in CI.
 

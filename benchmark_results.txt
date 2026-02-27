@@ -1,0 +1,15 @@
+2026-02-27T12:39:12-05:00
+Running C:\Users\hyper\workspace\bobfilez\build\benchmarks\fo_benchmarks.exe
+Run on (32 X 3394 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x16)
+  L1 Instruction 64 KiB (x16)
+  L2 Unified 512 KiB (x16)
+  L3 Unified 8192 KiB (x4)
+-------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations
+-------------------------------------------------------------------
+ScannerFixture/ScanStd      1498936 ns      1506696 ns          560
+ScannerFixture/ScanWin32    1757706 ns      1759383 ns          373
+BM_Hasher_Fast64             241979 ns       228795 ns         2800 bytes_per_second=4.26829Gi/s
+BM_Hasher_Blake3            1692073 ns      1708984 ns          448 bytes_per_second=585.143Mi/s
