@@ -1,0 +1,11 @@
+add_executable(fuzz_rule_engine fuzz_rule_engine.cpp)
+target_link_libraries(fuzz_rule_engine PRIVATE fo_core)
+
+if(MSVC)
+    # Enable MSVC libFuzzer (Requires Visual Studio 2022+ and AddressSanitizer component)
+    target_compile_options(fuzz_rule_engine PRIVATE /fsanitize=fuzzer)
+    target_link_options(fuzz_rule_engine PRIVATE /fsanitize=fuzzer)
+else()
+    target_compile_options(fuzz_rule_engine PRIVATE -fsanitize=fuzzer -fno-omit-frame-pointer -g)
+    target_link_options(fuzz_rule_engine PRIVATE -fsanitize=fuzzer)
+endif()

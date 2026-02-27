@@ -14,6 +14,7 @@ option(FO_BUILD_CLI "Build the CLI engine" ON)
 option(FO_BUILD_GUI "Build the Qt GUI" OFF)
 option(FO_BUILD_BENCH "Build benchmark tools" ON)
 option(FO_BUILD_TESTS "Build unit tests" ON)
+option(FO_BUILD_FUZZERS "Build libFuzzer targets" OFF)
 
 # Read version from VERSION.md
 file(READ "${CMAKE_SOURCE_DIR}/VERSION.md" FO_VERSION_STRING)
@@ -31,6 +32,10 @@ if(FO_BUILD_BENCH)
 endif()
 if(FO_BUILD_TESTS)
   add_subdirectory(tests)
+endif()
+
+if(FO_BUILD_FUZZERS)
+  add_subdirectory(fuzz)
 endif()
 
 # --- CPack Configuration ---

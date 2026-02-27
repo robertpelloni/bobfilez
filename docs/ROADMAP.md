@@ -4,7 +4,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Current Status (v2.1.0)
+## Current Status (v2.2.0)
 
 ### Completed
 - ✅ **Core Engine**: C++20 static library (`fo_core`) with plugin registry.
@@ -28,7 +28,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 ### Pending
 - 🔄 **Installers**: MSI (Windows) [Script Ready], AppImage (Linux), DMG (macOS).
 - ✅ **CI/CD**: Automated Submodule Dashboard Updates.
-- ✅ **Fuzz Testing**: Robustness testing infrastructure (sanity checks).
+- ✅ **Fuzz Testing**: MSVC libFuzzer deployed and executing against core engine logic.
 - ⏳ **Cloud Integration**: Optional S3/Drive support (Post-v1.0).
 
 ---
@@ -137,7 +137,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 3. **Testing**
    - [x] Unit and Integration tests.
-   - [ ] Fuzz testing.
+   - [x] Fuzz testing (RuleEngine templates).
 
 4. **Java Port (In Progress)**
    - [x] Core/CLI/GUI logic.
@@ -153,6 +153,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 5. **Release**
    - [x] Tag v2.0.2.
    - [x] Tag v2.1.0 (Submodule Sync).
+   - [x] Tag v2.2.0 (LLM Consolidation & Benchmarks).
    - [ ] Publish on GitHub Releases.
 
 ---
@@ -161,5 +162,5 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 1. **Java Native Build**: Compile `filez_native.dll` using the new build script.
 2. **Installers**: Verify MSI creation on a machine with WiX installed.
-3. **Fuzzing**: Set up libFuzzer for the scanner and parser.
+3. **Fuzzing**: Execute extensive libFuzzer campaigns in CI.
 
