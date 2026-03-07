@@ -14,10 +14,11 @@ struct S3ScannerRegistrar {
     S3ScannerRegistrar() {
 #ifdef FO_HAVE_S3
         Registry<IFileScanner>::instance().add("s3", []() {
-            // Note: Since S3 requires bucket credentials, a more robust 
-            // factory might parse the URI here. For now, returning an 
-            // unconfigured scanner, expecting uri parsing later or via CLI setup.
-            return std::make_unique<S3Scanner>("", ""); 
+            const char* b = std::getenv("S3_BUCKET");
+            const char* p = std::getenv("S3_PREFIX");
+            std::string bucket = b ? b : "";
+            std::string prefix = p ? p : "";
+            return std::make_unique<S3Scanner>(bucket, prefix); 
         });
 #endif
     }

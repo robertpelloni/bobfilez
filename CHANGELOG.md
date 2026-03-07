@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-03-07
+
+### Added
+- **Cloud Providers**: AWS S3 scanner (`S3Scanner`) for listing and scanning files in S3 buckets. Enabled via `--scanner=s3 --s3-bucket=my-bucket`.
+- **Cloud Providers**: Google Drive scanner (`GDriveScanner`) for listing files via the Google Drive REST API. Enabled via `--scanner=gdrive --gdrive-token=TOKEN`.
+- **CLI**: New flags `--s3-bucket=` and `--gdrive-token=` for passing cloud credentials from the command line.
+- **Core**: `EngineConfig` extended with `s3_bucket` and `gdrive_token` fields.
+- **Core**: `FileInfo::uri` field (replacing `std::filesystem::path`) to support cloud storage URIs.
+- **Dependencies**: Added `aws-sdk-cpp[s3]` and `cpr` to `vcpkg.json`.
+
 ## [2.2.5] - 2026-03-07
 
 ### Added

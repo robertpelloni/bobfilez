@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+#include <cstdlib>
 
 void lint_command(const std::vector<std::string>& args);
 
@@ -39,8 +40,10 @@ static void print_usage() {
               << "  undo         Undo the last file operation\n"
               << "  history      Show operation history\n"
               << "\nOptions:\n"
-              << "  --scanner=<name>    Select scanner (e.g., std, win32, dirent)\n"
+              << "  --scanner=<name>    Select scanner (e.g., std, win32, s3, gdrive)\n"
               << "  --hasher=<name>     Select hasher (e.g., fast64, blake3)\n"
+              << "  --s3-bucket=<bkt>   S3 bucket name for S3Scanner\n"
+              << "  --gdrive-token=<tk> Google Drive Access Token for GDriveScanner\n"
               << "  --db=<path>         Database path (default: fo.db)\n"
               << "  --rule=<template>   Organization rule (e.g., '/Photos/{year}/{month}')\n"
               << "  --rules=<file.yaml> Load organization rules from YAML file\n"
@@ -236,6 +239,8 @@ int main(int argc, char** argv) {
         else if (a.rfind("--phash=", 0) == 0) phash_algo = a.substr(8);
         else if (a.rfind("--scanner=", 0) == 0) cfg.scanner = a.substr(10);
         else if (a.rfind("--hasher=", 0) == 0) cfg.hasher = a.substr(9);
+        else if (a.rfind("--s3-bucket=", 0) == 0) cfg.s3_bucket = a.substr(12);
+        else if (a.rfind("--gdrive-token=", 0) == 0) cfg.gdrive_token = a.substr(15);
         else if (a.rfind("--db=", 0) == 0) cfg.db_path = a.substr(5);
         else if (a.rfind("--rule=", 0) == 0) rule_template = a.substr(7);
         else if (a.rfind("--rules=", 0) == 0) rules_file = a.substr(8);
@@ -269,6 +274,14 @@ int main(int argc, char** argv) {
         }
     }
 
+#ifdef _WIN32
+    if (!cfg.s3_bucket.empty()) _putenv_s("S3_BUCKET", cfg.s3_bucket.c_str());
+    if (!cfg.gdrive_token.empty()) _putenv_s("GDRIVE_TOKEN", cfg.gdrive_token.c_str());
+#else
+    if (!cfg.s3_bucket.empty()) setenv("S3_BUCKET", cfg.s3_bucket.c_str(), 1);
+    if (!cfg.gdrive_token.empty()) setenv("GDRIVE_TOKEN", cfg.gdrive_token.c_str(), 1);
+#endif
+
     try {
         fo::core::Engine engine(cfg);
 
@@ -277,7 +290,7 @@ int main(int argc, char** argv) {
             if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < files.size(); ++i) {
-                    std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].path.string())
+                    std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
                               << "\", \"size\": " << files[i].size << "}";
                     if (i + 1 < files.size()) std::cout << ",";
                     std::cout << "\n";
@@ -285,7 +298,7 @@ int main(int argc, char** argv) {
                 std::cout << "]\n";
             } else {
                 for (const auto& f : files) {
-                    std::cout << f.path.string() << "\n";
+                    std::cout << f.uri << "\n";
                 }
             }
         } else if (command == "duplicates") {
@@ -297,7 +310,7 @@ int main(int argc, char** argv) {
                     const auto& g = groups[i];
                     std::cout << "  {\"size\": " << g.size << ", \"hash\": \"" << g.fast64 << "\", \"files\": [\n";
                     for (size_t j = 0; j < g.files.size(); ++j) {
-                        std::cout << "    \"" << fo::core::Exporter::json_escape(g.files[j].path.string()) << "\"";
+                        std::cout << "    \"" << fo::core::Exporter::json_escape(g.files[j].uri) << "\"";
                         if (j + 1 < g.files.size()) std::cout << ",";
                         std::cout << "\n";
                     }
@@ -310,7 +323,7 @@ int main(int argc, char** argv) {
                 for (const auto& g : groups) {
                     std::cout << "== size=" << g.size << ", fast64=" << g.fast64 << "\n";
                     for (const auto& f : g.files) {
-                        std::cout << "  " << f.path.string() << "\n";
+                        std::cout << "  " << f.uri << "\n";
                     }
                 }
             }
@@ -320,8 +333,8 @@ int main(int argc, char** argv) {
             if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < files.size(); ++i) {
-                    std::string h = hasher.fast64(files[i].path);
-                    std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].path.string())
+                    std::string h = hasher.fast64(std::filesystem::path(files[i].uri));
+                    std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
                               << "\", \"hash\": \"" << h << "\"}";
                     if (i + 1 < files.size()) std::cout << ",";
                     std::cout << "\n";
@@ -332,8 +345,8 @@ int main(int argc, char** argv) {
                 std::cout << "]\n";
             } else {
                 for (const auto& f : files) {
-                    std::string h = hasher.fast64(f.path);
-                    std::cout << h << "  " << f.path.string() << "\n";
+                    std::string h = hasher.fast64(std::filesystem::path(f.uri));
+                    std::cout << h << "  " << f.uri << "\n";
                     if (f.id != 0) {
                         engine.file_repository().add_hash(f.id, hasher.name(), h);
                     }
@@ -351,10 +364,10 @@ int main(int argc, char** argv) {
                 bool first = true;
                 for (const auto& f : files) {
                     fo::core::ImageMetadata meta;
-                    if (provider->read(f.path, meta)) {
+                    if (provider->read(std::filesystem::path(f.uri), meta)) {
                         if (!first) std::cout << ",\n";
                         first = false;
-                        std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(f.path.string()) << "\"";
+                        std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(f.uri) << "\"";
                         if (meta.date.has_taken) {
                             auto t = std::chrono::system_clock::to_time_t(meta.date.taken);
                             std::tm tm_buf;
@@ -377,8 +390,8 @@ int main(int argc, char** argv) {
             } else {
                 for (const auto& f : files) {
                     fo::core::ImageMetadata meta;
-                    if (provider->read(f.path, meta)) {
-                        std::cout << f.path.string() << ":\n";
+                    if (provider->read(std::filesystem::path(f.uri), meta)) {
+                        std::cout << f.uri << ":\n";
                         if (meta.date.has_taken) {
                             auto t = std::chrono::system_clock::to_time_t(meta.date.taken);
                             std::cout << "  Taken: " << std::ctime(&t);
@@ -397,9 +410,9 @@ int main(int argc, char** argv) {
                 return 1;
             }
             for (const auto& f : files) {
-                auto result = provider->recognize(f.path, lang);
+                auto result = provider->recognize(std::filesystem::path(f.uri), lang);
                 if (result) {
-                    std::cout << f.path.string() << ":\n";
+                    std::cout << f.uri << ":\n";
                     std::cout << "  Text: " << result->text << "\n";
                 }
             }
@@ -433,7 +446,7 @@ int main(int argc, char** argv) {
                     auto fi = engine.file_repository().get_by_id(matches[i]);
                     if (fi) {
                         std::cout << "    {\"id\": " << fi->id
-                                  << ", \"path\": \"" << fo::core::Exporter::json_escape(fi->path.string()) << "\""
+                                  << ", \"path\": \"" << fo::core::Exporter::json_escape(fi->uri) << "\""
                                   << ", \"size\": " << fi->size
                                   << "}" << (i + 1 < matches.size() ? "," : "") << "\n";
                     }
@@ -446,7 +459,7 @@ int main(int argc, char** argv) {
                 for (auto id : matches) {
                     auto fi = engine.file_repository().get_by_id(id);
                     if (fi) {
-                        std::cout << "  " << fi->path.string() << "\n";
+                        std::cout << "  " << fi->uri << "\n";
                     }
                 }
             }
@@ -462,11 +475,11 @@ int main(int argc, char** argv) {
                 std::cout << "[\n";
                 bool first_file = true;
                 for (const auto& f : files) {
-                    auto results = provider->classify(f.path);
+                    auto results = provider->classify(std::filesystem::path(f.uri));
                     if (!results.empty()) {
                         if (!first_file) std::cout << ",\n";
                         first_file = false;
-                        std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(f.path.string()) << "\""
+                        std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(f.uri) << "\""
                                   << ", \"classifications\": [";
                         for (size_t i = 0; i < results.size(); ++i) {
                             const auto& r = results[i];
@@ -483,9 +496,9 @@ int main(int argc, char** argv) {
                 std::cout << "\n]\n";
             } else {
                 for (const auto& f : files) {
-                    auto results = provider->classify(f.path);
+                    auto results = provider->classify(std::filesystem::path(f.uri));
                     if (!results.empty()) {
-                        std::cout << f.path.string() << ":\n";
+                        std::cout << f.uri << ":\n";
                         for (const auto& r : results) {
                             std::cout << "  " << r.label << " (" << r.confidence << ")\n";
                             if (f.id != 0) {
@@ -525,24 +538,24 @@ int main(int argc, char** argv) {
                 }
 
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
-                if (new_path_opt && *new_path_opt != f.path) {
+                if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
-                    moves.push_back({f.path.string(), new_path.string()});
+                    moves.push_back({f.uri, new_path.string()});
                     if (!dry_run) {
                         try {
                             std::filesystem::create_directories(new_path.parent_path());
-                            std::filesystem::rename(f.path, new_path);
+                            std::filesystem::rename(f.uri, new_path);
 
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
                             rec.type = fo::core::OperationType::Move;
-                            rec.source_path = f.path.string();
+                            rec.source_path = f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);
                         } catch (const std::exception& e) {
-                            std::cerr << "Failed to move " << f.path.string() << ": " << e.what() << "\n";
+                            std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
                         }
                     }
                 }
@@ -586,8 +599,8 @@ int main(int argc, char** argv) {
 
                 std::sort(members.begin(), members.end(), [&](const fo::core::FileInfo& a, const fo::core::FileInfo& b) {
                     if (keep_strategy == "newest") return a.mtime > b.mtime;
-                    if (keep_strategy == "shortest") return a.path.string().length() < b.path.string().length();
-                    if (keep_strategy == "longest") return a.path.string().length() > b.path.string().length();
+                    if (keep_strategy == "shortest") return a.uri.length() < b.uri.length();
+                    if (keep_strategy == "longest") return a.uri.length() > b.uri.length();
                     return a.mtime < b.mtime;
                 });
 
@@ -597,16 +610,16 @@ int main(int argc, char** argv) {
 
                 for (size_t i = 1; i < members.size(); ++i) {
                     const auto& del = members[i];
-                    deleted_paths.push_back(del.path.string());
+                    deleted_paths.push_back(del.uri);
                     if (!dry_run) {
                         try {
-                            std::filesystem::remove(del.path);
+                            std::filesystem::remove(del.uri);
                             deleted_count++;
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
                             rec.type = fo::core::OperationType::Delete;
-                            rec.source_path = del.path.string();
+                            rec.source_path = del.uri;
                             rec.file_size = del.size;
                             op_repo.log_operation(rec);
                         } catch (const std::exception& e) {
@@ -614,7 +627,7 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
-                results.push_back({keep.path.string(), deleted_paths});
+                results.push_back({keep.uri, deleted_paths});
             }
 
             if (format == "json") {
@@ -673,22 +686,22 @@ int main(int argc, char** argv) {
                 }
 
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
-                if (new_path_opt && *new_path_opt != f.path) {
+                if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
-                    renames.push_back({f.path.string(), new_path.string()});
+                    renames.push_back({f.uri, new_path.string()});
                     if (!dry_run) {
                         try {
-                            std::filesystem::rename(f.path, new_path);
+                            std::filesystem::rename(f.uri, new_path);
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
                             rec.type = fo::core::OperationType::Rename;
-                            rec.source_path = f.path.string();
+                            rec.source_path = f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);
                         } catch (const std::exception& e) {
-                            std::cerr << "Failed to rename " << f.path.string() << ": " << e.what() << "\n";
+                            std::cerr << "Failed to rename " << f.uri << ": " << e.what() << "\n";
                         }
                     }
                 }

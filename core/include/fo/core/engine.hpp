@@ -16,6 +16,8 @@ struct EngineConfig {
     std::string hasher = "fast64";
     std::string db_path = "fo.db";
     bool use_ads_cache = false;  // Use Windows NTFS Alternate Data Streams for hash caching
+    std::string s3_bucket;
+    std::string gdrive_token;
 };
 
 class Engine {

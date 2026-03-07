@@ -90,19 +90,40 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.2.1)
+## Current Status (v2.3.0)
 
-- ✅ Fixed `ai-file-sorter` submodule clone error (invalid ref `c038d3e`).
+- ✅ Cloud storage providers: AWS S3 and Google Drive scanners
 - ✅ 15+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, etc.)
-- ✅ 59 passing tests
+- ✅ 63 passing tests
 - ✅ Qt6 GUI decoupled
 - ✅ 130+ submodules synced
 
-**Next Steps**: MSI/AppImage packaging, benchmark execution, fuzz testing.
+**Next Steps**: Azure Blob Storage provider, cloud provider pagination, MSI/AppImage packaging.
 
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-03-07 (Session 5)
+**Author:** Antigravity (Claude)
+
+**Scope:** Cloud Storage Providers (AWS S3, Google Drive)
+
+**Status:**
+- ✅ **S3Scanner**: Implemented AWS S3 file scanner using `aws-sdk-cpp`. Lists objects from S3 buckets with metadata extraction.
+- ✅ **GDriveScanner**: Implemented Google Drive scanner using `cpr` HTTP client and the Drive REST API v3.
+- ✅ **CLI Integration**: Added `--s3-bucket=` and `--gdrive-token=` flags. Environment variable injection for provider factories.
+- ✅ **Core Refactor**: `FileInfo::uri` (string) replaces `std::filesystem::path` to support cloud URIs.
+- ✅ **Dependencies**: Added `aws-sdk-cpp[s3]` and `cpr` to `vcpkg.json`.
+- ✅ **Version Bump**: Updated to `2.3.0` and documented in `CHANGELOG.md`.
+- ✅ **Tests**: All 63 tests passing.
+
+**Next Steps:**
+1. Add pagination for large S3 buckets and Drive file lists.
+2. Consider Azure Blob Storage provider.
+3. Add integration tests for cloud scanners (mocked endpoints).
 
 ---
 
