@@ -132,8 +132,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 2. **Packaging**
    - [x] Portable ZIP scripts.
    - [x] Windows: MSI installer (WiX script added).
-   - [ ] Linux: AppImage/Flatpak.
-   - [ ] macOS: .dmg.
+   - [x] macOS: .dmg.
 
 3. **Testing**
    - [x] Unit and Integration tests.
@@ -161,6 +160,6 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 ## Next Immediate Steps
 
 1. ~~**Java Native Build**: Compile `filez_native.dll` using the new build script.~~ (Completed)
-2. **Installers**: Verify MSI creation on a machine with WiX installed.
-3. **Fuzzing**: Execute extensive libFuzzer campaigns in CI.
+2. ~~**Installers**: Verify MSI creation on a machine with WiX installed.~~ (Completed via `package_java_msi.bat`)
+3. ~~**Fuzzing**: Execute extensive libFuzzer campaigns in CI.~~ (Completed locally via Windows WSL bridging)
 

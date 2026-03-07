@@ -7,6 +7,14 @@
     "yaml-cpp",
     "blake3",
     "gtest",
-    "benchmark"
+    "benchmark",
+    {
+      "name": "aws-sdk-cpp",
+      "default-features": false,
+      "features": [
+        "s3"
+      ]
+    },
+    "cpr"
   ]
 }

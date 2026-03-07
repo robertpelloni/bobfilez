@@ -43,6 +43,8 @@ find_package(Tesseract CONFIG QUIET)
 find_package(OpenCV CONFIG QUIET)
 find_package(onnxruntime CONFIG QUIET)
 find_package(yaml-cpp CONFIG QUIET)
+find_package(AWSSDK QUIET COMPONENTS s3 core)
+find_package(cpr CONFIG QUIET)
 
 if(exiv2_FOUND)
     message(STATUS "Found exiv2, enabling exiv2 metadata provider")
@@ -65,6 +67,14 @@ endif()
 
 if(onnxruntime_FOUND)
     message(STATUS "Found onnxruntime, enabling AI classification provider")
+endif()
+
+if(AWSSDK_FOUND)
+    message(STATUS "Found AWSSDK, enabling AWS S3 provider")
+endif()
+
+if(cpr_FOUND)
+    message(STATUS "Found cpr, enabling Google Drive HTTP provider")
 endif()
 
 add_library(fo_core STATIC
@@ -117,6 +127,16 @@ endif()
 if(yaml-cpp_FOUND)
     target_compile_definitions(fo_core PRIVATE FO_HAVE_YAMLCPP)
     target_link_libraries(fo_core PUBLIC yaml-cpp::yaml-cpp)
+endif()
+
+if(AWSSDK_FOUND)
+    target_compile_definitions(fo_core PRIVATE FO_HAVE_S3)
+    target_link_libraries(fo_core PUBLIC ${AWSSDK_LINK_LIBRARIES})
+endif()
+
+if(cpr_FOUND)
+    target_compile_definitions(fo_core PRIVATE FO_HAVE_CPR)
+    target_link_libraries(fo_core PUBLIC cpr::cpr)
 endif()
 
 
