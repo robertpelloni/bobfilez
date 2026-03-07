@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.5] - 2026-03-07
+
+### Added
+- **Packaging**: Created `scripts/package_appimage.sh` for Linux AppImage generation and `scripts/package_macos.sh` for macOS DMG creation with Ad-Hoc code signing.
+- **Testing**: Created `scripts/build_fuzzer.sh` for local fuzz test deployment and successfully verified `libFuzzer` execution on the rule engine via `build_fuzzer.bat` under WSL/cmd.
+
+
 ## [2.2.4] - 2026-02-07
 
 ### Fixed

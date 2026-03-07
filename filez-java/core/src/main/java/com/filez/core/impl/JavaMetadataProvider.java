@@ -8,6 +8,7 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.filez.core.interfaces.MetadataProvider;
+import com.filez.core.types.DateMetadata;
 import com.filez.core.types.ImageMetadata;
 
 import java.io.IOException;
@@ -56,15 +57,23 @@ public class JavaMetadataProvider implements MetadataProvider {
                 lon = Optional.of(gpsDir.getGeoLocation().getLongitude());
             }
 
-            return Optional.of(new ImageMetadata(
-                date,
-                Optional.of(width).filter(w -> w > 0),
-                Optional.of(height).filter(h -> h > 0),
-                make,
-                model,
-                lat,
-                lon
-            ));
+            ImageMetadata.Builder builder = ImageMetadata.builder();
+            
+            date.ifPresent(d -> builder.date(DateMetadata.ofOriginal(d.atZone(ZoneId.systemDefault()).toLocalDate(), "exif")));
+            
+            if (width > 0 && height > 0) {
+                builder.dimensions(width, height);
+            }
+            
+            if (make.isPresent() || model.isPresent()) {
+                builder.camera(make.orElse(null), model.orElse(null));
+            }
+            
+            if (lat.isPresent() && lon.isPresent()) {
+                builder.gps(lat.get(), lon.get());
+            }
+            
+            return Optional.of(builder.build());
 
         } catch (IOException | com.drew.imaging.ImageProcessingException e) {
             // Log error if verbose or return empty

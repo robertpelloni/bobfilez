@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-02-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.4
+**Generated:** 2026-03-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.5
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -103,6 +103,28 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-03-07 (Session 4)
+**Author:** Sisyphus (Gemini)
+
+**Scope:** Linux Packaging and Fuzz Testing
+
+**Status:**
+- ✅ **Linux AppImage**: Created `scripts/package_appimage.sh` for portable deployment on Linux distributions using `appimagetool` and `linuxdeploy`.
+- ✅ **macOS DMG**: Created `scripts/package_macos.sh` incorporating CMake compilation, App Bundle construction, and Ad-Hoc Code Signing.
+- ✅ **Fuzz Testing**: Authored `scripts/build_fuzzer.sh` for Linux and validated existing rules engines using LibFuzzer locally via `build_fuzzer.bat` under WSL.
+- ✅ **Version Bump**: Updated to `2.2.5` and documented in `CHANGELOG.md`.
+- ✅ **Java Port Packaging**: 
+  - Compiled a functional cross-platform standalone executable jar using `./gradlew :cli:fatJar`.
+  - Authored a WiX toolchain definition (`wix/filez_java.wxs`) resolving native JNI bindings alongside the flat-jar format.
+  - Wrote a batch runner to automate this pipeline (`scripts/package_java_msi.bat`).
+
+**Next Steps:**
+1. **Verification**: Confirm the generated AppImage and DMG behave correctly on diverse Linux and macOS environments.
+2. **Maintenance**: Evaluate the necessity for code signing certificates.
+3. **Execution**: Verify that a host with the WiX Toolset can successfully compile the template to `.msi`.
 
 ---
 

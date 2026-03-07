@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="filez-java" Language="1033" Version="2.1.0" Manufacturer="bobfilez Team" UpgradeCode="a1b2c3d4-e5f6-7890-1234-56789abcdef0">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <Feature Id="ProductFeature" Title="filez-java" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+        </Feature>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="filez-java" />
+            </Directory>
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <Component Id="FatJar" Guid="*">
+                <File Id="cli_2.1.0_all.jar" Source="..\filez-java\cli\build\libs\cli-2.1.0-all.jar" KeyPath="yes" />
+            </Component>
+            <Component Id="NativeDll" Guid="*">
+                <File Id="filez_native.dll" Source="..\filez-java\native\filez_native.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="RunScriptBat" Guid="*">
+                <File Id="filez.bat" Source="..\filez-java\filez.bat" KeyPath="yes" />
+            </Component>
+            <Component Id="RunScriptSh" Guid="*">
+                <File Id="filez.sh" Source="..\filez-java\filez.sh" KeyPath="yes" />
+            </Component>
+            <Component Id="LicenseFile" Guid="*">
+                <File Id="LICENSE.txt" Source="..\LICENSE.txt" KeyPath="yes" />
+            </Component>
+            <Component Id="ReadmeFile" Guid="*">
+                <File Id="README.md" Source="..\filez-java\README.md" KeyPath="yes" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>

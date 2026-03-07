@@ -3,7 +3,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.filez.cli.FilezCli")
+    mainClass.set("com.filez.cli.FilezApp")
 }
 
 dependencies {
@@ -30,7 +30,7 @@ tasks.register<Jar>("fatJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     
     manifest {
-        attributes["Main-Class"] = "com.filez.cli.FilezCli"
+        attributes["Main-Class"] = "com.filez.cli.FilezApp"
     }
     
     from(sourceSets.main.get().output)
