@@ -111,6 +111,7 @@ static void print_usage() {
               << "  --mode=<mode>       Verification mode: fast, safe, paranoid (default: fast)\n"
               << "  --threads=<N>       Number of hashing threads (default: 1)\n"
               << "  --no-recursive      Only scan files directly in specified directories\n"
+              << "  --time              Display elapsed wall-clock time after command\n"
               << "  --use-ads-cache     Use Windows NTFS Alternate Data Streams for hash caching\n"
               << "  --thumbnails        Include thumbnails in HTML export (images only)\n"
               << "  --list-scanners     List available scanners\n"
@@ -259,6 +260,7 @@ int main(int argc, char** argv) {
     bool prune = false;
     bool include_thumbnails = false;
     bool no_recursive = false;
+    bool show_time = false;
     int threshold = 10;
     int num_threads = 1;
     std::uintmax_t min_size = 0;
@@ -357,6 +359,8 @@ int main(int argc, char** argv) {
             }
         } else if (a == "--no-recursive") {
             no_recursive = true;
+        } else if (a == "--time") {
+            show_time = true;
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -381,6 +385,7 @@ int main(int argc, char** argv) {
 #endif
 
     try {
+        auto timer_start = std::chrono::steady_clock::now();
         fo::core::Engine engine(cfg);
 
         // Post-scan filter lambda for size, exclude patterns, and depth
@@ -587,6 +592,7 @@ int main(int argc, char** argv) {
             }
         } else if (command == "metadata") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
             if (!provider) {
                 std::cerr << "Metadata provider 'tinyexif' not found.\n";
@@ -637,6 +643,7 @@ int main(int argc, char** argv) {
             }
         } else if (command == "ocr") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             auto provider = fo::core::Registry<fo::core::IOCRProvider>::instance().create("tesseract");
             if (!provider) {
                 std::cerr << "OCR provider 'tesseract' not found.\n";
@@ -698,6 +705,7 @@ int main(int argc, char** argv) {
             }
         } else if (command == "classify") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             auto provider = fo::core::Registry<fo::core::IImageClassifier>::instance().create("onnx");
             if (!provider) {
                 std::cerr << "Classifier 'onnx' not found.\n";
@@ -748,6 +756,7 @@ int main(int argc, char** argv) {
             }
 
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             fo::core::RuleEngine rule_engine;
 
             if (!rule_template.empty()) {
@@ -1185,6 +1194,17 @@ int main(int argc, char** argv) {
         } else {
             std::cerr << "Unknown command: " << command << "\n";
             return 1;
+        }
+
+        if (show_time) {
+            auto timer_end = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timer_end - timer_start).count();
+            if (elapsed < 1000) {
+                std::cerr << "\nElapsed: " << elapsed << "ms\n";
+            } else {
+                double secs = elapsed / 1000.0;
+                std::cerr << "\nElapsed: " << std::fixed << std::setprecision(2) << secs << "s\n";
+            }
         }
 
         return 0;
