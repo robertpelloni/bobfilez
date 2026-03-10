@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-03-10
+
+### Added
+- **BobUI**: Web-based GUI for bobfilez — dupeGuru-style duplicate management interface.
+  - Dark glassmorphism UI with Inter + JetBrains Mono fonts, micro-animations
+  - **Duplicate Finder**: Expandable groups table, auto-mark strategies (oldest/newest/shortest/longest), delete with confirmation, verification mode selector (fast/safe/paranoid), multi-threaded scanning
+  - **File Scanner**: Directory scanning with extension, size, and glob exclude filters
+  - **Statistics**: File counts, total size, extension breakdown with visual bars
+  - **Ignore Rules**: Add, remove, list ignore patterns with reasons
+  - **History**: Operation history viewer
+  - Express backend wrapping `fo_cli.exe --format=json` with 10 REST API endpoints
+  - Run with `cd bobui && npm start` → http://localhost:3131
+
 ## [2.3.9] - 2026-03-09
 
 ### Added

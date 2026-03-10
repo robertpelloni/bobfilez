@@ -1,0 +1,14 @@
+{
+    "name": "bobui",
+    "version": "1.0.0",
+    "description": "dupeGuru-style web GUI for bobfilez",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.21.0",
+        "cors": "^2.8.5"
+    }
+}
