@@ -57,7 +57,7 @@ TEST_F(ScannerTest, StdScannerFiltersExtensions) {
     EXPECT_EQ(files.size(), 2);
     
     for (const auto& f : files) {
-        EXPECT_EQ(f.path.extension(), ".txt");
+        EXPECT_EQ(std::filesystem::path(f.uri).extension(), ".txt");
     }
 }
 
@@ -70,7 +70,7 @@ TEST_F(ScannerTest, StdScannerReturnsCorrectFileInfo) {
     ASSERT_EQ(files.size(), 1);
     
     const auto& f = files[0];
-    EXPECT_EQ(f.path.filename(), "file2.jpg");
+    EXPECT_EQ(std::filesystem::path(f.uri).filename(), "file2.jpg");
     EXPECT_GT(f.size, 0);
     EXPECT_FALSE(f.is_dir);
 }

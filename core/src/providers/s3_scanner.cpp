@@ -4,6 +4,9 @@
 
 #ifdef FO_HAVE_S3
 #include <aws/core/Aws.h>
+#include <aws/core/auth/AWSCredentials.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/core/auth/signer/AWSAuthV4Signer.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/ListObjectsV2Request.h>
 #include <aws/s3/model/HeadObjectRequest.h>
@@ -16,7 +19,31 @@ S3Scanner::S3Scanner(const std::string& bucket, const std::string& prefix)
 {
 #ifdef FO_HAVE_S3
     Aws::Client::ClientConfiguration config;
-    s3_client_ = std::make_unique<Aws::S3::S3Client>(config);
+    bool use_virtual = true;
+    std::shared_ptr<Aws::Auth::AWSCredentialsProvider> cred_provider = nullptr;
+    
+    if (const char* env_ep = std::getenv("S3_ENDPOINT_URL")) {
+        config.endpointOverride = Aws::String(env_ep);
+        config.scheme = Aws::Http::Scheme::HTTP; // It's localhost, force HTTP
+        use_virtual = false; // Force path-style for localhost
+        
+        // Mock credentials to avoid AWS SDK hitting EC2 metadata service
+        cred_provider = std::make_shared<Aws::Auth::SimpleAWSCredentialsProvider>("mock_key", "mock_secret");
+    }
+    
+    if (cred_provider) {
+        s3_client_ = std::make_unique<Aws::S3::S3Client>(
+            cred_provider, config,
+            Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
+            use_virtual
+        );
+    } else {
+        s3_client_ = std::make_unique<Aws::S3::S3Client>(
+            config,
+            Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
+            use_virtual
+        );
+    }
 #endif
 }
 

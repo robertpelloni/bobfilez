@@ -13,7 +13,7 @@ protected:
 
     FileInfo create_test_file(const std::string& path_str) {
         FileInfo file;
-        file.path = std::filesystem::path(path_str);
+        file.uri = path_str;
         file.size = 1024;
         file.mtime = std::chrono::file_clock::now();
         file.is_dir = false;

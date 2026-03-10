@@ -68,7 +68,7 @@ public:
                     if (!accept_ext(p)) continue;
 
                     FileInfo fi;
-                    fi.path = p;
+                    fi.uri = p.string();
                     fi.size = static_cast<std::uintmax_t>(stbuf.st_size);
 
                     // Use std::filesystem for consistent file_clock timestamp

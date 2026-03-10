@@ -15,6 +15,7 @@
         "s3"
       ]
     },
-    "cpr"
+    "cpr",
+    "azure-storage-blobs-cpp"
   ]
 }

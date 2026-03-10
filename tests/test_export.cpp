@@ -39,19 +39,19 @@ TEST(ExporterTest, ComputeStats) {
     std::vector<FileInfo> files;
     
     FileInfo f1;
-    f1.path = "file1.txt";
+    f1.uri = "file1.txt";
     f1.size = 1000;
     f1.is_dir = false;
     files.push_back(f1);
     
     FileInfo f2;
-    f2.path = "file2.txt";
+    f2.uri = "file2.txt";
     f2.size = 2000;
     f2.is_dir = false;
     files.push_back(f2);
     
     FileInfo d1;
-    d1.path = "dir1";
+    d1.uri = "dir1";
     d1.size = 0;
     d1.is_dir = true;
     files.push_back(d1);
@@ -79,7 +79,7 @@ TEST(ExporterTest, ToCsv) {
     
     FileInfo f1;
     f1.id = 1;
-    f1.path = "test.txt";
+    f1.uri = "test.txt";
     f1.size = 100;
     f1.is_dir = false;
     f1.mtime = std::chrono::file_clock::now();
@@ -99,7 +99,7 @@ TEST(ExporterTest, ToJson) {
     
     FileInfo f1;
     f1.id = 1;
-    f1.path = "test.txt";
+    f1.uri = "test.txt";
     f1.size = 100;
     f1.is_dir = false;
     f1.mtime = std::chrono::file_clock::now();

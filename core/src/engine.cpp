@@ -22,7 +22,7 @@ std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roo
         auto ignore_rules = ignore_repo_.get_all();
         if (!ignore_rules.empty()) {
             std::erase_if(files, [&](const FileInfo& f) {
-                return ignore_repo_.is_ignored(f.path.string());
+                return ignore_repo_.is_ignored(f.uri);
             });
         }
 
@@ -34,7 +34,7 @@ std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roo
         present_ids.reserve(files.size());
 
         for (auto& f : files) {
-            auto existing = file_repo_.get_by_path(f.path);
+            auto existing = file_repo_.get_by_path(f.uri);
             if (existing) {
                 f.id = existing->id;
                 present_ids.push_back(f.id);
@@ -68,7 +68,7 @@ std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roo
 
                     if (match_it != candidates.end()) {
                         // Found a move!
-                        file_repo_.update_path(match_it->id, new_f->path);
+                        file_repo_.update_path(match_it->id, new_f->uri);
                         new_f->id = match_it->id;
                         present_ids.push_back(new_f->id);
                         
@@ -160,15 +160,15 @@ std::vector<DuplicateGroup> Engine::SizeHashDuplicateFinder::group(const std::ve
 
             // Try ADS cache first if enabled
             if (use_ads_) {
-                auto cached = ADSCache::get_hash(fi->path, "fast64");
+                auto cached = ADSCache::get_hash(fi->uri, "fast64");
                 if (cached) {
                     h = *cached;
                 } else {
-                    h = hasher.fast64(fi->path);
-                    ADSCache::set_hash(fi->path, "fast64", h);
+                    h = hasher.fast64(fi->uri);
+                    ADSCache::set_hash(fi->uri, "fast64", h);
                 }
             } else {
-                h = hasher.fast64(fi->path);
+                h = hasher.fast64(fi->uri);
             }
 
             by_fast[h].push_back(fi);

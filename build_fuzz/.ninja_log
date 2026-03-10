@@ -44,3 +44,8 @@
 6821	37537	7939263856333641	core/CMakeFiles/fo_core.dir/__/libs/sqlite3/sqlite3.c.obj	b353d4ebf778d21f
 37538	37924	7939264163502196	core/fo_core.lib	f30eaa5e565f00b1
 37924	40107	7939264167365001	fuzz/fuzz_rule_engine.exe	6830e7309968c102
+39	5571	7945870817131141	core/CMakeFiles/fo_core.dir/src/providers/blake3/blake3_hasher.cpp.obj	32160880b5d1b5d9
+19	5681	7945870816923591	core/CMakeFiles/fo_core.dir/src/hasher_blake3.cpp.obj	6d207145cb2b6eca
+56	6325	7945870817305716	core/CMakeFiles/fo_core.dir/src/rule_engine.cpp.obj	d4c08704cbeee628
+6326	6742	7945870879988083	core/fo_core.lib	f30eaa5e565f00b1
+6743	9309	7945870884164926	fuzz/fuzz_rule_engine.exe	6830e7309968c102

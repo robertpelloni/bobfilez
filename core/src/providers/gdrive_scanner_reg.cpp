@@ -7,22 +7,16 @@
 
 namespace fo::core {
 
-namespace {
-
-struct GDriveScannerRegistrar {
-    GDriveScannerRegistrar() {
+void register_scanner_gdrive() {
 #ifdef FO_HAVE_CPR
-        Registry<IFileScanner>::instance().add("gdrive", []() {
-            // Note: Google Drive requires an OAuth access token.
-            // For now, returning an unconfigured scanner, expecting uri parsing later or via CLI environment variables.
-            const char* token = std::getenv("GDRIVE_TOKEN");
-            std::string t = token ? token : "";
-            return std::make_unique<GDriveScanner>(t); 
-        });
+    Registry<IFileScanner>::instance().add("gdrive", []() {
+        // Note: Google Drive requires an OAuth access token.
+        // For now, returning an unconfigured scanner, expecting uri parsing later or via CLI environment variables.
+        const char* token = std::getenv("GDRIVE_TOKEN");
+        std::string t = token ? token : "";
+        return std::make_unique<GDriveScanner>(t); 
+    });
 #endif
-    }
-} registrar;
-
-} // namespace
+}
 
 } // namespace fo::core

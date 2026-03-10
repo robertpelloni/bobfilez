@@ -16,6 +16,54 @@
 #include <sstream>
 #include <ctime>
 #include <cstdlib>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <unordered_map>
+#include <thread>
+#include <mutex>
+
+// Parse size string with optional K/M/G suffix (e.g., "1M" -> 1048576)
+static std::uintmax_t parse_size_string(const std::string& s) {
+    if (s.empty()) return 0;
+    char suffix = s.back();
+    std::uintmax_t multiplier = 1;
+    std::string num_part = s;
+    if (suffix == 'K' || suffix == 'k') { multiplier = 1024ULL; num_part.pop_back(); }
+    else if (suffix == 'M' || suffix == 'm') { multiplier = 1024ULL * 1024; num_part.pop_back(); }
+    else if (suffix == 'G' || suffix == 'g') { multiplier = 1024ULL * 1024 * 1024; num_part.pop_back(); }
+    return static_cast<std::uintmax_t>(std::stoull(num_part)) * multiplier;
+}
+
+// Simple glob matching (supports * and ? wildcards against filename only)
+static bool glob_match(const std::string& pattern, const std::string& text) {
+    size_t pi = 0, ti = 0;
+    size_t star_p = std::string::npos, star_t = 0;
+    while (ti < text.size()) {
+        if (pi < pattern.size() && (pattern[pi] == text[ti] || pattern[pi] == '?')) {
+            ++pi; ++ti;
+        } else if (pi < pattern.size() && pattern[pi] == '*') {
+            star_p = pi++; star_t = ti;
+        } else if (star_p != std::string::npos) {
+            pi = star_p + 1; ti = ++star_t;
+        } else {
+            return false;
+        }
+    }
+    while (pi < pattern.size() && pattern[pi] == '*') ++pi;
+    return pi == pattern.size();
+}
+
+static std::string format_human_size(std::uintmax_t bytes) {
+    const char* units[] = {"B", "KB", "MB", "GB", "TB"};
+    double val = static_cast<double>(bytes);
+    int unit = 0;
+    while (val >= 1024.0 && unit < 4) { val /= 1024.0; ++unit; }
+    std::ostringstream oss;
+    if (unit == 0) oss << bytes << " B";
+    else oss << std::fixed << std::setprecision(2) << val << " " << units[unit];
+    return oss.str();
+}
 
 void lint_command(const std::vector<std::string>& args);
 
@@ -35,6 +83,7 @@ static void print_usage() {
               << "  organize     Organize files based on rules\n"
               << "  delete-duplicates Delete duplicate files\n"
               << "  rename       Rename files based on pattern\n"
+              << "  stats        Show file statistics and distribution\n"
               << "  lint         Lint filesystem for empty files/broken links\n"
               << "  export       Export scan results to JSON/CSV/HTML\n"
               << "  undo         Undo the last file operation\n"
@@ -56,6 +105,12 @@ static void print_usage() {
               << "  --format=<fmt>      Output format (json, csv, html)\n"
               << "  --threshold=<N>     Similarity threshold (default: 10)\n"
               << "  --phash=<algo>      Perceptual hash algorithm (dhash, phash, ahash)\n"
+              << "  --min-size=<N>      Minimum file size filter (supports K/M/G suffix)\n"
+              << "  --max-size=<N>      Maximum file size filter (supports K/M/G suffix)\n"
+              << "  --exclude=<glob>    Exclude files matching glob pattern (repeatable)\n"
+              << "  --mode=<mode>       Verification mode: fast, safe, paranoid (default: fast)\n"
+              << "  --threads=<N>       Number of hashing threads (default: 1)\n"
+              << "  --no-recursive      Only scan files directly in specified directories\n"
               << "  --use-ads-cache     Use Windows NTFS Alternate Data Streams for hash caching\n"
               << "  --thumbnails        Include thumbnails in HTML export (images only)\n"
               << "  --list-scanners     List available scanners\n"
@@ -68,7 +123,21 @@ static void print_usage() {
               << "  --download-models   Download default AI models\n";
 }
 
+#ifdef FO_HAVE_S3
+namespace fo::core {
+    void init_aws_api();
+    void shutdown_aws_api();
+}
+#endif
+
 int main(int argc, char** argv) {
+#ifdef FO_HAVE_S3
+    struct AwsLifecycle {
+        AwsLifecycle() { fo::core::init_aws_api(); }
+        ~AwsLifecycle() { fo::core::shutdown_aws_api(); }
+    } aws_lifecycle;
+#endif
+
     fo::core::register_all_providers();
 
     if (argc < 2) {
@@ -185,10 +254,16 @@ int main(int argc, char** argv) {
     std::string keep_strategy = "oldest";
     std::string output_path;
     std::string phash_algo = "dhash";
+    std::string verification_mode = "fast";
     bool dry_run = false;
     bool prune = false;
     bool include_thumbnails = false;
+    bool no_recursive = false;
     int threshold = 10;
+    int num_threads = 1;
+    std::uintmax_t min_size = 0;
+    std::uintmax_t max_size = std::numeric_limits<std::uintmax_t>::max();
+    std::vector<std::string> exclude_patterns;
     fo::core::EngineConfig cfg;
 
     for (int i = 2; i < argc; ++i) {
@@ -241,6 +316,8 @@ int main(int argc, char** argv) {
         else if (a.rfind("--hasher=", 0) == 0) cfg.hasher = a.substr(9);
         else if (a.rfind("--s3-bucket=", 0) == 0) cfg.s3_bucket = a.substr(12);
         else if (a.rfind("--gdrive-token=", 0) == 0) cfg.gdrive_token = a.substr(15);
+        else if (a.rfind("--azure-connection=", 0) == 0) cfg.azure_connection_str = a.substr(19);
+        else if (a.rfind("--azure-container=", 0) == 0) cfg.azure_container = a.substr(18);
         else if (a.rfind("--db=", 0) == 0) cfg.db_path = a.substr(5);
         else if (a.rfind("--rule=", 0) == 0) rule_template = a.substr(7);
         else if (a.rfind("--rules=", 0) == 0) rules_file = a.substr(8);
@@ -266,6 +343,23 @@ int main(int argc, char** argv) {
             format = a.substr(9);
         } else if (a == "--follow-symlinks") {
             follow_symlinks = true;
+        } else if (a.rfind("--min-size=", 0) == 0) {
+            min_size = parse_size_string(a.substr(11));
+        } else if (a.rfind("--max-size=", 0) == 0) {
+            max_size = parse_size_string(a.substr(11));
+        } else if (a.rfind("--exclude=", 0) == 0) {
+            exclude_patterns.push_back(a.substr(10));
+        } else if (a.rfind("--mode=", 0) == 0) {
+            verification_mode = a.substr(7);
+            if (verification_mode != "fast" && verification_mode != "safe" && verification_mode != "paranoid") {
+                std::cerr << "Unknown mode: " << verification_mode << " (use fast, safe, or paranoid)\n";
+                return 2;
+            }
+        } else if (a == "--no-recursive") {
+            no_recursive = true;
+        } else if (a.rfind("--threads=", 0) == 0) {
+            num_threads = std::stoi(a.substr(10));
+            if (num_threads < 1) num_threads = 1;
         } else if (!a.empty() && a[0] == '-') {
             std::cerr << "Unknown option: " << a << "\n";
             return 2;
@@ -277,16 +371,62 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     if (!cfg.s3_bucket.empty()) _putenv_s("S3_BUCKET", cfg.s3_bucket.c_str());
     if (!cfg.gdrive_token.empty()) _putenv_s("GDRIVE_TOKEN", cfg.gdrive_token.c_str());
+    if (!cfg.azure_connection_str.empty()) _putenv_s("AZURE_STORAGE_CONNECTION_STRING", cfg.azure_connection_str.c_str());
+    if (!cfg.azure_container.empty()) _putenv_s("AZURE_CONTAINER", cfg.azure_container.c_str());
 #else
     if (!cfg.s3_bucket.empty()) setenv("S3_BUCKET", cfg.s3_bucket.c_str(), 1);
     if (!cfg.gdrive_token.empty()) setenv("GDRIVE_TOKEN", cfg.gdrive_token.c_str(), 1);
+    if (!cfg.azure_connection_str.empty()) setenv("AZURE_STORAGE_CONNECTION_STRING", cfg.azure_connection_str.c_str(), 1);
+    if (!cfg.azure_container.empty()) setenv("AZURE_CONTAINER", cfg.azure_container.c_str(), 1);
 #endif
 
     try {
         fo::core::Engine engine(cfg);
 
+        // Post-scan filter lambda for size, exclude patterns, and depth
+        auto apply_filters = [&](std::vector<fo::core::FileInfo>& files) {
+            if (min_size > 0 || max_size < std::numeric_limits<std::uintmax_t>::max() || !exclude_patterns.empty() || no_recursive) {
+                // Build normalized root set for depth filtering
+                std::vector<std::string> norm_roots;
+                if (no_recursive) {
+                    for (const auto& r : roots) {
+                        auto p = std::filesystem::canonical(r).string();
+                        if (!p.empty() && p.back() != '/' && p.back() != '\\') p += '\\';
+                        norm_roots.push_back(p);
+                    }
+                }
+                std::erase_if(files, [&](const fo::core::FileInfo& f) {
+                    if (f.size < min_size || f.size > max_size) return true;
+                    // Extract filename from URI
+                    std::string fname = f.uri;
+                    auto slash = fname.find_last_of("/\\");
+                    if (!exclude_patterns.empty()) {
+                        std::string name_only = (slash != std::string::npos) ? fname.substr(slash + 1) : fname;
+                        for (const auto& pat : exclude_patterns) {
+                            if (glob_match(pat, name_only)) return true;
+                        }
+                    }
+                    if (no_recursive) {
+                        // File must be directly inside one of the roots (no extra subdirectory)
+                        std::string dir = (slash != std::string::npos) ? fname.substr(0, slash + 1) : "";
+                        try {
+                            auto canon_dir = std::filesystem::canonical(dir).string();
+                            if (!canon_dir.empty() && canon_dir.back() != '/' && canon_dir.back() != '\\') canon_dir += '\\';
+                            bool in_root = false;
+                            for (const auto& nr : norm_roots) {
+                                if (canon_dir == nr) { in_root = true; break; }
+                            }
+                            if (!in_root) return true;
+                        } catch (...) { return true; }
+                    }
+                    return false;
+                });
+            }
+        };
+
         if (command == "scan") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < files.size(); ++i) {
@@ -303,12 +443,73 @@ int main(int argc, char** argv) {
             }
         } else if (command == "duplicates") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             auto groups = engine.find_duplicates(files);
+
+            // Apply verification mode
+            if (verification_mode == "safe" || verification_mode == "paranoid") {
+                // Strong hash pass: refine groups by computing strong (crypto) hashes
+                auto& hasher = engine.hasher();
+                std::vector<fo::core::DuplicateGroup> refined;
+                for (auto& g : groups) {
+                    std::unordered_map<std::string, std::vector<fo::core::FileInfo>> by_strong;
+                    for (auto& f : g.files) {
+                        auto strong = hasher.strong(std::filesystem::path(f.uri));
+                        std::string key = strong.value_or("unknown");
+                        by_strong[key].push_back(std::move(f));
+                    }
+                    for (auto& kv : by_strong) {
+                        if (kv.second.size() >= 2) {
+                            fo::core::DuplicateGroup rg;
+                            rg.size = g.size;
+                            rg.fast64 = g.fast64;
+                            rg.files = std::move(kv.second);
+                            refined.push_back(std::move(rg));
+                        }
+                    }
+                }
+                groups = std::move(refined);
+            }
+
+            if (verification_mode == "paranoid") {
+                // Byte-by-byte comparison: confirm duplicates by reading file contents
+                std::vector<fo::core::DuplicateGroup> verified;
+                for (auto& g : groups) {
+                    if (g.files.size() < 2) continue;
+                    // Compare all files byte-by-byte against the first file
+                    auto& reference = g.files[0];
+                    std::vector<fo::core::FileInfo> matches;
+                    matches.push_back(reference);
+
+                    std::ifstream ref_stream(reference.uri, std::ios::binary);
+                    if (!ref_stream) continue;
+                    std::vector<char> ref_buf(std::istreambuf_iterator<char>(ref_stream), {});
+
+                    for (size_t i = 1; i < g.files.size(); ++i) {
+                        std::ifstream cmp_stream(g.files[i].uri, std::ios::binary);
+                        if (!cmp_stream) continue;
+                        std::vector<char> cmp_buf(std::istreambuf_iterator<char>(cmp_stream), {});
+                        if (ref_buf == cmp_buf) {
+                            matches.push_back(g.files[i]);
+                        }
+                    }
+                    if (matches.size() >= 2) {
+                        fo::core::DuplicateGroup vg;
+                        vg.size = g.size;
+                        vg.fast64 = g.fast64;
+                        vg.files = std::move(matches);
+                        verified.push_back(std::move(vg));
+                    }
+                }
+                groups = std::move(verified);
+            }
+
             if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < groups.size(); ++i) {
                     const auto& g = groups[i];
-                    std::cout << "  {\"size\": " << g.size << ", \"hash\": \"" << g.fast64 << "\", \"files\": [\n";
+                    std::cout << "  {\"size\": " << g.size << ", \"hash\": \"" << g.fast64
+                              << "\", \"mode\": \"" << verification_mode << "\", \"files\": [\n";
                     for (size_t j = 0; j < g.files.size(); ++j) {
                         std::cout << "    \"" << fo::core::Exporter::json_escape(g.files[j].uri) << "\"";
                         if (j + 1 < g.files.size()) std::cout << ",";
@@ -320,6 +521,7 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "]\n";
             } else {
+                std::cout << "Verification mode: " << verification_mode << "\n";
                 for (const auto& g : groups) {
                     std::cout << "== size=" << g.size << ", fast64=" << g.fast64 << "\n";
                     for (const auto& f : g.files) {
@@ -329,26 +531,57 @@ int main(int argc, char** argv) {
             }
         } else if (command == "hash") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
             auto& hasher = engine.hasher();
+
+            // Compute hashes (parallel if --threads > 1)
+            struct HashResult { size_t idx; std::string hash; };
+            std::vector<HashResult> results(files.size());
+
+            if (num_threads > 1 && files.size() > 1) {
+                // Parallel hashing with thread pool
+                std::vector<std::thread> threads;
+                size_t chunk = (files.size() + num_threads - 1) / num_threads;
+
+                for (int t = 0; t < num_threads; ++t) {
+                    size_t start = t * chunk;
+                    size_t end = std::min(start + chunk, files.size());
+                    if (start >= files.size()) break;
+
+                    threads.emplace_back([&, start, end]() {
+                        // Each thread gets its own hasher instance to avoid contention
+                        auto thread_hasher = fo::core::Registry<fo::core::IHasher>::instance().create(hasher.name());
+                        for (size_t i = start; i < end; ++i) {
+                            results[i] = { i, thread_hasher->fast64(std::filesystem::path(files[i].uri)) };
+                        }
+                    });
+                }
+                for (auto& th : threads) th.join();
+            } else {
+                // Sequential hashing
+                for (size_t i = 0; i < files.size(); ++i) {
+                    results[i] = { i, hasher.fast64(std::filesystem::path(files[i].uri)) };
+                }
+            }
+
+            // Output results (always on main thread)
             if (format == "json") {
                 std::cout << "[\n";
-                for (size_t i = 0; i < files.size(); ++i) {
-                    std::string h = hasher.fast64(std::filesystem::path(files[i].uri));
+                for (size_t i = 0; i < results.size(); ++i) {
                     std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
-                              << "\", \"hash\": \"" << h << "\"}";
-                    if (i + 1 < files.size()) std::cout << ",";
+                              << "\", \"hash\": \"" << results[i].hash << "\"}";
+                    if (i + 1 < results.size()) std::cout << ",";
                     std::cout << "\n";
                     if (files[i].id != 0) {
-                        engine.file_repository().add_hash(files[i].id, hasher.name(), h);
+                        engine.file_repository().add_hash(files[i].id, hasher.name(), results[i].hash);
                     }
                 }
                 std::cout << "]\n";
             } else {
-                for (const auto& f : files) {
-                    std::string h = hasher.fast64(std::filesystem::path(f.uri));
-                    std::cout << h << "  " << f.uri << "\n";
-                    if (f.id != 0) {
-                        engine.file_repository().add_hash(f.id, hasher.name(), h);
+                for (size_t i = 0; i < results.size(); ++i) {
+                    std::cout << results[i].hash << "  " << files[i].uri << "\n";
+                    if (files[i].id != 0) {
+                        engine.file_repository().add_hash(files[i].id, hasher.name(), results[i].hash);
                     }
                 }
             }
@@ -723,6 +956,105 @@ int main(int argc, char** argv) {
                 if (dry_run) std::cout << "(Dry run - no files will be renamed)\n";
                 for (const auto& r : renames) {
                     std::cout << r.first << " -> " << r.second << "\n";
+                }
+            }
+
+        } else if (command == "stats") {
+            auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            apply_filters(files);
+
+            // Compute statistics
+            std::uintmax_t total_size = 0;
+            int dir_count = 0, file_count = 0;
+            std::map<std::string, int> ext_counts;
+            std::map<std::string, std::uintmax_t> ext_sizes;
+            // Size buckets: 0-1KB, 1KB-1MB, 1MB-100MB, 100MB-1GB, 1GB+
+            int buckets[5] = {0, 0, 0, 0, 0};
+            const char* bucket_names[] = {"0-1KB", "1KB-1MB", "1MB-100MB", "100MB-1GB", "1GB+"};
+            std::chrono::file_clock::time_point oldest_time = std::chrono::file_clock::time_point::max();
+            std::chrono::file_clock::time_point newest_time = std::chrono::file_clock::time_point::min();
+            std::string oldest_file, newest_file;
+
+            for (const auto& f : files) {
+                if (f.is_dir) { dir_count++; continue; }
+                file_count++;
+                total_size += f.size;
+
+                // Extension
+                auto dot = f.uri.find_last_of('.');
+                auto slash = f.uri.find_last_of("/\\");
+                std::string ext = (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+                    ? f.uri.substr(dot) : "(none)";
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                ext_counts[ext]++;
+                ext_sizes[ext] += f.size;
+
+                // Size buckets
+                if (f.size < 1024ULL) buckets[0]++;
+                else if (f.size < 1024ULL * 1024) buckets[1]++;
+                else if (f.size < 100ULL * 1024 * 1024) buckets[2]++;
+                else if (f.size < 1024ULL * 1024 * 1024) buckets[3]++;
+                else buckets[4]++;
+
+                // Oldest/newest
+                if (f.mtime < oldest_time) { oldest_time = f.mtime; oldest_file = f.uri; }
+                if (f.mtime > newest_time) { newest_time = f.mtime; newest_file = f.uri; }
+            }
+
+            if (format == "json") {
+                std::cout << "{\n"
+                          << "  \"total_files\": " << file_count << ",\n"
+                          << "  \"total_directories\": " << dir_count << ",\n"
+                          << "  \"total_size\": " << total_size << ",\n"
+                          << "  \"total_size_human\": \"" << format_human_size(total_size) << "\",\n";
+
+                // Extensions
+                std::vector<std::pair<std::string, int>> sorted_exts(ext_counts.begin(), ext_counts.end());
+                std::sort(sorted_exts.begin(), sorted_exts.end(), [](auto& a, auto& b) { return a.second > b.second; });
+                std::cout << "  \"extensions\": [\n";
+                int ext_limit = std::min(static_cast<int>(sorted_exts.size()), 20);
+                for (int i = 0; i < ext_limit; ++i) {
+                    std::cout << "    {\"ext\": \"" << fo::core::Exporter::json_escape(sorted_exts[i].first)
+                              << "\", \"count\": " << sorted_exts[i].second
+                              << ", \"size\": " << ext_sizes[sorted_exts[i].first] << "}"
+                              << (i + 1 < ext_limit ? "," : "") << "\n";
+                }
+                std::cout << "  ],\n";
+
+                // Buckets
+                std::cout << "  \"size_distribution\": {\n";
+                for (int i = 0; i < 5; ++i) {
+                    std::cout << "    \"" << bucket_names[i] << "\": " << buckets[i]
+                              << (i < 4 ? "," : "") << "\n";
+                }
+                std::cout << "  }\n}\n";
+            } else {
+                std::cout << "File Statistics\n" << std::string(50, '=') << "\n\n";
+                std::cout << "  Files:       " << file_count << "\n";
+                std::cout << "  Directories: " << dir_count << "\n";
+                std::cout << "  Total Size:  " << format_human_size(total_size) << "\n\n";
+
+                if (!oldest_file.empty()) {
+                    std::cout << "  Oldest: " << oldest_file << "\n";
+                    std::cout << "  Newest: " << newest_file << "\n\n";
+                }
+
+                // Extension breakdown
+                std::vector<std::pair<std::string, int>> sorted_exts(ext_counts.begin(), ext_counts.end());
+                std::sort(sorted_exts.begin(), sorted_exts.end(), [](auto& a, auto& b) { return a.second > b.second; });
+                std::cout << "Extension Breakdown (top 20)\n" << std::string(50, '-') << "\n";
+                int ext_limit = std::min(static_cast<int>(sorted_exts.size()), 20);
+                for (int i = 0; i < ext_limit; ++i) {
+                    std::cout << "  " << std::setw(10) << std::left << sorted_exts[i].first
+                              << " " << std::setw(6) << std::right << sorted_exts[i].second << " files"
+                              << "  (" << format_human_size(ext_sizes[sorted_exts[i].first]) << ")\n";
+                }
+
+                // Size distribution
+                std::cout << "\nSize Distribution\n" << std::string(50, '-') << "\n";
+                for (int i = 0; i < 5; ++i) {
+                    std::cout << "  " << std::setw(12) << std::left << bucket_names[i]
+                              << " " << std::setw(6) << std::right << buckets[i] << " files\n";
                 }
             }
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-03-07 | **Commit:** - | **Branch:** main | **Version:** 2.2.5
+**Generated:** 2026-03-09 | **Commit:** - | **Branch:** main | **Version:** 2.3.4
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -90,19 +90,82 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.3.0)
+## Current Status (v2.3.4)
 
-- ✅ Cloud storage providers: AWS S3 and Google Drive scanners
-- ✅ 15+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, etc.)
+- ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
+- ✅ Cloud integration tests: All 3 scanners verified with mocked endpoints
+- ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, etc.)
+- ✅ `stats` command with extension breakdown, size buckets, and JSON output
+- ✅ `--min-size`/`--max-size`, `--exclude`, `--no-recursive`, and `--mode` scan filters
+- ✅ `--threads=<N>` parallel hashing scaffolding
 - ✅ 63 passing tests
 - ✅ Qt6 GUI decoupled
 - ✅ 130+ submodules synced
 
-**Next Steps**: Azure Blob Storage provider, cloud provider pagination, MSI/AppImage packaging.
+**Next Steps**: Cloud provider pagination for large datasets, MSI/AppImage packaging.
 
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-03-09 (Session 8)
+**Author:** Antigravity
+
+**Scope:** Verification Modes, No-Recursive Flag, Threads Scaffolding
+
+**Status:**
+- ✅ **`--mode=<fast|safe|paranoid>`**: Three-tier duplicate verification with strong hash and byte-by-byte comparison.
+- ✅ **`--no-recursive`**: CLI-level depth filter using canonical path comparison. Works with all scanner backends.
+- ✅ **`--threads=<N>`**: Argument parsed and validated, scaffolded for future parallel hashing.
+- ✅ **Roadmap**: Updated `docs/ROADMAP.md` from stale v2.2.0 to current v2.3.2.
+- ✅ **Version Bump**: Updated to `2.3.4` and documented in `CHANGELOG.md`.
+
+**Next Steps:**
+1. Wire `--threads` into parallel hashing implementation.
+2. MSI/AppImage packaging.
+3. Cloud provider pagination stress tests.
+
+---
+
+### Update: 2026-03-09 (Session 7)
+**Author:** Antigravity
+
+**Scope:** CLI Enhancements — Stats, Size Filters, Exclude Patterns
+
+**Status:**
+- ✅ **`stats` command**: File count, total size, extension breakdown (top 20), size bucket distribution, oldest/newest file tracking. Supports `--format=json`.
+- ✅ **`--min-size`/`--max-size`**: Post-scan file size filters with K/M/G suffix parsing.
+- ✅ **`--exclude=<glob>`**: Repeatable glob pattern exclusion filter for filenames.
+- ✅ **Helper functions**: `parse_size_string()`, `glob_match()`, `format_human_size()` added to `fo_cli.cpp`.
+- ✅ **Roadmap**: Updated `docs/ROADMAP.md` from v2.2.0 to v2.3.2.
+- ✅ **Version Bump**: Updated to `2.3.2` and documented in `CHANGELOG.md`.
+
+**Next Steps:**
+1. Implement `--mode=<fast|safe|paranoid>` verification modes for duplicate detection.
+2. Cloud provider pagination stress tests.
+3. MSI/AppImage packaging.
+
+---
+
+### Update: 2026-03-09 (Session 6)
+**Author:** Antigravity
+
+**Scope:** Cloud Provider Integration Testing & AWS SDK Fixes
+
+**Status:**
+- ✅ **AzureBlobScanner**: Resolved `Azure::DateTime` → `std::chrono::file_clock` conversion via `PosixTimeConverter::DateTimeToPosixTime`.
+- ✅ **Cloud Registration**: Replaced anonymous static registrars with explicit `register_scanner_*()` functions to fix MSVC linker stripping.
+- ✅ **AWS SDK Lifecycle**: Added `Aws::InitAPI`/`Aws::ShutdownAPI` RAII in `fo_cli` main. Fixed `FO_HAVE_S3` CMake visibility (`PRIVATE` → `PUBLIC`).
+- ✅ **S3 Path-Style**: Forced path-style addressing and mock credentials for custom endpoints.
+- ✅ **Integration Tests**: `tests/mock_cloud_scanners.py` — all 3 scanners (GDrive, S3, Azure) pass with mocked HTTP server.
+- ✅ **Version Bump**: Updated to `2.3.1` and documented in `CHANGELOG.md`.
+
+**Next Steps:**
+1. Add pagination stress tests for large (1000+) object sets.
+2. MSI/AppImage packaging.
+3. Consider Azure Blob Storage authentication via `DefaultAzureCredential`.
 
 ---
 

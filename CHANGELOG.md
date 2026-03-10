@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.5] - 2026-03-09
+
+### Added
+- **CLI**: `--threads=<N>` now enables parallel hashing for the `hash` command. Each thread gets its own `IHasher` instance and processes a file partition independently, with ordered output on the main thread.
+- **CLI**: `apply_filters()` now also applied to the `hash` command results.
+
+## [2.3.4] - 2026-03-09
+
+### Added
+- **CLI**: `--no-recursive` flag to only scan files directly in specified root directories, skipping all subdirectories. Works with all scanner backends including cloud providers.
+- **CLI**: `--threads=<N>` flag for specifying number of hashing threads (scaffolding for future parallel hashing).
+- **Docs**: Updated `ROADMAP.md` to reflect v2.3.2+ features including cloud providers, stats, and verification modes.
+- **Docs**: Added Session 7 and Session 8 handoff entries to `AGENTS.md`.
+
+## [2.3.3] - 2026-03-09
+
+### Added
+- **CLI**: `--mode=<fast|safe|paranoid>` verification modes for duplicate detection.
+  - **fast**: Size + fast64 hash only (default, existing behavior).
+  - **safe**: Adds strong crypto hash (SHA-256/BLAKE3) pass to confirm duplicates.
+  - **paranoid**: Adds byte-by-byte file comparison after strong hash match — zero false positives.
+- **CLI**: `apply_filters()` now also applied to `duplicates` command results.
+- **CLI**: JSON output for duplicates now includes `"mode"` field.
+
+## [2.3.2] - 2026-03-09
+
+### Added
+- **CLI**: New `stats` command with file count, total size, extension breakdown (top 20), size bucket distribution, oldest/newest file tracking, and JSON output support.
+- **CLI**: `--min-size=<N>` and `--max-size=<N>` post-scan filters with K/M/G suffix support (e.g., `--min-size=1M`).
+- **CLI**: `--exclude=<glob>` repeatable flag for excluding files by filename glob pattern (supports `*` and `?` wildcards).
+
+## [2.3.1] - 2026-03-09
+
+### Added
+- **Cloud Providers**: Azure Blob Storage scanner (`AzureBlobScanner`) for listing blobs via the Azure Storage Blobs SDK. Enabled via `--scanner=azure --azure-connection=... --azure-container=...`.
+- **Testing**: Python integration test (`tests/mock_cloud_scanners.py`) mocking paginated S3, GDrive, and Azure API responses against `fo_cli`.
+- **AWS SDK**: RAII lifecycle management (`Aws::InitAPI`/`Aws::ShutdownAPI`) in `fo_cli` entrypoint.
+
+### Fixed
+- **S3 Scanner**: Path-style addressing for custom endpoints (fixes DNS failure on `bucket.localhost`).
+- **S3 Scanner**: Mock credentials provider to bypass EC2 metadata service lookup on non-AWS environments.
+- **Cloud Registration**: Replaced anonymous static registrars with explicit `register_scanner_*()` functions to prevent MSVC linker from stripping cloud scanner modules.
+- **CMake**: Changed `FO_HAVE_S3` definition from `PRIVATE` to `PUBLIC` so the CLI executable can conditionally initialize the AWS SDK.
+- **Azure SDK**: Resolved `Azure::DateTime` to `std::chrono::file_clock` conversion using `PosixTimeConverter::DateTimeToPosixTime`.
+
 ## [2.3.0] - 2026-03-07
 
 ### Added

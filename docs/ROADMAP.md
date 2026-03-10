@@ -4,32 +4,36 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Current Status (v2.2.0)
+## Current Status (v2.3.2)
 
 ### Completed
 - ✅ **Core Engine**: C++20 static library (`fo_core`) with plugin registry.
-- ✅ **CLI**: Feature-complete `fo_cli` with 15+ commands.
+- ✅ **CLI**: Feature-complete `fo_cli` with 16+ commands.
 - ✅ **GUI**: Qt6-based `fo_gui` decoupled from core logic.
 - ✅ **Refactoring**: Resolved CLI duplicate code issues and optimized structure.
 - ✅ **Providers**:
-    - Scanners: `std::filesystem`, `Win32`, `dirent`.
+    - Scanners: `std::filesystem`, `Win32`, `dirent`, AWS S3, Google Drive, Azure Blob Storage.
     - Hashers: `xxHash`, `SHA256`, `BLAKE3` (vcpkg).
     - Metadata: `TinyEXIF`, `Exiv2` (vcpkg).
     - OCR: `Tesseract` (vcpkg).
     - Perceptual Hash: `dHash`, `pHash`, `aHash`.
+- ✅ **Cloud Integration**: AWS S3, Google Drive, and Azure Blob Storage scanners with pagination.
+- ✅ **Cloud Testing**: Python integration test framework with mocked HTTP endpoints.
 - ✅ **Database**: SQLite with migrations, repositories, and incremental scanning.
 - ✅ **Advanced Features**: AI classification (ONNX), Rule-based organization, Batch operations.
-- ✅ **Testing**: 59 unit/integration tests passing.
+- ✅ **CLI Analytics**: `stats` command with extension breakdown, size buckets, and JSON output.
+- ✅ **CLI Filters**: `--min-size`/`--max-size` and `--exclude=<glob>` scan filters.
+- ✅ **Testing**: 63 unit/integration tests passing.
 - ✅ **Documentation**: Comprehensive guides (User, Developer, API), Dashboards, and Submodule tracking.
 - ✅ **Benchmarks**: Initial microbenchmarks implemented and passing (`Scanner`, `Hasher`).
 - ✅ **Packaging**: Windows ZIP distribution script operational.
-- ✅ **Submodules**: All 130+ submodules updated to latest upstream (v2.1.0).
+- ✅ **Submodules**: All 130+ submodules updated to latest upstream.
 
 ### Pending
 - 🔄 **Installers**: MSI (Windows) [Script Ready], AppImage (Linux), DMG (macOS).
 - ✅ **CI/CD**: Automated Submodule Dashboard Updates.
 - ✅ **Fuzz Testing**: MSVC libFuzzer deployed and executing against core engine logic.
-- ⏳ **Cloud Integration**: Optional S3/Drive support (Post-v1.0).
+- ⏳ **Verification Modes**: `--mode=<fast|safe|paranoid>` for duplicate detection.
 
 ---
 

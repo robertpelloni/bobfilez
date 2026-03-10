@@ -18,6 +18,8 @@ struct EngineConfig {
     bool use_ads_cache = false;  // Use Windows NTFS Alternate Data Streams for hash caching
     std::string s3_bucket;
     std::string gdrive_token;
+    std::string azure_connection_str;
+    std::string azure_container;
 };
 
 class Engine {

@@ -1,0 +1,153 @@
+**********************************************************************
+** Visual Studio 2019 Developer Command Prompt v16.11.53
+** Copyright (c) 2021 Microsoft Corporation
+**********************************************************************
+[vcvarsall.bat] Environment initialized for: 'x64'
+-- Running vcpkg install
+Detecting compiler hash for triplet x64-windows...
+Compiler found: C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+The following packages are already installed:
+  * aws-c-auth:x64-windows@0.9.5
+  * aws-c-cal:x64-windows@0.9.13
+  * aws-c-common:x64-windows@0.12.6
+  * aws-c-compression:x64-windows@0.3.2
+  * aws-c-event-stream:x64-windows@0.5.9
+  * aws-c-http:x64-windows@0.10.10
+  * aws-c-io:x64-windows@0.26.1
+  * aws-c-mqtt:x64-windows@0.13.3
+  * aws-c-s3:x64-windows@0.11.5
+  * aws-c-sdkutils:x64-windows@0.2.4
+  * aws-checksums:x64-windows@0.2.8
+  * aws-crt-cpp:x64-windows@0.37.1
+    aws-sdk-cpp[core,s3]:x64-windows@1.11.740
+  * azure-core-cpp[core,curl,http,winhttp]:x64-windows@1.16.2
+    azure-storage-blobs-cpp:x64-windows@12.16.0
+  * azure-storage-common-cpp:x64-windows@12.12.0
+    benchmark:x64-windows@1.9.5
+    blake3:x64-windows@1.8.3
+    cpr[core,ssl]:x64-windows@1.14.1
+  * curl[core,non-http,ssl,sspi]:x64-windows@8.18.0#1
+    gtest:x64-windows@1.17.0#2
+    nlohmann-json:x64-windows@3.12.0#2
+    sqlite3[core,json1]:x64-windows@3.51.2
+  * vcpkg-cmake:x64-windows@2024-04-23
+  * vcpkg-cmake-config:x64-windows@2024-05-23
+  * wil:x64-windows@1.0.260126.7
+    yaml-cpp:x64-windows@0.8.0#3
+  * zlib:x64-windows@1.3.1
+The package aws-sdk-cpp:x64-windows provides CMake targets:
+
+    When using AWSSDK, AWSSDK_ROOT_DIR must be defined by the user.
+    find_package(AWSSDK CONFIG COMPONENTS core dynamodb kinesis s3 REQUIRED)
+    target_include_directories(main PRIVATE ${AWSSDK_INCLUDE_DIRS})
+    target_link_libraries(main PRIVATE ${AWSSDK_LIBRARIES})
+    
+    OR
+    
+    find_package(aws-cpp-sdk-core REQUIRED)
+    target_include_directories(main PRIVATE aws-cpp-sdk-core)
+    target_link_libraries(main PRIVATE aws-cpp-sdk-core)
+
+azure-storage-blobs-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(azure-storage-blobs-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Azure::azure-storage-blobs)
+
+benchmark provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(benchmark CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE benchmark::benchmark benchmark::benchmark_main)
+
+benchmark provides pkg-config modules:
+
+  # Google microbenchmark framework
+  benchmark
+
+  # Google microbenchmark framework (with main() function)
+  benchmark_main
+
+blake3 provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(blake3 CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE BLAKE3::blake3)
+
+blake3 provides pkg-config modules:
+
+  # BLAKE3 C implementation
+  libblake3
+
+cpr provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(cpr CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE cpr::cpr)
+
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+The package nlohmann-json provides CMake targets:
+
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
+
+The package nlohmann-json can be configured to not provide implicit conversions via a custom triplet file:
+
+    set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+
+For more information, see the docs here:
+    
+    https://json.nlohmann.me/api/macros/json_use_implicit_conversions/
+
+sqlite3 provides pkgconfig bindings.
+sqlite3 provides CMake targets:
+
+    find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE unofficial::sqlite3::sqlite3)
+
+yaml-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(yaml-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE yaml-cpp::yaml-cpp)
+
+yaml-cpp provides pkg-config modules:
+
+  # A YAML parser and emitter for C++
+  yaml-cpp
+
+All requested installations completed successfully in: 9.47 ms
+-- Running vcpkg install - done
+-- Found AWS SDK for C++, Version: 1.11.740, Install Root:C:/Users/hyper/workspace/bobfilez/build/vcpkg_installed/x64-windows, Platform Prefix:, Platform Dependent Libraries: Userenv;version;ws2_32;Wininet;winhttp
+-- Components specified for AWSSDK: s3;core, application will be depending on libs: aws-cpp-sdk-s3;aws-cpp-sdk-core
+-- Try finding aws-cpp-sdk-core
+-- Found aws-cpp-sdk-core
+-- Try finding aws-cpp-sdk-s3
+-- Found aws-cpp-sdk-s3
+-- Found BLAKE3, enabling blake3 hasher
+-- Found AWSSDK, enabling AWS S3 provider
+-- Found cpr, enabling Google Drive HTTP provider
+-- Found Azure Storage Blobs SDK, enabling Azure Blob provider
+-- Configuring done (17.7s)
+-- Generating done (0.3s)
+-- Build files have been written to: C:/Users/hyper/workspace/bobfilez/build
+[1/6] Building CXX object core\CMakeFiles\fo_core.dir\src\providers\azure_blob_scanner.cpp.obj
+FAILED: [code=2] core/CMakeFiles/fo_core.dir/src/providers/azure_blob_scanner.cpp.obj 
+C:\PROGRA~2\MICROS~4\2019\BUILDT~1\VC\Tools\MSVC\1429~1.301\bin\Hostx64\x64\cl.exe  /nologo /TP -DAWS_AUTH_USE_IMPORT_EXPORT -DAWS_CAL_USE_IMPORT_EXPORT -DAWS_CHECKSUMS_USE_IMPORT_EXPORT -DAWS_COMMON_USE_IMPORT_EXPORT -DAWS_COMPRESSION_USE_IMPORT_EXPORT -DAWS_CRT_CPP_USE_IMPORT_EXPORT -DAWS_ENABLE_IO_COMPLETION_PORTS -DAWS_EVENT_STREAM_USE_IMPORT_EXPORT -DAWS_HTTP_USE_IMPORT_EXPORT -DAWS_IO_USE_IMPORT_EXPORT -DAWS_MQTT_USE_IMPORT_EXPORT -DAWS_S3_USE_IMPORT_EXPORT -DAWS_SDKUTILS_USE_IMPORT_EXPORT -DAWS_SDK_VERSION_MAJOR=1 -DAWS_SDK_VERSION_MINOR=11 -DAWS_SDK_VERSION_PATCH=740 -DAZ_CORE_DLL -DAZ_RTTI -DAZ_STORAGE_BLOBS_DLL -DAZ_STORAGE_COMMON_DLL -DBLAKE3_DLL -DFO_HAVE_AZURE_STORAGE -DFO_HAVE_BLAKE3 -DFO_HAVE_CPR -DFO_HAVE_S3 -DFO_HAVE_YAMLCPP -DUSE_IMPORT_EXPORT -DUSE_IMPORT_EXPORT=1 -DUSE_WINDOWS_DLL_SEMANTICS -IC:\Users\hyper\workspace\bobfilez\core\include -IC:\Users\hyper\workspace\bobfilez\core\..\libs\TinyEXIF -IC:\Users\hyper\workspace\bobfilez\core\..\libs\tinyxml2 -IC:\Users\hyper\workspace\bobfilez\core\..\libs\hash-library -IC:\Users\hyper\workspace\bobfilez\core\..\libs\xxHash -IC:\Users\hyper\workspace\bobfilez\core\..\libs\dirent\src -IC:\Users\hyper\workspace\bobfilez\core\..\libs\sqlite3 -IC:\Users\hyper\workspace\bobfilez\core\..\libs -external:IC:\Users\hyper\workspace\bobfilez\build\vcpkg_installed\x64-windows\include -external:W0 /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++20 -MD /W4 /permissive- /showIncludes /Focore\CMakeFiles\fo_core.dir\src\providers\azure_blob_scanner.cpp.obj /Fdcore\CMakeFiles\fo_core.dir\fo_core.pdb /FS -c C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp
+C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp(68): error C2039: 'HasValue': is not a member of 'Azure::DateTime'
+C:\Users\hyper\workspace\bobfilez\build\vcpkg_installed\x64-windows\include\azure/core/datetime.hpp(54): note: see declaration of 'Azure::DateTime'
+C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp(69): error C2039: 'Value': is not a member of 'Azure::DateTime'
+C:\Users\hyper\workspace\bobfilez\build\vcpkg_installed\x64-windows\include\azure/core/datetime.hpp(54): note: see declaration of 'Azure::DateTime'
+C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp(71): error C3536: 'tp': cannot be used before it is initialized
+C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp(71): error C2672: 'std::chrono::clock_cast': no matching overloaded function found
+C:\Users\hyper\workspace\bobfilez\core\src\providers\azure_blob_scanner.cpp(71): error C2784: 'auto std::chrono::clock_cast(const std::chrono::time_point<_Clock,_Duration> &)': could not deduce template argument for 'const std::chrono::time_point<_Clock,_Duration> &' from 'int'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\include\chrono(2904): note: see declaration of 'std::chrono::clock_cast'
+ninja: build stopped: subcommand failed.

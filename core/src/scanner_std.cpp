@@ -43,7 +43,7 @@ public:
                 if (!de.is_regular_file(ec)) continue;
                 if (!accept_ext(de.path())) continue;
                 FileInfo fi;
-                fi.path = de.path();
+                fi.uri = de.path().string();
                 fi.size = de.file_size(ec);
                 std::filesystem::file_time_type ft = de.last_write_time(ec);
                 if (!ec) fi.mtime = ft;

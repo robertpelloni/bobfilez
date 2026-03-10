@@ -5,9 +5,15 @@ namespace fo::core {
     // Forward declarations for individual provider registration functions.
     void register_hasher_dhash();
     void register_linter_std();
+    void register_scanner_s3();
+    void register_scanner_gdrive();
+    void register_scanner_azure();
 
     void register_extended_providers() {
         register_hasher_dhash();
+        register_scanner_s3();
+        register_scanner_gdrive();
+        register_scanner_azure();
         // Add calls to other provider registration functions here.
     }
 

@@ -22,7 +22,7 @@ public:
             if (vec.size() < 2) continue; // no dups possible
             std::unordered_map<std::string, std::vector<const FileInfo*>> by_fast;
             for (auto* fi : vec) {
-                auto h = hasher.fast64(fi->path);
+                auto h = hasher.fast64(std::filesystem::path(fi->uri));
                 by_fast[h].push_back(fi);
             }
             for (auto& hv : by_fast) {

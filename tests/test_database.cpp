@@ -102,7 +102,7 @@ protected:
 
     FileInfo create_test_file(const std::string& name, std::uintmax_t size = 100) {
         FileInfo info;
-        info.path = test_dir / name;
+        info.uri = (test_dir / name).string();
         info.size = size;
         info.mtime = std::chrono::file_clock::now();
         info.is_dir = false;
@@ -203,7 +203,7 @@ TEST_F(FileRepositoryTest, UpdatePath) {
     
     auto found = repo->get_by_id(file.id);
     ASSERT_TRUE(found.has_value());
-    EXPECT_EQ(found->path, new_path);
+    EXPECT_EQ(found->uri, new_path.string());
 }
 
 TEST_F(FileRepositoryTest, AddAndGetHash) {
@@ -266,7 +266,7 @@ TEST_F(FileRepositoryTest, InsertMultipleFiles) {
 
 TEST_F(FileRepositoryTest, DirectoryFlag) {
     FileInfo dir;
-    dir.path = test_dir / "subdir";
+    dir.uri = (test_dir / "subdir").string();
     dir.size = 0;
     dir.mtime = std::chrono::file_clock::now();
     dir.is_dir = true;

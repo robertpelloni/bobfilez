@@ -124,7 +124,7 @@ TEST_F(IntegrationTest, IncrementalScanOnlyProcessesNewFiles) {
         for (const auto& f : files) {
             if (!f.is_dir) {
                 ++file_count;
-                if (f.path.filename() == "new_file.txt") {
+                if (std::filesystem::path(f.uri).filename() == "new_file.txt") {
                     found_new = true;
                 }
             }

@@ -8,7 +8,7 @@ std::vector<DuplicateGroup> SizeHashDuplicateFinder::group(const std::vector<Fil
     std::map<std::pair<std::uintmax_t, std::string>, std::vector<FileInfo>> groups;
 
     for (const auto& file : files) {
-        std::string fast_hash = hasher.fast64(file.path);
+        std::string fast_hash = hasher.fast64(std::filesystem::path(file.uri));
         groups[{file.size, fast_hash}].push_back(file);
     }
 
@@ -56,7 +56,7 @@ std::vector<DuplicateGroup> SizeHashByteDuplicateFinder::group(const std::vector
         verified_files.push_back(group.files[0]);
 
         for (size_t i = 1; i < group.files.size(); ++i) {
-            if (compare_files(group.files[0].path, group.files[i].path)) {
+            if (compare_files(std::filesystem::path(group.files[0].uri), std::filesystem::path(group.files[i].uri))) {
                 verified_files.push_back(group.files[i]);
             }
         }

@@ -120,7 +120,7 @@ void Exporter::to_json(std::ostream& out,
         const auto& f = files[i];
         out << "    {\n";
         out << "      \"id\": " << f.id << ",\n";
-        out << "      \"path\": \"" << json_escape(f.path.string()) << "\",\n";
+        out << "      \"path\": \"" << json_escape(f.uri) << "\",\n";
         out << "      \"size\": " << f.size << ",\n";
         out << "      \"size_human\": \"" << format_size(f.size) << "\",\n";
         out << "      \"mtime\": \"" << format_time(f.mtime) << "\",\n";
@@ -137,7 +137,7 @@ void Exporter::to_json(std::ostream& out,
         out << "      \"fast64\": \"" << json_escape(g.fast64) << "\",\n";
         out << "      \"files\": [\n";
         for (size_t j = 0; j < g.files.size(); ++j) {
-            out << "        \"" << json_escape(g.files[j].path.string()) << "\"";
+            out << "        \"" << json_escape(g.files[j].uri) << "\"";
             out << (j + 1 < g.files.size() ? "," : "") << "\n";
         }
         out << "      ]\n";
@@ -152,7 +152,7 @@ void Exporter::to_csv(std::ostream& out, const std::vector<FileInfo>& files) {
     out << "id,path,size,size_human,mtime,is_dir\n";
     for (const auto& f : files) {
         out << f.id << ","
-            << csv_escape(f.path.string()) << ","
+            << csv_escape(f.uri) << ","
             << f.size << ","
             << csv_escape(format_size(f.size)) << ","
             << csv_escape(format_time(f.mtime)) << ","
@@ -170,7 +170,7 @@ void Exporter::duplicates_to_csv(std::ostream& out, const std::vector<DuplicateG
                 << g.size << ","
                 << csv_escape(format_size(g.size)) << ","
                 << csv_escape(g.fast64) << ","
-                << csv_escape(f.path.string()) << "\n";
+                << csv_escape(f.uri) << "\n";
         }
         ++group_id;
     }
@@ -227,8 +227,8 @@ tr:nth-child(even) { background: #f8f9fa; }
         for (const auto& g : duplicates) {
             // Generate thumbnail for first file in group if it's an image
             std::string thumb_html;
-            if (include_thumbnails && !g.files.empty() && ThumbnailGenerator::is_image_file(g.files[0].path)) {
-                auto thumb = ThumbnailGenerator::generate_base64(g.files[0].path);
+            if (include_thumbnails && !g.files.empty() && ThumbnailGenerator::is_image_file(std::filesystem::path(g.files[0].uri))) {
+                auto thumb = ThumbnailGenerator::generate_base64(std::filesystem::path(g.files[0].uri));
                 if (thumb) {
                     thumb_html = "<img class=\"thumbnail\" src=\"data:image/jpeg;base64," + *thumb + "\" alt=\"thumbnail\">";
                 }
@@ -239,15 +239,15 @@ tr:nth-child(even) { background: #f8f9fa; }
                     << "</td><td rowspan=\"" << g.files.size() << "\">" << group_id
                     << "</td><td rowspan=\"" << g.files.size() << "\">" << html_escape(format_size(g.size))
                     << "</td><td rowspan=\"" << g.files.size() << "\">" << html_escape(g.fast64.substr(0, 16)) << "..."
-                    << "</td><td>" << html_escape(g.files[0].path.string()) << "</td></tr>\n";
+                    << "</td><td>" << html_escape(g.files[0].uri) << "</td></tr>\n";
             } else {
                 out << "<tr class=\"dup-group\"><td rowspan=\"" << g.files.size() << "\">" << group_id
                     << "</td><td rowspan=\"" << g.files.size() << "\">" << html_escape(format_size(g.size))
                     << "</td><td rowspan=\"" << g.files.size() << "\">" << html_escape(g.fast64.substr(0, 16)) << "..."
-                    << "</td><td>" << html_escape(g.files[0].path.string()) << "</td></tr>\n";
+                    << "</td><td>" << html_escape(g.files[0].uri) << "</td></tr>\n";
             }
             for (size_t i = 1; i < g.files.size(); ++i) {
-                out << "<tr><td>" << html_escape(g.files[i].path.string()) << "</td></tr>\n";
+                out << "<tr><td>" << html_escape(g.files[i].uri) << "</td></tr>\n";
             }
             ++group_id;
         }
@@ -267,19 +267,19 @@ tr:nth-child(even) { background: #f8f9fa; }
         const auto& f = files[i];
         if (!f.is_dir) {
             std::string thumb_html;
-            if (include_thumbnails && ThumbnailGenerator::is_image_file(f.path)) {
-                auto thumb = ThumbnailGenerator::generate_base64(f.path);
+            if (include_thumbnails && ThumbnailGenerator::is_image_file(std::filesystem::path(f.uri))) {
+                auto thumb = ThumbnailGenerator::generate_base64(std::filesystem::path(f.uri));
                 if (thumb) {
                     thumb_html = "<img class=\"thumbnail\" src=\"data:image/jpeg;base64," + *thumb + "\" alt=\"thumbnail\">";
                 }
             }
 
             if (include_thumbnails) {
-                out << "<tr><td class=\"thumb-cell\">" << thumb_html << "</td><td>" << html_escape(f.path.string()) << "</td><td>"
+                out << "<tr><td class=\"thumb-cell\">" << thumb_html << "</td><td>" << html_escape(f.uri) << "</td><td>"
                     << html_escape(format_size(f.size)) << "</td><td>"
                     << html_escape(format_time(f.mtime)) << "</td></tr>\n";
             } else {
-                out << "<tr><td>" << html_escape(f.path.string()) << "</td><td>"
+                out << "<tr><td>" << html_escape(f.uri) << "</td><td>"
                     << html_escape(format_size(f.size)) << "</td><td>"
                     << html_escape(format_time(f.mtime)) << "</td></tr>\n";
             }

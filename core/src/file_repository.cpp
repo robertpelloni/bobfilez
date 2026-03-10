@@ -30,7 +30,7 @@ FileRepository::FileRepository(DatabaseManager& db) : db_(db) {}
 
 UpsertResult FileRepository::upsert(FileInfo& file) {
     UpsertResult result;
-    auto existing = get_by_path(file.path);
+    auto existing = get_by_path(file.uri);
     
     if (!existing) {
         result.is_new = true;
@@ -42,7 +42,7 @@ UpsertResult FileRepository::upsert(FileInfo& file) {
             throw std::runtime_error("Failed to prepare insert: " + std::string(sqlite3_errmsg(db_.get_db())));
         }
 
-        std::string path_str = file.path.string();
+        std::string path_str = file.uri;
         sqlite3_bind_text(stmt, 1, path_str.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(file.size));
         sqlite3_bind_int64(stmt, 3, static_cast<sqlite3_int64>(to_unix(file.mtime)));
@@ -190,7 +190,7 @@ std::vector<FileInfo> FileRepository::get_missing_files(const std::vector<std::f
             FileInfo fi;
             fi.id = sqlite3_column_int64(sel_stmt, 0);
             const char* path_c = reinterpret_cast<const char*>(sqlite3_column_text(sel_stmt, 1));
-            if (path_c) fi.path = std::filesystem::u8path(path_c);
+            if (path_c) fi.uri = path_c;
             fi.size = static_cast<std::uintmax_t>(sqlite3_column_int64(sel_stmt, 2));
             fi.mtime = from_unix(sqlite3_column_int64(sel_stmt, 3));
             fi.is_dir = sqlite3_column_int(sel_stmt, 4) != 0;
@@ -235,7 +235,7 @@ std::optional<FileInfo> FileRepository::get_by_path(const std::filesystem::path&
     std::optional<FileInfo> result;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         FileInfo fi;
-        fi.path = path;
+        fi.uri = path.string();
         fi.id = sqlite3_column_int64(stmt, 0);
         fi.size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 1));
         fi.mtime = from_unix(sqlite3_column_int64(stmt, 2));
@@ -297,7 +297,7 @@ std::optional<FileInfo> FileRepository::get_by_id(int64_t id) {
         FileInfo fi;
         fi.id = id;
         const char* path_c = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-        if (path_c) fi.path = std::filesystem::u8path(path_c);
+        if (path_c) fi.uri = path_c;
         fi.size = static_cast<std::uintmax_t>(sqlite3_column_int64(stmt, 1));
         fi.mtime = from_unix(sqlite3_column_int64(stmt, 2));
         fi.is_dir = sqlite3_column_int(stmt, 3) != 0;

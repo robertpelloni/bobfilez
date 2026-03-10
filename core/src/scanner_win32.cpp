@@ -82,7 +82,7 @@ public:
                     if (!accept_ext(p)) continue;
 
                     FileInfo fi;
-                    fi.path = p;
+                    fi.uri = p.string();
                     ULARGE_INTEGER sz; sz.LowPart = ffd.nFileSizeLow; sz.HighPart = ffd.nFileSizeHigh;
                     fi.size = static_cast<std::uintmax_t>(sz.QuadPart);
 

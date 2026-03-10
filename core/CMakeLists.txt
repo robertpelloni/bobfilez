@@ -45,6 +45,7 @@ find_package(onnxruntime CONFIG QUIET)
 find_package(yaml-cpp CONFIG QUIET)
 find_package(AWSSDK QUIET COMPONENTS s3 core)
 find_package(cpr CONFIG QUIET)
+find_package(azure-storage-blobs-cpp CONFIG QUIET)
 
 if(exiv2_FOUND)
     message(STATUS "Found exiv2, enabling exiv2 metadata provider")
@@ -75,6 +76,10 @@ endif()
 
 if(cpr_FOUND)
     message(STATUS "Found cpr, enabling Google Drive HTTP provider")
+endif()
+
+if(azure-storage-blobs-cpp_FOUND)
+    message(STATUS "Found Azure Storage Blobs SDK, enabling Azure Blob provider")
 endif()
 
 add_library(fo_core STATIC
@@ -130,7 +135,7 @@ if(yaml-cpp_FOUND)
 endif()
 
 if(AWSSDK_FOUND)
-    target_compile_definitions(fo_core PRIVATE FO_HAVE_S3)
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_S3)
     target_link_libraries(fo_core PUBLIC ${AWSSDK_LINK_LIBRARIES})
 endif()
 
@@ -139,7 +144,10 @@ if(cpr_FOUND)
     target_link_libraries(fo_core PUBLIC cpr::cpr)
 endif()
 
-
+if(azure-storage-blobs-cpp_FOUND)
+    target_compile_definitions(fo_core PRIVATE FO_HAVE_AZURE_STORAGE)
+    target_link_libraries(fo_core PUBLIC Azure::azure-storage-blobs)
+endif()
 
 target_compile_features(fo_core PUBLIC cxx_std_20)
 

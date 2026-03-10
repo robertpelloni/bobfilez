@@ -67,7 +67,8 @@ std::optional<std::filesystem::path> RuleEngine::apply_rules(const FileInfo& fil
             // If template ends with separator, append filename
             char last = rule.destination_template.back();
             if (last == '/' || last == '\\') {
-                new_path /= file.path.filename();
+                std::filesystem::path uri_path(file.uri);
+                new_path /= uri_path.filename();
             }
             
             return new_path;
@@ -115,11 +116,12 @@ std::string RuleEngine::expand_template(const std::string& tmpl, const FileInfo&
         }
     };
 
-    if (file.path.has_extension()) {
-        replace_all(result, "{ext}", file.path.extension().string().substr(1));
+    std::filesystem::path uri_path(file.uri);
+    if (uri_path.has_extension()) {
+        replace_all(result, "{ext}", uri_path.extension().string().substr(1));
     }
-    replace_all(result, "{name}", file.path.stem().string());
-    replace_all(result, "{parent}", file.path.parent_path().string());
+    replace_all(result, "{name}", uri_path.stem().string());
+    replace_all(result, "{parent}", uri_path.parent_path().string());
 
     return result;
 }
