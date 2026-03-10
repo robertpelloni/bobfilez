@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-03-09 | **Commit:** - | **Branch:** main | **Version:** 2.3.4
+**Generated:** 2026-03-09 | **Commit:** - | **Branch:** main | **Version:** 2.3.9
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -90,23 +90,37 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.3.4)
+## Current Status (v2.3.9)
 
 - ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
-- ✅ Cloud integration tests: All 3 scanners verified with mocked endpoints
-- ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, etc.)
-- ✅ `stats` command with extension breakdown, size buckets, and JSON output
-- ✅ `--min-size`/`--max-size`, `--exclude`, `--no-recursive`, and `--mode` scan filters
-- ✅ `--threads=<N>` parallel hashing scaffolding
+- ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
+- ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
+- ✅ `--mode=<fast|safe|paranoid>` three-tier duplicate verification
+- ✅ `--min-size`/`--max-size`, `--exclude`, `--no-recursive`, `--count`, `--prune`, `--time`, `--verbose` flags
+- ✅ `ignore add/remove/list` for managing ignore rules
+- ✅ Zero MSVC warnings (ctime_s/localtime_s on Windows)
 - ✅ 63 passing tests
-- ✅ Qt6 GUI decoupled
 - ✅ 130+ submodules synced
 
-**Next Steps**: Cloud provider pagination for large datasets, MSI/AppImage packaging.
+**Next Steps**: MSI/AppImage packaging, cloud pagination stress tests.
 
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-03-09 (Session 9)
+**Author:** Antigravity
+
+**Scope:** v2.3.5→v2.3.9 (Parallel Hashing, Timing, Verbose, Ignore Management, Count, Prune)
+
+**Delivered:**
+- ✅ v2.3.5: `--threads=<N>` parallel hashing for `hash` command with per-thread `IHasher` instances
+- ✅ v2.3.6: `--time` elapsed display, universal `apply_filters` across all 8 scan-based commands
+- ✅ v2.3.7: `--verbose` progress output, parallel strong hash for `duplicates --mode=safe`
+- ✅ v2.3.8: `ignore add/remove/list` CLI, zero MSVC warnings (ctime_s/localtime_s)
+- ✅ v2.3.9: `--count` flag for scan/duplicates, `--prune` documented in help
 
 ---
 

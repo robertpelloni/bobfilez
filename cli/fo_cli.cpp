@@ -101,6 +101,8 @@ static void print_usage() {
               << "  --keep=<strategy>   Keep strategy: oldest, newest, shortest, longest (default: oldest)\n"
               << "  --output=<path>     Output file path for export command\n"
               << "  --dry-run           Simulate organization without moving files\n"
+              << "  --prune             Remove stale DB entries for files no longer on disk\n"
+              << "  --count             Output only the count (files, groups, etc.)\n"
               << "  --ext=<.jpg,.png>   Comma-separated list of extensions\n"
               << "  --follow-symlinks   Follow symbolic links\n"
               << "  --format=<fmt>      Output format (json, csv, html)\n"
@@ -264,6 +266,7 @@ int main(int argc, char** argv) {
     bool no_recursive = false;
     bool show_time = false;
     bool verbose = false;
+    bool count_only = false;
     int threshold = 10;
     int num_threads = 1;
     std::uintmax_t min_size = 0;
@@ -366,6 +369,8 @@ int main(int argc, char** argv) {
             show_time = true;
         } else if (a == "--verbose") {
             verbose = true;
+        } else if (a == "--count") {
+            count_only = true;
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -437,7 +442,9 @@ int main(int argc, char** argv) {
         if (command == "scan") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
-            if (format == "json") {
+            if (count_only) {
+                std::cout << files.size() << "\n";
+            } else if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < files.size(); ++i) {
                     std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
@@ -450,8 +457,8 @@ int main(int argc, char** argv) {
                 for (const auto& f : files) {
                     std::cout << f.uri << "\n";
                 }
-            if (verbose) std::cerr << "Scanned " << files.size() << " files\n";
             }
+            if (verbose) std::cerr << "Scanned " << files.size() << " files\n";
         } else if (command == "duplicates") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
@@ -553,7 +560,9 @@ int main(int argc, char** argv) {
                 groups = std::move(verified);
             }
 
-            if (format == "json") {
+            if (count_only) {
+                std::cout << groups.size() << "\n";
+            } else if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < groups.size(); ++i) {
                     const auto& g = groups[i];
