@@ -112,6 +112,7 @@ static void print_usage() {
               << "  --threads=<N>       Number of hashing threads (default: 1)\n"
               << "  --no-recursive      Only scan files directly in specified directories\n"
               << "  --time              Display elapsed wall-clock time after command\n"
+              << "  --verbose           Show progress during long operations\n"
               << "  --use-ads-cache     Use Windows NTFS Alternate Data Streams for hash caching\n"
               << "  --thumbnails        Include thumbnails in HTML export (images only)\n"
               << "  --list-scanners     List available scanners\n"
@@ -261,6 +262,7 @@ int main(int argc, char** argv) {
     bool include_thumbnails = false;
     bool no_recursive = false;
     bool show_time = false;
+    bool verbose = false;
     int threshold = 10;
     int num_threads = 1;
     std::uintmax_t min_size = 0;
@@ -361,6 +363,8 @@ int main(int argc, char** argv) {
             no_recursive = true;
         } else if (a == "--time") {
             show_time = true;
+        } else if (a == "--verbose") {
+            verbose = true;
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -445,35 +449,74 @@ int main(int argc, char** argv) {
                 for (const auto& f : files) {
                     std::cout << f.uri << "\n";
                 }
+            if (verbose) std::cerr << "Scanned " << files.size() << " files\n";
             }
         } else if (command == "duplicates") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
+            if (verbose) std::cerr << "Scanned " << files.size() << " files, finding duplicates...\n";
             auto groups = engine.find_duplicates(files);
+            if (verbose) std::cerr << "Found " << groups.size() << " duplicate groups\n";
 
             // Apply verification mode
             if (verification_mode == "safe" || verification_mode == "paranoid") {
-                // Strong hash pass: refine groups by computing strong (crypto) hashes
+                if (verbose) std::cerr << "Running strong hash verification...\n";
+                // Collect all files that need strong hashing across all groups
+                struct StrongHashTask { size_t group_idx; size_t file_idx; std::string hash; };
+                std::vector<StrongHashTask> tasks;
+                for (size_t gi = 0; gi < groups.size(); ++gi) {
+                    for (size_t fi = 0; fi < groups[gi].files.size(); ++fi) {
+                        tasks.push_back({gi, fi, ""});
+                    }
+                }
+
                 auto& hasher = engine.hasher();
+                if (num_threads > 1 && tasks.size() > 1) {
+                    // Parallel strong hashing
+                    std::vector<std::thread> threads;
+                    size_t chunk = (tasks.size() + num_threads - 1) / num_threads;
+                    for (int t = 0; t < num_threads; ++t) {
+                        size_t start = t * chunk;
+                        size_t end = std::min(start + chunk, tasks.size());
+                        if (start >= tasks.size()) break;
+                        threads.emplace_back([&, start, end]() {
+                            auto th = fo::core::Registry<fo::core::IHasher>::instance().create(hasher.name());
+                            for (size_t i = start; i < end; ++i) {
+                                auto strong = th->strong(std::filesystem::path(groups[tasks[i].group_idx].files[tasks[i].file_idx].uri));
+                                tasks[i].hash = strong.value_or("unknown");
+                            }
+                        });
+                    }
+                    for (auto& th : threads) th.join();
+                } else {
+                    // Sequential strong hashing
+                    for (auto& task : tasks) {
+                        auto strong = hasher.strong(std::filesystem::path(groups[task.group_idx].files[task.file_idx].uri));
+                        task.hash = strong.value_or("unknown");
+                    }
+                }
+
+                // Regroup by strong hash within each original group
                 std::vector<fo::core::DuplicateGroup> refined;
-                for (auto& g : groups) {
+                size_t task_idx = 0;
+                for (size_t gi = 0; gi < groups.size(); ++gi) {
                     std::unordered_map<std::string, std::vector<fo::core::FileInfo>> by_strong;
-                    for (auto& f : g.files) {
-                        auto strong = hasher.strong(std::filesystem::path(f.uri));
-                        std::string key = strong.value_or("unknown");
-                        by_strong[key].push_back(std::move(f));
+                    for (size_t fi = 0; fi < groups[gi].files.size(); ++fi) {
+                        by_strong[tasks[task_idx].hash].push_back(std::move(groups[gi].files[fi]));
+                        ++task_idx;
                     }
                     for (auto& kv : by_strong) {
                         if (kv.second.size() >= 2) {
                             fo::core::DuplicateGroup rg;
-                            rg.size = g.size;
-                            rg.fast64 = g.fast64;
+                            rg.size = groups[gi].size;
+                            rg.fast64 = groups[gi].fast64;
                             rg.files = std::move(kv.second);
                             refined.push_back(std::move(rg));
                         }
                     }
                 }
                 groups = std::move(refined);
+                if (verbose) std::cerr << "Strong hash refined to " << groups.size() << " groups\n";
             }
 
             if (verification_mode == "paranoid") {
