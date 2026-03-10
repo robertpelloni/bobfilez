@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-03-10
+
+### Added
+- **BobUI**: Dashboard home with hero section, quick stats, and capabilities overview.
+- **BobUI**: Smart Clean 4-step wizard (Select Folder → Scan → Find Dupes → Review & Clean) with animated shimmer progress bars and auto-mark by "Keep Oldest" strategy.
+- **BobUI**: Drag-and-drop folder support with animated drop overlay.
+- **BobUI**: File type icons (40+ extensions mapped to emoji icons) in all file listings.
+- **BobUI**: Expanded sidebar navigation with Overview, Clean Up, Analyze, and Settings sections.
+
 ## [2.4.0] - 2026-03-10
 
 ### Added

@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BobUI — bobfilez File Manager</title>
-  <meta name="description" content="dupeGuru-style duplicate finder and file management GUI for bobfilez">
+  <title>BobUI — The Ultimate File Manager</title>
+  <meta name="description" content="Point it at a million files. It handles the rest.">
   <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
   <div class="app">
     <!-- Sidebar -->
@@ -15,22 +17,32 @@
         <div class="logo-icon">B</div>
         <div>
           <h1>BobUI</h1>
-          <span class="version">v2.3.9</span>
+          <span class="version">v2.4.1</span>
         </div>
       </div>
 
-      <div class="nav-section">Find & Fix</div>
-      <div class="nav-item active" data-view="duplicates">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" data-view="dashboard">
+        <span class="icon">🏠</span> Dashboard
+      </div>
+
+      <div class="nav-section">Clean Up</div>
+      <div class="nav-item" data-view="smartclean">
+        <span class="icon">🧹</span> Smart Clean
+      </div>
+      <div class="nav-item" data-view="duplicates">
         <span class="icon">🔍</span> Duplicate Finder
       </div>
       <div class="nav-item" data-view="scanner">
         <span class="icon">📂</span> File Scanner
       </div>
+
+      <div class="nav-section">Analyze</div>
       <div class="nav-item" data-view="stats">
         <span class="icon">📊</span> Statistics
       </div>
 
-      <div class="nav-section">Manage</div>
+      <div class="nav-section">Settings</div>
       <div class="nav-item" data-view="ignore">
         <span class="icon">🚫</span> Ignore Rules
       </div>
@@ -41,21 +53,21 @@
 
     <!-- Top Bar -->
     <header class="topbar">
-      <span class="topbar-title" id="viewTitle">Duplicate Finder</span>
-      <div class="topbar-stats" id="topbarStats"></div>
+      <span class="topbar-title" id="viewTitle">Dashboard</span>
+      <div class="topbar-stats" id="topbarStats">
+        <span>Powered by <strong style="color:var(--accent-light)">bobfilez</strong> engine</span>
+      </div>
     </header>
 
     <!-- Main Content -->
-    <main class="main" id="mainContent">
-      <!-- Injected by JS -->
-    </main>
+    <main class="main" id="mainContent"></main>
   </div>
 
   <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
       <h3>⚠️ Confirm Deletion</h3>
-      <p id="deleteModalText">Are you sure you want to delete the selected files? This cannot be undone.</p>
+      <p id="deleteModalText">This cannot be undone.</p>
       <div class="modal-actions">
         <button class="btn" onclick="closeModal()">Cancel</button>
         <button class="btn btn-danger" id="confirmDeleteBtn">Delete Files</button>
@@ -63,6 +75,16 @@
     </div>
   </div>
 
+  <!-- Drop Overlay -->
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-content">
+      <div class="drop-icon">📂</div>
+      <h2>Drop folder to scan</h2>
+      <p>Release to start Smart Clean</p>
+    </div>
+  </div>
+
   <script src="/app.js"></script>
 </body>
+
 </html>
