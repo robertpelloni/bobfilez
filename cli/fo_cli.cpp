@@ -88,6 +88,7 @@ static void print_usage() {
               << "  export       Export scan results to JSON/CSV/HTML\n"
               << "  undo         Undo the last file operation\n"
               << "  history      Show operation history\n"
+              << "  ignore       Manage ignore rules (add, remove, list)\n"
               << "\nOptions:\n"
               << "  --scanner=<name>    Select scanner (e.g., std, win32, s3, gdrive)\n"
               << "  --hasher=<name>     Select hasher (e.g., fast64, blake3)\n"
@@ -676,7 +677,13 @@ int main(int argc, char** argv) {
                         std::cout << f.uri << ":\n";
                         if (meta.date.has_taken) {
                             auto t = std::chrono::system_clock::to_time_t(meta.date.taken);
+#ifdef _WIN32
+                            char tbuf[64];
+                            ctime_s(tbuf, sizeof(tbuf), &t);
+                            std::cout << "  Taken: " << tbuf;
+#else
                             std::cout << "  Taken: " << std::ctime(&t);
+#endif
                         }
                         if (meta.has_gps) {
                             std::cout << "  GPS: " << meta.gps_lat << ", " << meta.gps_lon << "\n";
@@ -1199,7 +1206,13 @@ int main(int argc, char** argv) {
                         case fo::core::OperationType::Delete: type_str = "delete"; break;
                     }
                     std::ostringstream ts;
+#ifdef _WIN32
+                    std::tm tm_buf;
+                    localtime_s(&tm_buf, &t);
+                    ts << std::put_time(&tm_buf, "%Y-%m-%dT%H:%M:%S");
+#else
                     ts << std::put_time(std::localtime(&t), "%Y-%m-%dT%H:%M:%S");
+#endif
                     std::cout << "  {\"id\": " << op.id
                               << ", \"type\": \"" << type_str << "\""
                               << ", \"source\": \"" << fo::core::Exporter::json_escape(op.source_path) << "\""
@@ -1223,7 +1236,13 @@ int main(int argc, char** argv) {
                         case fo::core::OperationType::Rename: type_str = "RENAME"; break;
                         case fo::core::OperationType::Delete: type_str = "DELETE"; break;
                     }
+#ifdef _WIN32
+                    std::tm tm_buf2;
+                    localtime_s(&tm_buf2, &t);
+                    std::cout << std::put_time(&tm_buf2, "%Y-%m-%d %H:%M:%S") << " "
+#else
                     std::cout << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S") << " "
+#endif
                               << std::setw(8) << type_str << " "
                               << (op.undone ? "[UNDONE] " : "")
                               << op.source_path;
@@ -1231,6 +1250,59 @@ int main(int argc, char** argv) {
                         std::cout << " -> " << op.dest_path;
                     }
                     std::cout << "\n";
+                }
+            }
+
+        } else if (command == "ignore") {
+            if (roots.empty()) {
+                // List all ignore rules
+                auto rules = engine.ignore_repository().get_all();
+                if (format == "json") {
+                    std::cout << "[\n";
+                    for (size_t i = 0; i < rules.size(); ++i) {
+                        std::cout << "  {\"id\": " << rules[i].id
+                                  << ", \"pattern\": \"" << fo::core::Exporter::json_escape(rules[i].pattern) << "\""
+                                  << ", \"reason\": \"" << fo::core::Exporter::json_escape(rules[i].reason) << "\"}"
+                                  << (i + 1 < rules.size() ? "," : "") << "\n";
+                    }
+                    std::cout << "]\n";
+                } else {
+                    if (rules.empty()) {
+                        std::cout << "No ignore rules configured.\n";
+                    } else {
+                        std::cout << "Ignore rules (" << rules.size() << "):\n";
+                        for (const auto& r : rules) {
+                            std::cout << "  " << r.pattern;
+                            if (!r.reason.empty()) std::cout << "  (" << r.reason << ")";
+                            std::cout << "\n";
+                        }
+                    }
+                }
+            } else {
+                std::string sub = roots[0].string();
+                if (sub == "add" && roots.size() >= 2) {
+                    std::string pattern = roots[1].string();
+                    std::string reason = roots.size() >= 3 ? roots[2].string() : "";
+                    engine.ignore_repository().add(pattern, reason);
+                    std::cout << "Added ignore rule: " << pattern << "\n";
+                } else if (sub == "remove" && roots.size() >= 2) {
+                    std::string pattern = roots[1].string();
+                    engine.ignore_repository().remove(pattern);
+                    std::cout << "Removed ignore rule: " << pattern << "\n";
+                } else if (sub == "list") {
+                    auto rules = engine.ignore_repository().get_all();
+                    if (rules.empty()) {
+                        std::cout << "No ignore rules configured.\n";
+                    } else {
+                        for (const auto& r : rules) {
+                            std::cout << r.pattern;
+                            if (!r.reason.empty()) std::cout << "  # " << r.reason;
+                            std::cout << "\n";
+                        }
+                    }
+                } else {
+                    std::cerr << "Usage: fo ignore [add|remove|list] [pattern] [reason]\n";
+                    return 1;
                 }
             }
 
