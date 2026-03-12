@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-03-09 | **Commit:** - | **Branch:** main | **Version:** 2.3.9
+**Generated:** 2026-03-10 | **Commit:** - | **Branch:** main | **Version:** 2.4.1
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -90,8 +90,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.3.9)
+## Current Status (v2.4.1)
 
+- ✅ **Web GUI (BobUI)**: Premium web interface wrapping `fo_cli.exe` with Express.js backend. Features a Dashboard, Smart Clean wizard, real-time stats, drag-and-drop, and dark glassmorphism design.
 - ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
 - ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
 - ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
@@ -107,6 +108,20 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-03-10 (Session 10)
+**Author:** Antigravity
+
+**Scope:** BobUI v2.4.0 & v2.4.1 (Web GUI for bobfilez)
+
+**Delivered:**
+- ✅ v2.4.0: `bobui/server.js` Express backend wrapping `fo_cli.exe` with REST API endpoints (`/api/duplicates`, `/api/scan`, etc.).
+- ✅ v2.4.0: Initial BobUI HTML/JS frontend with dark glassmorphism design (dupeGuru style).
+- ✅ v2.4.1: Premium UI upgrade - Dashboard home with animated hero and quick stats.
+- ✅ v2.4.1: Smart Clean 4-step wizard with animated progress bars and auto-mark strategies.
+- ✅ v2.4.1: Drag-and-drop folder support and file type emoji icons.
 
 ---
 
