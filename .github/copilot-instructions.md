@@ -1,38 +1,19 @@
 # GitHub Copilot Instructions
 
-> **IMPORTANT**: Please refer to [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](../docs/UNIVERSAL_LLM_INSTRUCTIONS.md) for the universal instructions, versioning protocol, and coding standards.
+> **IMPORTANT**: Please refer to [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md) for the universal instructions, versioning protocol, and coding standards.
 
 ## Copilot-Specific Guidelines
 
-### Strengths
-- **Inline Completion**: Context-aware code suggestions.
-- **Terminal Commands**: Use `run_in_terminal` for builds and git operations.
-- **Quick Fixes**: Rapid iteration on compiler errors.
-- **Patterns**: Infer patterns from existing code.
+### Current Strategic Goal: BobUI Integration
+- **BobUI (Qt Fork)**: We are integrating a custom Qt fork at `libs/bobui`. This is the new primary native UI framework.
+- **Legacy UI**: The Node.js `bobui` has been renamed to `bobui_web`.
+- **Performance**: Prioritize native C++ integration with the `fo_core` engine.
 
 ### Workflow
-1. Always read `VERSION.md` first to know current version.
+1. Always read `VERSION.md` first to know current version (Current: 2.4.2).
 2. Check `CHANGELOG.md` for recent changes.
-3. Review `docs/ROADMAP.md` for pending features.
+3. Review `TODO.md` and `docs/ROADMAP.md` for pending features.
 4. Update `AGENTS.md` handoff log when done.
-
-### Build Commands
-```powershell
-# Quick build (Windows)
-build.bat
-
-# Manual build
-cmake -S . -B build -G Ninja && cmake --build build
-
-# Run tests
-.\build\tests\fo_tests.exe
-
-# Run single test
-.\build\tests\fo_tests.exe --gtest_filter=*TestName*
-
-# CLI usage
-.\build\cli\fo_cli.exe --help
-```
 
 ### Version Updates
 When updating the version:
@@ -40,13 +21,6 @@ When updating the version:
 2. Add entry to `CHANGELOG.md` with date.
 3. Commit: `git commit -m "chore: bump version to X.Y.Z"`
 4. Push: `git push`
-
-### Code Style
-- **C++20** with `std::filesystem`, `std::chrono`, `std::optional`
-- **Naming**: `snake_case` for functions/variables, `CamelCase` for classes
-- **Headers**: `.hpp` extension, `#pragma once`
-- **Platform code**: Guard with `#ifdef _WIN32`
-- **Optional deps**: Guard with `FO_HAVE_*` defines
 
 ### Autonomy
 - Proceed with implementation using available tools.

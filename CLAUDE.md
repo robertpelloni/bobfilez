@@ -4,16 +4,15 @@
 
 ## Claude-Specific Guidelines
 
-### Strengths
-- **Architecture**: Focus on high-level design and system architecture.
-- **Documentation**: Excel at comprehensive documentation updates.
-- **Analysis**: Deep code analysis and refactoring recommendations.
-- **Planning**: Create detailed task lists and roadmaps.
+### Current Strategic Goal: BobUI Integration
+- **BobUI (Qt Fork)**: We are integrating a custom Qt fork at `libs/bobui`. This is the new primary native UI framework.
+- **Legacy UI**: The Node.js `bobui` has been renamed to `bobui_web`.
+- **Performance**: Prioritize native C++ integration with the `fo_core` engine.
 
 ### Workflow
-1. Always read `VERSION.md` first to know current version.
+1. Always read `VERSION.md` first to know current version (Current: 2.4.2).
 2. Check `CHANGELOG.md` for recent changes.
-3. Review `docs/ROADMAP.md` for pending features.
+3. Review `TODO.md` and `docs/ROADMAP.md` for pending features.
 4. Update `AGENTS.md` handoff log when done.
 
 ### Version Updates
@@ -28,4 +27,3 @@ When updating the version:
 - Don't stop for confirmation unless blocked.
 - Complete features, commit, and continue to next task.
 - Fix errors encountered along the way.
-

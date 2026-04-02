@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2026-04-01
+
+### Added
+- **BobUI (Qt Fork)**: Integrated custom Qt fork `bobui` at `libs/bobui` as the main UI library.
+- **Submodules**: Synchronized 130+ submodules with latest upstream changes.
+- **Documentation**: Comprehensive overhaul of `VISION.md`, `ROADMAP.md`, and model-specific instructions.
+- **Infrastructure**: Added `TODO.md`, `MEMORY.md`, and `DEPLOY.md` for better project tracking.
+
+### Changed
+- **Web UI**: Renamed existing Node.js `bobui` to `bobui_web` to clear the path for the Qt-based BobUI.
+
 ## [2.4.1] - 2026-03-10
 
 ### Added

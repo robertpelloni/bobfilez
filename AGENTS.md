@@ -1,12 +1,12 @@
 # AGENTS.md
 
-**Generated:** 2026-03-10 | **Commit:** - | **Branch:** main | **Version:** 2.4.1
+**Generated:** 2026-04-01 | **Commit:** - | **Branch:** main | **Version:** 2.4.2
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
 ## Overview
 
-**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), optional Qt GUI, 130+ library submodules. Part of the bob software ecosystem.
+**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), native custom Qt fork (`bobui`), 130+ library submodules. Part of the bob software ecosystem.
 
 ## Structure
 
@@ -14,7 +14,9 @@
 bobfilez/
 ├── core/           # fo_core static library (interfaces, providers, engine, DB)
 ├── cli/            # fo_cli executable (15+ commands)
-├── gui/            # fo_gui Qt6 application (optional)
+├── gui/            # fo_gui Qt6 application (migrating to BobUI)
+├── bobui/          # Custom Qt fork for premium UI (main library)
+├── bobui_web/      # Web-based dashboard (formerly bobui)
 ├── tests/          # GTest unit/integration tests (59 tests)
 ├── benchmarks/     # Google Benchmark harness
 ├── libs/           # 130+ git submodules (DO NOT modify directly)
@@ -90,24 +92,57 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.4.1)
+## Current Status (v2.4.2)
 
-- ✅ **Web GUI (BobUI)**: Premium web interface wrapping `fo_cli.exe` with Express.js backend. Features a Dashboard, Smart Clean wizard, real-time stats, drag-and-drop, and dark glassmorphism design.
+- ✅ **BobUI (Qt Fork)**: Integrated custom Qt fork as the primary UI library for performance and engine integration.
+- ✅ **Web GUI (Bobui_web)**: Renamed from `bobui` to clear path for native UI. Premium web dashboard remains active.
 - ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
 - ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
 - ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
 - ✅ `--mode=<fast|safe|paranoid>` three-tier duplicate verification
-- ✅ `--min-size`/`--max-size`, `--exclude`, `--no-recursive`, `--count`, `--prune`, `--time`, `--verbose` flags
-- ✅ `ignore add/remove/list` for managing ignore rules
 - ✅ Zero MSVC warnings (ctime_s/localtime_s on Windows)
 - ✅ 63 passing tests
 - ✅ 130+ submodules synced
 
-**Next Steps**: MSI/AppImage packaging, cloud pagination stress tests.
+**Next Steps**: Full BobUI integration, refactoring `fo_gui`, video/audio analysis.
 
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-01 (Session 11)
+**Author:** Antigravity
+
+**Scope:** v2.4.2 (Antigravity - BobUI Integration)
+
+**Delivered:**
+- ✅ Integrated custom Qt fork **BobUI** at `libs/bobui` as the main UI library.
+- ✅ Renamed web interface to `bobui_web`.
+- ✅ Documentation overhaul: VISION, ROADMAP, AGENTS updated for new UI direction.
+- ✅ Created MEMORY.md, DEPLOY.md, and TODO.md for better project tracking.
+- ✅ Version bump to 2.4.2.
+
+---
+
+### Update: 2026-04-01 (Session 11)
+**Author:** Antigravity
+
+**Scope:** BobUI (Qt Fork) Integration & Infrastructure Overhaul
+
+**Delivered:**
+- ✅ **BobUI (Qt Fork)**: Integrated the custom Qt fork `bobui` at `libs/bobui` as the primary UI library.
+- ✅ **Infrastructure**: Renamed existing Node.js GUI to `bobui_web` to support dual-UI capability (Native vs. Web).
+- ✅ **Version Bump**: Updated to `2.4.2` with corresponding `CHANGELOG.md` entries.
+- ✅ **Documentation**: Updated `VISION.md`, `ROADMAP.md`, and established `MEMORY.md`, `TODO.md`, and `DEPLOY.md`.
+- ✅ **Submodules**: Synchronized 130+ submodules and updated the `SUBMODULES.md` dashboard.
+
+**Next Steps:**
+1. Integrate `libs/bobui` into the CMake build system.
+2. Refactor `fo_gui` to leverage the BobUI custom framework features.
+3. Implement Video Perceptual Hashing and Audio Fingerprinting.
+4. Cloud provider pagination stress tests.
 
 ---
 

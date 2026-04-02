@@ -44,18 +44,19 @@ Modern users accumulate massive, chaotic file collections:
 
 1. **CLI-First Architecture**
    - The CLI (`fo_cli`) is the primary interface—scriptable, composable, fast
-   - GUIs (Qt, Electron, Web) are thin clients that call the CLI or link the core library
-   - No GUI-specific logic in the engine
+   - **BobUI (Qt Fork)** is the premium, high-performance native interface, deeply integrated with the engine.
+   - Other GUIs (Web, Electron) are supported via the `bobui_web` dashboard.
+   - No GUI-specific logic in the engine.
 
 2. **Plugin Architecture**
    - Every component is swappable: scanners, hashers, metadata providers, OCR engines
    - Runtime selection via CLI flags (`--hasher=blake3`, `--scanner=win32`)
-   - New providers can be added without modifying core code
+   - New providers can be added without modifying core code.
 
-3. **Empirical Benchmarking**
-   - Don't guess—measure. Every provider is benchmarked on real datasets
-   - Users can run benchmarks on their own data to find optimal settings
-   - Published results guide default choices
+3. **Performance & Integration**
+   - **BobUI (Qt Fork)** provides the fastest possible interface by leveraging custom Qt components optimized for massive file lists.
+   - Direct engine integration for real-time feedback and low-latency operations.
+
 
 4. **Extreme Robustness**
    - Multiple verification modes: hash-only (fast), byte-compare (safe), crypto (paranoid)
@@ -114,19 +115,20 @@ Modern users accumulate massive, chaotic file collections:
 ## Architecture
 
 ### System Layers
-
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        USER INTERFACES                          │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │   CLI   │  │   Qt6   │  │Electron │  │   Web   │            │
-│  │(fo_cli) │  │(fo_gui) │  │ (future)│  │ (future)│            │
+│  │   CLI   │  │ BobUI   │  │ BobUI   │  │Electron │            │
+│  │(fo_cli) │  │ (Qt)    │  │ (Web)   │  │ (future)│            │
 │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘            │
 │       │            │            │            │                  │
 │       └────────────┴─────┬──────┴────────────┘                  │
 │                          │                                      │
 │                    IPC / Direct Link                            │
 └──────────────────────────┼──────────────────────────────────────┘
+```
+
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │                      CORE ENGINE (fo_core)                      │

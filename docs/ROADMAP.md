@@ -4,17 +4,19 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Current Status (v2.3.2)
+## Current Status (v2.4.2)
 
 ### Completed
 - ✅ **Core Engine**: C++20 static library (`fo_core`) with plugin registry.
 - ✅ **CLI**: Feature-complete `fo_cli` with 16+ commands.
 - ✅ **GUI**: Qt6-based `fo_gui` decoupled from core logic.
+- ✅ **BobUI (Web)**: Premium dark glassmorphism web interface (`bobui_web`).
+- ✅ **BobUI (Qt Fork)**: Integrated custom Qt fork `libs/bobui` for native premium UI.
 - ✅ **Refactoring**: Resolved CLI duplicate code issues and optimized structure.
 - ✅ **Providers**:
     - Scanners: `std::filesystem`, `Win32`, `dirent`, AWS S3, Google Drive, Azure Blob Storage.
     - Hashers: `xxHash`, `SHA256`, `BLAKE3` (vcpkg).
-    - Metadata: `TinyEXIF`, `Exiv2` (vcpkg).
+    - Metadata: `TinyEXIF`, `Exiv2` (vcpkg), MediaInfoLib.
     - OCR: `Tesseract` (vcpkg).
     - Perceptual Hash: `dHash`, `pHash`, `aHash`.
 - ✅ **Cloud Integration**: AWS S3, Google Drive, and Azure Blob Storage scanners with pagination.
@@ -124,40 +126,45 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Phase 7: Polish and Release (In Progress)
+## Phase 7: Polish and Release (Completed)
 
 **Goal**: Documentation, packaging, and public launch.
 
 ### Tasks
-1. **Documentation** ✅
-   - [x] User Manual, Developer Guide, API Reference.
-   - [x] Submodule and Feature Dashboards.
+- [x] User Manual, Developer Guide, API Reference.
+- [x] Submodule and Feature Dashboards.
+- [x] Portable ZIP scripts.
+- [x] Windows: MSI installer (WiX script added).
+- [x] macOS: .dmg.
+- [x] Unit and Integration tests.
+- [x] Fuzz testing (RuleEngine templates).
+- [x] Java Port (CLI, GUI, JNI, Operations).
 
-2. **Packaging**
-   - [x] Portable ZIP scripts.
-   - [x] Windows: MSI installer (WiX script added).
-   - [x] macOS: .dmg.
+---
 
-3. **Testing**
-   - [x] Unit and Integration tests.
-   - [x] Fuzz testing (RuleEngine templates).
+## Phase 8: Refinement & Integration (In Progress)
 
-4. **Java Port (In Progress)**
-   - [x] Core/CLI/GUI logic.
-   - [x] JNI Stubs.
-   - [x] Native Library Compilation (BLAKE3 submodule added).
-   - [x] CLI Batch Operations (`rename`, `delete-duplicates`).
-   - [x] Operation History (`undo`, `history`).
-   - [x] Metadata Extraction (`metadata` with metadata-extractor).
-   - [x] OCR (`ocr` with Tess4J).
-   - [x] Perceptual Hashing (`similar` with dHash/aHash).
-   - [x] Export & Stats (`export`, `stats`).
+**Goal**: Full integration of BobUI (Qt Fork) and advanced media analysis.
 
-5. **Release**
-   - [x] Tag v2.0.2.
-   - [x] Tag v2.1.0 (Submodule Sync).
-   - [x] Tag v2.2.0 (LLM Consolidation & Benchmarks).
-   - [ ] Publish on GitHub Releases.
+### Tasks
+1. **BobUI Native Integration**
+   - [ ] Build and integrate `libs/bobui` into CMake.
+   - [ ] Refactor `fo_gui` with BobUI premium components.
+   - [ ] Benchmarking native UI vs web-based UI overhead.
+
+2. **Advanced Media Analysis**
+   - [ ] Video Perceptual Hashing (vHash) for duplicate video detection.
+   - [ ] Audio Fingerprinting (AcoustID) for music deduplication.
+   - [ ] Vector-Semantic Search integration (Local Clip/BERT).
+
+3. **Performance Scaling**
+   - [ ] Multi-threaded cloud provider pagination stress tests.
+   - [ ] io_uring/ReFS reflink support for zero-copy operations.
+   - [ ] Parallel OCR for high-volume document processing.
+
+4. **Universal Packaging**
+   - [ ] Unified MSI/AppImage/DMG with auto-update support.
+   - [ ] Winget and Chocolatey package releases.
 
 ---
 

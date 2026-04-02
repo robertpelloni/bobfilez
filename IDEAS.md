@@ -17,3 +17,13 @@ Bobfilez is a high-performance C++/Qt file organization engine. To move from "Lo
 ## 4. Security & Compliance Perspectives
 *   **PII Sentinel:** Add a "Compliance Mode" where Bobfilez identifies files containing **Personally Identifiable Information (SSNs, API keys, Passwords)** and automatically moves them to an encrypted "Vault" folder or warns the user before uploading them to unsynced cloud zones.
 *   **Immutable Indexing:** Mirror the file movement logs to an **immutable ledger (e.g., Stone.Ledger)**. This provides a "Forensic Audit Trail" of every file move, which is a critical feature for corporate data management and legal discovery.
+
+## 5. Media & Ecosystem Perspectives
+*   **Universal Media Asset Manager:** Beyond simple deduplication, create a full-featured asset manager that handles versioning, transcodes (via FFmpeg integration), and cross-platform tagging for video, audio, and images.
+*   **AI-driven Automated Folder Structure Generation:** An agent that analyzes your entire file collection and proposes a "Perfect Hierarchy" based on your usage patterns and semantic content, then offers to "Re-Home" everything with one click.
+- **Shadow Deduplication**: Automatically detect and propose file deduplication in the background without user intervention.
+- **Privacy-Preserving Hashing**: Explore techniques for deduplication that don't require full file content exposure, perhaps for cloud environments.
+- **Gamified Cleanup**: Introduce a progress/reward system for reclaiming disk space, specifically targeted at digital hoarders.
+- **Visual Duplicate Discovery**: A "tinder-like" swipe interface in BobUI for quickly confirming or rejecting near-duplicate images.
+- **AI-driven Semantic Metadata**: Automatically tag files based on their content (e.g., "Invoice", "Family Photo", "Project Proposal") to enable better search and organization.
+- **Smart Pruning**: Identify and suggest the removal of old, obsolete versions of software installers and large temporary files.
