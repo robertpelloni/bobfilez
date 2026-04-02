@@ -20,7 +20,18 @@ set(GUI_SOURCES
     ${OMNI_CORE_SOURCES}
 )
 
-add_executable(fo_gui ${GUI_SOURCES})
+set(QML_ASSETS
+    omni/assets/main.qml
+    omni/assets/AcrylicBackground.qml
+    omni/assets/DesktopIcons.qml
+    omni/assets/Dashboard.qml
+    omni/assets/StartMenu.qml
+)
+
+add_executable(fo_gui 
+    ${GUI_SOURCES}
+    ${QML_ASSETS}
+)
 
 target_include_directories(fo_gui PRIVATE 
     omni/src 

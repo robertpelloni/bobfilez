@@ -29,6 +29,7 @@ QVariant FileModel::data(const QModelIndex &index, int role) const {
         case IconRole: return file.icon;
         case IsDirectoryRole: return file.isDirectory;
         case IsDuplicateRole: return file.isDuplicate;
+        case IsSelectedRole: return file.isSelected;
         default: return QVariant();
     }
 }
@@ -42,6 +43,7 @@ QHash<int, QByteArray> FileModel::roleNames() const {
     roles[IconRole] = "fileIcon";
     roles[IsDirectoryRole] = "isDirectory";
     roles[IsDuplicateRole] = "isDuplicate";
+    roles[IsSelectedRole] = "isSelected";
     return roles;
 }
 
@@ -68,17 +70,90 @@ void FileModel::refresh() {
     loadPath(std::filesystem::path(m_currentPath.toStdString()));
 }
 
+void FileModel::setSearchFilter(const QString &filter) {
+    if (m_searchFilter != filter) {
+        m_searchFilter = filter;
+        
+        beginResetModel();
+        m_files.clear();
+        for (const auto& f : m_allFiles) {
+            if (filter.isEmpty() || f.name.contains(filter, Qt::CaseInsensitive)) {
+                m_files.push_back(f);
+            }
+        }
+        endResetModel();
+    }
+}
+
+void FileModel::sortBy(const QString &column, bool ascending) {
+    beginResetModel();
+    auto sortFunc = [&](const FileEntry &a, const FileEntry &b) {
+        bool res = false;
+        if (a.isDirectory != b.isDirectory) {
+            res = a.isDirectory;
+            return ascending ? res : !res;
+        }
+        
+        if (column == "Name") res = a.name.toLower() < b.name.toLower();
+        else if (column == "Size") res = a.size < b.size;
+        else if (column == "Type") res = a.type.toLower() < b.type.toLower();
+        else if (column == "Date modified") res = a.dateModified < b.dateModified;
+        
+        return ascending ? res : !res;
+    };
+    
+    std::sort(m_allFiles.begin(), m_allFiles.end(), sortFunc);
+    
+    // Re-apply filter
+    m_files.clear();
+    for (const auto& f : m_allFiles) {
+        if (m_searchFilter.isEmpty() || f.name.contains(m_searchFilter, Qt::CaseInsensitive)) {
+            m_files.push_back(f);
+        }
+    }
+    endResetModel();
+}
+
+void FileModel::toggleSelection(int index) {
+    if (index >= 0 && index < m_files.size()) {
+        m_files[index].isSelected = !m_files[index].isSelected;
+        
+        // Sync back to all files if needed (for persistence across filter changes)
+        for (auto& f : m_allFiles) {
+            if (f.name == m_files[index].name) {
+                f.isSelected = m_files[index].isSelected;
+                break;
+            }
+        }
+        
+        emit dataChanged(this->index(index), this->index(index), {IsSelectedRole});
+        updateSelectedCount();
+    }
+}
+
+void FileModel::clearSelection() {
+    for (auto& f : m_files) f.isSelected = false;
+    for (auto& f : m_allFiles) f.isSelected = false;
+    emit dataChanged(index(0), index(m_files.size() - 1), {IsSelectedRole});
+    updateSelectedCount();
+}
+
+void FileModel::updateSelectedCount() {
+    int count = 0;
+    for (const auto& f : m_files) if (f.isSelected) count++;
+    if (m_selectedCount != count) {
+        m_selectedCount = count;
+        emit selectedCountChanged();
+    }
+}
+
 void FileModel::findDuplicates() {
     emit duplicateDetectionStarted();
     
-    // Perform scan of current folder (non-recursive for now)
     std::vector<std::filesystem::path> roots = { m_currentPath.toStdString() };
     auto files = m_engine->scan(roots, {}, false, false);
-    
-    // Find duplicates
     auto groups = m_engine->find_duplicates(files);
     
-    // Map duplicates back to our model entries
     std::set<std::string> duplicatePaths;
     for (const auto& group : groups) {
         for (const auto& file : group.files) {
@@ -86,6 +161,11 @@ void FileModel::findDuplicates() {
         }
     }
     
+    for (auto& entry : m_allFiles) {
+        std::filesystem::path fullPath = std::filesystem::path(m_currentPath.toStdString()) / entry.name.toStdString();
+        entry.isDuplicate = duplicatePaths.count(fullPath.string()) > 0;
+    }
+
     for (auto& entry : m_files) {
         std::filesystem::path fullPath = std::filesystem::path(m_currentPath.toStdString()) / entry.name.toStdString();
         entry.isDuplicate = duplicatePaths.count(fullPath.string()) > 0;
@@ -97,6 +177,7 @@ void FileModel::findDuplicates() {
 
 void FileModel::loadPath(const std::filesystem::path &path) {
     beginResetModel();
+    m_allFiles.clear();
     m_files.clear();
 
     try {
@@ -105,6 +186,7 @@ void FileModel::loadPath(const std::filesystem::path &path) {
             f.name = QString::fromStdString(entry.path().filename().string());
             f.isDirectory = entry.is_directory();
             f.isDuplicate = false;
+            f.isSelected = false;
             
             if (!f.isDirectory) {
                 f.size = entry.file_size();
@@ -121,18 +203,21 @@ void FileModel::loadPath(const std::filesystem::path &path) {
             auto t = std::chrono::system_clock::to_time_t(sys_tp);
             f.dateModified = QString::fromStdString(std::ctime(&t)).trimmed();
 
-            m_files.push_back(f);
+            m_allFiles.push_back(f);
         }
         
-        // Sort: Directories first, then names
-        std::sort(m_files.begin(), m_files.end(), [](const FileEntry &a, const FileEntry &b) {
+        std::sort(m_allFiles.begin(), m_allFiles.end(), [](const FileEntry &a, const FileEntry &b) {
             if (a.isDirectory != b.isDirectory) return a.isDirectory;
             return a.name.toLower() < b.name.toLower();
         });
+
+        m_files = m_allFiles;
 
     } catch (const std::exception &e) {
         qDebug() << "Error loading path:" << e.what();
     }
 
+    m_selectedCount = 0;
+    emit selectedCountChanged();
     endResetModel();
 }

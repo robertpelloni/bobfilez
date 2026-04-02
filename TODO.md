@@ -4,10 +4,13 @@
 - [x] **OmniUI Transition**: Transition the native GUI (`fo_gui`) to the **OmniUI** framework (Qt + JUCE + WASM).
 - [x] **Windows 11 Explorer Clone**: Implement a high-fidelity Windows 11 Explorer UI in QML/TypeScript.
 - [x] **`FileModel` Integration**: Bridge `fo_core` deduplication engine into the new Explorer UI.
-- [ ] **Mica/Acrylic Effect**: Implement authentic Windows 11 translucency and background blur in BobUI.
-- [ ] **Context Menus**: Implement pixel-perfect right-click menus for file operations.
-- [ ] **Taskbar Scaffolding**: Begin implementing the `bob_shell` taskbar with app pinning.
-- [ ] **Start Menu**: Design and implement the AI-powered Start Menu.
+- [x] **Mica/Acrylic Effect**: Implement authentic Windows 11 translucency and background blur in BobUI.
+- [x] **Context Menus**: Implement pixel-perfect right-click menus for file operations.
+- [x] **Taskbar Scaffolding**: Begin implementing the `bob_shell` taskbar with app pinning.
+- [x] **Start Menu**: Design and implement the AI-powered Start Menu.
+- [x] **Desktop Environment**: Implement Desktop Icons and a System Dashboard.
+- [ ] **Nexus Integration**: Implement the C++ master clock unification across all modules.
+- [ ] **Vector-Semantic Search**: Integrate local Clip/BERT for AI-driven file discovery in Explorer.
 
 ## In Progress
 - [ ] **Advanced Media Analysis**: Video Perceptual Hashing and Audio Fingerprinting.
