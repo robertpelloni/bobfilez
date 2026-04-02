@@ -48,12 +48,18 @@ Modern users accumulate massive, chaotic file collections:
    - Other GUIs (Web, Electron) are supported via the `bobui_web` dashboard.
    - No GUI-specific logic in the engine.
 
-2. **Plugin Architecture**
+2. **Ultimate File Manager & Shell Replacement**
+   - **BobUI (OmniUI)**: The primary native interface is a premium, high-fidelity clone of the modern OS experience.
+   - **Explorer Clone**: A pixel-perfect Windows 11 Explorer interface built with Qt + OmniUI + TypeScript.
+   - **Shell Replacement**: Beyond a file manager, the project aims to become a full desktop shell replacement (`bob_shell`), featuring its own taskbar, start menu, and window management.
+   - **Universal Data Custodian**: Integrating deduplication, organization, media management, and AI assistance into a single, cohesive user experience.
+
+3. **Plugin Architecture**
    - Every component is swappable: scanners, hashers, metadata providers, OCR engines
    - Runtime selection via CLI flags (`--hasher=blake3`, `--scanner=win32`)
    - New providers can be added without modifying core code.
 
-3. **Performance & Integration**
+4. **Performance & Integration**
    - **BobUI (Qt Fork)** provides the fastest possible interface by leveraging custom Qt components optimized for massive file lists.
    - Direct engine integration for real-time feedback and low-latency operations.
 

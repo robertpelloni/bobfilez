@@ -168,6 +168,27 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
+## Phase 9: Universal Shell & File Manager (Planned)
+
+**Goal**: Transform `filez` into the "Ultimate File Manager" and a complete OS shell replacement.
+
+### Tasks
+1. **Windows 11 Explorer Clone**
+   - [ ] Pixel-perfect UI replication of the Windows 11 Explorer.
+   - [ ] Tabbed interface with modern breadcrumbs and search.
+   - [ ] Sidebar navigation with Quick Access and Cloud integration.
+
+2. **Shell Replacement (`bob_shell`)**
+   - [ ] Custom Taskbar with app pinning and system tray.
+   - [ ] Start Menu with AI-powered search and category-based organization.
+   - [ ] Native Window Manager for high-performance desktop experience.
+
+3. **Core Engine as VFS**
+   - [ ] Expose `fo_core` as a Virtual File System (VFS) for seamless OS integration.
+   - [ ] Real-time monitoring and deduplication during standard file operations.
+
+---
+
 ## Next Immediate Steps
 
 1. ~~**Java Native Build**: Compile `filez_native.dll` using the new build script.~~ (Completed)

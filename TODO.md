@@ -1,14 +1,17 @@
 # filez TODO List
 
 ## Immediate (Short Term)
-- [ ] **BobUI Build Integration**: Integrate `libs/bobui` (the Qt fork) into the main CMake build system as the primary GUI.
-- [ ] **`fo_gui` Refactor**: Update the existing GUI to leverage the custom BobUI framework for performance and a premium feel.
-- [ ] **Video Perceptual Hashing**: Research and implement a robust dHash/pHash for video frames via FFmpeg.
-- [ ] **Audio Fingerprinting**: Integrate `ShazamAPI` or similar for deduplicating audio by signature.
-- [ ] **Cloud Pagination Stress Test**: Test S3/Google Drive/Azure with >1000 objects to ensure stability.
-- [ ] **MSI Installer**: Verify WiX build on a clean machine with the latest `VERSION.md` sync.
+- [x] **OmniUI Transition**: Transition the native GUI (`fo_gui`) to the **OmniUI** framework (Qt + JUCE + WASM).
+- [x] **Windows 11 Explorer Clone**: Implement a high-fidelity Windows 11 Explorer UI in QML/TypeScript.
+- [x] **`FileModel` Integration**: Bridge `fo_core` deduplication engine into the new Explorer UI.
+- [ ] **Mica/Acrylic Effect**: Implement authentic Windows 11 translucency and background blur in BobUI.
+- [ ] **Context Menus**: Implement pixel-perfect right-click menus for file operations.
+- [ ] **Taskbar Scaffolding**: Begin implementing the `bob_shell` taskbar with app pinning.
+- [ ] **Start Menu**: Design and implement the AI-powered Start Menu.
 
 ## In Progress
+- [ ] **Advanced Media Analysis**: Video Perceptual Hashing and Audio Fingerprinting.
+- [ ] **Shell Replacement (`bob_shell`)**: Transforming the app into a full desktop environment.
 - [ ] **Java 21 Port Refinement**: Update the Java version with latest CLI parity for `stats` and `--mode`.
 - [ ] **Fuzz Testing Campaigns**: Continuous libFuzzer execution on the `RuleEngine`.
 - [ ] **Packaging**: AppImage and DMG generation for each build.
