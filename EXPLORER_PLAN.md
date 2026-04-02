@@ -28,6 +28,24 @@
 - [x] **Dashboard:** Quick access to system settings and notifications.
 - [x] **Desktop:** Icon support, wallpaper simulation.
 
+### Category E: Integrated Image Management Suite (bobphotos)
+- [ ] **Photo Library View:** Timeline-based viewing similar to Google/Apple Photos and Lightroom Classic.
+- [ ] **AI Face Recognition:** Automatic identity grouping and tagging for people and pets.
+- [ ] **Image Classification:** Smart categorization (landscapes, documents, receipts, etc.).
+- [ ] **Smart Deduplication:** Analyze duplicate/similar images, recommend and keep the "best" version based on quality/metadata.
+- [ ] **Auto-Rotate:** ML-driven automatic orientation correction.
+- [ ] **EXIF Tools:** Advanced scrubber, privacy corrector, and mass-metadata editor.
+- [ ] **Format Conversion & Extraction:** 
+    - Transcode modern formats (e.g., HEIC to JXL, WebP to AVIF).
+    - Extract stills from rapid-fire bursts, Live Photos, and animations.
+
+### Category F: Advanced Dual-Pane Operations (Salamander 100% Parity)
+- [ ] **Classic Dual-Pane Mode:** Seamless side-by-side file management.
+- [ ] **Keyboard-First Workflow:** 100% navigability and operation via keyboard shortcuts (F5 Copy, F6 Move, etc.).
+- [ ] **Advanced Viewers:** Integrated, instant hex, text, and media viewers.
+- [ ] **Plugin Architecture:** Support for custom modules (FTP/SFTP, advanced archive handling for 7z/RAR, encryption).
+- [ ] **Power User Tools:** Advanced batch renaming, file splitting/combining, and deep attribute manipulation.
+
 ## 2. Progress Summary (2026-04-01)
 - **OmniUI Shell Skeleton:** Established in `main.qml`.
 - **Explorer Window Enhancement:** Updated `explorerWindow` with:

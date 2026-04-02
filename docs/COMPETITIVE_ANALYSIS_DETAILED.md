@@ -1,4 +1,4 @@
-# Competitive Analysis: Files vs. File Pilot vs. bobfilez (OmniUI)
+# Competitive Analysis: Files vs. File Pilot vs. OpenSalamander vs. bobfilez (OmniUI)
 
 ## 1. Files (github.com/files-community/Files)
 **Target:** Modern Windows users seeking a native-feeling WinUI 3 experience.
@@ -30,7 +30,23 @@
 
 ---
 
-## 3. bobfilez (OmniUI Explorer)
+## 3. OpenSalamander (github.com/OpenSalamander/salamander)
+**Target:** Power users demanding lightning-fast, keyboard-driven, dual-pane file management.
+
+### Key Strengths
+- **Dual-Pane Mastery:** The gold standard for classic two-panel file management (formerly Altap Salamander).
+- **Performance:** Pure WinAPI implementation, incredibly fast and lightweight.
+- **Plugin Ecosystem:** Extensive support for archives (7-Zip, RAR), FTP, encryption, and advanced viewers.
+- **Keyboard Workflow:** 100% keyboard navigable without sacrificing power.
+
+### Comparison to bobfilez
+- **Tech Stack:** WinAPI (C++) vs. Qt/OmniUI (C++). While Salamander is Windows-only, bobfilez is cross-platform.
+- **Parity Goal:** bobfilez aims for **100% 1:1 feature parity** with OpenSalamander's advanced dual-pane workflows, including its plugin architecture, batch renaming, and integrated viewers.
+- **Modernization:** bobfilez brings Salamander's power-user features into a modern, Windows 11-native (Mica/Acrylic) UI, combining the best of both worlds.
+
+---
+
+## 4. bobfilez (OmniUI Explorer)
 **Target:** High-performance shell replacement for power users and developers.
 
 ### Unique Selling Points
@@ -38,9 +54,10 @@
 - **Date Fusion:** Advanced algorithm to find the "true" creation date of media files.
 - **Stateless Incremental Scanning:** Uses ADS/Xattrs for zero-DB indexing.
 - **OmniUI/Qt Fork:** Native, high-performance UI that mimics Windows 11 aesthetics but runs with C++ speed.
+- **100% Feature Parity:** Targets the robust capabilities of OpenSalamander (dual-pane, plugins, keyboard flow) combined with modern media management.
 - **Cross-Platform Vision:** Designed for Windows, Linux, and potentially beyond.
 
 ---
 
 ## Conclusion
-While `Files` provides the best visual experience today, `bobfilez` is building a more powerful *engine* that will eventually surpass existing tools in performance, robustness, and core shell integration. The transition to OmniUI (Qt) allows bobfilez to close the visual gap with `Files` while maintaining its performance lead.
+While `Files` provides the best visual experience today, `bobfilez` is building a more powerful *engine* that will eventually surpass existing tools in performance, robustness, and core shell integration. By aggressively targeting **100% feature parity with OpenSalamander**, bobfilez will deliver unmatched power-user capabilities inside a beautiful, modern shell.
