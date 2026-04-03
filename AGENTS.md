@@ -92,8 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.8.0)
+## Current Status (v3.1.0)
 
+- ✅ **Gamified Cleanup**: XP/Level system and achievements for disk organization.
+- ✅ **Live Folders (VFS)**: Dynamic virtual directories based on Everything-style queries.
 - ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
 - ✅ **Encrypted Vault**: Password-protected AES-256-GCM storage for sensitive files flagged by PII Sentinel.
 - ✅ **Notification Center**: Windows 11 style sidebar for system alerts, security warnings, and background task completion.
@@ -109,6 +111,11 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Java Parity**: Brought Java port up to v3.0 architectural parity with new command features and Record-based interfaces.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
+- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
+- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
+- ✅ 24+ CLI commands
+- ✅ 63+ unit/integration tests
+- ✅ 160+ git submodules synced- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — `FileOpsPanel.qml` + `EnhancedFileOpsPanel.qml`.

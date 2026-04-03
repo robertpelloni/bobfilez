@@ -20,5 +20,6 @@
         <file>../../panels/TopologyPanel.qml</file>
         <file>../../panels/DigitalRotPanel.qml</file>
         <file>../../panels/HierarchyPanel.qml</file>
+        <file>../../panels/GamificationPanel.qml</file>
     </qresource>
 </RCC>

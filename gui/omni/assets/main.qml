@@ -129,6 +129,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Gamification Dashboard (XP/Achievements)
+        GamificationPanel {
+            visible: shell.activePanel === "achievements"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter
