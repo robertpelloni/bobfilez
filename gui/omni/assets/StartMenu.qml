@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "OmniGraph", icon: "🕸️", id: "omnigraph"},
                         {name: "Digital Notary", icon: "🔏", id: "notary"},
                         {name: "Data Recovery", icon: "🩹", id: "recovery"},
                         {name: "Data Swarm", icon: "🛸", id: "swarm"},

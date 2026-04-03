@@ -92,8 +92,14 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.2.0)
+## Current Status (v4.3.0)
 
+- ✅ **OmniGraph**: Semantic Knowledge Graph database tracking relationships between files, tags, people, and locations. 
+- ✅ **Graph Visualization**: Interactive Force-Directed Graph UI (`OmniGraphPanel.qml`) allowing natural navigation of data without rigid folder structures.
+- ✅ **Digital Notary**: Cryptographic file signing (Ed25519/SHA-512) to ensure authenticity and tamper-proof distribution.
+- ✅ **Remote Explorer**: Integrated SFTP, SMB, and Cloud storage directly into the OmniShell sidebar for native remote file management.
+- ✅ **Self-Healing Filesystem**: Proactive bit-rot detection and automated recovery from swarm/cloud mirrors.
+- ✅ **Forensic Recovery UI**: Comprehensive panel for undeleting files and restoring corrupted data via "The Data Resurrection" suite.
 - ✅ **OmniShell v4**: Full Windows 11 Shell replacement with window tiling, snapping, desktop icons, and multi-monitor coordination.
 - ✅ **Data Swarm (P2P)**: Distributed Nexus for node-to-node synchronization of indexes and audit logs.
 - ✅ **Media Asset Manager (MAM)**: Universal control center for video/audio/image assets with batch AI tagging and transcoding.
