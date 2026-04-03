@@ -133,6 +133,42 @@ void FileModel::toggleSelection(int index) {
     }
 }
 
+#include <QDesktopServices>
+#include <QUrl>
+#include <QMessageBox>
+
+void FileModel::openFile(int index) {
+    if (index < 0 || index >= m_files.size()) return;
+    QString fullPath = m_currentPath + "/" + m_files[index].name;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(fullPath));
+}
+
+void FileModel::deleteFile(int index) {
+    if (index < 0 || index >= m_files.size()) return;
+    QString fullPath = m_currentPath + "/" + m_files[index].name;
+    
+    // Basic file deletion
+    std::error_code ec;
+    std::filesystem::remove_all(fullPath.toStdString(), ec);
+    if (!ec) {
+        refresh();
+    } else {
+        qDebug() << "Failed to delete:" << ec.message();
+    }
+}
+
+void FileModel::copyFile(int) {
+    // Clipboard integration goes here
+}
+
+void FileModel::moveFile(int) {
+    // Clipboard integration goes here
+}
+
+void FileModel::showProperties(int) {
+    // Basic properties dialog logic
+}
+
 void FileModel::clearSelection() {
     for (auto& f : m_files) f.isSelected = false;
     for (auto& f : m_allFiles) f.isSelected = false;

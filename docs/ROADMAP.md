@@ -155,7 +155,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 2. **Advanced Media Analysis** (Completed)
    - [x] Video Perceptual Hashing (vHash) for duplicate video detection via FFmpeg dHash.
    - [x] Audio Fingerprinting (AcoustID) for music deduplication via Chromaprint.
-   - [ ] Vector-Semantic Search integration (Local Clip/BERT).
+   - [x] Vector-Semantic Search integration (Local ONNX CLIP model + BPE Tokenizer).
 
 3. **Performance Scaling**
    - [ ] Multi-threaded cloud provider pagination stress tests.

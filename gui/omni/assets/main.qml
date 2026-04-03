@@ -268,11 +268,11 @@ ApplicationWindow {
 
                             Menu {
                                 id: fileContextMenu
-                                MenuItem { text: "Open" }
-                                MenuItem { text: "Copy" }
-                                MenuItem { text: "Delete" }
+                                MenuItem { text: "Open"; onTriggered: isDirectory ? fileModel.openFolder(fileModel.currentPath + "/" + fileName) : fileModel.openFile(index) }
+                                MenuItem { text: "Copy"; onTriggered: fileModel.copyFile(index) }
+                                MenuItem { text: "Delete"; onTriggered: fileModel.deleteFile(index) }
                                 MenuSeparator {}
-                                MenuItem { text: "Properties" }
+                                MenuItem { text: "Properties"; onTriggered: fileModel.showProperties(index) }
                             }
 
                             contentItem: RowLayout {

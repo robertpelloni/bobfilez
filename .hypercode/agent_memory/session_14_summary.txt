@@ -1,0 +1,1 @@
+Learning: The bobfilez ecosystem now encompasses exhaustive file operations, media conversions, hex editing, and viewing natively. Keeping these engines as modular plugin-like classes allows seamless testing and GUI binding. A monolithic GUI panel can comfortably interface with highly specialized C++ backends.

@@ -50,7 +50,7 @@ Rectangle {
             Item { width: 20 }
 
             Repeater {
-                model: ["📁 Filename Search", "📄 Content Search", "🔄 Find & Replace"]
+                model: ["📁 Filename Search", "📄 Content Search", "🔄 Find & Replace", "🧠 Semantic Search"]
                 Rectangle {
                     width: implicitLabel.implicitWidth + 24; height: 34
                     color: searchPanel.activeMode === index ? "#0078d4" : "#252525"
@@ -108,7 +108,7 @@ Rectangle {
 
         // ── Main query area ──────────────────────────────────────────────────
         GroupBox {
-            label: Label { text: searchPanel.activeMode === 0 ? "Filename Query" : searchPanel.activeMode === 1 ? "Content Query" : "Find & Replace"; color: "#aaa"; font.bold: true }
+            label: Label { text: searchPanel.activeMode === 0 ? "Filename Query" : searchPanel.activeMode === 1 ? "Content Query" : searchPanel.activeMode === 2 ? "Find & Replace" : "Semantic Query (Describe the image)"; color: "#aaa"; font.bold: true }
             Layout.fillWidth: true
             background: Rectangle { color: "#1e1e1e"; radius: 6; border.color: "#333" }
             padding: 10
@@ -116,7 +116,7 @@ Rectangle {
             ColumnLayout {
                 anchors.fill: parent; spacing: 10
 
-                // ── Filename/Content query row ─────────────────────────────
+                // ── Filename/Content/Semantic query row ─────────────────────────────
                 RowLayout {
                     spacing: 8; Layout.fillWidth: true
 
@@ -126,15 +126,16 @@ Rectangle {
 
                         RowLayout {
                             anchors.fill: parent; anchors.margins: 8; spacing: 8
-                            Label { text: searchPanel.activeMode === 0 ? "🔍" : searchPanel.activeMode === 1 ? "📄" : "🔍"; color: "#888" }
+                            Label { text: searchPanel.activeMode === 0 ? "🔍" : searchPanel.activeMode === 1 ? "📄" : searchPanel.activeMode === 2 ? "🔍" : "🧠"; color: "#888" }
                             TextInput {
                                 id: qField
                                 Layout.fillWidth: true
-                                text: searchPanel.activeMode < 2 ? searchPanel.searchQuery : searchPanel.searchQuery
+                                text: searchPanel.searchQuery
                                 color: "white"; font.pixelSize: 14
                                 placeholderText: searchPanel.activeMode === 0 ? "Filename or path (regex / wildcard / fuzzy)..." :
                                                  searchPanel.activeMode === 1 ? "Search in file contents..." :
-                                                 "Find (in file contents)..."
+                                                 searchPanel.activeMode === 2 ? "Find (in file contents)..." :
+                                                 "Describe the image you're looking for (e.g. 'a dog playing in a park at sunset')..."
                                 onTextChanged: searchPanel.searchQuery = text
                                 onAccepted: searchPanel.startSearch()
                             }
@@ -333,6 +334,13 @@ Rectangle {
                 }
                 Item { Layout.fillWidth: true }
 
+                // Semantic threshold slider
+                RowLayout {
+                    visible: searchPanel.activeMode === 3
+                    Label { text: "Threshold:"; color: "#888"; font.pixelSize: 11 }
+                    Slider { from: 0; to: 1; value: 0.22; implicitWidth: 100 }
+                }
+
                 // Sort/group options
                 Label { text: "Sort:"; color: "#888"; font.pixelSize: 11 }
                 ComboBox { model: ["Relevance","Path","Name","Size","Date modified","Match count"]
@@ -347,6 +355,55 @@ Rectangle {
                 Button { text: "📋 Copy paths"; flat: true; contentItem: Label { text: parent.text; color: "#888"; font.pixelSize: 11 } }
                 Button { text: "💾 Export CSV"; flat: true; contentItem: Label { text: parent.text; color: "#888"; font.pixelSize: 11 } }
                 Button { text: "📂 Open folder"; flat: true; contentItem: Label { text: parent.text; color: "#888"; font.pixelSize: 11 } }
+            }
+
+            // Semantic Grid Results
+            GridView {
+                id: semanticResults
+                visible: searchPanel.activeMode === 3
+                Layout.fillWidth: true; Layout.fillHeight: true
+                clip: true; model: searchPanel.results
+                cellWidth: 180; cellHeight: 180
+                ScrollBar.vertical: ScrollBar {}
+
+                delegate: Rectangle {
+                    width: 170; height: 170
+                    color: "#1e1e1e"; radius: 6; border.color: "#333"
+
+                    ColumnLayout {
+                        anchors.fill: parent; anchors.margins: 4; spacing: 4
+                        
+                        // Thumbnail
+                        Rectangle {
+                            Layout.fillWidth: true; Layout.fillHeight: true; color: "#0d0d0d"; radius: 4
+                            Image {
+                                anchors.fill: parent; anchors.margins: 2
+                                source: "image:/thumb/" + (modelData.path || "")
+                                fillMode: Image.PreserveAspectFit
+                            }
+                            // Relevance score badge
+                            Rectangle {
+                                anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4
+                                width: 40; height: 16; radius: 8; color: "#0078d4dd"
+                                Label { anchors.centerIn: parent; text: Math.round((modelData.score || 0)*100)+"%"; color: "white"; font.pixelSize: 10 }
+                            }
+                        }
+
+                        Label {
+                            text: {
+                                var p = modelData.path || ""
+                                return p.split("/").pop() || p.split("\\").pop() || p
+                            }
+                            color: "#ccc"; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onDoubleClicked: searchPanel.openFile(modelData.path || "")
+                    }
+                }
             }
 
             // Results list (filename search)

@@ -1,91 +1,45 @@
-# HANDOFF.md — bobfilez Session 13
+# HANDOFF.md — bobfilez Session 14
 
 ## Current Status (2026-04-03)
-**Version:** 2.7.0  
-**Focus:** Comprehensive File Management Suite — all major tool panels implemented
+**Version:** 2.8.0  
+**Focus:** Vector-Semantic Search & Finalizing Backend Engines
 
 ---
 
 ## What Was Done This Session
 
-### 1. Advanced Media Analysis (v2.5.0)
-- `video_hash_interface.hpp` + `video_hash_ffmpeg.cpp`: FFmpeg dHash per-frame video hashing
-- `audio_fingerprint_interface.hpp` + `audio_fingerprint_chromaprint.cpp`: Chromaprint audio fingerprinting
-- CLI: `vhash`, `afingerprint`, `--list-vhash`, `--list-ahash` commands
-- `duplicates --mode=media`: detect duplicate videos/audio using perceptual hashing
+### 1. Vector-Semantic Search (CLIP) Engine (v2.8.0)
+- `docs/ai/design/VECTOR_SEARCH.md`: Full architectural breakdown of the local ML text-to-image engine.
+- `clip_search_interface.hpp`: `IClipSearchEngine` and `ClipEmbedding` definitions for cosine similarity searches.
+- `clip_search_engine.cpp`: `OnnxClipSearchEngine` using ONNX Runtime C++ API to run OpenAI's CLIP models. Processes 224x224 RGB image tensors and executes BPE tokenization for text matching.
+- **UI Integration**: Added "Semantic Search" tab to `SearchPanel.qml` with a threshold slider, new icons, and a `GridView` thumbnail results screen.
 
-### 2. Universal Conversion Engine (v2.6.0)
-- `conversion_interface.hpp`: `IConverter` + `ConversionEngine` + `ConversionResult`
-- `conversion_engine.cpp`: `FFmpegConverter`, `ImageMagickConverter`, `PandocConverter` (full option sets)
-- `gui/panels/BatchConvertPanel.qml`: full-featured batch UI with per-backend options, progress, presets
-
-### 3. Batch Rename Engine (v2.6.0)
-- `batch_rename_interface.hpp`: 13 rule types (Replace/Insert/Delete/Trim/Case/Number/DateTime/
-  Metadata/Extension/Truncate/Sanitize/Hash/Transliterate/RegexGroups)
-- `gui/panels/BatchRenamePanel.qml`: split rule-builder + live preview table with conflict coloring
-
-### 4. Search Engine (v2.6.0)
-- `search_interface.hpp`: `SearchOptions` (Everything+grepWin+AgentRansack+dnGrep), `ReplaceOptions`
-- `gui/panels/SearchPanel.qml`: Filename / Content / Find+Replace tabs with all filter options
-
-### 5. File Operations Suite (v2.6.0)
-- `fileops_interface.hpp`: `FileCopyMoveEngine`, `FolderSyncEngine`, `FileDiffEngine`, `BackupEngine`, `ArchiveEngine`
-- `gui/panels/FileOpsPanel.qml`: 5-tab comprehensive panel
-
-### 6. Enhanced File Ops (v2.7.0) — TeraCopy/FastCopy/UltraCopier/SuperCopier parity
-- `enhanced_fileops_interface.hpp`: `EnhancedCopyOptions`, `EnhancedCopyEngine`, `TransferStats`, `FileError`+`FileErrorAction`, `AdvancedArchiveManager`
-- `gui/panels/EnhancedFileOpsPanel.qml`: Multi-job queue, real-time speed graph (Canvas), per-file error recovery UI, in-archive browser with virtual filesystem tree, full 7-Zip create options
-
-### 7. Hex Editor (v2.6.0)
-- `hex_editor_interface.hpp`: `HexBuffer` (mmap+sparse overlay), `DataInterpretation` (30+ types)
-- `gui/panels/HexEditorPanel.qml`: hex+ASCII view, Data Inspector sidebar, search bar
-
-### 8. Image Viewer (v2.6.0)
-- `image_viewer_interface.hpp`: `ThumbnailCache`, `ImageHistogram`, `ColorAdjustments`, `SlideshowOptions`
-- `gui/panels/ImageViewerPanel.qml`: XnViewMP-style with filmstrip, histogram, adjustments, EXIF, slideshow
-
-### 9. Markdown Viewer (v2.6.0)
-- `markdown_viewer_interface.hpp`: `MarkdownRenderer` (md4c+KaTeX+Mermaid+highlight.js), `FrontmatterData`, `MarkdownRenderOptions`
-- `gui/panels/MarkdownViewerPanel.qml`: split editor+WebEngineView preview, TOC sidebar, themes, export
-
-### 10. OmniUI Explorer Improvements
-- Address bar: changed `Label` → editable `TextInput` with `onAccepted: fileModel.openFolder(text)`
-- Sidebar: wired "This PC" → `C:/`, "Network" → `//localhost`
-- Column headers: `MouseArea` for sort on click
-- Context menus: right-click on file rows (Open/Copy/Delete/Properties)
-- Date format: `std::put_time` → `mm/dd/yyyy hh:mm AM/PM` Windows 11 style
-
-### 11. New Submodules Added
-`pandoc`, `ghostpdl`, `poppler`, `LibRaw`, `libde265`, `calibre`, `wkhtmltopdf`, `Magick.NET`,
-`pcre2`, `re2`, `ripgrep`, `the_silver_searcher`, `sigil`, `md4c`, `cmark`, `highlightjs`,
-`rapidjson`, `libarchive`, `librsync`, `zstd`, `lz4`, `brotli`, `dtl-diff`, `p7zip`, `7zip`
+### 2. Finalizing All Core Engines (v2.8.0)
+- **`BatchRenameEngine`**: Implemented `core/src/batch_rename_engine.cpp`. All 13 rules (Replace, Insert, Trim, Case, Regex, Hash, etc.) have full C++ `apply()` string manipulation logic wired in.
+- **`SearchEngine`**: Implemented `core/src/search_engine.cpp`. Completed the recursive folder traversal, attribute/size/date filtering, and PCRE2/`std::regex` file content matching loops.
+- **`EnhancedCopyEngine`**: Implemented `core/src/enhanced_fileops.cpp`. Built the `copy_single_enhanced()` loop using threaded custom buffering, TeraCopy-style checksum verification (`compute_hash`), and fast fallback to hardlinks/symlinks. Includes FastCopy disk-space checks and SuperCopier stats updates.
+- **`AdvancedArchiveManager`**: Implemented `core/src/advanced_archive_manager.cpp`. Using `_popen` and the `7z` executable, implemented `browse()`, `extract_entries()`, `add_to_archive()`, `rename_entry()`, and `convert()` for in-archive editing.
+- **`HexBuffer`**: Implemented `core/src/hex_editor.cpp`. Used OS-level memory-mapping (`CreateFileMappingA`/`MapViewOfFile` on Windows, `mmap` on Linux) for instant loading of arbitrarily large files. Built the `DataInterpretation` parser for integer/float/guid/timestamp parsing.
+- **`MarkdownRenderer`**: Implemented `core/src/markdown_viewer.cpp`. Wired the fast `md4c` C library to generate HTML from AST, injected a complete CSS template with `highlight.js`, `KaTeX`, and `Mermaid` support for the QML `WebEngineView`.
+- **`ConversionEngine`**: Implemented `CalibreConverter` for ebooks and `GhostscriptConverter` for PDFs via CLI wrapping.
+- **`FileModel`**: Implemented the QML context menu hooks (`openFile`, `deleteFile`) using `QDesktopServices` and `std::filesystem::remove_all`.
 
 ---
 
-## What's Still TODO (Implementation Bodies Needed)
+## What's Still TODO (Polish & Integration)
 
-| Interface | Status | Notes |
-|-----------|--------|-------|
-| `EnhancedCopyEngine::copy_single_enhanced()` | Implemented ✅ | FastCopy I/O + TeraCopy verify/throttle |
-| `AdvancedArchiveManager::browse()` | Implemented ✅ | Wired to 7-zip CLI for full read/write/edit |
-| `SearchEngine::search()` | Implemented ✅ | PCRE2/std::regex content search loop done |
-| `BatchRenameEngine::apply_rules()` | Implemented ✅ | 13 rule `apply()` bodies done |
-| `ConversionEngine` (more backends) | Implemented ✅ | Added Ghostscript, Calibre |
-| `MarkdownRenderer::render()` | Implemented ✅ | Wired md4c C API + HTML templating |
-| `HexBuffer` file mapping | Interface ✅ | Implement mmap (Windows: `MapViewOfFile`) |
-| OmniUI `FileModel` context menus | Implemented ✅ | Basic open/delete wired to QDesktopServices |
-| `fo_cli` media duplicates | ✅ Done | Could also integrate into RuleEngine |
-| Java port parity | v2.3.x | Update to v2.7.0 feature level |
+| Area | Status | Notes |
+|------|--------|-------|
+| SQLite Embeddings DB | Stubbed 🟡 | Needs `CREATE TABLE file_embeddings` wired to engine |
+| Java port parity | v2.3.x 🔴 | Update to v2.8.0 feature level |
 | MSI/AppImage/DMG | Scripts ✅ | Need CI pipeline trigger |
-| Vector-semantic search (CLIP) | Planned | Next major feature |
+| OmniUI Build | Stubs ✅ | `gui/omni` CMakeLists needs Qt6+WebEngine+QuickControls2 deps |
 
 ---
 
 ## Next Recommended Steps (for next agent)
 
-1. **Implement `EnhancedCopyEngine`** — start with `copy_single_enhanced()` using standard `std::filesystem::copy_file()` then add `FILE_FLAG_NO_BUFFERING` on Windows with `CreateFile`+`ReadFile`+`WriteFile`.
-2. **Wire `AdvancedArchiveManager`** to 7-zip CLI (`7z.exe`/`7za`) via `run_cmd()` (same pattern as converters).
-3. **Implement `SearchEngine`** content search using PCRE2 (from `libs/pcre2`) for file content grep.
-4. **Implement `BatchRenameEngine`** rule apply methods (all pure string operations, no deps needed).
-5. **Vector-semantic search** — integrate ONNX CLIP model for embedding-based file search.
-6. **Complete OmniUI** FileModel: add `openFile()`, `deleteFile()`, `copyFile()`, `moveFile()` invokables.
+1. **Test the QML UI**: Ensure the OmniUI standalone binary compiles and runs with all the newly created panels (`FileOpsPanel.qml`, `BatchRenamePanel.qml`, `SearchPanel.qml`, `HexEditorPanel.qml`, `ImageViewerPanel.qml`, `MarkdownViewerPanel.qml`).
+2. **SQLite Embedding Storage**: Update `core/src/database.cpp` to create the `file_embeddings` table and wire it to `clip_search_engine.cpp` to cache the 512-dim vectors instead of computing them on the fly.
+3. **ONNX Download Script**: Create a `scripts/download_models.py` script that pulls the `clip-image.onnx` and `clip-text.onnx` weights from HuggingFace to the local `.models/` directory.
+4. **CI/CD Pipeline**: Setup the GitHub action to run the `package_msi.bat` script and publish the resulting installer to a new GitHub Release.

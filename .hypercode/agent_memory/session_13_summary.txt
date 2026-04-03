@@ -1,0 +1,1 @@
+Learning: The bobfilez ecosystem requires unified interfaces for tool wrappers to abstract complex submodules like FFmpeg and 7-Zip. Submodules are powerful but interface definitions must exist first to guide QML implementations. Today's lesson: Abstract early, implement backends progressively.

@@ -43,6 +43,13 @@ public:
     Q_INVOKABLE void sortBy(const QString &column, bool ascending);
     Q_INVOKABLE void toggleSelection(int index);
     Q_INVOKABLE void clearSelection();
+    
+    // File operations
+    Q_INVOKABLE void openFile(int index);
+    Q_INVOKABLE void deleteFile(int index);
+    Q_INVOKABLE void copyFile(int index);
+    Q_INVOKABLE void moveFile(int index);
+    Q_INVOKABLE void showProperties(int index);
 
 signals:
     void pathChanged();

@@ -92,10 +92,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.7.0)
+## Current Status (v2.8.0)
 
+- ✅ **Vector Semantic Search**: OpenAI CLIP (ONNX) local natural language image search.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
-- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc backends, `BatchConvertPanel.qml`.
+- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre backends, `BatchConvertPanel.qml`.
 - ✅ **Batch Rename**: 13-rule chain engine, live preview panel.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack combined, `SearchPanel.qml`.
 - ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — `FileOpsPanel.qml` + `EnhancedFileOpsPanel.qml`.

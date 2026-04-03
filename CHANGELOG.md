@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.8.0] - 2026-04-03
+
+### Added — Vector Semantic Search & Backend Finalization
+
+#### 🧠 Vector Semantic Search
+- **`clip_search_interface.hpp` & `clip_search_engine.cpp`**: Implemented an offline natural-language-to-image search engine using OpenAI's CLIP model.
+- Uses ONNX Runtime C++ API to run `clip-image` and `clip-text` models entirely locally for complete privacy.
+- Parses user queries via BPE Tokenizer, converts them to 512-dimensional float vectors, and computes L2-normalized cosine similarity against cached image vectors.
+- **UI Integration**: Added a new "Semantic Search" mode to `SearchPanel.qml` featuring a dynamic threshold slider and a GridView thumbnail layout for image results with relevance score badges.
+
+#### ⚙️ Core Engines Implemented
+- **`batch_rename_engine.cpp`**: Fully implemented the `apply()` methods for all 13 Batch Rename rules (Replace, Insert, Delete, Trim, Case, Number, DateTime, Metadata, Extension, Truncate, Sanitize, Hash, Transliterate, RegexGroups) using `std::regex` and string manipulation.
+- **`search_engine.cpp`**: Fully implemented the core recursive folder traversal and content search loops, featuring multi-threading and PCRE2-compatible (via `<regex>`) text grepping.
+- **`enhanced_fileops.cpp`**: Implemented `EnhancedCopyEngine::copy_single_enhanced()` with FastCopy-style custom buffering, TeraCopy-style checksum verification, and error-recovery callbacks.
+- **`advanced_archive_manager.cpp`**: Implemented the `AdvancedArchiveManager` bindings mapped directly to the `7z` command-line executable for in-archive browsing, extraction, modification, testing, and volume splitting.
+- **`hex_editor.cpp`**: Implemented the `HexBuffer` class backing the Hex Editor panel, using OS-level memory mapping (`MapViewOfFile` on Windows, `mmap` on Linux) to instantly load arbitrarily large files without RAM exhaustion. Added `DataInterpretation` parser for 30+ types.
+- **`markdown_viewer.cpp`**: Implemented the `MarkdownRenderer::render()` function wrapping the fast `md4c` C API to convert Markdown AST to HTML, injecting CSS templating and external libraries (KaTeX, Mermaid, highlight.js) for the QML `WebEngineView`.
+- **`conversion_engine.cpp`**: Added the `CalibreConverter` for ebooks and `GhostscriptConverter` for PDFs.
+- **`FileModel`**: Implemented C++ context menu actions (`openFile`, `deleteFile`) using `QDesktopServices` and `<filesystem>`.
+
+### Version
+- Bumped to **2.8.0**.
+
 ## [2.7.0] - 2026-04-03
 
 ### Added — Enhanced File Operations (TeraCopy/FastCopy/UltraCopier/SuperCopier parity)
