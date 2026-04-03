@@ -92,8 +92,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.3.0)
+## Current Status (v3.4.0)
 
+- ✅ **Omni-Neural Bridge**: Unified coordinator for CLIP, Tesseract OCR, and image classification models.
+- ✅ **Secure Vault UI**: AES-256-GCM encrypted storage management panel for sensitive PII data.
+- ✅ **Nexus Pulse**: Real-time system activity and task monitoring widget for the OmniShell Taskbar.
 - ✅ **Web Dashboard 2.0**: High-fidelity HTML/CSS shell dashboard with live file explorer and system telemetry.
 - ✅ **Treemap Engine**: C++ implementation of Squarified Treemap layout for visual disk analysis.
 - ✅ **Native Cloud Integration**: AWS S3, Google Drive, and Azure mounted as virtual drives in OmniShell.
@@ -113,11 +116,6 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
-- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
-- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
-- ✅ 24+ CLI commands
-- ✅ 63+ unit/integration tests
-- ✅ 160+ git submodules synced- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — `FileOpsPanel.qml` + `EnhancedFileOpsPanel.qml`.

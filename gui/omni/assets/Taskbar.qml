@@ -35,9 +35,13 @@ Rectangle {
         spacing: 0
 
         // ── Left: Widgets / Desktops (Optional) ───────────────────────────
-        Item { width: 40; height: 40
-            Label { anchors.centerIn: parent; text: "🌩️"; font.pixelSize: 20 }
-            MouseArea { anchors.fill: parent; hoverEnabled: true; onEntered: parent.opacity = 0.7; onExited: parent.opacity = 1.0 }
+        RowLayout {
+            spacing: 8
+            Item { width: 40; height: 40
+                Label { anchors.centerIn: parent; text: "🌩️"; font.pixelSize: 20 }
+                MouseArea { anchors.fill: parent; hoverEnabled: true; onEntered: parent.opacity = 0.7; onExited: parent.opacity = 1.0 }
+            }
+            NexusPulse { id: sysPulse }
         }
 
         Item { Layout.fillWidth: true }

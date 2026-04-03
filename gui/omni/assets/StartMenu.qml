@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Secure Vault", icon: "🔒", id: "vault"},
                         {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
                         {name: "Achievements", icon: "🏆", id: "achievements"},
                         {name: "Cloud Drives", icon: "☁️", id: "cloud"},
@@ -59,8 +60,7 @@ Rectangle {
                         {name: "Batch Convert", icon: "🔄", id: "convert"},
                         {name: "Hex Editor", icon: "🔢", id: "hex"},
                         {name: "Search", icon: "🔍", id: "search"},
-                        {name: "File Watcher", icon: "👁️", id: "watcher"},
-                        {name: "Settings", icon: "⚙️", id: "settings"}
+                        {name: "File Watcher", icon: "👁️", id: "watcher"}
                     ]
                     
                     ColumnLayout {

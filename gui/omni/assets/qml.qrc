@@ -22,5 +22,7 @@
         <file>../../panels/HierarchyPanel.qml</file>
         <file>../../panels/GamificationPanel.qml</file>
         <file>../../panels/CloudPanel.qml</file>
+        <file>../../panels/VaultPanel.qml</file>
+        <file>NexusPulse.qml</file>
     </qresource>
 </RCC>
