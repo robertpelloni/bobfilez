@@ -5,6 +5,7 @@
 /// matching, attribute filtering, and live progress reporting.
 
 #include "fo/core/search_interface.hpp"
+#include "fo/core/database.hpp"
 #include <fstream>
 #include <algorithm>
 #include <thread>
@@ -43,9 +44,27 @@ struct SearchEngine::Impl {
     
     // Glob match helper
     static bool glob_match(const std::string& pattern, const std::string& text, bool case_sensitive = false) {
-        std::string p = case_sensitive ? pattern : text; // Simplify: just substring search if not regex
-        // Actual glob needs * ? logic.
-        return text.find(pattern) != std::string::npos;
+        std::string p = pattern;
+        std::string t = text;
+        if (!case_sensitive) {
+            std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+            std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+        }
+
+        size_t n = t.size();
+        size_t m = p.size();
+        std::vector<std::vector<bool>> dp(n + 1, std::vector<bool>(m + 1, false));
+        dp[0][0] = true;
+        for (size_t j = 1; j <= m; j++) {
+            if (p[j-1] == '*') dp[0][j] = dp[0][j-1];
+        }
+        for (size_t i = 1; i <= n; i++) {
+            for (size_t j = 1; j <= m; j++) {
+                if (p[j-1] == t[i-1] || p[j-1] == '?') dp[i][j] = dp[i-1][j-1];
+                else if (p[j-1] == '*') dp[i][j] = dp[i-1][j] || dp[i][j-1];
+            }
+        }
+        return dp[n][m];
     }
 };
 
@@ -180,7 +199,15 @@ std::vector<SearchResult> SearchEngine::search(const SearchOptions& opts, Search
     impl_ = std::make_unique<Impl>();
     impl_->compile_regexes(opts);
 
-    // Queue for BFS directory traversal
+    if (opts.use_index && !opts.search_content) {
+        // Try searching SQLite index for "Everything"-style speed
+        try {
+            // Placeholder: real implementation query 'files' table with LIKE or FTS5
+            // std::string sql = "SELECT path, size, mtime FROM files WHERE path LIKE ...";
+        } catch (...) {}
+    }
+
+    // Queue for BFS directory traversal (Fall back to disk scan or if content search needed)
     std::queue<std::filesystem::path> dirs;
     for (const auto& root : opts.search_roots) {
         if (std::filesystem::exists(root)) {

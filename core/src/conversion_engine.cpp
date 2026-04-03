@@ -541,6 +541,108 @@ public:
 };
 
 //─────────────────────────────────────────────────────────────────────────────
+// Poppler converter — PDF extraction
+//─────────────────────────────────────────────────────────────────────────────
+class PopplerConverter : public IConverter {
+public:
+    std::string name() const override { return "poppler"; }
+    std::string description() const override { return "Poppler (pdftoppm/pdftotext) — fast PDF to image/text extraction"; }
+    std::vector<std::string> supported_input_extensions() const override { return {"pdf"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"png","jpg","txt","html"}; }
+    ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+        std::string target = out.extension().string();
+        std::transform(target.begin(), target.end(), target.begin(), ::tolower);
+        std::string cmd;
+        if (target == ".txt") cmd = "pdftotext \"" + in.string() + "\" \"" + out.string() + "\"";
+        else cmd = "pdftoppm -r 300 -png \"" + in.string() + "\" \"" + out.parent_path().string() + "/" + out.stem().string() + "\"";
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd);
+        ConversionResult r; r.input = in; r.output = out; r.success = (rc == 0);
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
+// Wkhtmltopdf converter — HTML to PDF
+//─────────────────────────────────────────────────────────────────────────────
+class WkhtmltopdfConverter : public IConverter {
+public:
+    std::string name() const override { return "wkhtmltopdf"; }
+    std::string description() const override { return "wkhtmltopdf — Webkit-based HTML to PDF/Image conversion"; }
+    std::vector<std::string> supported_input_extensions() const override { return {"html","htm"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"pdf","png","jpg"}; }
+    ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+        std::string target = out.extension().string();
+        std::string tool = (target == ".pdf") ? "wkhtmltopdf" : "wkhtmltoimage";
+        std::string cmd = tool + " \"" + in.string() + "\" \"" + out.string() + "\"";
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd);
+        ConversionResult r; r.input = in; r.output = out; r.success = (rc == 0);
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
+// Inkscape converter — Vector Graphics
+//─────────────────────────────────────────────────────────────────────────────
+class InkscapeConverter : public IConverter {
+public:
+    std::string name() const override { return "inkscape"; }
+    std::string description() const override { return "Inkscape CLI — vector format conversion (SVG/PDF/EPS/PNG)"; }
+    std::vector<std::string> supported_input_extensions() const override { return {"svg","pdf","eps","ai"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"png","jpg","pdf","svg","eps"}; }
+    ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+        std::string cmd = "inkscape \"" + in.string() + "\" --export-filename=\"" + out.string() + "\"";
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd);
+        ConversionResult r; r.input = in; r.output = out; r.success = (rc == 0);
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
+// SoX converter — Audio processing
+//─────────────────────────────────────────────────────────────────────────────
+class SoxConverter : public IConverter {
+public:
+    std::string name() const override { return "sox"; }
+    std::string description() const override { return "SoX — advanced audio processing and format conversion"; }
+    std::vector<std::string> supported_input_extensions() const override { return {"wav","mp3","flac","ogg","aiff"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"wav","mp3","flac","ogg","aiff"}; }
+    ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+        std::string cmd = "sox \"" + in.string() + "\" \"" + out.string() + "\"";
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd);
+        ConversionResult r; r.input = in; r.output = out; r.success = (rc == 0);
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
+// Archive converter — Re-compression
+//─────────────────────────────────────────────────────────────────────────────
+class ArchiveConverter : public IConverter {
+public:
+    std::string name() const override { return "7-zip"; }
+    std::string description() const override { return "7-Zip — cross-convert between archive formats (zip/7z/tar)"; }
+    std::vector<std::string> supported_input_extensions() const override { return {"zip","7z","tar","gz","rar"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"zip","7z","tar","gz"}; }
+    ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+        std::filesystem::path tmp = std::filesystem::temp_directory_path() / ("fo_conv_" + std::to_string(std::hash<std::string>{}(in.string())));
+        std::filesystem::create_directories(tmp);
+        std::system(("7z x \"" + in.string() + "\" -o\"" + tmp.string() + "\" -y").c_str());
+        auto [rc, out_str] = run_cmd("7z a \"" + out.string() + "\" \"" + tmp.string() + "/*\" -y");
+        std::filesystem::remove_all(tmp);
+        ConversionResult r; r.input = in; r.output = out; r.success = (rc == 0);
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
 // ConversionEngine implementation
 //─────────────────────────────────────────────────────────────────────────────
 
@@ -666,6 +768,11 @@ ConversionEngine& global_conversion_engine() {
         e.register_converter(std::make_shared<PandocConverter>());
         e.register_converter(std::make_shared<CalibreConverter>());
         e.register_converter(std::make_shared<GhostscriptConverter>());
+        e.register_converter(std::make_shared<PopplerConverter>());
+        e.register_converter(std::make_shared<WkhtmltopdfConverter>());
+        e.register_converter(std::make_shared<InkscapeConverter>());
+        e.register_converter(std::make_shared<SoxConverter>());
+        e.register_converter(std::make_shared<ArchiveConverter>());
         return e;
     }();
     return engine;

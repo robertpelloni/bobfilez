@@ -68,6 +68,24 @@ Rectangle {
                 onClicked: searchPanel.clearResults() }
         }
 
+        // ── Quick Filter Bar (Everything-like) ──────────────────────────────
+        RowLayout {
+            spacing: 8
+            Label { text: "Quick Filter:"; color: "#888"; font.pixelSize: 11 }
+            Repeater {
+                model: ["Everything", "Audio", "Compressed", "Document", "Executable", "Folder", "Image", "Video"]
+                Button {
+                    text: modelData
+                    flat: true
+                    contentItem: Label {
+                        text: parent.text; color: index === 0 ? "#0078d4" : "#888"
+                        font.bold: index === 0; font.pixelSize: 11
+                    }
+                }
+            }
+            Item { Layout.fillWidth: true }
+        }
+
         // ── Search roots ─────────────────────────────────────────────────────
         GroupBox {
             label: Label { text: "Search in"; color: "#aaa"; font.bold: true }
@@ -239,7 +257,13 @@ Rectangle {
                             background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
                             contentItem: TextInput { text: parent.value; color: "white"; horizontalAlignment: Qt.AlignHCenter } }
 
-                        CheckBox { contentItem: Label { text: "Multiline (. matches \\n)"; color: "#ccc"; leftPadding: 4; font.pixelSize: 11 } }
+                        Label { text: "Encoding:"; color: "#888"; font.pixelSize: 11 }
+                        ComboBox { model: ["Auto-detect","UTF-8","UTF-16","ANSI","OEM (850)","ISO-8859-1"]
+                            background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
+                            contentItem: Label { text: parent.currentText; color: "white"; leftPadding: 6; font.pixelSize: 11 } }
+
+                        CheckBox { contentItem: Label { text: "Multiline"; color: "#ccc"; leftPadding: 4; font.pixelSize: 11 } }
+                        CheckBox { contentItem: Label { text: "Hex search"; color: "#ccc"; leftPadding: 4; font.pixelSize: 11 } }
 
                         Item { Layout.fillWidth: true }
                         Label { text: "Max file size:"; color: "#888"; font.pixelSize: 11 }

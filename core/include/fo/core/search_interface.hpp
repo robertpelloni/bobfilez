@@ -109,6 +109,7 @@ struct SearchOptions {
 
     // ── Advanced ───────────────────────────────────────────────────────
     bool respect_gitignore = true;  // Like ripgrep/ag
+    bool use_index = true;          // Use SQLite index for instant results (Everything style)
     std::vector<std::string> ignore_files = {".gitignore", ".ignore", ".agignore"};
     int num_threads = 4;
 };

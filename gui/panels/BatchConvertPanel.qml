@@ -137,7 +137,7 @@ Rectangle {
                     Label { text: "Backend Converter"; color: "#888"; font.pixelSize: 11 }
                     ComboBox {
                         Layout.fillWidth: true
-                        model: ["Auto (Best)", "FFmpeg", "ImageMagick", "Pandoc", "Ghostscript", "Calibre"]
+                        model: ["Auto (Best)", "FFmpeg", "ImageMagick", "Pandoc", "Ghostscript", "Calibre", "Poppler", "wkhtmltopdf", "libvips", "7-Zip", "Inkscape", "SoX"]
                         background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
                         contentItem: Label { text: parent.currentText; color: "white"; leftPadding: 8 }
                     }
@@ -287,6 +287,46 @@ Rectangle {
                         Label { text: "CSS Theme"; color: "#888"; font.pixelSize: 11 }
                         TextField { placeholderText: "Path to CSS file (optional)"; color: "white"; Layout.fillWidth: true
                             background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" } }
+                    }
+                }
+
+                // Audio options (SoX)
+                ColumnLayout {
+                    visible: ["mp3","wav","flac","ogg","opus","aiff"].indexOf(batchConvertPanel.outputExt) >= 0
+                    spacing: 8
+                    Label { text: "Audio (Hi-Fi) Settings"; color: "#0078d4"; font.bold: true; font.pixelSize: 12 }
+                    GridLayout { columns: 4; columnSpacing: 12; rowSpacing: 6
+                        Label { text: "Sample Rate"; color: "#888"; font.pixelSize: 11 }
+                        ComboBox { model: ["Keep original","44100 Hz","48000 Hz","96000 Hz","192000 Hz"]
+                            background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
+                            contentItem: Label { text: parent.currentText; color: "white"; leftPadding: 6 } }
+                        Label { text: "Bit Depth"; color: "#888"; font.pixelSize: 11 }
+                        ComboBox { model: ["Keep original","16-bit","24-bit","32-bit float"]
+                            background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
+                            contentItem: Label { text: parent.currentText; color: "white"; leftPadding: 6 } }
+                        Label { text: "Normalization"; color: "#888"; font.pixelSize: 11 }
+                        CheckBox { contentItem: Label { text: "Normalize to -1dB"; color: "#ccc"; leftPadding: 4 } }
+                        Label { text: "Dither"; color: "#888"; font.pixelSize: 11 }
+                        CheckBox { contentItem: Label { text: "Enable dithering"; color: "#ccc"; leftPadding: 4 } }
+                    }
+                }
+
+                // Vector options (Inkscape)
+                ColumnLayout {
+                    visible: ["svg","pdf","eps","ai","png"].indexOf(batchConvertPanel.outputExt) >= 0
+                    spacing: 8
+                    Label { text: "Vector/CAD Settings"; color: "#0078d4"; font.bold: true; font.pixelSize: 12 }
+                    GridLayout { columns: 4; columnSpacing: 12; rowSpacing: 6
+                        Label { text: "Export Area"; color: "#888"; font.pixelSize: 11 }
+                        ComboBox { model: ["Page","Drawing","Selection"]
+                            background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
+                            contentItem: Label { text: parent.currentText; color: "white"; leftPadding: 6 } }
+                        Label { text: "Text to Path"; color: "#888"; font.pixelSize: 11 }
+                        CheckBox { contentItem: Label { text: "Convert text"; color: "#ccc"; leftPadding: 4 } }
+                        Label { text: "DPI"; color: "#888"; font.pixelSize: 11 }
+                        SpinBox { from: 72; to: 2400; value: 300; implicitWidth: 100
+                            background: Rectangle { color: "#2d2d2d"; radius: 4; border.color: "#555" }
+                            contentItem: TextInput { text: parent.value; color: "white"; horizontalAlignment: Qt.AlignHCenter } }
                     }
                 }
 

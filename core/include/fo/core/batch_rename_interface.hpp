@@ -257,6 +257,25 @@ struct RegexGroupsRule : IRenameRule {
                       const std::map<std::string, std::string>&) const override;
 };
 
+/// CharacterMapRule: map specific characters to others (bulk swap)
+struct CharacterMapRule : IRenameRule {
+    std::map<std::string, std::string> mappings; // string->string for multibyte support
+    std::string rule_type() const override { return "char_map"; }
+    std::string description() const override;
+    std::string apply(const std::string& s, int, const std::filesystem::path&,
+                      const std::map<std::string, std::string>&) const override;
+};
+
+/// ScriptRule: apply a script snippet to the name (using embedded engine)
+struct ScriptRule : IRenameRule {
+    std::string script_source;
+    std::string language = "js"; 
+    std::string rule_type() const override { return "script"; }
+    std::string description() const override;
+    std::string apply(const std::string& s, int, const std::filesystem::path&,
+                      const std::map<std::string, std::string>&) const override;
+};
+
 //─────────────────────────── Batch Rename Engine ───────────────────────────//
 
 /// A preset is a named, saveable chain of rules

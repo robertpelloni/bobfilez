@@ -409,6 +409,27 @@ std::string RegexGroupsRule::apply(const std::string& s, int, const std::filesys
     }
 }
 
+std::string CharacterMapRule::description() const { return "Map characters"; }
+std::string CharacterMapRule::apply(const std::string& s, int, const std::filesystem::path&, const std::map<std::string, std::string>&) const {
+    if (!enabled || mappings.empty()) return s;
+    std::string res = s;
+    for (auto const& [from, to] : mappings) {
+        size_t pos = 0;
+        while ((pos = res.find(from, pos)) != std::string::npos) {
+            res.replace(pos, from.length(), to);
+            pos += to.length();
+        }
+    }
+    return res;
+}
+
+std::string ScriptRule::description() const { return "Custom " + language + " script"; }
+std::string ScriptRule::apply(const std::string& s, int, const std::filesystem::path&, const std::map<std::string, std::string>&) const {
+    if (!enabled || script_source.empty()) return s;
+    // Placeholder: real implementation would use QuickJS or LuaJIT
+    return s;
+}
+
 //─────────────────────────── Engine Implementation ───────────────────────────
 
 std::string BatchRenameEngine::apply_rules(

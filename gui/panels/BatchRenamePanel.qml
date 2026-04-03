@@ -117,6 +117,8 @@ Rectangle {
                             MenuItem { text: "🌐 Transliterate (→ASCII)"; onTriggered: batchRenamePanel.addRule("transliterate") }
                             MenuItem { text: "📐 Regex Groups ($1 $2)"; onTriggered: batchRenamePanel.addRule("regex_groups") }
                             MenuItem { text: "📏 Pad to Length"; onTriggered: batchRenamePanel.addRule("padding") }
+                            MenuItem { text: "🗺️ Character Map (Swap)"; onTriggered: batchRenamePanel.addRule("char_map") }
+                            MenuItem { text: "📜 JS Scripting"; onTriggered: batchRenamePanel.addRule("script") }
                         }
                     }
                 }
@@ -348,6 +350,26 @@ Rectangle {
                                 Label { text: "Ellipsis:"; color: "#888"; font.pixelSize: 11 }
                                 TextField { color: "white"; placeholderText: "… (optional)"; Layout.fillWidth: true
                                     background: Rectangle { color: "#1a1a1a"; radius: 4; border.color: "#555" } }
+                            }
+
+                            // ── Character Map ─────────────────────────────
+                            GridLayout {
+                                visible: modelData.type === "char_map"
+                                columns: 2; columnSpacing: 8; rowSpacing: 4; Layout.fillWidth: true
+                                Label { text: "Mappings:"; color: "#888"; font.pixelSize: 11 }
+                                TextField { color: "white"; placeholderText: "a:b, c:d, e:f"; Layout.fillWidth: true
+                                    background: Rectangle { color: "#1a1a1a"; radius: 4; border.color: "#555" } }
+                            }
+
+                            // ── Scripting ─────────────────────────────────
+                            ColumnLayout {
+                                visible: modelData.type === "script"
+                                spacing: 4; Layout.fillWidth: true
+                                Label { text: "JS Script (input variable 'name'):"; color: "#888"; font.pixelSize: 11 }
+                                Rectangle {
+                                    Layout.fillWidth: true; height: 80; color: "#111"; radius: 4
+                                    ScrollView { anchors.fill: parent; TextArea { text: "return name.replace('old', 'new');"; color: "#00ff00"; font.family: "Consolas" } }
+                                }
                             }
                         }
                     }
