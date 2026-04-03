@@ -219,6 +219,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniMount (Dokany/FUSE Native Drive Mounter)
+        OmniMountPanel {
+            visible: shell.activePanel === "omnimount"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

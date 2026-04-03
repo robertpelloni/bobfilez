@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.7.0] - 2026-04-03
+
+### Added — The "OmniMount" Release
+
+#### 💽 OmniMount VFS (Dokany/FUSE Integration)
+- **`omni_mount_interface.hpp` & `omni_mount.cpp`**: Implemented a kernel-level bridge using Dokany (Windows) and FUSE (Linux).
+- Allows bobfilez Virtual File Systems (Live Folders, Semantic Searches, Cloud Drives, and Data Swarms) to be mounted as native OS drive letters (e.g., `Z:\`).
+- **`OmniMountPanel.qml`**: A comprehensive UI for managing active virtual mounts, configuring drive letters, and setting Read/Write or Read-Only permissions.
+- You can now run a semantic search for "Invoices from 2023", mount the result as `Z:\`, and open those scattered files natively in any third-party application like Microsoft Word or Excel.
+
+### Version
+- Bumped to **4.7.0**.
+
 ## [4.6.0] - 2026-04-03
 
 ### Added — The "OmniOracle & Time Machine" Release
