@@ -136,6 +136,43 @@ CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_ledger(timestamp);
 CREATE INDEX IF NOT EXISTS idx_audit_operation ON audit_ledger(operation);
 )";
 
+/// Migration 6: Pro Photo Management (Lightroom / Apple Photos)
+/// Stores deep photo metadata: faces, GPS, AI tags, and non-destructive edit stacks.
+static const char* MIGRATION_6 = R"(
+CREATE TABLE IF NOT EXISTS photos (
+    file_id INTEGER PRIMARY KEY,
+    width INTEGER,
+    height INTEGER,
+    iso INTEGER,
+    f_stop REAL,
+    shutter_speed REAL,
+    focal_length REAL,
+    lat REAL,
+    lon REAL,
+    is_raw INTEGER DEFAULT 0,
+    edit_stack TEXT, -- JSON blob of non-destructive adjustments
+    FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS people (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    thumbnail_path TEXT
+);
+
+CREATE TABLE IF NOT EXISTS photo_faces (
+    photo_id INTEGER NOT NULL,
+    person_id INTEGER,
+    confidence REAL,
+    box_json TEXT,
+    FOREIGN KEY (photo_id) REFERENCES photos(file_id) ON DELETE CASCADE,
+    FOREIGN KEY (person_id) REFERENCES people(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_photos_raw ON photos(is_raw);
+CREATE INDEX IF NOT EXISTS idx_photos_gps ON photos(lat, lon);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}

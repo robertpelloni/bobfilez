@@ -147,6 +147,18 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Photo Library (Apple/Google Photos)
+        PhotoLibraryPanel {
+            visible: shell.activePanel === "photos"
+            anchors.fill: parent; anchors.margins: 20
+        }
+
+        // Photo Develop (Lightroom)
+        PhotoDevelopPanel {
+            visible: shell.activePanel === "develop"
+            anchors.fill: parent; anchors.margins: 20
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

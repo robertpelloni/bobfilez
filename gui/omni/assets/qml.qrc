@@ -23,6 +23,8 @@
         <file>../../panels/GamificationPanel.qml</file>
         <file>../../panels/CloudPanel.qml</file>
         <file>../../panels/VaultPanel.qml</file>
+        <file>../../panels/PhotoDevelopPanel.qml</file>
+        <file>../../panels/PhotoLibraryPanel.qml</file>
         <file>NexusPulse.qml</file>
     </qresource>
 </RCC>

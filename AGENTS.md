@@ -92,8 +92,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.4.0)
+## Current Status (v3.5.0)
 
+- ✅ **BobUI (OmniUI) Integration**: All panels now utilize the revolutionary OmniUI toolkit (Dials, Sliders, LineCharts, Particle Systems).
+- ✅ **Photo Develop (Lightroom Parity)**: Pro-grade non-destructive editing module with Temperature, Exposure, Highlights, and Tone Curve.
+- ✅ **Photo Library (Apple/Google Parity)**: AI-driven library with People recognition, Memories, and Map (Places) views.
 - ✅ **Omni-Neural Bridge**: Unified coordinator for CLIP, Tesseract OCR, and image classification models.
 - ✅ **Secure Vault UI**: AES-256-GCM encrypted storage management panel for sensitive PII data.
 - ✅ **Nexus Pulse**: Real-time system activity and task monitoring widget for the OmniShell Taskbar.
@@ -113,6 +116,9 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Nexus Master Clock**: Unified scheduling and resource arbitration across all engines.
 - ✅ **Java Parity**: Brought Java port up to v3.0 architectural parity with new command features and Record-based interfaces.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
+- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
+- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
+- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
