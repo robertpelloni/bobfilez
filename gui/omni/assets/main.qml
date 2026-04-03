@@ -281,6 +281,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniShare (Secure File Drops)
+        OmniSharePanel {
+            visible: shell.activePanel === "omnishare"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter
