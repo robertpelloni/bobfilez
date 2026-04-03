@@ -92,7 +92,7 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.0.0)
+## Current Status (v4.2.0)
 
 - ✅ **OmniShell v4**: Full Windows 11 Shell replacement with window tiling, snapping, desktop icons, and multi-monitor coordination.
 - ✅ **Data Swarm (P2P)**: Distributed Nexus for node-to-node synchronization of indexes and audit logs.

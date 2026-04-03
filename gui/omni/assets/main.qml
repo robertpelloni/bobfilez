@@ -177,6 +177,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Digital Notary
+        NotaryPanel {
+            visible: shell.activePanel === "notary"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Photo Library (Apple/Google Photos)
         PhotoLibraryPanel {
             visible: shell.activePanel === "photos"

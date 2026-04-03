@@ -8,7 +8,7 @@ import QtGraphicalEffects 1.15
 
 Rectangle {
     id: startMenu
-    width: 600; height: 700
+    width: 600; height: 750
     radius: 8
     color: "#e61a1a1a" // Acrylic dark
     border.color: "#33ffffff"
@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Digital Notary", icon: "🔏", id: "notary"},
                         {name: "Data Recovery", icon: "🩹", id: "recovery"},
                         {name: "Data Swarm", icon: "🛸", id: "swarm"},
                         {name: "Asset Manager", icon: "📦", id: "assets"},
