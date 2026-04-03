@@ -171,6 +171,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Data Recovery & Healing
+        RecoveryPanel {
+            visible: shell.activePanel === "recovery"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Photo Library (Apple/Google Photos)
         PhotoLibraryPanel {
             visible: shell.activePanel === "photos"

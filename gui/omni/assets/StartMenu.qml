@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Data Recovery", icon: "🩹", id: "recovery"},
                         {name: "Data Swarm", icon: "🛸", id: "swarm"},
                         {name: "Asset Manager", icon: "📦", id: "assets"},
                         {name: "Photo Library", icon: "🖼️", id: "photos"},
