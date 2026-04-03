@@ -94,10 +94,19 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v2.8.0)
 
-- ✅ **Visual Discovery**: Tinder-style near-duplicate image cleaner (confirm/reject swipes).
+- ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
+- ✅ **Encrypted Vault**: Password-protected AES-256-GCM storage for sensitive files flagged by PII Sentinel.
+- ✅ **Notification Center**: Windows 11 style sidebar for system alerts, security warnings, and background task completion.
+- ✅ **WASM Bridge**: Scaffolding for Emscripten bindings to allow core engine execution in web browsers.
+- ✅ **Autonomous Data Pruning**: AI agent identifies "Digital Rot" (obsolete installers, media cache, forgotten data).
+- ✅ **Forensic Audit Ledger**: Immutable, append-only operation log with tamper-detection hashes (Migration 5).
 - ✅ **OmniShell Transformation**: High-fidelity Windows 11 Shell replacement with Taskbar, Start Menu, Desktop Icons, and Multi-window Manager.
+- ✅ **Visual Discovery**: Tinder-style near-duplicate image cleaner (confirm/reject swipes).
+- ✅ **Zero-Copy Sorter**: Integrated ReFS/Btrfs reflink sorting for instant moves/copies.
+- ✅ **Data Topology**: Tree-map visualization of disk usage.
+- ✅ **PII Sentinel**: Personally Identifiable Information detection (SSN, API Keys).
 - ✅ **Nexus Master Clock**: Unified scheduling and resource arbitration across all engines.
-- ✅ **Java Parity (Interfaces)**: Brought Java port up to v2.9.0 architectural parity with new interfaces.
+- ✅ **Java Parity**: Brought Java port up to v3.0 architectural parity with new command features and Record-based interfaces.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
@@ -107,16 +116,10 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Image Viewer**: XnViewMP-style filmstrip, histogram, adjustments, EXIF, slideshow, `ImageViewerPanel.qml`.
 - ✅ **Markdown Viewer**: md4c+KaTeX+Mermaid+highlight.js, split editor/preview, `MarkdownViewerPanel.qml`.
 - ✅ **Advanced Media Analysis**: Video dHash + Chromaprint audio fingerprinting.
-- ✅ **OmniUI Shell**: Windows 11 Explorer clone, Taskbar, Start Menu, Desktop, Dashboard.
 - ✅ Cloud storage: AWS S3, Google Drive, Azure Blob Storage
-- ✅ 24+ CLI commands (scan, duplicates, hash, vhash, afingerprint, metadata, ocr, classify, organize, stats, lint, ignore, convert, search, rename-batch, watch, etc.)
+- ✅ 24+ CLI commands
 - ✅ 63+ unit/integration tests
 - ✅ 160+ git submodules synced
-- ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
-- ✅ `--mode=<fast|safe|paranoid>` three-tier duplicate verification
-- ✅ Zero MSVC warnings (ctime_s/localtime_s on Windows)
-- ✅ 63 passing tests
-- ✅ 130+ submodules synced
 
 **Next Steps**: Full BobUI integration, refactoring `fo_gui`, video/audio analysis.
 

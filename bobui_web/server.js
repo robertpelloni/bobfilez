@@ -149,6 +149,24 @@ app.post('/api/count', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Prune (v3.0.0 feature) ──
+app.post('/api/prune', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths' });
+        const { stdout } = await runCli(['stats', '--prune', ...paths]);
+        res.json({ success: true, details: stdout });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Audit (v3.0.0 feature) ──
+app.get('/api/audit', async (req, res) => {
+    try {
+        // Migration 5 audit log
+        res.json({ history: [] }); // Stubbed for now
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 const PORT = process.env.PORT || 3131;
 app.listen(PORT, () => {
     console.log(`\n  ╔══════════════════════════════════════╗`);

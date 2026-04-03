@@ -123,6 +123,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Auto-Hierarchy Generator
+        HierarchyPanel {
+            visible: shell.activePanel === "hierarchy"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

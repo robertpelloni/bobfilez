@@ -53,6 +53,7 @@ Rectangle {
                         {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
                         {name: "Topology Map", icon: "🌲", id: "topology"},
                         {name: "Digital Rot", icon: "🧹", id: "pruner"},
+                        {name: "Auto-Hierarchy", icon: "📐", id: "hierarchy"},
                         {name: "Batch Convert", icon: "🔄", id: "convert"},
                         {name: "Hex Editor", icon: "🔢", id: "hex"},
                         {name: "Search", icon: "🔍", id: "search"},

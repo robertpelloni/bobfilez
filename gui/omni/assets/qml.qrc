@@ -19,5 +19,6 @@
         <file>../../panels/VisualDedupPanel.qml</file>
         <file>../../panels/TopologyPanel.qml</file>
         <file>../../panels/DigitalRotPanel.qml</file>
+        <file>../../panels/HierarchyPanel.qml</file>
     </qresource>
 </RCC>
