@@ -52,6 +52,7 @@ Rectangle {
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
                         {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
                         {name: "Achievements", icon: "🏆", id: "achievements"},
+                        {name: "Cloud Drives", icon: "☁️", id: "cloud"},
                         {name: "Topology Map", icon: "🌲", id: "topology"},
                         {name: "Digital Rot", icon: "🧹", id: "pruner"},
                         {name: "Auto-Hierarchy", icon: "📐", id: "hierarchy"},
@@ -59,8 +60,7 @@ Rectangle {
                         {name: "Hex Editor", icon: "🔢", id: "hex"},
                         {name: "Search", icon: "🔍", id: "search"},
                         {name: "File Watcher", icon: "👁️", id: "watcher"},
-                        {name: "Settings", icon: "⚙️", id: "settings"},
-                        {name: "Browser", icon: "🌐", id: "browser"}
+                        {name: "Settings", icon: "⚙️", id: "settings"}
                     ]
                     
                     ColumnLayout {

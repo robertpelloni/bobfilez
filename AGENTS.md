@@ -92,8 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.1.0)
+## Current Status (v3.2.0)
 
+- ✅ **Native Cloud Integration**: AWS S3, Google Drive, and Azure mounted as virtual drives in OmniShell.
+- ✅ **OmniCommand Dashboard**: High-fidelity system telemetry, Nexus task monitoring, and storage health metrics.
 - ✅ **Gamified Cleanup**: XP/Level system and achievements for disk organization.
 - ✅ **Live Folders (VFS)**: Dynamic virtual directories based on Everything-style queries.
 - ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.

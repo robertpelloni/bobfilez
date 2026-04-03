@@ -135,6 +135,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Cloud Storage Manager
+        CloudPanel {
+            visible: shell.activePanel === "cloud"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

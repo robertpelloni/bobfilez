@@ -21,5 +21,6 @@
         <file>../../panels/DigitalRotPanel.qml</file>
         <file>../../panels/HierarchyPanel.qml</file>
         <file>../../panels/GamificationPanel.qml</file>
+        <file>../../panels/CloudPanel.qml</file>
     </qresource>
 </RCC>
