@@ -11,6 +11,7 @@ class NeuralBridgeImpl : public INeuralBridge {
     std::shared_ptr<IClipSearchEngine> clip_engine_;
     std::shared_ptr<IImageClassifier> classifier_engine_;
     std::shared_ptr<IOCRProvider> ocr_engine_;
+    std::shared_ptr<IDocumentEmbedder> bert_engine_;
 
 public:
     NeuralBridgeImpl() {
@@ -18,6 +19,7 @@ public:
         clip_engine_ = Registry<IClipSearchEngine>::instance().create("onnx_clip");
         classifier_engine_ = Registry<IImageClassifier>::instance().create("onnx_mobilenet");
         ocr_engine_ = Registry<IOCRProvider>::instance().create("tesseract");
+        bert_engine_ = Registry<IDocumentEmbedder>::instance().create("onnx_bert");
     }
 
     bool load_suite(const std::string& suite_name) override {
@@ -28,12 +30,14 @@ public:
     IClipSearchEngine* clip() override { return clip_engine_.get(); }
     IImageClassifier* classifier() override { return classifier_engine_.get(); }
     IOCRProvider* ocr() override { return ocr_engine_.get(); }
+    IDocumentEmbedder* bert() override { return bert_engine_.get(); }
 
     std::vector<ModelStatus> get_status() override {
         std::vector<ModelStatus> stats;
         if (clip_engine_) stats.push_back({"CLIP-ViT-B32", true, 350*1024*1024, "CPU"});
         if (classifier_engine_) stats.push_back({"MobileNet-v2", true, 20*1024*1024, "CPU"});
         if (ocr_engine_) stats.push_back({"Tesseract-v5", true, 50*1024*1024, "CPU"});
+        if (bert_engine_) stats.push_back({"MiniLM-L6-v2", true, 90*1024*1024, "CPU"});
         return stats;
     }
 

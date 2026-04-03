@@ -18,6 +18,7 @@
 #include "fo/core/clip_search_interface.hpp"
 #include "fo/core/classification_interface.hpp"
 #include "fo/core/ocr_interface.hpp"
+#include "fo/core/document_embedder_interface.hpp"
 
 namespace fo::core {
 
@@ -39,6 +40,7 @@ public:
     virtual IClipSearchEngine* clip() = 0;
     virtual IImageClassifier* classifier() = 0;
     virtual IOCRProvider* ocr() = 0;
+    virtual IDocumentEmbedder* bert() = 0;
 
     /// Performance & Memory
     virtual std::vector<ModelStatus> get_status() = 0;

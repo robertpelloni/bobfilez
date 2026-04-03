@@ -153,6 +153,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Forensic Audit Ledger
+        ForensicPanel {
+            visible: shell.activePanel === "forensic"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Photo Library (Apple/Google Photos)
         PhotoLibraryPanel {
             visible: shell.activePanel === "photos"

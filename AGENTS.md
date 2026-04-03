@@ -92,8 +92,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.6.0)
+## Current Status (v3.7.0)
 
+- ✅ **Forensic Audit UI**: High-integrity ledger verification panel for corporate and legal file auditing.
+- ✅ **Document Embedding Engine**: Semantic text search (MiniLM/BERT) for indexing file contents.
+- ✅ **Auto-Cleanup Manager**: Scheduled "Smart Purge" automation to keep the system free of digital rot.
 - ✅ **Remote Storage Engine**: Unified support for SFTP (SSH), FTP, and SMB (Samba) as virtual drives.
 - ✅ **Shadow Sorter Service**: Real-time background auto-organization service (Watcher -> RuleEngine -> CopyEngine).
 - ✅ **Network Management Panel**: Comprehensive UI for managing secure remote connections.
