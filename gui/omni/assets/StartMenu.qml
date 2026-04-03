@@ -51,6 +51,7 @@ Rectangle {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
                         {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
+                        {name: "Topology Map", icon: "🌲", id: "topology"},
                         {name: "Batch Convert", icon: "🔄", id: "convert"},
                         {name: "Hex Editor", icon: "🔢", id: "hex"},
                         {name: "Search", icon: "🔍", id: "search"},
@@ -59,8 +60,7 @@ Rectangle {
                         {name: "Browser", icon: "🌐", id: "browser"},
                         {name: "Terminal", icon: "⌨️", id: "terminal"},
                         {name: "Sync", icon: "🔁", id: "fileops"},
-                        {name: "Diff", icon: "⚖️", id: "fileops"},
-                        {name: "Backup", icon: "💾", id: "fileops"}
+                        {name: "Diff", icon: "⚖️", id: "fileops"}
                     ]
                     
                     ColumnLayout {

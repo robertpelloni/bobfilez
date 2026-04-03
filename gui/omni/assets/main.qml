@@ -110,6 +110,12 @@ ApplicationWindow {
             visible: shell.activePanel === "visual_dedup"
             anchors.fill: parent; anchors.margins: 40
         }
+
+        // Data Topology Map (Tree-map)
+        TopologyPanel {
+            visible: shell.activePanel === "topology"
+            anchors.fill: parent; anchors.margins: 40
+        }
     }
 
     // TASKBAR

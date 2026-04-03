@@ -15,7 +15,55 @@
 #include <windows.h>
 #endif
 
+#ifdef _WIN32
+#include <winioctl.h>
+#endif
+
 namespace fo::core {
+
+// Helper for Zero-Copy (Reflink / Block Cloning)
+static bool try_zero_copy(const std::filesystem::path& src, const std::filesystem::path& dst) {
+#ifdef _WIN32
+    // Windows ReFS Block Cloning (FSCTL_DUPLICATE_EXTENTS_TO_FILE)
+    // Requires both files to be on the same ReFS volume.
+    HANDLE hSrc = CreateFileW(src.wstring().c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    HANDLE hDst = CreateFileW(dst.wstring().c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+    if (hSrc == INVALID_HANDLE_VALUE || hDst == INVALID_HANDLE_VALUE) {
+        if (hSrc != INVALID_HANDLE_VALUE) CloseHandle(hSrc);
+        if (hDst != INVALID_HANDLE_VALUE) CloseHandle(hDst);
+        return false;
+    }
+
+    FILE_STANDARD_INFO fInfo;
+    GetFileInformationByHandleEx(hSrc, FileStandardInfo, &fInfo, sizeof(fInfo));
+
+    DUPLICATE_EXTENTS_DATA ded;
+    ded.FileHandle = hSrc;
+    ded.SourceFileOffset.QuadPart = 0;
+    ded.TargetFileOffset.QuadPart = 0;
+    ded.ByteCount.QuadPart = fInfo.EndOfFile.QuadPart;
+
+    DWORD bytesReturned;
+    BOOL ok = DeviceIoControl(hDst, FSCTL_DUPLICATE_EXTENTS_TO_FILE, &ded, sizeof(ded), NULL, 0, &bytesReturned, NULL);
+    
+    CloseHandle(hSrc); CloseHandle(hDst);
+    return ok;
+#elif defined(__linux__)
+    // Linux reflink (Btrfs, XFS, ZFS)
+    int sfd = open(src.c_str(), O_RDONLY);
+    int dfd = open(dst.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (sfd < 0 || dfd < 0) {
+        if (sfd >= 0) close(sfd);
+        if (dfd >= 0) close(dfd);
+        return false;
+    }
+    int ret = ioctl(dfd, FICLONE, sfd);
+    close(sfd); close(dfd);
+    return (ret == 0);
+#else
+    return false;
+#endif
+}
 
 // Simple UUID generator for job IDs
 static std::string generate_uuid() {
@@ -289,7 +337,16 @@ FileOpResult EnhancedCopyEngine::copy_single_enhanced(
 
     auto t0 = std::chrono::steady_clock::now();
 
-    // Fast paths
+    // 0. Try Zero-Copy (Reflink / Block Cloning) — instant move/copy on same volume
+    if (try_zero_copy(src, target)) {
+        stats.bytes_done += src_size;
+        res.success = true;
+        res.bytes_transferred = src_size;
+        res.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        return res;
+    }
+
+    // 1. Fast paths (Hardlinks / Symlinks)
     if (opts.create_hardlinks) {
         std::filesystem::create_hard_link(src, target, ec);
         if (!ec) { res.success = true; return res; }
