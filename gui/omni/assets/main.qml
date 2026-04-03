@@ -165,6 +165,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 20
         }
 
+        // OmniVision NLE (Video Editing)
+        OmniVisionPanel {
+            visible: shell.activePanel === "omnivision"
+            anchors.fill: parent; anchors.margins: 20
+        }
+
         // OmniGraph (Semantic Knowledge Graph)
         OmniGraphPanel {
             visible: shell.activePanel === "omnigraph"

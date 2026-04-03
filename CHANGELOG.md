@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.8.0] - 2026-04-03
+
+### Added — The "OmniVision NLE" Release
+
+#### 🎬 OmniVision: In-Shell Video Editing & Color Grading
+- **`omnivision_engine_interface.hpp` & `omnivision_engine.cpp`**: Implemented a professional Non-Linear Editor (NLE) engine.
+- Integrates `OpenTimelineIO` for sequence arrangement and `OpenColorIO` for cinematic color management.
+- Uses `FFmpeg` and `mpv` bindings for real-time scrubbing and final rendering.
+- **`OmniVisionPanel.qml`**: A comprehensive video editing workspace inside the file manager, featuring a Media Pool, Video Monitor, Color Wheels/LUT selectors, and a multi-track Timeline.
+
+### Version
+- Bumped to **4.8.0**.
+
 ## [4.7.0] - 2026-04-03
 
 ### Added — The "OmniMount" Release

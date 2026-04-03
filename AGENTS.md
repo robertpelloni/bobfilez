@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.7.0)
+## Current Status (v4.8.0)
 
+- ✅ **OmniVision NLE**: Non-Linear Editor integrated into the shell using OpenTimelineIO, OpenColorIO, and MPV for pro-grade media editing and color grading.
 - ✅ **OmniMount VFS**: Native OS integration via Dokany/FUSE allowing semantic searches, live folders, and data swarms to be mounted as real OS drive letters (e.g., `Z:\`).
 - ✅ **OmniOracle**: Local LLM RAG (Retrieval-Augmented Generation) copilot that allows conversational interaction with the filesystem, automated workflow dispatching, and intelligent document summarization.
 - ✅ **OmniTimeMachine**: Continuous Data Protection (CDP) engine capturing binary deltas (via `librsync`/`zstd` concepts) to allow instant file reversion.
