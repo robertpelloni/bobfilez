@@ -98,6 +98,23 @@ CREATE INDEX IF NOT EXISTS idx_operation_log_status ON operation_log(status);
 CREATE INDEX IF NOT EXISTS idx_operation_log_undone ON operation_log(undone);
 )";
 
+/// Migration 4: Vector-Semantic Search embeddings table
+/// Stores 512-dimensional CLIP embedding vectors as BLOBs alongside file metadata.
+/// Designed for O(N) brute-force cosine similarity; for large libraries (>100k files),
+/// consider an ANN index (hnswlib) layered on top.
+static const char* MIGRATION_4 = R"(
+CREATE TABLE IF NOT EXISTS file_embeddings (
+    file_id INTEGER PRIMARY KEY,
+    model_name TEXT NOT NULL DEFAULT 'clip-vit-b32',
+    vector BLOB NOT NULL,
+    dimensions INTEGER NOT NULL DEFAULT 512,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_embeddings_model ON file_embeddings(model_name);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -208,6 +225,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 3) {
         apply_migration(3, MIGRATION_3);
+    }
+    if (current_ver < 4) {
+        apply_migration(4, MIGRATION_4);
     }
 }
 

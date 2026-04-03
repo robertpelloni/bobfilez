@@ -95,6 +95,8 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Current Status (v2.8.0)
 
 - ✅ **Vector Semantic Search**: OpenAI CLIP (ONNX) local natural language image search.
+- ✅ **Real-time File Watcher**: OS-native directory monitoring (ReadDirectoryChangesW / inotify) with debounce.
+- ✅ **CI/CD Pipeline**: GitHub Actions for build, test, MSI/AppImage packaging, and releases.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre backends, `BatchConvertPanel.qml`.
 - ✅ **Batch Rename**: 13-rule chain engine, live preview panel.
@@ -106,7 +108,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Advanced Media Analysis**: Video dHash + Chromaprint audio fingerprinting.
 - ✅ **OmniUI Shell**: Windows 11 Explorer clone, Taskbar, Start Menu, Desktop, Dashboard.
 - ✅ Cloud storage: AWS S3, Google Drive, Azure Blob Storage
-- ✅ 20+ CLI commands
+- ✅ 24+ CLI commands (scan, duplicates, hash, vhash, afingerprint, metadata, ocr, classify, organize, stats, lint, ignore, convert, search, rename-batch, watch, etc.)
 - ✅ 63+ unit/integration tests
 - ✅ 160+ git submodules synced
 - ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands

@@ -1,41 +1,210 @@
-name: Build
+name: bobfilez CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    tags: ['v*']
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
-  build:
-    name: ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-
+  # ──────────────────────────────────────────────────────────────────────
+  # Build & Test on Windows
+  # ──────────────────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Setup Ninja
-      uses: ninja-build/setup-ninja@v1
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgJsonGlob: 'vcpkg.json'
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/vcpkg_installed
+            ${{ env.VCPKG_ROOT }}/downloads
+          key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-windows-
 
-    - name: Configure CMake
-      run: cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Configure CMake
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DFO_BUILD_CLI=ON
+          -DFO_BUILD_GUI=OFF
+          -DFO_BUILD_TESTS=ON
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
 
-    - name: Build
-      run: cmake --build build
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }}
 
-    - name: Test
-      run: ctest --test-dir build --output-on-failure
+      - name: Run Tests
+        run: ./build/tests/fo_tests.exe --gtest_output=xml:test-results.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-windows
+          path: test-results.xml
+
+      - name: Upload CLI Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: fo_cli-windows
+          path: build/cli/fo_cli.exe
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Build & Test on Ubuntu
+  # ──────────────────────────────────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build pkg-config libsqlite3-dev
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/vcpkg_installed
+            ${{ env.VCPKG_ROOT }}/downloads
+          key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-linux-
+
+      - name: Configure CMake
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DFO_BUILD_CLI=ON
+          -DFO_BUILD_GUI=OFF
+          -DFO_BUILD_TESTS=ON
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+      - name: Run Tests
+        run: ./build/tests/fo_tests
+
+      - name: Upload CLI Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: fo_cli-linux
+          path: build/cli/fo_cli
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Package MSI Installer (Windows only, on tagged releases)
+  # ──────────────────────────────────────────────────────────────────────
+  package-msi:
+    needs: build-windows
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: fo_cli-windows
+          path: dist/
+
+      - name: Read Version
+        id: version
+        run: echo "VERSION=$(Get-Content VERSION.md -Raw).Trim()" >> $env:GITHUB_OUTPUT
+
+      - name: Install WiX Toolset
+        run: dotnet tool install --global wix
+
+      - name: Build MSI
+        run: |
+          wix build wix/filez.wxs -o dist/bobfilez-${{ steps.version.outputs.VERSION }}.msi
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobfilez-msi
+          path: dist/*.msi
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Package AppImage (Linux only, on tagged releases)
+  # ──────────────────────────────────────────────────────────────────────
+  package-appimage:
+    needs: build-linux
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: fo_cli-linux
+          path: dist/
+
+      - name: Build AppImage
+        run: bash scripts/package_appimage.sh
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobfilez-appimage
+          path: "*.AppImage"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Create GitHub Release (on tagged pushes)
+  # ──────────────────────────────────────────────────────────────────────
+  release:
+    needs: [package-msi, package-appimage]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release/
+
+      - name: Read Version
+        id: version
+        run: echo "VERSION=$(cat VERSION.md | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "bobfilez v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## bobfilez v${{ steps.version.outputs.VERSION }}
+
+            ### Downloads
+            - **Windows**: `bobfilez-${{ steps.version.outputs.VERSION }}.msi` (MSI installer)
+            - **Linux**: `bobfilez-${{ steps.version.outputs.VERSION }}.AppImage` (portable)
+            - **CLI Only**: `fo_cli.exe` / `fo_cli` (standalone binary)
+
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+          files: |
+            release/**/*.msi
+            release/**/*.AppImage
+            release/**/fo_cli*
+          draft: false
+          prerelease: false

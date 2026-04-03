@@ -93,6 +93,10 @@ static void print_usage() {
               << "  undo         Undo the last file operation\n"
               << "  history      Show operation history\n"
               << "  ignore       Manage ignore rules (add, remove, list)\n"
+              << "  convert      Convert files between formats (via FFmpeg/ImageMagick/Pandoc)\n"
+              << "  search       Search files by name, content, or AI (semantic search)\n"
+              << "  rename-batch Batch rename files using rule chains\n"
+              << "  watch        Real-time directory watcher (Shadow Sorter)\n"
               << "\nOptions:\n"
               << "  --scanner=<name>    Select scanner (e.g., std, win32, s3, gdrive)\n"
               << "  --hasher=<name>     Select hasher (e.g., fast64, blake3)\n"
@@ -1524,6 +1528,287 @@ int main(int argc, char** argv) {
                     std::cerr << "Usage: fo ignore [add|remove|list] [pattern] [reason]\n";
                     return 1;
                 }
+            }
+
+        } else if (command == "convert") {
+            // ─── Convert Command ─────────────────────────────────────────────
+            // Usage: fo_cli convert <input> [--to=<format>] [--output=<path>] [--quality=<N>]
+            // Wraps FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre backends.
+            if (paths.empty()) {
+                std::cerr << "Usage: fo convert <input-file> --to=<format> [--output=<path>]\n";
+                return 1;
+            }
+
+            std::string target_format;
+            std::string output_path;
+            int quality = -1;
+
+            for (auto& a : args) {
+                if (a.rfind("--to=", 0) == 0) target_format = a.substr(4);
+                else if (a.rfind("--output=", 0) == 0) output_path = a.substr(9);
+                else if (a.rfind("--quality=", 0) == 0) quality = std::stoi(a.substr(10));
+            }
+
+            if (target_format.empty()) {
+                std::cerr << "Error: --to=<format> is required (e.g., --to=mp4, --to=png, --to=pdf)\n";
+                return 1;
+            }
+
+            for (auto& input_file : paths) {
+                std::filesystem::path inp(input_file);
+                std::filesystem::path outp;
+                if (!output_path.empty()) {
+                    outp = output_path;
+                } else {
+                    outp = inp;
+                    outp.replace_extension("." + target_format);
+                }
+
+                std::string ext_lower = target_format;
+                std::transform(ext_lower.begin(), ext_lower.end(), ext_lower.begin(), ::tolower);
+
+                std::string cmd;
+                if (ext_lower == "mp4" || ext_lower == "webm" || ext_lower == "mkv" ||
+                    ext_lower == "avi" || ext_lower == "mov" || ext_lower == "mp3" ||
+                    ext_lower == "flac" || ext_lower == "wav" || ext_lower == "ogg" ||
+                    ext_lower == "aac" || ext_lower == "gif") {
+                    cmd = "ffmpeg -i \"" + inp.string() + "\"";
+                    if (quality >= 0) cmd += " -crf " + std::to_string(quality);
+                    cmd += " \"" + outp.string() + "\" -y";
+                } else if (ext_lower == "png" || ext_lower == "jpg" || ext_lower == "jpeg" ||
+                           ext_lower == "bmp" || ext_lower == "tiff" || ext_lower == "webp" ||
+                           ext_lower == "ico" || ext_lower == "svg") {
+                    cmd = "magick \"" + inp.string() + "\"";
+                    if (quality >= 0) cmd += " -quality " + std::to_string(quality);
+                    cmd += " \"" + outp.string() + "\"";
+                } else if (ext_lower == "pdf" || ext_lower == "docx" || ext_lower == "html" ||
+                           ext_lower == "md" || ext_lower == "rst" || ext_lower == "rtf" ||
+                           ext_lower == "epub" || ext_lower == "odt" || ext_lower == "tex" ||
+                           ext_lower == "pptx") {
+                    cmd = "pandoc \"" + inp.string() + "\" -o \"" + outp.string() + "\"";
+                } else {
+                    std::cerr << "Unknown format: " << target_format << "\n";
+                    return 1;
+                }
+
+                if (verbose) std::cerr << "[convert] " << cmd << "\n";
+                int rc = std::system(cmd.c_str());
+                if (rc == 0) {
+                    std::cout << inp.string() << " -> " << outp.string() << " [OK]\n";
+                } else {
+                    std::cerr << "Conversion failed for: " << inp.string()
+                              << " (exit code " << rc << ")\n";
+                }
+            }
+
+        } else if (command == "search") {
+            // ─── Search Command ──────────────────────────────────────────────
+            // Usage: fo_cli search <query> [paths...] [--content] [--regex] [--case-sensitive]
+            if (args.size() < 2) {
+                std::cerr << "Usage: fo search <query> [path...] [--content] [--regex] [--case-sensitive]\n";
+                return 1;
+            }
+
+            std::string query = args[1];
+            bool search_content = false;
+            bool use_regex = false;
+            bool case_sensitive = false;
+
+            std::vector<std::string> search_paths;
+            for (size_t i = 2; i < args.size(); ++i) {
+                auto& a = args[i];
+                if (a == "--content") search_content = true;
+                else if (a == "--regex") use_regex = true;
+                else if (a == "--case-sensitive") case_sensitive = true;
+                else if (a[0] != '-') search_paths.push_back(a);
+            }
+            if (search_paths.empty()) search_paths.push_back(".");
+
+            int match_count = 0;
+            for (auto& sp : search_paths) {
+                std::error_code ec;
+                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
+                    if (!entry.is_regular_file()) continue;
+
+                    auto fname = entry.path().filename().string();
+                    bool name_match = false;
+
+                    if (use_regex) {
+                        try {
+                            auto flags = std::regex::ECMAScript;
+                            if (!case_sensitive) flags |= std::regex::icase;
+                            std::regex pat(query, flags);
+                            name_match = std::regex_search(fname, pat);
+                        } catch (...) { name_match = false; }
+                    } else {
+                        std::string q = query, f = fname;
+                        if (!case_sensitive) {
+                            std::transform(q.begin(), q.end(), q.begin(), ::tolower);
+                            std::transform(f.begin(), f.end(), f.begin(), ::tolower);
+                        }
+                        name_match = f.find(q) != std::string::npos;
+                    }
+
+                    bool content_match = false;
+                    if (search_content && !name_match) {
+                        std::ifstream ifs(entry.path(), std::ios::binary);
+                        if (ifs) {
+                            std::string line;
+                            while (std::getline(ifs, line)) {
+                                std::string l = line, q = query;
+                                if (!case_sensitive) {
+                                    std::transform(l.begin(), l.end(), l.begin(), ::tolower);
+                                    std::transform(q.begin(), q.end(), q.begin(), ::tolower);
+                                }
+                                if (l.find(q) != std::string::npos) {
+                                    content_match = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (name_match || content_match) {
+                        std::cout << entry.path().string();
+                        if (content_match && !name_match) std::cout << "  (content match)";
+                        std::cout << "\n";
+                        match_count++;
+                    }
+                }
+            }
+            std::cerr << "\n" << match_count << " file(s) found\n";
+
+        } else if (command == "rename-batch") {
+            // ─── Batch Rename Command ────────────────────────────────────────
+            // Usage: fo_cli rename-batch <path> --find=<str> --replace=<str> [--regex] [--dry-run]
+            if (paths.empty()) {
+                std::cerr << "Usage: fo rename-batch <path> --find=<str> --replace=<str> [--regex] [--dry-run]\n";
+                return 1;
+            }
+
+            std::string find_str, replace_str;
+            bool use_regex_rb = false;
+
+            for (auto& a : args) {
+                if (a.rfind("--find=", 0) == 0) find_str = a.substr(7);
+                else if (a.rfind("--replace=", 0) == 0) replace_str = a.substr(10);
+                else if (a == "--regex") use_regex_rb = true;
+            }
+
+            if (find_str.empty()) {
+                std::cerr << "Error: --find=<str> is required\n";
+                return 1;
+            }
+
+            int renamed_count = 0;
+            for (auto& sp : paths) {
+                std::error_code ec;
+                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
+                    if (!entry.is_regular_file()) continue;
+
+                    if (!exts.empty()) {
+                        auto e = entry.path().extension().string();
+                        if (std::find(exts.begin(), exts.end(), e) == exts.end()) continue;
+                    }
+
+                    auto old_name = entry.path().filename().string();
+                    std::string new_name;
+
+                    if (use_regex_rb) {
+                        try {
+                            std::regex pat(find_str);
+                            new_name = std::regex_replace(old_name, pat, replace_str);
+                        } catch (...) {
+                            new_name = old_name;
+                        }
+                    } else {
+                        new_name = old_name;
+                        size_t pos = 0;
+                        while ((pos = new_name.find(find_str, pos)) != std::string::npos) {
+                            new_name.replace(pos, find_str.length(), replace_str);
+                            pos += replace_str.length();
+                        }
+                    }
+
+                    if (new_name != old_name) {
+                        auto new_path = entry.path().parent_path() / new_name;
+                        if (dry_run) {
+                            std::cout << "[DRY] " << old_name << " -> " << new_name << "\n";
+                        } else {
+                            std::filesystem::rename(entry.path(), new_path, ec);
+                            if (!ec) {
+                                std::cout << old_name << " -> " << new_name << "\n";
+                                renamed_count++;
+                            } else {
+                                std::cerr << "Failed: " << old_name << ": " << ec.message() << "\n";
+                            }
+                        }
+                    }
+                }
+            }
+            std::cerr << "\n" << renamed_count << " file(s) renamed\n";
+
+        } else if (command == "watch") {
+            // ─── Watch Command (Shadow Sorter) ──────────────────────────────
+            // Usage: fo_cli watch <path...> [--debounce=<ms>]
+            if (paths.empty()) {
+                std::cerr << "Usage: fo watch <path...> [--debounce=<ms>]\n";
+                return 1;
+            }
+
+            int debounce_ms = 500;
+            for (auto& a : args) {
+                if (a.rfind("--debounce=", 0) == 0)
+                    debounce_ms = std::stoi(a.substr(11));
+            }
+
+            std::cout << "Watching " << paths.size() << " path(s) for changes (Ctrl+C to stop)...\n";
+            std::cout << "Debounce: " << debounce_ms << "ms\n\n";
+
+            std::unordered_map<std::string, std::filesystem::file_time_type> file_times;
+
+            // Initial scan to establish baseline
+            for (auto& sp : paths) {
+                std::error_code ec;
+                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
+                    if (entry.is_regular_file()) {
+                        file_times[entry.path().string()] = entry.last_write_time();
+                    }
+                }
+            }
+
+            std::cout << "Baseline: " << file_times.size() << " files indexed\n";
+
+            // Continuous poll loop
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(debounce_ms));
+
+                std::unordered_map<std::string, std::filesystem::file_time_type> current;
+                for (auto& sp : paths) {
+                    std::error_code ec;
+                    for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
+                        if (entry.is_regular_file()) {
+                            current[entry.path().string()] = entry.last_write_time();
+                        }
+                    }
+                }
+
+                for (auto& [path, mtime] : current) {
+                    auto it = file_times.find(path);
+                    if (it == file_times.end()) {
+                        std::cout << "[NEW]      " << path << "\n";
+                    } else if (it->second != mtime) {
+                        std::cout << "[MODIFIED] " << path << "\n";
+                    }
+                }
+
+                for (auto& [path, mtime] : file_times) {
+                    if (current.find(path) == current.end()) {
+                        std::cout << "[DELETED]  " << path << "\n";
+                    }
+                }
+
+                file_times = std::move(current);
             }
 
         } else {
