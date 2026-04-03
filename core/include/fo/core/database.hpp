@@ -38,6 +38,20 @@ public:
     // Helper to execute a scalar query (returns int).
     int query_int(const std::string& sql);
 
+    // ── Vector Embedding Support ───────────────────────────────────────────
+    
+    struct EmbeddingMatch { int64_t file_id; double score; };
+
+    /// Store a float vector as a BLOB in the file_embeddings table.
+    void store_embedding(int64_t file_id, 
+                         const std::string& model_name, 
+                         const std::vector<float>& vector);
+
+    /// Retrieve and compute similarity for all stored embeddings.
+    std::vector<EmbeddingMatch> search_embeddings(const std::vector<float>& query_vector, 
+                                                  double threshold = 0.2, 
+                                                  int top_k = 100);
+
 private:
     sqlite3* db_ = nullptr;
     std::filesystem::path db_path_;

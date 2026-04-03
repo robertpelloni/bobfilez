@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>AcrylicBackground.qml</file>
+        <file>Dashboard.qml</file>
+        <file>DesktopIcons.qml</file>
+        <file>StartMenu.qml</file>
+        <file>../../panels/BatchConvertPanel.qml</file>
+        <file>../../panels/BatchRenamePanel.qml</file>
+        <file>../../panels/EnhancedFileOpsPanel.qml</file>
+        <file>../../panels/FileOpsPanel.qml</file>
+        <file>../../panels/FileWatcherPanel.qml</file>
+        <file>../../panels/HexEditorPanel.qml</file>
+        <file>../../panels/ImageViewerPanel.qml</file>
+        <file>../../panels/MarkdownViewerPanel.qml</file>
+        <file>../../panels/SearchPanel.qml</file>
+    </qresource>
+</RCC>

@@ -231,4 +231,65 @@ void DatabaseManager::migrate() {
     }
 }
 
+// ── Vector Embedding Implementation ──────────────────────────────────────────
+
+void DatabaseManager::store_embedding(int64_t file_id, const std::string& model_name, const std::vector<float>& vector) {
+    const char* sql = "INSERT OR REPLACE INTO file_embeddings (file_id, model_name, vector, dimensions) VALUES (?, ?, ?, ?)";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return;
+
+    sqlite3_bind_int64(stmt, 1, file_id);
+    sqlite3_bind_text(stmt, 2, model_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_blob(stmt, 3, vector.data(), static_cast<int>(vector.size() * sizeof(float)), SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 4, static_cast<int>(vector.size()));
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
+static float cosine_similarity(const float* a, const float* b, size_t n) {
+    double dot = 0, norm_a = 0, norm_b = 0;
+    for (size_t i = 0; i < n; ++i) {
+        dot += a[i] * b[i];
+        norm_a += a[i] * a[i];
+        norm_b += b[i] * b[i];
+    }
+    if (norm_a == 0 || norm_b == 0) return 0;
+    return static_cast<float>(dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
+}
+
+std::vector<DatabaseManager::EmbeddingMatch> DatabaseManager::search_embeddings(const std::vector<float>& query, double threshold, int top_k) {
+    std::vector<EmbeddingMatch> results;
+    const char* sql = "SELECT file_id, vector FROM file_embeddings";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return {};
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int64_t file_id = sqlite3_column_int64(stmt, 0);
+        const float* db_vec = static_cast<const float*>(sqlite3_column_blob(stmt, 1));
+        size_t db_bytes = sqlite3_column_bytes(stmt, 1);
+        size_t n = db_bytes / sizeof(float);
+
+        if (n == query.size()) {
+            float sim = cosine_similarity(query.data(), db_vec, n);
+            if (sim >= threshold) {
+                results.push_back({file_id, static_cast<double>(sim)});
+            }
+        }
+    }
+    sqlite3_finalize(stmt);
+
+    // Sort by score descending
+    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
+        return a.score > b.score;
+    });
+
+    // Limit to top_k
+    if (top_k > 0 && results.size() > static_cast<size_t>(top_k)) {
+        results.resize(top_k);
+    }
+
+    return results;
+}
+
 } // namespace fo::core

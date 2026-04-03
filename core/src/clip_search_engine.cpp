@@ -7,6 +7,7 @@
 
 #include "fo/core/clip_search_interface.hpp"
 #include "fo/core/registry.hpp"
+#include "fo/core/database.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -216,16 +217,19 @@ public:
     }
 
     std::vector<SemanticSearchResult> search(const std::string& query, int top_k, double threshold) override {
-        // In a real application, this pulls `ClipEmbedding` vectors from SQLite (`file_embeddings` table)
-        // and computes cosine similarity against the `query_embedding`.
-        
         auto query_embedding = embed_text(query);
         if (!query_embedding) return {};
 
         std::vector<SemanticSearchResult> results;
         
-        // Placeholder for DB search (O(N) exact scan or ANN library like hnswlib)
-        // ...
+        // This usually requires a reference to the global DatabaseManager.
+        // For now, we stub the retrieval but the logic is ready.
+        /*
+        auto matches = global_db().search_embeddings(query_embedding->values, threshold, top_k);
+        for (auto& m : matches) {
+            results.push_back({ get_path_from_id(m.file_id), m.score });
+        }
+        */
         
         return results;
     }

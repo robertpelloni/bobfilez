@@ -170,7 +170,23 @@ std::vector<AdvancedArchiveManager::BenchmarkResult> AdvancedArchiveManager::ben
 AdvancedArchiveManager::ArchiveInfo AdvancedArchiveManager::info(const std::filesystem::path&) { return {}; }
 
 bool AdvancedArchiveManager::repair_zip(const std::filesystem::path&, const std::filesystem::path&) { return false; }
-bool AdvancedArchiveManager::create_multivolume(const std::vector<std::filesystem::path>&, const std::filesystem::path&, int64_t, const ArchiveCreateOptions&, FileOpProgressCb) { return false; }
-bool AdvancedArchiveManager::merge_volumes(const std::vector<std::filesystem::path>&, const std::filesystem::path&) { return false; }
+bool AdvancedArchiveManager::create_multivolume(const std::vector<std::filesystem::path>& files, const std::filesystem::path& archive, int64_t volume_size_bytes, const ArchiveCreateOptions& opts, FileOpProgressCb) {
+    std::string cmd = "a \"" + archive.string() + "\" -v" + std::to_string(volume_size_bytes) + "b";
+    if (!opts.password.empty()) {
+        cmd += " -p\"" + opts.password + "\"";
+        if (opts.encrypt_filenames) cmd += " -mhe=on";
+    }
+    if (opts.compression_level >= 0) cmd += " -mx=" + std::to_string(opts.compression_level);
+    
+    for (const auto& f : files) cmd += " \"" + f.string() + "\"";
+    auto [rc, out] = run_7z(cmd);
+    return rc == 0;
+}
+
+bool AdvancedArchiveManager::merge_volumes(const std::vector<std::filesystem::path>& volumes, const std::filesystem::path& dest_archive) {
+    // 7z doesn't have a direct 'merge' command, but extracting the first volume automatically joins others.
+    // For manual merging of files, we can use OS copy /b (Windows) or cat (Linux).
+    return false; // Complex logic needed
+}
 
 } // namespace fo::core
