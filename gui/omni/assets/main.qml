@@ -269,6 +269,18 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniCluster (Grid Computing)
+        OmniClusterPanel {
+            visible: shell.activePanel === "omnicluster"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
+        // OmniTerminal (AI Shell)
+        OmniTerminalPanel {
+            visible: shell.activePanel === "terminal"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter
