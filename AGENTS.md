@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.9.0)
+## Current Status (v5.0.0)
 
+- ✅ **OmniSec Cybersecurity**: Built-in malware analysis, binary reverse engineering, and password cracking using `ssdeep`, `radare2`, and `hashcat`.
 - ✅ **OmniAudio DAW**: Professional Digital Audio Workstation integrated into the shell with multitrack mixing, VST/DSP effects, Shazam-style track identification, and AI Stem Separation (Vocals/Drums/Bass) via Meta Audiocraft.
 - ✅ **OmniVision NLE**: Non-Linear Editor integrated into the shell using OpenTimelineIO, OpenColorIO, and MPV for pro-grade media editing and color grading.
 - ✅ **OmniMount VFS**: Native OS integration via Dokany/FUSE allowing semantic searches, live folders, and data swarms to be mounted as real OS drive letters (e.g., `Z:\`).
@@ -107,7 +108,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Remote Explorer**: Integrated SFTP, SMB, and Cloud storage directly into the OmniShell sidebar for native remote file management.
 - ✅ **Self-Healing Filesystem**: Proactive bit-rot detection and automated recovery from swarm/cloud mirrors.
 - ✅ **Forensic Recovery UI**: Comprehensive panel for undeleting files and restoring corrupted data via "The Data Resurrection" suite.
-- ✅ **OmniShell v4**: Full Windows 11 Shell replacement with window tiling, snapping, desktop icons, and multi-monitor coordination.
+- ✅ **OmniShell v5**: Full Windows 11 Shell replacement with window tiling, snapping, desktop icons, and multi-monitor coordination.
 - ✅ **Data Swarm (P2P)**: Distributed Nexus for node-to-node synchronization of indexes and audit logs.
 - ✅ **Media Asset Manager (MAM)**: Universal control center for video/audio/image assets with batch AI tagging and transcoding.
 - ✅ **AI Semantic Tagging**: Autonomous content analysis (MobileNet/BERT) to assign descriptive tags.

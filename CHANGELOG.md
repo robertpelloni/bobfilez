@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.0.0] - 2026-04-03
+
+### Added — The "OmniSec & God-Tier" Release
+
+#### ☠️ OmniSec Cybersecurity & Reverse Engineering Suite
+- **`omnisec_engine.cpp`**: Built a high-performance C++ backend wrapping three major submodules (`radare2`, `hashcat`, and `ssdeep`).
+- **Binary Analysis**: Disassemble executables directly in the file manager using the interactive `radare2` engine.
+- **Malware Scanning**: Calculates `ssdeep` fuzzy hashes to detect malicious files or code permutations locally, automatically suggesting quarantine to the Encrypted Vault.
+- **Password Recovery**: Integrated GPU-accelerated `hashcat` allowing users to brute-force or dictionary-attack forgotten passwords on ZIP/7z/RAR archives directly inside the shell.
+- **`OmniSecPanel.qml`**: A specialized, hacker-themed dashboard with three tabs: Malware Scan, Disassembly, and Password Recovery.
+
+### Version
+- Bumped to **5.0.0**.
+
 ## [4.9.0] - 2026-04-03
 
 ### Added — The "OmniAudio DAW" Release

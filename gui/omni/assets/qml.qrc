@@ -38,6 +38,7 @@
         <file>../../panels/PhotoLibraryPanel.qml</file>
         <file>../../panels/OraclePanel.qml</file>
         <file>../../panels/OmniMountPanel.qml</file>
+        <file>../../panels/OmniSecPanel.qml</file>
         <file>NexusPulse.qml</file>
     </qresource>
 </RCC>

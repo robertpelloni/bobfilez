@@ -237,6 +237,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniSec (Cybersecurity Suite)
+        OmniSecPanel {
+            visible: shell.activePanel === "omnisec"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter
