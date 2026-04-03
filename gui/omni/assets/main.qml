@@ -177,6 +177,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniTimeMachine (CDP / Versioning)
+        TimeMachinePanel {
+            visible: shell.activePanel === "timemachine"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Data Swarm (Distributed Sync)
         SwarmPanel {
             visible: shell.activePanel === "swarm"

@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Time Machine", icon: "⏳", id: "timemachine"},
                         {name: "OmniFlow", icon: "🌊", id: "omniflow"},
                         {name: "OmniGraph", icon: "🕸️", id: "omnigraph"},
                         {name: "Digital Notary", icon: "🔏", id: "notary"},
@@ -59,8 +60,7 @@ Rectangle {
                         {name: "Photo Library", icon: "🖼️", id: "photos"},
                         {name: "Photo Develop", icon: "🎨", id: "develop"},
                         {name: "Forensic Audit", icon: "🛡️", id: "forensic"},
-                        {name: "Secure Vault", icon: "🔒", id: "vault"},
-                        {name: "Topology Map", icon: "🌲", id: "topology"}
+                        {name: "Secure Vault", icon: "🔒", id: "vault"}
                     ]
                     
                     ColumnLayout {
