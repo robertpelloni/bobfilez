@@ -66,14 +66,14 @@
 
 | Interface | Status | Notes |
 |-----------|--------|-------|
-| `EnhancedCopyEngine::copy_single_enhanced()` | Interface ✅ | Core copy loop + throttle + verify needed |
-| `AdvancedArchiveManager::browse()` | Interface ✅ | Wire to 7-zip CLI or libarchive |
+| `EnhancedCopyEngine::copy_single_enhanced()` | Implemented ✅ | FastCopy I/O + TeraCopy verify/throttle |
+| `AdvancedArchiveManager::browse()` | Implemented ✅ | Wired to 7-zip CLI for full read/write/edit |
 | `SearchEngine::search()` | Implemented ✅ | PCRE2/std::regex content search loop done |
 | `BatchRenameEngine::apply_rules()` | Implemented ✅ | 13 rule `apply()` bodies done |
-| `ConversionEngine` (more backends) | 3 backends ✅ | Add Ghostscript, Calibre, Inkscape |
-| `MarkdownRenderer::render()` | Interface ✅ | Wire md4c C API |
+| `ConversionEngine` (more backends) | Implemented ✅ | Added Ghostscript, Calibre |
+| `MarkdownRenderer::render()` | Implemented ✅ | Wired md4c C API + HTML templating |
 | `HexBuffer` file mapping | Interface ✅ | Implement mmap (Windows: `MapViewOfFile`) |
-| OmniUI `FileModel` context menus | Stubs ✅ | Implement `deleteFile()`, `openFile()` in C++ |
+| OmniUI `FileModel` context menus | Implemented ✅ | Basic open/delete wired to QDesktopServices |
 | `fo_cli` media duplicates | ✅ Done | Could also integrate into RuleEngine |
 | Java port parity | v2.3.x | Update to v2.7.0 feature level |
 | MSI/AppImage/DMG | Scripts ✅ | Need CI pipeline trigger |

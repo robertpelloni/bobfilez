@@ -435,6 +435,112 @@ public:
 };
 
 //─────────────────────────────────────────────────────────────────────────────
+// Calibre converter — Ebooks
+//─────────────────────────────────────────────────────────────────────────────
+class CalibreConverter : public IConverter {
+public:
+    std::string name() const override { return "calibre"; }
+    std::string description() const override { return "Calibre (ebook-convert) — ebook format conversion"; }
+
+    std::vector<std::string> supported_input_extensions() const override {
+        return {"epub","mobi","azw3","pdf","html","docx","txt","rtf","chm","fb2","lit","lrf","pdb","pml","snb","tcr"};
+    }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override {
+        return {"epub","mobi","azw3","pdf","html","docx","txt","rtf","fb2","lit","lrf","pdb","pml","snb","tcr"};
+    }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override {
+        std::vector<ConvertOption> opts;
+        opts.push_back({"title","Set book title","","string",{},{},{},{}});
+        opts.push_back({"authors","Set book authors","","string",{},{},{},{}});
+        opts.push_back({"cover","Path to cover image","","string",{},{},{},{}});
+        opts.push_back({"remove_margins","Remove page margins","false","bool",{},{},{},{}});
+        opts.push_back({"extra_args","Extra ebook-convert arguments","","string",{},{},{},{}});
+        return opts;
+    }
+    ConversionResult convert(const std::filesystem::path& input, const std::filesystem::path& output, const std::map<std::string, std::string>& opts) override {
+        ConversionResult r; r.input = input; r.output = output;
+        auto get = [&](const std::string& k, const std::string& def) { auto it = opts.find(k); return (it != opts.end() && !it->second.empty()) ? it->second : def; };
+        
+        std::ostringstream cmd;
+        cmd << "ebook-convert \"" << input.string() << "\" \"" << output.string() << "\"";
+        
+        std::string title = get("title",""); if (!title.empty()) cmd << " --title=\"" << title << "\"";
+        std::string auth = get("authors",""); if (!auth.empty()) cmd << " --authors=\"" << auth << "\"";
+        std::string cover = get("cover",""); if (!cover.empty()) cmd << " --cover=\"" << cover << "\"";
+        if (get("remove_margins","false") == "true") cmd << " --remove-first-image";
+        
+        std::string extra = get("extra_args",""); if (!extra.empty()) cmd << " " << extra;
+        
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd.str());
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        r.success = (rc == 0) && std::filesystem::exists(output);
+        if (!r.success) r.error = out_str.empty() ? "ebook-convert exit " + std::to_string(rc) : out_str;
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
+// Ghostscript converter — PDF/PS
+//─────────────────────────────────────────────────────────────────────────────
+class GhostscriptConverter : public IConverter {
+public:
+    std::string name() const override { return "ghostscript"; }
+    std::string description() const override { return "Ghostscript (gs) — PDF/PostScript processing and rasterization"; }
+
+    std::vector<std::string> supported_input_extensions() const override { return {"pdf","ps","eps"}; }
+    std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"pdf","png","jpg","tiff"}; }
+    
+    std::vector<ConvertOption> available_options(const std::string&, const std::string& out) const override {
+        std::vector<ConvertOption> opts;
+        opts.push_back({"dpi","Render DPI","300","int",{},"72","1200","1200"});
+        if (out == "pdf") {
+            opts.push_back({"compress","Compress PDF (ebook, screen, printer, prepress)","ebook","choice",{"screen","ebook","printer","prepress","default"},{},"",""});
+        }
+        return opts;
+    }
+    ConversionResult convert(const std::filesystem::path& input, const std::filesystem::path& output, const std::map<std::string, std::string>& opts) override {
+        ConversionResult r; r.input = input; r.output = output;
+        auto get = [&](const std::string& k, const std::string& def) { auto it = opts.find(k); return (it != opts.end() && !it->second.empty()) ? it->second : def; };
+        
+        std::string ext = output.extension().string();
+        if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        
+        std::ostringstream cmd;
+#ifdef _WIN32
+        cmd << "gswin64c -dNOPAUSE -dBATCH -dSAFER";
+#else
+        cmd << "gs -dNOPAUSE -dBATCH -dSAFER";
+#endif
+        
+        if (ext == "pdf") {
+            cmd << " -sDEVICE=pdfwrite";
+            std::string comp = get("compress","ebook");
+            if (!comp.empty() && comp != "default") cmd << " -dPDFSETTINGS=/" << comp;
+        } else if (ext == "png") {
+            cmd << " -sDEVICE=png16m";
+        } else if (ext == "jpg" || ext == "jpeg") {
+            cmd << " -sDEVICE=jpeg -dJPEGQ=85";
+        } else if (ext == "tiff" || ext == "tif") {
+            cmd << " -sDEVICE=tiff24nc -dCompression=lzw";
+        }
+        
+        std::string dpi = get("dpi","300");
+        if (!dpi.empty()) cmd << " -r" << dpi;
+        
+        cmd << " -sOutputFile=\"" << output.string() << "\" \"" << input.string() << "\"";
+        
+        auto t0 = std::chrono::steady_clock::now();
+        auto [rc, out_str] = run_cmd(cmd.str());
+        r.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+        r.success = (rc == 0) && std::filesystem::exists(output);
+        if (!r.success) r.error = out_str.empty() ? "ghostscript exit " + std::to_string(rc) : out_str;
+        return r;
+    }
+};
+
+//─────────────────────────────────────────────────────────────────────────────
 // ConversionEngine implementation
 //─────────────────────────────────────────────────────────────────────────────
 
@@ -558,6 +664,8 @@ ConversionEngine& global_conversion_engine() {
         e.register_converter(std::make_shared<FFmpegConverter>());
         e.register_converter(std::make_shared<ImageMagickConverter>());
         e.register_converter(std::make_shared<PandocConverter>());
+        e.register_converter(std::make_shared<CalibreConverter>());
+        e.register_converter(std::make_shared<GhostscriptConverter>());
         return e;
     }();
     return engine;
