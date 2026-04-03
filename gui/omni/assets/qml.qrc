@@ -40,6 +40,7 @@
         <file>../../panels/OraclePanel.qml</file>
         <file>../../panels/OmniMountPanel.qml</file>
         <file>../../panels/OmniSecPanel.qml</file>
+        <file>../../panels/OmniGitPanel.qml</file>
         <file>NexusPulse.qml</file>
         <file>OmniPeekOverlay.qml</file>
     </qresource>

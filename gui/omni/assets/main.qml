@@ -251,6 +251,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniGit (Pro Version Control)
+        OmniGitPanel {
+            visible: shell.activePanel === "omnigit"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

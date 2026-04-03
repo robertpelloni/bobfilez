@@ -151,7 +151,8 @@ Rectangle {
                             { icon: "☁️", text: "Cloud Drives" },
                             { icon: "💻", text: "This PC" },
                             { icon: "🌐", text: "Network (SFTP/SMB)" },
-                            { icon: "🔗", text: "Live Folders" }
+                            { icon: "🔗", text: "Live Folders" },
+                            { icon: "🐙", text: "Repositories" }
                         ]
                         ItemDelegate {
                             Layout.fillWidth: true; height: 32
@@ -165,6 +166,7 @@ Rectangle {
                                 if (modelData.text === "This PC") fileModel.openFolder("C:/")
                                 else if (modelData.text === "Cloud Drives") shell.openPanel("cloud")
                                 else if (modelData.text === "Network (SFTP/SMB)") shell.openPanel("network")
+                                else if (modelData.text === "Repositories") shell.openPanel("omnigit")
                                 else if (modelData.text === "Live Folders") shell.openPanel("hierarchy")
                             }
                         }

@@ -92,8 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v5.1.0)
+## Current Status (v5.3.0)
 
+- ✅ **OmniGit Version Control**: Integrated `libgit2` for professional Git repository management, visual commit graphs, inline diffing, and staging.
+- ✅ **OmniPeek Quick Look**: Press `Spacebar` to instantly preview 3D models (`raylib`), videos (`mpv`), binaries (`radare2`), and databases (`sqlite3`) via a floating holographic overlay.
 - ✅ **OmniClerk (AI Secretary)**: Autonomous document ingestion pipeline using Tesseract OCR, BERT NER, and auto-filing.
 - ✅ **OmniSec Cybersecurity**: Built-in malware analysis, binary reverse engineering, and password cracking using `ssdeep`, `radare2`, and `hashcat`.
 - ✅ **OmniAudio DAW**: Professional Digital Audio Workstation integrated into the shell with multitrack mixing, VST/DSP effects, Shazam-style track identification, and AI Stem Separation (Vocals/Drums/Bass) via Meta Audiocraft.

@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.2.0] - 2026-04-03
+
+### Added — The "OmniPeek Universal Quick Look" Release
+
+#### 👀 OmniPeek Instant Preview Engine
+- **`omnipeek_interface.hpp` & `omnipeek_engine.cpp`**: Implemented a universal C++ bridge that instantly categorizes and renders any file type.
+- **Spacebar Quick Look**: Selecting any file in the Explorer and pressing `Spacebar` now summons a glassmorphic overlay (`OmniPeekOverlay.qml`).
+- **Submodule Integration**:
+  - **`raylib`**: Renders 3D models (`.obj`, `.fbx`) natively.
+  - **`mpv`**: Instantly plays video and audio files without launching an external player.
+  - **`sqlite3`**: Opens database files read-only and displays the schema and table row counts.
+  - **`radare2`**: Analyzes executables and dynamically displays the entry-point assembly instructions.
+  - **`libarchive`**: Shows the folder tree of `.zip` and `.7z` files without extracting them.
+
+### Version
+- Bumped to **5.2.0**.
+
 ## [5.1.0] - 2026-04-03
 
 ### Added — The "OmniClerk AI Secretary" Release
