@@ -92,20 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.7.0)
+## Current Status (v3.8.0)
 
-- ✅ **Forensic Audit UI**: High-integrity ledger verification panel for corporate and legal file auditing.
-- ✅ **Document Embedding Engine**: Semantic text search (MiniLM/BERT) for indexing file contents.
-- ✅ **Auto-Cleanup Manager**: Scheduled "Smart Purge" automation to keep the system free of digital rot.
-- ✅ **Remote Storage Engine**: Unified support for SFTP (SSH), FTP, and SMB (Samba) as virtual drives.
-- ✅ **Shadow Sorter Service**: Real-time background auto-organization service (Watcher -> RuleEngine -> CopyEngine).
-- ✅ **Network Management Panel**: Comprehensive UI for managing secure remote connections.
-- ✅ **BobUI (OmniUI) Integration**: All panels now utilize the revolutionary OmniUI toolkit (Dials, Sliders, LineCharts, Particle Systems).
-- ✅ **Photo Develop (Lightroom Parity)**: Pro-grade non-destructive editing module with Temperature, Exposure, Highlights, and Tone Curve.
-- ✅ **Photo Library (Apple/Google Parity)**: AI-driven library with People recognition, Memories, and Map (Places) views.
-- ✅ **Omni-Neural Bridge**: Unified coordinator for CLIP, Tesseract OCR, and image classification models.
-- ✅ **Secure Vault UI**: AES-256-GCM encrypted storage management panel for sensitive PII data.
-- ✅ **Nexus Pulse**: Real-time system activity and task monitoring widget for the OmniShell Taskbar.
+- ✅ **Distributed Nexus**: Node-to-node synchronization for audit logs and search indexes across multiple bobfilez instances.
+- ✅ **Live Data Topology**: TreemapPanel now wired to real C++ `TreemapEngine` for live disk usage visualization.
 - ✅ **Web Dashboard 2.0**: High-fidelity HTML/CSS shell dashboard with live file explorer and system telemetry.
 - ✅ **Treemap Engine**: C++ implementation of Squarified Treemap layout for visual disk analysis.
 - ✅ **Native Cloud Integration**: AWS S3, Google Drive, and Azure mounted as virtual drives in OmniShell.

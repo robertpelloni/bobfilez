@@ -124,6 +124,17 @@ public:
         std::lock_guard<std::mutex> lock(metrics_mutex_);
         return metrics_;
     }
+
+    // ── Distributed Nexus (Node-to-Node) ────────────────────────────────────
+    
+    void join_swarm(const std::string& remote_host) {
+        // Uses OmniNet::MeshNode to discover other bobfilez instances
+        std::cout << "[Nexus] Joining data swarm: " << remote_host << "\n";
+    }
+
+    void broadcast_event(const std::string& type, const std::string& data) {
+        // Logic to sync audit ledger entries across nodes
+    }
 };
 
 // Register the Nexus

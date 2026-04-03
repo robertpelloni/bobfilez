@@ -2,19 +2,19 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtGraphicalEffects 1.15
+import Omni.Viz 1.0
 
 /// TopologyPanel.qml — Visual "Data Topology" Map (Tree-map).
 /// Visualizes disk usage using nested rectangles where area = file size.
-/// Inspired by WinDirStat, SequoiaView, and DaisyDisk.
 
 Rectangle {
     id: topologyPanel
     color: "#0a0a0a"; radius: 8
 
     property string rootPath: "C:/"
-    property var topologyData: [] // [{name, size, type, children: [...]}]
-    property bool isScanning: false
     property var selectedItem: null
+
+    TreemapModel { id: treemapModel; rootPath: topologyPanel.rootPath }
 
     ColumnLayout {
         anchors.fill: parent
@@ -31,15 +31,18 @@ Rectangle {
                 RowLayout {
                     anchors.fill: parent; anchors.leftMargin: 10
                     Label { text: "📁"; color: "#888" }
-                    TextInput { text: topologyPanel.rootPath; color: "white"; Layout.fillWidth: true; font.pixelSize: 12 }
+                    TextInput { 
+                        id: pathInput; text: topologyPanel.rootPath; color: "white"; Layout.fillWidth: true; font.pixelSize: 12
+                        onAccepted: topologyPanel.rootPath = text
+                    }
                 }
             }
 
             Button {
-                text: topologyPanel.isScanning ? "⏳ Scanning..." : "▶ Analyze Disk"
+                text: treemapModel.isBusy ? "⏳ Scanning..." : "▶ Analyze Disk"
                 background: Rectangle { color: "#0078d4"; radius: 6 }
                 contentItem: Label { text: parent.text; color: "white"; font.bold: true }
-                onClicked: topologyPanel.isScanning = !topologyPanel.isScanning
+                onClicked: treemapModel.refresh()
             }
         }
 
@@ -47,55 +50,27 @@ Rectangle {
         Item {
             Layout.fillWidth: true; Layout.fillHeight: true
 
-            // Simple recursive Tree-map renderer
-            // In a real implementation, this would be a custom QQuickItem (C++)
-            // but for the UI mockup, we use a Repeater.
-            
             Rectangle {
                 anchors.fill: parent; color: "#050505"; border.color: "#222"
                 clip: true
 
-                // Mock treemap nodes
-                Row {
-                    anchors.fill: parent; spacing: 1
-                    
-                    // Huge files block
-                    Rectangle {
-                        width: parent.width * 0.6; height: parent.height; color: "#1a1a1a"; border.color: "#333"
-                        Column {
-                            anchors.fill: parent; spacing: 1
-                            Rectangle { width: parent.width; height: parent.height * 0.7; color: "#2d3a4a"; border.color: "#4a9eff"
-                                Label { anchors.centerIn: parent; text: "System (24 GB)"; color: "white"; font.pixelSize: 10 } }
-                            Row {
-                                width: parent.width; height: parent.height * 0.3; spacing: 1
-                                Rectangle { width: parent.width * 0.5; height: parent.height; color: "#3a2a1a"; border.color: "#ffaa00"
-                                    Label { anchors.centerIn: parent; text: "Videos (8 GB)"; color: "white"; font.pixelSize: 9 } }
-                                Rectangle { width: parent.width * 0.5; height: parent.height; color: "#1a3a1a"; border.color: "#4caf50"
-                                    Label { anchors.centerIn: parent; text: "Photos (6 GB)"; color: "white"; font.pixelSize: 9 } }
-                            }
-                        }
-                    }
-
-                    // Remaining space
-                    Column {
-                        width: parent.width * 0.4; height: parent.height; spacing: 1
-                        Rectangle { width: parent.width; height: parent.height * 0.4; color: "#2a1a3a"; border.color: "#8b5cf6"
-                            Label { anchors.centerIn: parent; text: "Apps (4 GB)"; color: "white"; font.pixelSize: 9 } }
+                Repeater {
+                    model: treemapModel
+                    delegate: Rectangle {
+                        x: rx * parent.width; y: ry * parent.height
+                        width: rw * parent.width; height: rh * parent.height
+                        color: type === "Video" ? "#3a2a1a" : type === "Image" ? "#1a3a1a" : "#2d3a4a"
+                        border.color: Qt.lighter(color)
+                        opacity: hoverNode.hovered ? 1.0 : 0.7
                         
-                        Grid {
-                            columns: 4; width: parent.width; height: parent.height * 0.6; spacing: 1
-                            Repeater {
-                                model: 16
-                                Rectangle {
-                                    width: (parent.width - 3) / 4; height: (parent.height - 3) / 4
-                                    color: Qt.hsla(Math.random(), 0.5, 0.2, 1.0)
-                                    border.color: Qt.lighter(color)
-                                    opacity: hoverNode.hovered ? 1.0 : 0.7
-                                    HoverHandler { id: hoverNode }
-                                    ToolTip.visible: hoverNode.hovered; ToolTip.text: "Misc File " + index + "\nSize: 245 MB"
-                                }
-                            }
+                        Label {
+                            anchors.centerIn: parent
+                            visible: width > 40 && height > 20
+                            text: name; color: "white"; font.pixelSize: 10; elide: Text.ElideRight; width: parent.width - 4
                         }
+
+                        HoverHandler { id: hoverNode }
+                        ToolTip.visible: hoverNode.hovered; ToolTip.text: path + "\nSize: " + (size / (1024*1024)).toFixed(1) + " MB"
                     }
                 }
             }

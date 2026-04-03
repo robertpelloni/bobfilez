@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include "OmniApp.h"
 #include "FileModel.h"
+#include "TreemapModel.h"
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +11,7 @@ int main(int argc, char *argv[])
     app.initializeJuce();
 
     qmlRegisterType<FileModel>("Omni.File", 1, 0, "FileModel");
+    qmlRegisterType<TreemapModel>("Omni.Viz", 1, 0, "TreemapModel");
 
     FileModel fileModel;
     
