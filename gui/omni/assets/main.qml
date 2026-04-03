@@ -213,6 +213,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 20
         }
 
+        // OmniOracle (RAG Copilot)
+        OraclePanel {
+            visible: shell.activePanel === "oracle"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

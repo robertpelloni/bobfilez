@@ -65,6 +65,16 @@ Rectangle {
                 color: searchHover.hovered ? "#22ffffff" : "transparent"
                 Label { anchors.centerIn: parent; text: "🔍"; font.pixelSize: 20; color: "#0078d4" }
                 HoverHandler { id: searchHover }
+                MouseArea { anchors.fill: parent; onClicked: shell.openPanel("search") }
+            }
+
+            // OmniOracle Button (AI Copilot)
+            Rectangle {
+                width: 40; height: 40; radius: 4
+                color: oracleHover.hovered ? "#22ffffff" : "transparent"
+                Label { anchors.centerIn: parent; text: "🤖"; font.pixelSize: 20; color: "#0078d4" }
+                HoverHandler { id: oracleHover }
+                MouseArea { anchors.fill: parent; onClicked: shell.openPanel("oracle") }
             }
 
             // Task View

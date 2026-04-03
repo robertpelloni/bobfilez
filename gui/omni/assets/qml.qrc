@@ -34,6 +34,7 @@
         <file>../../panels/TimeMachinePanel.qml</file>
         <file>../../panels/PhotoDevelopPanel.qml</file>
         <file>../../panels/PhotoLibraryPanel.qml</file>
+        <file>../../panels/OraclePanel.qml</file>
         <file>NexusPulse.qml</file>
     </qresource>
 </RCC>

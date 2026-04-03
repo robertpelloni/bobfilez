@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.6.0] - 2026-04-03
+
+### Added — The "OmniOracle & Time Machine" Release
+
+#### 🤖 OmniOracle AI Copilot (Local RAG)
+- **`omni_oracle_interface.hpp` & `omni_oracle.cpp`**: Implemented a local Retrieval-Augmented Generation (RAG) engine.
+- Users can now chat directly with their filesystem. OmniOracle uses the `DocumentEmbedder` (BERT) to read PDFs/DOCXs, summarizes contents, and suggests automated `OmniFlow` actions.
+- **`OraclePanel.qml`**: A sleek chat interface integrated into the OmniShell Taskbar, complete with markdown support, file citation chips, and actionable trigger buttons.
+
+#### ⏳ OmniTimeMachine (Continuous Data Protection)
+- **`time_machine.cpp`**: Captures binary deltas (using librsync/zstd concepts) as files are modified, allowing instantaneous rewind without duplicating full file sizes.
+- **`TimeMachinePanel.qml`**: A visual timeline scrubber that lets users review modification history and restore old states.
+
+### Version
+- Bumped to **4.6.0**.
+
 ## [4.4.0] - 2026-04-03
 
 ### Added — The "Visual Automation" Release

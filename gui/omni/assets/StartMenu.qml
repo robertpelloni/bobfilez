@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "OmniOracle", icon: "🤖", id: "oracle"},
                         {name: "Time Machine", icon: "⏳", id: "timemachine"},
                         {name: "OmniFlow", icon: "🌊", id: "omniflow"},
                         {name: "OmniGraph", icon: "🕸️", id: "omnigraph"},

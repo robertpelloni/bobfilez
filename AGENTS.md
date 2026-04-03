@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.5.0)
+## Current Status (v4.6.0)
 
+- ✅ **OmniOracle**: Local LLM RAG (Retrieval-Augmented Generation) copilot that allows conversational interaction with the filesystem, automated workflow dispatching, and intelligent document summarization.
 - ✅ **OmniTimeMachine**: Continuous Data Protection (CDP) engine capturing binary deltas (via `librsync`/`zstd` concepts) to allow instant file reversion.
 - ✅ **Time Machine UI**: Timeline scrubbing interface (`TimeMachinePanel.qml`) allowing users to visualize and restore previous states of any file.
 - ✅ **OmniFlow Automation**: Node-based visual programming editor (`OmniFlowPanel.qml`) allowing users to drag and drop Triggers, Conditions, and Actions.
