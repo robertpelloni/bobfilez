@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.1.0] - 2026-04-03
+
+### Added — The "OmniClerk AI Secretary" Release
+
+#### 💼 OmniClerk Autonomous Pipeline
+- **`omniclerk_interface.hpp` & `omniclerk_engine.cpp`**: Created a high-level orchestration engine that combines `FileWatcher`, `Tesseract OCR`, `BERT (NER)`, `BatchRename`, and `EnhancedCopy`.
+- **Autonomous Filing**: Bobfilez can now watch your `~/Downloads` or `~/Scans` folders. When a new receipt, invoice, or contract arrives, it automatically extracts the text, identifies the vendor/date/amount, renames the file mathematically, and moves it to the correct sorted directory.
+- **`OmniClerkPanel.qml`**: A live "Secretary Dashboard" that shows the real-time feed of documents being ingested, analyzed, and filed, complete with confidence scores and auto-generated metadata tags.
+
+### Version
+- Bumped to **5.1.0**.
+
 ## [5.0.0] - 2026-04-03
 
 ### Added — The "OmniSec & God-Tier" Release

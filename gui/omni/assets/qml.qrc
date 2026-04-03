@@ -28,6 +28,7 @@
         <file>../../panels/SwarmPanel.qml</file>
         <file>../../panels/RecoveryPanel.qml</file>
         <file>../../panels/NotaryPanel.qml</file>
+        <file>../../panels/OmniClerkPanel.qml</file>
         <file>../../panels/AssetManagerPanel.qml</file>
         <file>../../panels/OmniGraphPanel.qml</file>
         <file>../../panels/OmniFlowPanel.qml</file>

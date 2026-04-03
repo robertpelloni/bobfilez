@@ -243,6 +243,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniClerk (Autonomous AI Secretary)
+        OmniClerkPanel {
+            visible: shell.activePanel === "omniclerk"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

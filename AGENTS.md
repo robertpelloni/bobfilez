@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v5.0.0)
+## Current Status (v5.1.0)
 
+- ✅ **OmniClerk (AI Secretary)**: Autonomous document ingestion pipeline using Tesseract OCR, BERT NER, and auto-filing.
 - ✅ **OmniSec Cybersecurity**: Built-in malware analysis, binary reverse engineering, and password cracking using `ssdeep`, `radare2`, and `hashcat`.
 - ✅ **OmniAudio DAW**: Professional Digital Audio Workstation integrated into the shell with multitrack mixing, VST/DSP effects, Shazam-style track identification, and AI Stem Separation (Vocals/Drums/Bass) via Meta Audiocraft.
 - ✅ **OmniVision NLE**: Non-Linear Editor integrated into the shell using OpenTimelineIO, OpenColorIO, and MPV for pro-grade media editing and color grading.
