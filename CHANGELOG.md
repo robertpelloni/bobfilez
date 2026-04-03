@@ -1,6 +1,63 @@
 # Changelog
 
-## [2.6.0] - 2026-04-03
+## [2.7.0] - 2026-04-03
+
+### Added — Enhanced File Operations (TeraCopy/FastCopy/UltraCopier/SuperCopier parity)
+
+#### 📎 `EnhancedCopyEngine` (C++)
+- **`enhanced_fileops_interface.hpp`**: `EnhancedCopyOptions` extends `CopyMoveOptions` with:
+  - **FastCopy I/O tuning**: separate read/write buffer sizes (up to 512 MiB), dedicated read/write thread pools, `FILE_FLAG_NO_BUFFERING`, `FILE_FLAG_WRITE_THROUGH`, sequential hint, smart same-drive detection.
+  - **TeraCopy verification**: per-file checksum after transfer (xxHash64/MD5/SHA-1/SHA-256/CRC-32), abort on mismatch.
+  - **TeraCopy error handling**: `ErrorHandlerCb` callback per file error (`FileError` with type/source/dest/message), per-error decision: Skip/SkipAll/Retry/RetryAll/Overwrite/OverwriteAll/RenameAuto/RenameAll/Abort.
+  - **TeraCopy post-actions**: open dest, eject drive, shutdown, sleep, logoff, play sound.
+  - **TeraCopy favorites**: save source+dest pairs for 1-click operations.
+  - **TeraCopy log**: per-job log file with per-file status, written to configurable directory.
+  - **UltraCopier job queue**: multi-job deque, pause/resume/cancel individual jobs, drag reorder (`move_job_up`/`move_job_down`), save/load queue to disk.
+  - **SuperCopier stats**: `TransferStats` with instantaneous/average/peak speed, ETA, elapsed, speed history ring-buffer (60 samples for graph).
+  - **FastCopy estimate mode**: calculate total size and file count without copying.
+  - **NTFS preservation**: ACL, ADS (Alternate Data Streams), compressed flag, encrypted flag.
+  - **Date-based filtering**: `only_newer_than`, `only_modified_before`.
+  - **Free-space check**: abort before starting if destination has insufficient space.
+
+#### 🗃️ `AdvancedArchiveManager` (C++)
+- Extends `ArchiveEngine` with **in-archive editing**:
+  - `browse()`: list archive contents as virtual filesystem tree.
+  - `extract_entries()`: extract specific files/folders only.
+  - `add_to_archive()`: add files to existing archive at any path.
+  - `delete_entries()`: remove entries (rebuilds archive).
+  - `rename_entry()`: rename path inside archive.
+  - `update_entry()`: replace entry with new file from disk.
+  - `convert()`: convert between archive formats without full extract.
+  - `test()`: verify all CRCs, return list of corrupt entries.
+  - `repair_zip()`: attempt to recover corrupt ZIP archives.
+  - `search_in_archives()`: find files by pattern without extracting.
+  - `benchmark()`: compare compression ratio/speed across all algorithms.
+  - `info()`: detailed archive metadata (format, ratio, solid, multivolume).
+  - `create_multivolume()`: split archives across volumes.
+  - `merge_volumes()`: reassemble split archives.
+
+#### 🎨 `EnhancedFileOpsPanel.qml`
+- **Copy/Move Tab** (TeraCopy+FastCopy+UltraCopier+SuperCopier combined):
+  - Job queue panel: add multiple jobs, drag-reorder, pause/resume/cancel individual jobs, global pause/cancel.
+  - Favorites panel: quick-add source+dest pairs.
+  - Per-file list with status tabs (All / OK / Skip / Error / Pending), right-click error recovery menu (Retry/Skip/SkipAll/Overwrite/Rename).
+  - Real-time stats display: current speed, peak speed, average speed, ETA, files done, data done, elapsed, failed.
+  - **Live speed graph** (SuperCopier-style): Canvas-drawn 60-second bandwidth chart with fill gradient.
+  - Per-job mini progress bars in queue.
+  - Options panel: error handling, verification algorithm, I/O tuning (buffer sizes, threads, no-cache, write-through, smart mode), NTFS options, file filters, post-action.
+- **Archive Tab** (7-Zip parity + in-archive browser/editor):
+  - Create archive: format, method, level, dictionary, word size, threads, solid mode, SFX, AES-256 encryption with filename encryption, volume splitting, comment, delete-after.
+  - Operations panel: Test Integrity, Repair ZIP, Convert Format, Benchmark, Merge Volumes.
+  - **In-archive browser**: breadcrumb navigation inside archive, hierarchical file tree with Name/Size/Packed/Ratio/Modified/CRC/Method columns.
+  - Right-click context menu: Extract to.../Extract here/Open/Rename/Delete/Replace with file/Copy path/Properties.
+  - Add files to existing archive, delete entries, rename entries, replace entries — all via UI.
+  - Extract controls: destination, keep structure, overwrite, Extract All/Extract Selection.
+  - Progress bar during all archive operations.
+
+### Version
+- Bumped to **2.7.0**.
+
+
 
 ### Added — Comprehensive File Management Suite
 
