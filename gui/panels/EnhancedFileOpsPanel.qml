@@ -74,7 +74,109 @@ Rectangle {
         }
 
         // ════════════════════════════════════════════════════════════════════
-        // TAB 0 — COPY / MOVE (TeraCopy + FastCopy + UltraCopier + SuperCopier)
+        // TAB 1 — SYNC (FreeFileSync Parity)
+        // ════════════════════════════════════════════════════════════════════
+        ColumnLayout {
+            visible: root.activeTab === 1
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10
+            
+            RowLayout { spacing: 10
+                GB { label: Label{text:"Left Side";color:"#aaa";font.bold:true}; Layout.fillWidth:true
+                    RowLayout { SF{Layout.fillWidth:true; placeholderText:"Source folder A"}; SB{text:"📁"; implicitWidth:40} } }
+                Label { text: "🔁"; font.pixelSize: 24; color: "#0078d4" }
+                GB { label: Label{text:"Right Side";color:"#aaa";font.bold:true}; Layout.fillWidth:true
+                    RowLayout { SF{Layout.fillWidth:true; placeholderText:"Source folder B"}; SB{text:"📁"; implicitWidth:40} } }
+            }
+
+            RowLayout { spacing: 10
+                GB { label: Label{text:"Comparison Settings";color:"#aaa";font.bold:true}; Layout.fillWidth:true
+                    RowLayout {
+                        Label{text:"Compare by:"; color:"#888"}
+                        SC{model:["File time and size","File content (Bit-by-bit)","File size only"]}
+                        CheckBox{contentItem:Label{text:"Ignore daylight saving";color:"#ccc";leftPadding:4}}
+                    }
+                }
+                GB { label: Label{text:"Sync Variant";color:"#aaa";font.bold:true}; Layout.fillWidth:true
+                    RowLayout {
+                        SC{model:["Two-way","Mirror (Left to Right)","Update","Custom..."]; Layout.fillWidth:true}
+                        SB{text:"⚙️ Options"; implicitWidth:100}
+                    }
+                }
+            }
+
+            Rectangle { Layout.fillWidth:true; Layout.fillHeight:true; color:"#0d0d0d"; radius:6; border.color:"#2e2e2e"
+                Label { anchors.centerIn:parent; text:"Comparison results will appear here after 'Compare' is clicked."; color:"#444" }
+            }
+
+            RowLayout {
+                SB { text: "🔍 Compare"; Layout.preferredWidth: 150; background: Rectangle{color:"#2d2d2d";border.color:"#0078d4";radius:5} }
+                SB { text: "🚀 Synchronize"; Layout.preferredWidth: 150 }
+                Item { Layout.fillWidth: true }
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // TAB 2 — DIFF (WinMerge Parity)
+        // ════════════════════════════════════════════════════════════════════
+        ColumnLayout {
+            visible: root.activeTab === 2
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10
+
+            RowLayout { spacing: 10
+                SF{Layout.fillWidth:true; placeholderText:"File 1..."}
+                Label{text:"vs"}; SF{Layout.fillWidth:true; placeholderText:"File 2..."}
+                SB{text:"⚖️ Start Diff"; implicitWidth:120}
+            }
+
+            RowLayout { Layout.fillHeight:true; spacing:4
+                // Left file
+                Rectangle { Layout.fillWidth:true; Layout.fillHeight:true; color:"#111"; radius:4; border.color:"#333"
+                    ScrollView { anchors.fill:parent; TextArea { text: "Original code...\nline 2\nline 3 (old)"; color:"#aaa"; font.family:"Consolas" } } }
+                // Diff bar
+                Rectangle { width:20; Layout.fillHeight:true; color:"#1a1a1a"
+                    Column { anchors.centerIn:parent; spacing:10
+                        Rectangle{width:16;height:2;color:"#ff4444"}
+                        Rectangle{width:16;height:2;color:"#44ff44"}
+                    }
+                }
+                // Right file
+                Rectangle { Layout.fillWidth:true; Layout.fillHeight:true; color:"#111"; radius:4; border.color:"#333"
+                    ScrollView { anchors.fill:parent; TextArea { text: "Original code...\nline 2\nline 3 (NEW!!)"; color:"#aaa"; font.family:"Consolas" } } }
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // TAB 3 — BACKUP (Areca/Duplicati Parity)
+        // ════════════════════════════════════════════════════════════════════
+        ColumnLayout {
+            visible: root.activeTab === 3
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10
+
+            RowLayout { spacing: 12
+                ColumnLayout { width: 250; Layout.fillHeight:true
+                    Label{text:"Backup Tasks"; color:"#aaa"; font.bold:true}
+                    ListView { Layout.fillWidth:true; Layout.fillHeight:true; model:["Daily Work","System Docs","Photo Mirror"]; clip:true
+                        delegate: Rectangle{width:parent.width; height:40; color:index===0?"#0078d4":"#1e1e1e"; radius:4; border.color:"#333"
+                            Label{anchors.centerIn:parent; text:modelData; color:"white"} } }
+                    SB{text:"＋ New Task"; Layout.fillWidth:true}
+                }
+                GB { label: Label{text:"Task Details";color:"#aaa";font.bold:true}; Layout.fillWidth:true; Layout.fillHeight:true
+                    ColumnLayout { anchors.fill:parent; spacing:10
+                        GridLayout { columns:2; columnSpacing:10; rowSpacing:6
+                            Label{text:"Type:"; color:"#888"} SC{model:["Incremental","Full","Differential"]}
+                            Label{text:"Compression:"; color:"#888"} SC{model:["None","Fast (LZ4)","Ultra (Zstd)"]}
+                            Label{text:"Encryption:"; color:"#888"} RowLayout{CheckBox{checked:true}; SF{Layout.fillWidth:true; echoMode:TextInput.Password}}
+                            Label{text:"Retention:"; color:"#888"} SC{model:["Keep all","Last 30 days","Last 5 versions"]}
+                        }
+                        Item{Layout.fillHeight:true}
+                        RowLayout{ SB{text:"💾 Save"}; SB{text:"🚀 Run Now"}; SB{text:"📅 Schedule"} }
+                    }
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // TAB 0 — COPY / MOVE (existing implementation)
         // ════════════════════════════════════════════════════════════════════
         RowLayout {
             visible: root.activeTab === 0
@@ -460,9 +562,28 @@ Rectangle {
                         SpinBox{from:1;to:8;value:1;Layout.fillWidth:true;background:Rectangle{color:"#252525";radius:4;border.color:"#484848"};contentItem:TextInput{text:parent.value;color:"white";horizontalAlignment:Qt.AlignHCenter}}
 
                         CheckBox{Layout.columnSpan:2; contentItem:Label{text:"No-cache mode (FILE_FLAG_NO_BUFFERING)";color:"#ccc";leftPadding:4;font.pixelSize:10}}
+                        CheckBox{Layout.columnSpan:2; contentItem:Label{text:"Low priority I/O (IDLE_PRIORITY_CLASS)";color:"#ccc";leftPadding:4;font.pixelSize:10}}
                         CheckBox{Layout.columnSpan:2; contentItem:Label{text:"Write-through (bypass OS cache)";color:"#ccc";leftPadding:4;font.pixelSize:10}}
                         CheckBox{Layout.columnSpan:2; contentItem:Label{text:"Smart mode (auto-detect same drive)";color:"#ccc";leftPadding:4;font.pixelSize:10}checked:true}
                         CheckBox{Layout.columnSpan:2; contentItem:Label{text:"Check free space before start";color:"#ccc";leftPadding:4;font.pixelSize:10}checked:true}
+                        CheckBox{Layout.columnSpan:2; contentItem:Label{text:"Verify after copy (Checksum compare)";color:"#ccc";leftPadding:4;font.pixelSize:10}checked:true}
+                    }
+                }
+
+                // Disk Space Check (FastCopy-style)
+                GB { label: Label{text:"Disk Info";color:"#aaa";font.bold:true;font.pixelSize:12}; Layout.fillWidth:true
+                    ColumnLayout { anchors.fill:parent; spacing:4
+                        RowLayout {
+                            Label{text:"Source:"; color:"#888"; font.pixelSize:10; width:50}
+                            ProgressBar{value:0.8; Layout.fillWidth:true; background:Rectangle{color:"#111";radius:2;implicitHeight:4}}
+                            Label{text:"80%"; color:"#888"; font.pixelSize:10}
+                        }
+                        RowLayout {
+                            Label{text:"Target:"; color:"#888"; font.pixelSize:10; width:50}
+                            ProgressBar{value:0.3; Layout.fillWidth:true; background:Rectangle{color:"#111";radius:2;implicitHeight:4}}
+                            Label{text:"30%"; color:"#888"; font.pixelSize:10}
+                        }
+                        Label{text:"Required: 7.6 GB  |  Available: 450.2 GB"; color:"#4caf50"; font.pixelSize:10}
                     }
                 }
 

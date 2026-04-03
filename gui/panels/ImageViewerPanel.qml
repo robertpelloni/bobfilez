@@ -51,6 +51,9 @@ Rectangle {
     property real adjSharpness: 0.0
     property real adjTemperature: 0.0
 
+    // View modes: 0=Viewer, 1=Browser, 2=Batch
+    property int viewMode: 0
+
     signal openFile()
     signal openFolder()
     signal prevImage()
@@ -183,6 +186,17 @@ Rectangle {
         // ── Main area ────────────────────────────────────────────────────────
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
+            
+            // Left Navigation Sidebar (XnViewMP style)
+            Rectangle {
+                width: 40; Layout.fillHeight: true; color: "#1c1c1c"; border.color: "#333"
+                Column {
+                    anchors.top: parent.top; anchors.topMargin: 10; width: parent.width; spacing: 20
+                    Label { text: "🖼️"; font.pixelSize: 20; anchors.horizontalCenter: parent.horizontalCenter; MouseArea{anchors.fill:parent; onClicked: imgViewer.viewMode = 0} }
+                    Label { text: "📁"; font.pixelSize: 20; anchors.horizontalCenter: parent.horizontalCenter; MouseArea{anchors.fill:parent; onClicked: imgViewer.viewMode = 1} }
+                    Label { text: "🔄"; font.pixelSize: 20; anchors.horizontalCenter: parent.horizontalCenter; MouseArea{anchors.fill:parent; onClicked: imgViewer.viewMode = 2} }
+                }
+            }
 
             // Image canvas
             Rectangle {
@@ -191,6 +205,7 @@ Rectangle {
 
                 Flickable {
                     id: flickable
+                    visible: imgViewer.viewMode === 0
                     anchors.fill: parent; clip: true
                     contentWidth: imgDisplay.width * imgDisplay.scale
                     contentHeight: imgDisplay.height * imgDisplay.scale
@@ -219,6 +234,48 @@ Rectangle {
                             }
                         }
                     }
+                }
+
+                // Grid Browser (XnViewMP style)
+                GridView {
+                    id: gridBrowser
+                    visible: imgViewer.viewMode === 1
+                    anchors.fill: parent; anchors.margins: 10
+                    cellWidth: 160; cellHeight: 180; clip: true
+                    model: imgViewer.folderFiles
+                    delegate: Rectangle {
+                        width: 150; height: 170; color: index === imgViewer.currentIndex ? "#0078d433" : "#1a1a1a"; radius: 4
+                        border.color: index === imgViewer.currentIndex ? "#0078d4" : "#333"
+                        ColumnLayout {
+                            anchors.fill: parent; anchors.margins: 4
+                            Image { Layout.fillWidth: true; Layout.fillHeight: true; source: "image:/thumb/" + modelData; fillMode: Image.PreserveAspectFit }
+                            Label { text: modelData.split("/").pop(); color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true; elide: Text.ElideRight }
+                        }
+                        MouseArea { anchors.fill: parent; onClicked: { imgViewer.currentIndex = index; imgViewer.viewMode = 0 } }
+                    }
+                }
+
+                // Batch Mode (XnConvert style)
+                ColumnLayout {
+                    visible: imgViewer.viewMode === 2
+                    anchors.fill: parent; anchors.margins: 20; spacing: 10
+                    Label { text: "Batch Process Images"; color: "white"; font.pixelSize: 18; font.bold: true }
+                    RowLayout { spacing: 10
+                        GB { label: Label{text:"Actions"}; Layout.fillWidth: true
+                            Flow { anchors.fill: parent; spacing: 5
+                                Button { text: "Resize"; flat: true }
+                                Button { text: "Rotate"; flat: true }
+                                Button { text: "Crop"; flat: true }
+                                Button { text: "Watermark"; flat: true }
+                                Button { text: "Compress"; flat: true }
+                            }
+                        }
+                        GB { label: Label{text:"Output Format"}; Layout.fillWidth: true
+                            ComboBox { model: ["JPEG","PNG","WebP","AVIF","Original"]; Layout.fillWidth: true }
+                        }
+                    }
+                    SB { text: "🚀 Convert All " + imgViewer.folderFiles.length + " files"; Layout.fillWidth: true }
+                    Item { Layout.fillHeight: true }
                 }
 
                 // Pixel coordinate display on hover

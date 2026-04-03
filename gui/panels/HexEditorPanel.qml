@@ -142,7 +142,20 @@ Rectangle {
 
                 Button{text:"◄";flat:true;contentItem:Label{text:parent.text;color:"#888"};onClicked:hexPanel.searchPrev()}
                 Button{text:"►";flat:true;contentItem:Label{text:parent.text;color:"#888"};onClicked:hexPanel.searchNext()}
-                Button{text:"All";flat:true;contentItem:Label{text:parent.text;color:"#888";font.pixelSize:11};onClicked:hexPanel.searchAll()}
+                Button{text:" All ";flat:true;contentItem:Label{text:parent.text;color:"#888";font.pixelSize:11};onClicked:hexPanel.searchAll()}
+
+                Rectangle{width:1;height:20;color:"#444"}
+
+                Label { text: "Replace:"; color: "#888"; font.pixelSize: 11 }
+                Rectangle {
+                    width: 120; height: 26; color:"#0d0d0d"; radius:4; border.color:replaceInput.activeFocus?"#cc6600":"#444"
+                    TextInput {
+                        id: replaceInput; anchors{fill:parent;leftMargin:8;rightMargin:8}
+                        color:"white"; font.family:"Consolas,monospace"; font.pixelSize:12
+                        placeholderText:"Hex or ASCII"
+                    }
+                }
+                Button{text:"Replace";flat:true;contentItem:Label{text:parent.text;color:"#cc6600";font.pixelSize:11};onClicked: { /* replace logic */ }}
 
                 Rectangle{width:1;height:20;color:"#444"}
 
