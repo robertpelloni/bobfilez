@@ -41,5 +41,6 @@
         <file>../../panels/OmniMountPanel.qml</file>
         <file>../../panels/OmniSecPanel.qml</file>
         <file>NexusPulse.qml</file>
+        <file>OmniPeekOverlay.qml</file>
     </qresource>
 </RCC>

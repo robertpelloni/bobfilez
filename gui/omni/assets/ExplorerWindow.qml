@@ -196,6 +196,23 @@ Rectangle {
                         width: fileListView.width; height: 32
                         background: Rectangle { color: isSelected ? "#3d3d3d" : (hovered ? "#2d2d2d" : "transparent"); radius: 4 }
                         
+                        MouseArea {
+                            anchors.fill: parent
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onClicked: function(mouse) {
+                                if (mouse.button === Qt.LeftButton) {
+                                    fileModel.toggleSelection(index)
+                                }
+                            }
+                            onDoubleClicked: function(mouse) {
+                                if (mouse.button === Qt.LeftButton && isDirectory) {
+                                    fileModel.openFolder(fileModel.currentPath + "/" + fileName)
+                                }
+                            }
+                        }
+
+                        Keys.onSpacePressed: shell.togglePeek(fileModel.currentPath + "/" + fileName)
+
                         contentItem: RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 15; spacing: 10
                             Label { text: isDirectory ? "📁" : "📄"; font.pixelSize: 16 }

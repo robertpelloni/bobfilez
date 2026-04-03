@@ -30,12 +30,14 @@ ApplicationWindow {
         id: shell
         property bool startMenuOpen: false
         property bool dashboardOpen: false
+        property bool peekOpen: false
         property string activePanel: "explorer" // explorer, rename, convert, search, hex, image, md, watcher
 
         function toggleStartMenu() { startMenuOpen = !startMenuOpen; if(startMenuOpen) dashboardOpen = false }
         function toggleDashboard() { dashboardOpen = !dashboardOpen; if(dashboardOpen) startMenuOpen = false }
-        function openPanel(name) { activePanel = name; startMenuOpen = false }
+        function openPanel(name) { activePanel = name; startMenuOpen = false; peekOpen = false }
         function openFolder(path) { fileModel.openFolder(path); openPanel("explorer") }
+        function togglePeek(filePath) { peekOpen = !peekOpen; if (peekOpen) { peekOverlay.filePath = filePath; } }
     }
 
     // DESKTOP ICONS
@@ -309,13 +311,21 @@ ApplicationWindow {
         z: 101
     }
 
-    // DASHBOARD
-    Dashboard {
-        id: dashboard
-        visible: shell.dashboardOpen
-        anchors.bottom: taskbar.top
-        anchors.right: parent.right
-        anchors.margins: 12
-        z: 102
+        // Dashboard (System Health)
+        Dashboard {
+            id: dashboard
+            visible: shell.dashboardOpen
+            anchors.bottom: taskbar.top
+            anchors.right: parent.right
+            anchors.margins: 12
+            z: 102
+        }
+
+        // OmniPeek Universal Quick Look (Press Spacebar)
+        OmniPeekOverlay {
+            id: peekOverlay
+            visible: shell.peekOpen
+            z: 200
+        }
     }
 }
