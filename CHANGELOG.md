@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.4.0] - 2026-04-03
+
+### Added — The "Visual Automation" Release
+
+#### 🌊 OmniFlow Visual Automation Engine
+- **`omniflow_engine.cpp`**: Implemented a robust C++ execution engine for custom file workflows.
+- **`OmniFlowPanel.qml`**: A stunning Node-based Visual Editor (similar to Unreal Blueprints or Apple Shortcuts).
+- **Node Types**: Users can drag, drop, and connect `Triggers` (Folder Watcher, Timers), `Conditions` (Regex, AI Semantic Tags), and `Actions` (Convert, Encrypt, OCR, Move).
+
+#### 🕸️ OmniGraph Knowledge Database
+- **Semantic Mapping**: Shifted from pure folder hierarchies to a Personal Knowledge Graph for files (`omni_graph.cpp`). Files are linked via semantic relationships (`DEPICTS`, `LOCATED_IN`, `MENTIONS`).
+- **`OmniGraphPanel.qml`**: Interactive force-directed graph visualization of your file relationships.
+
+### Version
+- Bumped to **4.4.0**.
+
 ## [3.0.0] - 2026-04-03
 
 ### Added — The "Next-Gen Data Custodian" Release

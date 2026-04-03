@@ -171,6 +171,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 20
         }
 
+        // OmniFlow (Visual Automations)
+        OmniFlowPanel {
+            visible: shell.activePanel === "omniflow"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Data Swarm (Distributed Sync)
         SwarmPanel {
             visible: shell.activePanel === "swarm"

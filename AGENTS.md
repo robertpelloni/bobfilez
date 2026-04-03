@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.3.0)
+## Current Status (v4.4.0)
 
+- ✅ **OmniFlow Automation**: Node-based visual programming editor (`OmniFlowPanel.qml`) allowing users to drag and drop Triggers, Conditions, and Actions (OCR, Convert, Encrypt) into custom automated workflows.
 - ✅ **OmniGraph**: Semantic Knowledge Graph database tracking relationships between files, tags, people, and locations. 
 - ✅ **Graph Visualization**: Interactive Force-Directed Graph UI (`OmniGraphPanel.qml`) allowing natural navigation of data without rigid folder structures.
 - ✅ **Digital Notary**: Cryptographic file signing (Ed25519/SHA-512) to ensure authenticity and tamper-proof distribution.
@@ -113,7 +114,6 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Live Folders (VFS)**: Dynamic virtual directories based on Everything-style queries.
 - ✅ **Autonomous Data Pruning**: AI agent identifies "Digital Rot" (obsolete installers, media cache, forgotten data).
 - ✅ **Forensic Audit Ledger**: Immutable, append-only operation log with tamper-detection hashes (Migration 5).
-- ✅ **OmniShell Transformation**: High-fidelity Windows 11 Shell replacement with Taskbar, Start Menu, Desktop Icons, and Multi-window Manager.
 - ✅ **Visual Discovery**: Tinder-style near-duplicate image cleaner (confirm/reject swipes).
 - ✅ **Zero-Copy Sorter**: Integrated ReFS/Btrfs reflink sorting for instant moves/copies.
 - ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
