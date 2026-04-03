@@ -92,14 +92,15 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.9.0)
+## Current Status (v4.0.0)
 
+- ✅ **OmniShell v4**: Full Windows 11 Shell replacement with window tiling, snapping, desktop icons, and multi-monitor coordination.
+- ✅ **Data Swarm (P2P)**: Distributed Nexus for node-to-node synchronization of indexes and audit logs.
 - ✅ **Media Asset Manager (MAM)**: Universal control center for video/audio/image assets with batch AI tagging and transcoding.
-- ✅ **AI Semantic Tagging**: Autonomous content analysis (MobileNet/BERT) to assign descriptive tags (e.g., "Sunset", "Invoice").
-- ✅ **Distributed Nexus**: Node-to-node synchronization for audit logs and search indexes across multiple bobfilez instances.
-- ✅ **Live Data Topology**: TreemapPanel now wired to real C++ `TreemapEngine` for live disk usage visualization.
+- ✅ **AI Semantic Tagging**: Autonomous content analysis (MobileNet/BERT) to assign descriptive tags.
+- ✅ **Forensic Audit UI**: High-integrity ledger verification panel for corporate and legal file auditing.
+- ✅ **Live Data Topology**: TreemapPanel wired to real C++ `TreemapEngine` for live disk usage visualization.
 - ✅ **Web Dashboard 2.0**: High-fidelity HTML/CSS shell dashboard with live file explorer and system telemetry.
-- ✅ **Treemap Engine**: C++ implementation of Squarified Treemap layout for visual disk analysis.
 - ✅ **Native Cloud Integration**: AWS S3, Google Drive, and Azure mounted as virtual drives in OmniShell.
 - ✅ **OmniCommand Dashboard**: High-fidelity system telemetry, Nexus task monitoring, and storage health metrics.
 - ✅ **Gamified Cleanup**: XP/Level system and achievements for disk organization.
@@ -112,25 +113,11 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
 - ✅ **Encrypted Vault**: Password-protected AES-256-GCM storage for sensitive files flagged by PII Sentinel.
 - ✅ **Nexus Master Clock**: Unified scheduling and resource arbitration across all engines.
-- ✅ **Java Parity**: Brought Java port up to v3.0 architectural parity with new command features and Record-based interfaces.
+- ✅ **Java Parity**: Brought Java port up to v4.0 architectural parity.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
-- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
-- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
-- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
-- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
-- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
-- ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — `FileOpsPanel.qml` + `EnhancedFileOpsPanel.qml`.
-- ✅ **Hex Editor**: mmap virtual buffer, Data Inspector (30+ types), `HexEditorPanel.qml`.
-- ✅ **Image Viewer**: XnViewMP-style filmstrip, histogram, adjustments, EXIF, slideshow, `ImageViewerPanel.qml`.
-- ✅ **Markdown Viewer**: md4c+KaTeX+Mermaid+highlight.js, split editor/preview, `MarkdownViewerPanel.qml`.
-- ✅ **Advanced Media Analysis**: Video dHash + Chromaprint audio fingerprinting.
-- ✅ Cloud storage: AWS S3, Google Drive, Azure Blob Storage
-- ✅ 24+ CLI commands
-- ✅ 63+ unit/integration tests
-- ✅ 160+ git submodules synced
 
 **Next Steps**: Full BobUI integration, refactoring `fo_gui`, video/audio analysis.
 

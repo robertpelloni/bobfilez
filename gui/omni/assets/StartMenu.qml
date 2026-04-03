@@ -50,6 +50,7 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Data Swarm", icon: "🛸", id: "swarm"},
                         {name: "Asset Manager", icon: "📦", id: "assets"},
                         {name: "Photo Library", icon: "🖼️", id: "photos"},
                         {name: "Photo Develop", icon: "🎨", id: "develop"},
@@ -59,9 +60,7 @@ Rectangle {
                         {name: "Achievements", icon: "🏆", id: "achievements"},
                         {name: "Cloud Drives", icon: "☁️", id: "cloud"},
                         {name: "Topology Map", icon: "🌲", id: "topology"},
-                        {name: "Digital Rot", icon: "🧹", id: "pruner"},
-                        {name: "Auto-Hierarchy", icon: "📐", id: "hierarchy"},
-                        {name: "Batch Convert", icon: "🔄", id: "convert"}
+                        {name: "Digital Rot", icon: "🧹", id: "pruner"}
                     ]
                     
                     ColumnLayout {

@@ -165,6 +165,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 20
         }
 
+        // Data Swarm (Distributed Sync)
+        SwarmPanel {
+            visible: shell.activePanel === "swarm"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Photo Library (Apple/Google Photos)
         PhotoLibraryPanel {
             visible: shell.activePanel === "photos"
