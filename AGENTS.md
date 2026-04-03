@@ -92,8 +92,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.5.0)
+## Current Status (v3.6.0)
 
+- ✅ **Remote Storage Engine**: Unified support for SFTP (SSH), FTP, and SMB (Samba) as virtual drives.
+- ✅ **Shadow Sorter Service**: Real-time background auto-organization service (Watcher -> RuleEngine -> CopyEngine).
+- ✅ **Network Management Panel**: Comprehensive UI for managing secure remote connections.
 - ✅ **BobUI (OmniUI) Integration**: All panels now utilize the revolutionary OmniUI toolkit (Dials, Sliders, LineCharts, Particle Systems).
 - ✅ **Photo Develop (Lightroom Parity)**: Pro-grade non-destructive editing module with Temperature, Exposure, Highlights, and Tone Curve.
 - ✅ **Photo Library (Apple/Google Parity)**: AI-driven library with People recognition, Memories, and Map (Places) views.

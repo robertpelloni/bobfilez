@@ -148,8 +148,10 @@ Rectangle {
                     Repeater {
                         model: [
                             { icon: "⭐", text: "Quick access" },
+                            { icon: "☁️", text: "Cloud Drives" },
                             { icon: "💻", text: "This PC" },
-                            { icon: "🌐", text: "Network" }
+                            { icon: "🌐", text: "Network (SFTP/SMB)" },
+                            { icon: "🔗", text: "Live Folders" }
                         ]
                         ItemDelegate {
                             Layout.fillWidth: true; height: 32
@@ -161,6 +163,9 @@ Rectangle {
                             background: Rectangle { color: hovered ? "#3d3d3d" : "transparent"; radius: 4 }
                             onClicked: {
                                 if (modelData.text === "This PC") fileModel.openFolder("C:/")
+                                else if (modelData.text === "Cloud Drives") shell.openPanel("cloud")
+                                else if (modelData.text === "Network (SFTP/SMB)") shell.openPanel("network")
+                                else if (modelData.text === "Live Folders") shell.openPanel("hierarchy")
                             }
                         }
                     }

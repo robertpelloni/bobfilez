@@ -141,6 +141,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Network Manager (SSH/SMB)
+        NetworkPanel {
+            visible: shell.activePanel === "network"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Secure Vault
         VaultPanel {
             visible: shell.activePanel === "vault"
