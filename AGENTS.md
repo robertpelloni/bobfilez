@@ -92,27 +92,27 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.2.0)
+## Current Status (v3.3.0)
 
+- ✅ **Web Dashboard 2.0**: High-fidelity HTML/CSS shell dashboard with live file explorer and system telemetry.
+- ✅ **Treemap Engine**: C++ implementation of Squarified Treemap layout for visual disk analysis.
 - ✅ **Native Cloud Integration**: AWS S3, Google Drive, and Azure mounted as virtual drives in OmniShell.
 - ✅ **OmniCommand Dashboard**: High-fidelity system telemetry, Nexus task monitoring, and storage health metrics.
 - ✅ **Gamified Cleanup**: XP/Level system and achievements for disk organization.
 - ✅ **Live Folders (VFS)**: Dynamic virtual directories based on Everything-style queries.
-- ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
-- ✅ **Encrypted Vault**: Password-protected AES-256-GCM storage for sensitive files flagged by PII Sentinel.
-- ✅ **Notification Center**: Windows 11 style sidebar for system alerts, security warnings, and background task completion.
-- ✅ **WASM Bridge**: Scaffolding for Emscripten bindings to allow core engine execution in web browsers.
 - ✅ **Autonomous Data Pruning**: AI agent identifies "Digital Rot" (obsolete installers, media cache, forgotten data).
 - ✅ **Forensic Audit Ledger**: Immutable, append-only operation log with tamper-detection hashes (Migration 5).
 - ✅ **OmniShell Transformation**: High-fidelity Windows 11 Shell replacement with Taskbar, Start Menu, Desktop Icons, and Multi-window Manager.
 - ✅ **Visual Discovery**: Tinder-style near-duplicate image cleaner (confirm/reject swipes).
 - ✅ **Zero-Copy Sorter**: Integrated ReFS/Btrfs reflink sorting for instant moves/copies.
-- ✅ **Data Topology**: Tree-map visualization of disk usage.
-- ✅ **PII Sentinel**: Personally Identifiable Information detection (SSN, API Keys).
+- ✅ **Shadow Deduplication**: Background worker (Nexus-managed) that silently identifies redundant data and notifies the shell.
+- ✅ **Encrypted Vault**: Password-protected AES-256-GCM storage for sensitive files flagged by PII Sentinel.
 - ✅ **Nexus Master Clock**: Unified scheduling and resource arbitration across all engines.
 - ✅ **Java Parity**: Brought Java port up to v3.0 architectural parity with new command features and Record-based interfaces.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
 - ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
+- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
+- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ 24+ CLI commands

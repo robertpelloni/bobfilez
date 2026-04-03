@@ -1,90 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BobUI — The Ultimate File Manager</title>
-  <meta name="description" content="Point it at a million files. It handles the rest.">
-  <link rel="stylesheet" href="/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BobUI Web — OmniShell Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+<body class="dark-theme">
+    <div id="shell">
+        <!-- Desktop Area -->
+        <main id="desktop">
+            <div id="window-area">
+                <!-- Dynamic windows will be injected here -->
+                <div class="window" id="explorer">
+                    <header class="window-header">
+                        <span class="icon">📁</span>
+                        <span class="title">Filez Web Explorer</span>
+                        <div class="window-controls">
+                            <span>－</span><span>▢</span><span>✕</span>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="sidebar">
+                            <nav>
+                                <ul>
+                                    <li>⭐ Quick access</li>
+                                    <li>☁️ S3 Bucket</li>
+                                    <li>☁️ Google Drive</li>
+                                    <li>💻 This PC</li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="file-list">
+                            <table>
+                               <thead>
+                                   <tr><th>Name</th><th>Size</th><th>Date</th></tr>
+                               </thead>
+                               <tbody id="file-body">
+                                   <!-- Files injected here -->
+                               </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<body>
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <div class="logo-icon">B</div>
-        <div>
-          <h1>BobUI</h1>
-          <span class="version">v2.4.1</span>
-        </div>
-      </div>
+            <!-- Taskbar -->
+            <footer id="taskbar">
+                <div class="start-button">⊞</div>
+                <div class="taskbar-icons">
+                    <div class="active">📁</div>
+                    <div>🔍</div>
+                    <div>🔄</div>
+                    <div>🔢</div>
+                    <div>🛡️</div>
+                </div>
+                <div class="system-tray">
+                    <span id="tray-clock">11:11 PM</span>
+                </div>
+            </footer>
+        </main>
 
-      <div class="nav-section">Overview</div>
-      <div class="nav-item active" data-view="dashboard">
-        <span class="icon">🏠</span> Dashboard
-      </div>
-
-      <div class="nav-section">Clean Up</div>
-      <div class="nav-item" data-view="smartclean">
-        <span class="icon">🧹</span> Smart Clean
-      </div>
-      <div class="nav-item" data-view="duplicates">
-        <span class="icon">🔍</span> Duplicate Finder
-      </div>
-      <div class="nav-item" data-view="scanner">
-        <span class="icon">📂</span> File Scanner
-      </div>
-
-      <div class="nav-section">Analyze</div>
-      <div class="nav-item" data-view="stats">
-        <span class="icon">📊</span> Statistics
-      </div>
-
-      <div class="nav-section">Settings</div>
-      <div class="nav-item" data-view="ignore">
-        <span class="icon">🚫</span> Ignore Rules
-      </div>
-      <div class="nav-item" data-view="history">
-        <span class="icon">📜</span> History
-      </div>
-    </aside>
-
-    <!-- Top Bar -->
-    <header class="topbar">
-      <span class="topbar-title" id="viewTitle">Dashboard</span>
-      <div class="topbar-stats" id="topbarStats">
-        <span>Powered by <strong style="color:var(--accent-light)">bobfilez</strong> engine</span>
-      </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main" id="mainContent"></main>
-  </div>
-
-  <!-- Delete Confirmation Modal -->
-  <div class="modal-overlay" id="deleteModal">
-    <div class="modal">
-      <h3>⚠️ Confirm Deletion</h3>
-      <p id="deleteModalText">This cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-danger" id="confirmDeleteBtn">Delete Files</button>
-      </div>
+        <!-- Notification Center -->
+        <aside id="notification-center">
+            <h3>Notifications</h3>
+            <div class="notification-list" id="notif-list">
+                <!-- Notifications here -->
+            </div>
+        </aside>
     </div>
-  </div>
-
-  <!-- Drop Overlay -->
-  <div class="drop-overlay" id="dropOverlay">
-    <div class="drop-content">
-      <div class="drop-icon">📂</div>
-      <h2>Drop folder to scan</h2>
-      <p>Release to start Smart Clean</p>
-    </div>
-  </div>
-
-  <script src="/app.js"></script>
+    <script src="app.js"></script>
 </body>
-
 </html>
