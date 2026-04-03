@@ -16,5 +16,6 @@
         <file>../../panels/ImageViewerPanel.qml</file>
         <file>../../panels/MarkdownViewerPanel.qml</file>
         <file>../../panels/SearchPanel.qml</file>
+        <file>../../panels/VisualDedupPanel.qml</file>
     </qresource>
 </RCC>

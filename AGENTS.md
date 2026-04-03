@@ -94,13 +94,14 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v2.8.0)
 
-- ✅ **Vector Semantic Search**: OpenAI CLIP (ONNX) local natural language image search.
-- ✅ **Real-time File Watcher**: OS-native directory monitoring (ReadDirectoryChangesW / inotify) with debounce.
-- ✅ **CI/CD Pipeline**: GitHub Actions for build, test, MSI/AppImage packaging, and releases.
+- ✅ **Visual Discovery**: Tinder-style near-duplicate image cleaner (confirm/reject swipes).
+- ✅ **OmniShell Transformation**: High-fidelity Windows 11 Shell replacement with Taskbar, Start Menu, Desktop Icons, and Multi-window Manager.
+- ✅ **Nexus Master Clock**: Unified scheduling and resource arbitration across all engines.
+- ✅ **Java Parity (Interfaces)**: Brought Java port up to v2.9.0 architectural parity with new interfaces.
 - ✅ **Enhanced File Ops (TeraCopy+FastCopy+UltraCopier+SuperCopier parity)**: `EnhancedCopyEngine` with I/O tuning, job queue, per-file error handler, live speed graph, NTFS ADS/ACL preservation, `AdvancedArchiveManager` with in-archive browser/editor.
-- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre backends, `BatchConvertPanel.qml`.
-- ✅ **Batch Rename**: 13-rule chain engine, live preview panel.
-- ✅ **Search Engine**: Everything+grepWin+AgentRansack combined, `SearchPanel.qml`.
+- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc/Ghostscript/Calibre/Poppler/wkhtmltopdf/libvips backends.
+- ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
+- ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 - ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — `FileOpsPanel.qml` + `EnhancedFileOpsPanel.qml`.
 - ✅ **Hex Editor**: mmap virtual buffer, Data Inspector (30+ types), `HexEditorPanel.qml`.
 - ✅ **Image Viewer**: XnViewMP-style filmstrip, histogram, adjustments, EXIF, slideshow, `ImageViewerPanel.qml`.

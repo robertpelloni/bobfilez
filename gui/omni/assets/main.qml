@@ -104,6 +104,12 @@ ApplicationWindow {
             visible: shell.activePanel === "fileops"
             anchors.fill: parent; anchors.margins: 40
         }
+
+        // Visual Dedup (The Swipe Tool)
+        VisualDedupPanel {
+            visible: shell.activePanel === "visual_dedup"
+            anchors.fill: parent; anchors.margins: 40
+        }
     }
 
     // TASKBAR

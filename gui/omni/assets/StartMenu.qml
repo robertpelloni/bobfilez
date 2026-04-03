@@ -49,18 +49,18 @@ Rectangle {
                 
                 Repeater {
                     model: [
-                        {name: "Filez Explorer", icon: "📁"},
-                        {name: "Batch Convert", icon: "🔄"},
-                        {name: "Hex Editor", icon: "🔢"},
-                        {name: "Search", icon: "🔍"},
-                        {name: "Settings", icon: "⚙️"},
-                        {name: "Browser", icon: "🌐"},
-                        {name: "Terminal", icon: "⌨️"},
-                        {name: "Sync", icon: "🔁"},
-                        {name: "Diff", icon: "⚖️"},
-                        {name: "Backup", icon: "💾"},
-                        {name: "Calculator", icon: "🧮"},
-                        {name: "Notepad", icon: "📝"}
+                        {name: "Filez Explorer", icon: "📁", id: "explorer"},
+                        {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
+                        {name: "Batch Convert", icon: "🔄", id: "convert"},
+                        {name: "Hex Editor", icon: "🔢", id: "hex"},
+                        {name: "Search", icon: "🔍", id: "search"},
+                        {name: "File Watcher", icon: "👁️", id: "watcher"},
+                        {name: "Settings", icon: "⚙️", id: "settings"},
+                        {name: "Browser", icon: "🌐", id: "browser"},
+                        {name: "Terminal", icon: "⌨️", id: "terminal"},
+                        {name: "Sync", icon: "🔁", id: "fileops"},
+                        {name: "Diff", icon: "⚖️", id: "fileops"},
+                        {name: "Backup", icon: "💾", id: "fileops"}
                     ]
                     
                     ColumnLayout {
@@ -70,6 +70,7 @@ Rectangle {
                             color: hoverApp.hovered ? "#22ffffff" : "transparent"
                             Label { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 24 }
                             HoverHandler { id: hoverApp }
+                            MouseArea { anchors.fill: parent; onClicked: shell.openPanel(modelData.id) }
                         }
                         Label { text: modelData.name; color: "white"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter; elide: Text.ElideRight; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter }
                     }
