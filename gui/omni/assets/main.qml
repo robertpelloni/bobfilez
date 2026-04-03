@@ -257,6 +257,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniVerse (3D Spatial Explorer)
+        OmniVersePanel {
+            visible: shell.activePanel === "omniverse"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

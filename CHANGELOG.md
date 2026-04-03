@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.4.0] - 2026-04-03
+
+### Added — The "OmniVerse 3D Spatial Computing" Release
+
+#### 🌌 OmniVerse 3D File Explorer
+- **`omniverse_interface.hpp` & `omniverse_engine.cpp`**: Built a hardware-accelerated 3D Force-Directed Graph using the `raylib` submodule.
+- Converts the flat, 2D folder hierarchy into an interactive, spatial 3D universe.
+- **Folders as Solar Systems**: Directories form gravity wells.
+- **Files as Planets**: Individual files orbit their parent directories, with their physical size mapped to the file size, and color-coded by file type (Code, Video, Image).
+- **`OmniVersePanel.qml`**: A sleek launchpad UI to configure the 3D physics (Gravity, Repulsion, Friction) and launch the OpenGL context.
+- **VR Readiness**: Laid the groundwork for OpenXR compatibility, allowing users to literally walk through their file system.
+
+### Version
+- Bumped to **5.4.0**.
+
+## [5.3.0] - 2026-04-03
+
+### Added — The "OmniGit Version Control" Release
+
+#### 🐙 OmniGit: Professional Git Client Integration
+- **`omnigit_interface.hpp` & `omnigit_engine.cpp`**: Deep integration with the `libgit2` submodule, embedding a full Git client directly into the file manager shell (bypassing the need for GitKraken or Sourcetree).
+- **Zero-CLI Execution**: Push, pull, commit, branch, and stash operations happen natively.
+- **`OmniGitPanel.qml`**: A highly polished Version Control UI featuring:
+  - Visual, color-coded commit history graphs.
+  - Interactive staging area (drag-and-drop to stage).
+  - Inline code diff viewer showing explicit patch additions and removals (e.g., `@@ -0,0 +1,24 @@`).
+
+### Version
+- Bumped to **5.3.0**.
+
 ## [5.2.0] - 2026-04-03
 
 ### Added — The "OmniPeek Universal Quick Look" Release

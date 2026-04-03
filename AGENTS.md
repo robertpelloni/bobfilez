@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v5.3.0)
+## Current Status (v5.4.0)
 
+- ✅ **OmniVerse 3D Explorer**: Spatial Computing UI. Renders the file system as an interactive 3D universe using `raylib`, complete with physics and VR support.
 - ✅ **OmniGit Version Control**: Integrated `libgit2` for professional Git repository management, visual commit graphs, inline diffing, and staging.
 - ✅ **OmniPeek Quick Look**: Press `Spacebar` to instantly preview 3D models (`raylib`), videos (`mpv`), binaries (`radare2`), and databases (`sqlite3`) via a floating holographic overlay.
 - ✅ **OmniClerk (AI Secretary)**: Autonomous document ingestion pipeline using Tesseract OCR, BERT NER, and auto-filing.
