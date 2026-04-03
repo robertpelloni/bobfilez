@@ -1,5 +1,69 @@
 # Changelog
 
+## [6.0.0] - 2026-04-03
+
+### Added — The "Grand Architecture & Unification" Release
+
+#### 🏛️ Documentation Consolidation
+- Added **`ARCHITECTURE.md`** as a high-level system map for the modern Bobfilez stack.
+- Documented the OmniShell surface area, subsystem groupings, architectural layers, and product-parity targets.
+- Recorded current project metrics gathered from the repository:
+  - **82 C++ headers**
+  - **85 C++ source files**
+  - **39 QML panels**
+  - **10 OmniShell QML assets**
+  - **15,235 core C++ LOC**
+  - **9,833 QML LOC**
+  - **307 git commits**
+- Reconciled version metadata to **6.0.0** in `VERSION.md` and `core/include/fo/core/version.hpp`.
+- Updated operational docs (`AGENTS.md`, `HANDOFF.md`, handoff archive) to reflect the current architecture-first stabilization phase.
+
+#### 🔍 Findings & Analysis
+- The repository now spans a broad Omni-tool surface area and needs a stabilization phase focused on build verification, backend wiring, and doc/version reconciliation.
+- `git status` shows several unrelated submodule worktree modifications (`ai-file-sorter`, `libs/dokany`, `libs/image-hash`, `libs/libjpeg`, `libs/libjpeg-turbo`, `libs/sumatrapdf`) that were intentionally **not** staged in this documentation release.
+- `git status` also emits filename-too-long warnings under nested `tests/test_cmake_build/.../pybind11/...` paths; this should be addressed separately during repo hygiene work.
+
+### Version
+- Bumped to **6.0.0**.
+
+## [5.8.0] - 2026-04-03
+
+### Added — The "OmniShare Secure File Drops" Release
+
+#### 📤 OmniShare: Zero-Config Secure Sharing
+- Added **`omnishare_interface.hpp`** and **`omnishare_engine.cpp`** for temporary secure file sharing.
+- Added **`OmniSharePanel.qml`** for creating, inspecting, copying, and revoking self-hosted share links.
+- Wired OmniShare into OmniShell QML resources and the main panel host.
+- Introduced the HTTPS/self-hosted share-link concept with max-download and expiry metadata.
+
+### Version
+- Bumped to **5.8.0**.
+
+## [5.7.0] - 2026-04-03
+
+### Added — The "OmniTerminal AI Shell" Release
+
+#### ⌨️ OmniTerminal: Embedded AI Terminal
+- Added **`omniterminal_interface.hpp`** and **`omniterminal_engine.cpp`** for terminal-session orchestration and AI suggestions.
+- Added **`OmniTerminalPanel.qml`** with terminal output, input line, tab styling, and quick AI suggestion chips.
+- Wired OmniTerminal into OmniShell QML resources and the shell panel switcher.
+- Established the UX foundation for PTY-backed shell sessions integrated with OmniOracle guidance.
+
+### Version
+- Bumped to **5.7.0**.
+
+## [5.6.0] - 2026-04-03
+
+### Added — The "OmniCluster Distributed Grid Computing" Release
+
+#### ⚡ OmniCluster: Multi-Node Compute Grid
+- Added **`omnicluster_interface.hpp`** and **`omnicluster_engine.cpp`** for node discovery, distributed task tracking, and cluster dispatch concepts.
+- Added **`OmniClusterPanel.qml`** to visualize available nodes, active distributed jobs, and per-node work allocation.
+- Introduced the Bobfilez concept of farmed-out rendering, cracking, and OCR/AI workloads across the Data Swarm mesh.
+
+### Version
+- Bumped to **5.6.0**.
+
 ## [5.5.0] - 2026-04-03
 
 ### Added — The "OmniCrypt Steganography" Release

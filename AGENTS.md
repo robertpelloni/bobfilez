@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-01 | **Commit:** - | **Branch:** main | **Version:** 2.4.2
+**Generated:** 2026-04-03 | **Commit:** 808f4537 | **Branch:** main | **Version:** 6.0.0
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -92,8 +92,12 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v5.5.0)
+## Current Status (v6.0.0)
 
+- ✅ **Grand Architecture**: Added `ARCHITECTURE.md` to document the unified OmniShell / Omni-tool architecture, subsystem taxonomy, product-parity goals, and current codebase metrics.
+- ✅ **OmniShare Secure File Drops**: Built-in HTTPS-style share-link workflow with expiring links, revocation, and self-hosted transfer concepts.
+- ✅ **OmniTerminal AI Shell**: Embedded terminal surface with AI command suggestions and shell-session orchestration concepts.
+- ✅ **OmniCluster Distributed Compute**: Swarm-backed multi-node compute abstraction for render/crack/OCR-style grid workloads.
 - ✅ **OmniCrypt**: Military-grade encryption (XChaCha20-Poly1305) and LSB Steganography (`opencv`) allowing users to hide encrypted payloads invisibly inside carrier images or videos for plausible deniability.
 - ✅ **OmniVerse 3D Explorer**: Spatial Computing UI. Renders the file system as an interactive 3D universe using `raylib`, complete with physics and VR support.
 - ✅ **OmniGit Version Control**: Integrated `libgit2` for professional Git repository management, visual commit graphs, inline diffing, and staging.
@@ -150,7 +154,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 
-**Next Steps**: Full BobUI integration, refactoring `fo_gui`, video/audio analysis.
+**Next Steps**: Build verification, OmniShell panel wiring validation, submodule hygiene cleanup, semantic/backend implementation pass, and documentation/version reconciliation across release artifacts.
 
 ## Handoff Protocol
 
