@@ -50,9 +50,10 @@ Rectangle {
                 Repeater {
                     model: [
                         {name: "Filez Explorer", icon: "📁", id: "explorer"},
-                        {name: "Forensic Audit", icon: "🛡️", id: "forensic"},
+                        {name: "Asset Manager", icon: "📦", id: "assets"},
                         {name: "Photo Library", icon: "🖼️", id: "photos"},
                         {name: "Photo Develop", icon: "🎨", id: "develop"},
+                        {name: "Forensic Audit", icon: "🛡️", id: "forensic"},
                         {name: "Secure Vault", icon: "🔒", id: "vault"},
                         {name: "Visual Dedup", icon: "🔥", id: "visual_dedup"},
                         {name: "Achievements", icon: "🏆", id: "achievements"},

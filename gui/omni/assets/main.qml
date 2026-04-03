@@ -159,6 +159,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Asset Manager (MAM)
+        AssetManagerPanel {
+            visible: shell.activePanel === "assets"
+            anchors.fill: parent; anchors.margins: 20
+        }
+
         // Photo Library (Apple/Google Photos)
         PhotoLibraryPanel {
             visible: shell.activePanel === "photos"

@@ -92,8 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v3.8.0)
+## Current Status (v3.9.0)
 
+- ✅ **Media Asset Manager (MAM)**: Universal control center for video/audio/image assets with batch AI tagging and transcoding.
+- ✅ **AI Semantic Tagging**: Autonomous content analysis (MobileNet/BERT) to assign descriptive tags (e.g., "Sunset", "Invoice").
 - ✅ **Distributed Nexus**: Node-to-node synchronization for audit logs and search indexes across multiple bobfilez instances.
 - ✅ **Live Data Topology**: TreemapPanel now wired to real C++ `TreemapEngine` for live disk usage visualization.
 - ✅ **Web Dashboard 2.0**: High-fidelity HTML/CSS shell dashboard with live file explorer and system telemetry.
