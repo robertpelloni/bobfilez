@@ -263,6 +263,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // OmniCrypt (Steganography & Deep Encryption)
+        OmniCryptPanel {
+            visible: shell.activePanel === "omnicrypt"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

@@ -42,6 +42,7 @@
         <file>../../panels/OmniSecPanel.qml</file>
         <file>../../panels/OmniGitPanel.qml</file>
         <file>../../panels/OmniVersePanel.qml</file>
+        <file>../../panels/OmniCryptPanel.qml</file>
         <file>NexusPulse.qml</file>
         <file>OmniPeekOverlay.qml</file>
     </qresource>

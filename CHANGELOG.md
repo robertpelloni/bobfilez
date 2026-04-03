@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.5.0] - 2026-04-03
+
+### Added — The "OmniCrypt Steganography" Release
+
+#### 🕵️ OmniCrypt: Advanced Data Concealment
+- **`omnicrypt_interface.hpp` & `omnicrypt_engine.cpp`**: Implemented a military-grade cryptographic engine utilizing `libsodium` (XChaCha20-Poly1305) and `opencv`.
+- **LSB Steganography**: Allows users to hide highly sensitive payloads (e.g., password databases, private keys) entirely inside the pixel data of standard `.jpg` or `.png` images.
+- **Plausible Deniability**: The carrier image looks and opens normally in any image viewer, leaving no trace that a file is hidden inside.
+- **`OmniCryptPanel.qml`**: A sleek, high-security dashboard allowing users to drag and drop payload files into carrier images and extract them with a master password.
+
+### Version
+- Bumped to **5.5.0**.
+
 ## [5.4.0] - 2026-04-03
 
 ### Added — The "OmniVerse 3D Spatial Computing" Release
