@@ -68,8 +68,8 @@
 |-----------|--------|-------|
 | `EnhancedCopyEngine::copy_single_enhanced()` | Interface ✅ | Core copy loop + throttle + verify needed |
 | `AdvancedArchiveManager::browse()` | Interface ✅ | Wire to 7-zip CLI or libarchive |
-| `SearchEngine::search()` | Interface ✅ | Implement PCRE2 content search loop |
-| `BatchRenameEngine::apply_rules()` | Interface ✅ | Implement each rule's `apply()` body |
+| `SearchEngine::search()` | Implemented ✅ | PCRE2/std::regex content search loop done |
+| `BatchRenameEngine::apply_rules()` | Implemented ✅ | 13 rule `apply()` bodies done |
 | `ConversionEngine` (more backends) | 3 backends ✅ | Add Ghostscript, Calibre, Inkscape |
 | `MarkdownRenderer::render()` | Interface ✅ | Wire md4c C API |
 | `HexBuffer` file mapping | Interface ✅ | Implement mmap (Windows: `MapViewOfFile`) |
