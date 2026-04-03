@@ -62,6 +62,28 @@ public class StatsCommand implements Callable<Integer> {
                 System.out.printf("  %-15s %6d files  %10s%n", ext, count, formatSize(size));
             });
 
+        System.out.println();
+        System.out.println("Size Distribution:");
+        Map<String, Integer> buckets = new LinkedHashMap<>();
+        buckets.put("0-1 KB", 0); buckets.put("1-100 KB", 0); buckets.put("100 KB-1 MB", 0);
+        buckets.put("1-10 MB", 0); buckets.put("10-100 MB", 0); buckets.put("100 MB-1 GB", 0);
+        buckets.put("> 1 GB", 0);
+
+        for (FileInfo f : files) {
+            long s = f.size();
+            if (s < 1024) buckets.put("0-1 KB", buckets.get("0-1 KB") + 1);
+            else if (s < 100*1024) buckets.put("1-100 KB", buckets.get("1-100 KB") + 1);
+            else if (s < 1024*1024) buckets.put("100 KB-1 MB", buckets.get("100 KB-1 MB") + 1);
+            else if (s < 10*1024*1024) buckets.put("1-10 MB", buckets.get("1-10 MB") + 1);
+            else if (s < 100*1024*1024) buckets.put("10-100 MB", buckets.get("10-100 MB") + 1);
+            else if (s < 1024*1024*1024) buckets.put("100 MB-1 GB", buckets.get("100 MB-1 GB") + 1);
+            else buckets.put("> 1 GB", buckets.get("> 1 GB") + 1);
+        }
+
+        buckets.forEach((k, v) -> {
+            if (v > 0) System.out.printf("  %-15s %6d files%n", k, v);
+        });
+
         return 0;
     }
 

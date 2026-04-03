@@ -115,6 +115,27 @@ CREATE TABLE IF NOT EXISTS file_embeddings (
 CREATE INDEX IF NOT EXISTS idx_embeddings_model ON file_embeddings(model_name);
 )";
 
+/// Migration 5: Forensic Audit Ledger
+/// An immutable, append-only record of every file operation (move, delete, rename).
+/// Includes SHA-256 of the previous state to detect tampering.
+static const char* MIGRATION_5 = R"(
+CREATE TABLE IF NOT EXISTS audit_ledger (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    operation TEXT NOT NULL,
+    src_path TEXT NOT NULL,
+    dst_path TEXT,
+    file_size INTEGER,
+    checksum TEXT,
+    user_identity TEXT,
+    system_id TEXT,
+    entry_hash TEXT NOT NULL  -- HMAC or Hash of (id, timestamp, operation, src, dst)
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_ledger(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_operation ON audit_ledger(operation);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -228,6 +249,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 4) {
         apply_migration(4, MIGRATION_4);
+    }
+    if (current_ver < 5) {
+        apply_migration(5, MIGRATION_5);
     }
 }
 

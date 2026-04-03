@@ -18,5 +18,6 @@
         <file>../../panels/SearchPanel.qml</file>
         <file>../../panels/VisualDedupPanel.qml</file>
         <file>../../panels/TopologyPanel.qml</file>
+        <file>../../panels/DigitalRotPanel.qml</file>
     </qresource>
 </RCC>

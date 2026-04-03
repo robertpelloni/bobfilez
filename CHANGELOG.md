@@ -1,6 +1,32 @@
 # Changelog
 
-## [2.8.0] - 2026-04-03
+## [3.0.0] - 2026-04-03
+
+### Added — The "Next-Gen Data Custodian" Release
+
+#### 🖥️ OmniShell: Windows 11 Shell Replacement
+- **`Taskbar.qml` & `StartMenu.qml`**: Fully functional shell UI with Acrylic/Mica effects, system tray, and AI-powered recommendations.
+- **`DesktopIcons.qml`**: Grid-based desktop management system.
+- **Multi-Window Coordinator**: `main.qml` now manages separate process-like windows for all sub-tools.
+
+#### ⚡ High-Performance & Security
+- **Zero-Copy Sorter**: Integrated ReFS Block Cloning (Windows) and Reflink (Linux) for near-instant file duplication on the same volume.
+- **Data Topology Map**: SequoiaView-style Tree-map visualization for disk usage analysis.
+- **PII Sentinel**: Autonomous scanning for Social Security Numbers, Credit Cards, and API keys.
+- **Forensic Audit Ledger**: Immutable, append-only operation log with tamper-detection hashes (Migration 5).
+
+#### 🧹 Autonomous Cleanup
+- **Digital Rot Agent**: AI identifying obsolete installers, temporary caches, and forgotten data.
+- **Visual Discovery**: Tinder-style "swipe" interface for near-duplicate photo cleanup.
+
+#### 🕰️ Unification & Parity
+- **Nexus Master Clock**: Unified scheduler for priority-based task arbitration across all engines.
+- **Java 21 Parity**: Brought the Java project up to v3.0 architectural parity with new interfaces and command features.
+
+### Version
+- Bumped to **3.0.0**.
+
+## [2.9.0] - 2026-04-03
 
 ### Added — Vector Semantic Search & Backend Finalization
 

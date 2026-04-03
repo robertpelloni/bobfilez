@@ -116,6 +116,12 @@ ApplicationWindow {
             visible: shell.activePanel === "topology"
             anchors.fill: parent; anchors.margins: 40
         }
+
+        // Digital Rot Agent
+        DigitalRotPanel {
+            visible: shell.activePanel === "pruner"
+            anchors.fill: parent; anchors.margins: 40
+        }
     }
 
     // TASKBAR
