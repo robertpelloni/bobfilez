@@ -16,6 +16,8 @@
       ]
     },
     "cpr",
-    "azure-storage-blobs-cpp"
+    "azure-storage-blobs-cpp",
+    "ffmpeg",
+    "chromaprint"
   ]
 }

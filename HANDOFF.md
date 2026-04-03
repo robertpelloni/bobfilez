@@ -1,26 +1,31 @@
-# HANDOFF.md - bobfilez Shell Development
+# HANDOFF.md - bobfilez Core & Shell Development
 
 ## Current Status (2026-04-02)
-- **Version:** 2.4.2
-- **Focus:** OmniUI Explorer (Windows 11 Replacement)
+- **Version:** 2.5.0
+- **Focus:** Advanced Media Analysis Integration & Documentation Sync
 
 ## Key Achievements in This Session
-1. **Detailed Analysis:** Performed a manual scan of the codebase and documentation to categorize planned functionality.
-2. **Competitive Research:** Analyzed `Files` (C#/WinUI), `File Pilot`, and `OpenSalamander`. bobfilez differentiates itself through the high-performance `fo_core` engine, its ambition to be a full `explorer.exe` replacement, and a commitment to 100% feature parity with OpenSalamander's advanced dual-pane workflows.
-3. **UI Implementation (OmniUI):**
-    - Significantly enhanced the Explorer window in `gui/omni/assets/main.qml`.
-    - Added a Tab Bar, Address Bar, Search Bar, Command Bar, Sidebar, and Status Bar.
-    - Improved the file list visuals to include more columns (Details view style).
-    - Added Mica-like Title Bar styling and Window Shadows.
-4. **Documentation:**
-    - Created `docs/COMPETITIVE_ANALYSIS_DETAILED.md` and added OpenSalamander.
-    - Created and updated `EXPLORER_PLAN.md` with a detailed roadmap, progress tracker, a new "Category E: Integrated Image Management Suite", and "Category F: Advanced Dual-Pane Operations (Salamander 100% Parity)".
+1. **Advanced Media Analysis Engines Built**:
+    - `video_hash_interface.hpp` & `video_hash_ffmpeg.cpp`: Implemented a highly robust Video Perceptual Hasher. It uses FFmpeg to scrub through videos, extract evenly-spaced frames, downscales them to 9x8 grayscale, and computes a 64-bit dHash per frame. Allows identifying duplicate/similar videos independent of codec, bitrate, or minor alterations.
+    - `audio_fingerprint_interface.hpp` & `audio_fingerprint_chromaprint.cpp`: Implemented AcoustID-compatible audio fingerprinting utilizing FFmpeg to decode and Chromaprint to process. 
+2. **CLI Wiring**:
+    - Added `vhash` command to `fo_cli` for testing video hashes.
+    - Added `afingerprint` command to `fo_cli` for testing audio fingerprints.
+    - Added `--list-vhash` and `--list-ahash`.
+3. **Build System**:
+    - Added `ffmpeg` and `chromaprint` to `vcpkg.json`.
+    - Integrated library resolution into `core/CMakeLists.txt` via `FO_HAVE_FFMPEG` and `FO_HAVE_CHROMAPRINT` feature guards.
+4. **Documentation Audit & Refactoring**:
+    - Thoroughly analyzed `ROADMAP.md`, `TODO.md`, `VISION.md`, `CHANGELOG.md`, and `IDEAS.md`.
+    - Maintained and updated LLM Instructions (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `GPT.md`).
+    - Synced version across the repository (`2.5.0`).
 
 ## Pending Tasks
-- **Functional Breadcrumbs:** The address bar displays the path but doesn't allow direct editing or segment-clicking yet.
-- **Sidebar Integration:** Sidebar links (This PC, Quick Access) need to be wired to the `FileModel`.
-- **Context Menus:** Right-click menus for file operations (Copy/Paste/Dedupe) are missing in the QML layer.
-- **Build Verification:** Ensure the new QML changes render correctly in a local environment with `Qt6` and `OmniUI`.
+- **Deduplicate Command Integration**: The new `vhash` and `afingerprint` engines are accessible directly via CLI but need to be integrated into the `duplicates` detection pipeline (e.g., `fo duplicates --mode=media`).
+- **OmniUI Functional Completeness**: The QML interface needs its backend `FileModel` fully bound for Address Bar navigation and Sidebar clicks.
 
 ## Strategic Direction
-Continue to follow the `EXPLORER_PLAN.md`. Prioritize making the UI interactive and fully integrated with the `fo_core` engine's capabilities (hashing, dedupe).
+The core engine has achieved massive capability milestones with deep media analysis. The next major frontier is tying these advanced hashing features directly into the `RuleEngine` and `duplicates` subsystems, while concurrently bringing the Qt OmniUI Explorer clone to 100% functional parity with Windows Explorer.
+
+**Notes for next agent:**
+Please continue refining the OmniUI (Qt) implementation, specifically binding the Address Bar and Details View sorting in `FileModel.cpp`. Alternatively, implement the media deduplication pipeline in `duplicate_finders.cpp` utilizing the new hashing interfaces.

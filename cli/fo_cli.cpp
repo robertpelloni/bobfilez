@@ -3,6 +3,8 @@
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/ocr_interface.hpp"
 #include "fo/core/perceptual_hash_interface.hpp"
+#include "fo/core/video_hash_interface.hpp"
+#include "fo/core/audio_fingerprint_interface.hpp"
 #include "fo/core/classification_interface.hpp"
 #include "fo/core/rule_engine.hpp"
 #include "fo/core/export.hpp"
@@ -79,6 +81,8 @@ static void print_usage() {
               << "  metadata     Extract file metadata\n"
               << "  ocr          Extract text from images\n"
               << "  similar      Find similar images\n"
+              << "  vhash        Compute video perceptual hash\n"
+              << "  afingerprint Compute audio fingerprint\n"
               << "  classify     Classify images using AI\n"
               << "  organize     Organize files based on rules\n"
               << "  delete-duplicates Delete duplicate files\n"
@@ -243,6 +247,20 @@ int main(int argc, char** argv) {
     if (command == "--list-phash") {
         auto& reg = fo::core::Registry<fo::core::IPerceptualHasher>::instance();
         std::cout << "Available perceptual hash algorithms:";
+        for (auto& n : reg.names()) std::cout << " " << n;
+        std::cout << "\n";
+        return 0;
+    }
+    if (command == "--list-vhash") {
+        auto& reg = fo::core::Registry<fo::core::IVideoHasher>::instance();
+        std::cout << "Available video hash algorithms:";
+        for (auto& n : reg.names()) std::cout << " " << n;
+        std::cout << "\n";
+        return 0;
+    }
+    if (command == "--list-ahash") {
+        auto& reg = fo::core::Registry<fo::core::IAudioFingerprinter>::instance();
+        std::cout << "Available audio fingerprint algorithms:";
         for (auto& n : reg.names()) std::cout << " " << n;
         std::cout << "\n";
         return 0;
@@ -761,6 +779,76 @@ int main(int argc, char** argv) {
                         std::cout << "  " << fi->uri << "\n";
                     }
                 }
+            }
+        } else if (command == "vhash") {
+            if (roots.empty()) {
+                std::cerr << "Usage: fo vhash <video_path>\n";
+                return 1;
+            }
+
+            auto provider = fo::core::Registry<fo::core::IVideoHasher>::instance().create("ffmpeg");
+            if (!provider) {
+                std::cerr << "Video hasher 'ffmpeg' not found (ensure FFmpeg is available and compiled).\n";
+                return 1;
+            }
+
+            auto res = provider->hash_video(roots[0], 16); // sample 16 frames for speed
+
+            if (format == "json") {
+                std::cout << "{\n";
+                std::cout << "  \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
+                std::cout << "  \"duration\": " << res.duration_sec << ",\n";
+                std::cout << "  \"width\": " << res.width << ",\n";
+                std::cout << "  \"height\": " << res.height << ",\n";
+                std::cout << "  \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
+                std::cout << "  \"fps\": " << res.fps << ",\n";
+                std::cout << "  \"frames\": [\n";
+                for (size_t i = 0; i < res.frame_hashes.size(); ++i) {
+                    std::cout << "    {\"timestamp\": " << res.frame_hashes[i].timestamp_sec 
+                              << ", \"hash\": " << res.frame_hashes[i].hash << "}"
+                              << (i + 1 < res.frame_hashes.size() ? "," : "") << "\n";
+                }
+                std::cout << "  ]\n";
+                std::cout << "}\n";
+            } else {
+                std::cout << "Video: " << res.path << "\n";
+                std::cout << "  Codec: " << res.codec << " (" << res.width << "x" << res.height << " @ " << res.fps << " fps)\n";
+                std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
+                std::cout << "  Hashes (" << res.frame_hashes.size() << " samples):\n";
+                for (const auto& fh : res.frame_hashes) {
+                    std::cout << "    [" << std::fixed << std::setprecision(2) << fh.timestamp_sec << "s] " << fh.hash << "\n";
+                }
+            }
+
+        } else if (command == "afingerprint") {
+            if (roots.empty()) {
+                std::cerr << "Usage: fo afingerprint <audio_path>\n";
+                return 1;
+            }
+
+            auto provider = fo::core::Registry<fo::core::IAudioFingerprinter>::instance().create("chromaprint");
+            if (!provider) {
+                std::cerr << "Audio fingerprinter 'chromaprint' not found (ensure Chromaprint/FFmpeg are available and compiled).\n";
+                return 1;
+            }
+
+            auto res = provider->fingerprint(roots[0], 120.0); // max 120s
+
+            if (format == "json") {
+                std::cout << "{\n";
+                std::cout << "  \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
+                std::cout << "  \"duration\": " << res.duration_sec << ",\n";
+                std::cout << "  \"sample_rate\": " << res.sample_rate << ",\n";
+                std::cout << "  \"channels\": " << res.channels << ",\n";
+                std::cout << "  \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
+                std::cout << "  \"bitrate\": " << res.bitrate << ",\n";
+                std::cout << "  \"fingerprint_chunks\": " << res.fingerprints.size() << "\n";
+                std::cout << "}\n";
+            } else {
+                std::cout << "Audio: " << res.path << "\n";
+                std::cout << "  Codec: " << res.codec << " (" << res.sample_rate << "Hz, " << res.channels << "ch, " << (res.bitrate/1000) << "kbps)\n";
+                std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
+                std::cout << "  Fingerprint: Generated " << res.fingerprints.size() << " 32-bit chunks.\n";
             }
         } else if (command == "classify") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);

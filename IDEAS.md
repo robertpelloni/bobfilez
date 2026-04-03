@@ -27,3 +27,5 @@ Bobfilez is a high-performance C++/Qt file organization engine. To move from "Lo
 - **Visual Duplicate Discovery**: A "tinder-like" swipe interface in BobUI for quickly confirming or rejecting near-duplicate images.
 - **AI-driven Semantic Metadata**: Automatically tag files based on their content (e.g., "Invoice", "Family Photo", "Project Proposal") to enable better search and organization.
 - **Smart Pruning**: Identify and suggest the removal of old, obsolete versions of software installers and large temporary files.
+- **Deduplication Mode "Media"**: A specialized scanning mode that automatically switches to video hashing (vhash) and audio fingerprinting (afingerprint) instead of byte-for-byte hashing, natively finding logically identical but technically distinct media files across an entire drive.
+- **Live Folders**: Virtual folders implemented via `RuleEngine` that constantly auto-organize matching files into them, without physically moving them, allowing the user to browse semantic groups dynamically.

@@ -46,6 +46,8 @@ find_package(yaml-cpp CONFIG QUIET)
 find_package(AWSSDK QUIET COMPONENTS s3 core)
 find_package(cpr CONFIG QUIET)
 find_package(azure-storage-blobs-cpp CONFIG QUIET)
+find_package(FFmpeg QUIET COMPONENTS avformat avcodec avutil swscale)
+find_package(chromaprint CONFIG QUIET)
 
 if(exiv2_FOUND)
     message(STATUS "Found exiv2, enabling exiv2 metadata provider")
@@ -80,6 +82,18 @@ endif()
 
 if(azure-storage-blobs-cpp_FOUND)
     message(STATUS "Found Azure Storage Blobs SDK, enabling Azure Blob provider")
+endif()
+
+if(FFmpeg_FOUND)
+    message(STATUS "Found FFmpeg, enabling video hashing provider")
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_FFMPEG)
+    target_link_libraries(fo_core PUBLIC FFmpeg::avformat FFmpeg::avcodec FFmpeg::avutil FFmpeg::swscale)
+endif()
+
+if(chromaprint_FOUND)
+    message(STATUS "Found Chromaprint, enabling audio fingerprint provider")
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_CHROMAPRINT)
+    target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
 endif()
 
 add_library(fo_core STATIC

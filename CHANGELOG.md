@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.5.0] - 2026-04-02
+
+### Added
+- **Advanced Media Analysis Engine**:
+    - **Video Perceptual Hashing (`vhash`)**: Implemented an FFmpeg-backed video analyzer that extracts evenly-spaced frames, converts them to grayscale thumbnails, and generates 64-bit dHash values to identify visually similar or duplicate video files regardless of resolution, codec, or frame rate.
+    - **Audio Fingerprinting (`afingerprint`)**: Implemented an FFmpeg + Chromaprint integration to generate AcoustID-compatible audio fingerprints. Capable of identifying identical audio content across differing formats (mp3 vs flac), bitrates, or volume levels.
+    - New CLI commands: `fo_cli vhash <file>`, `fo_cli afingerprint <file>`, `--list-vhash`, `--list-ahash`.
+- **vcpkg Dependencies**: Added `ffmpeg` and `chromaprint` to `vcpkg.json` for media analysis support.
+- **Documentation**: Substantial updates to the project's vision, architecture, and roadmap based on deep-dive codebase analysis.
+
 ## [2.4.3] - 2026-04-02
 
 ### Added

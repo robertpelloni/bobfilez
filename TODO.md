@@ -13,7 +13,7 @@
 - [ ] **Vector-Semantic Search**: Integrate local Clip/BERT for AI-driven file discovery in Explorer.
 
 ## In Progress
-- [ ] **Advanced Media Analysis**: Video Perceptual Hashing and Audio Fingerprinting.
+- [x] **Advanced Media Analysis**: Video Perceptual Hashing and Audio Fingerprinting implemented.
 - [ ] **Shell Replacement (`bob_shell`)**: Transforming the app into a full desktop environment.
 - [ ] **Java 21 Port Refinement**: Update the Java version with latest CLI parity for `stats` and `--mode`.
 - [ ] **Fuzz Testing Campaigns**: Continuous libFuzzer execution on the `RuleEngine`.

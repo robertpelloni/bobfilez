@@ -152,9 +152,9 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
    - [ ] Refactor `fo_gui` with BobUI premium components.
    - [ ] Benchmarking native UI vs web-based UI overhead.
 
-2. **Advanced Media Analysis**
-   - [ ] Video Perceptual Hashing (vHash) for duplicate video detection.
-   - [ ] Audio Fingerprinting (AcoustID) for music deduplication.
+2. **Advanced Media Analysis** (Completed)
+   - [x] Video Perceptual Hashing (vHash) for duplicate video detection via FFmpeg dHash.
+   - [x] Audio Fingerprinting (AcoustID) for music deduplication via Chromaprint.
    - [ ] Vector-Semantic Search integration (Local Clip/BERT).
 
 3. **Performance Scaling**

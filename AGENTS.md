@@ -92,12 +92,13 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.4.2)
+## Current Status (v2.5.0)
 
+- ✅ **Advanced Media Analysis**: FFmpeg-backed Video Perceptual Hashing (dHash) and Chromaprint Audio Fingerprinting.
 - ✅ **BobUI (Qt Fork)**: Integrated custom Qt fork as the primary UI library for performance and engine integration.
 - ✅ **Web GUI (Bobui_web)**: Renamed from `bobui` to clear path for native UI. Premium web dashboard remains active.
 - ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
-- ✅ 16+ CLI commands (scan, duplicates, hash, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
+- ✅ 18+ CLI commands (scan, duplicates, hash, vhash, afingerprint, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
 - ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
 - ✅ `--mode=<fast|safe|paranoid>` three-tier duplicate verification
 - ✅ Zero MSVC warnings (ctime_s/localtime_s on Windows)
@@ -109,6 +110,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-02 (Session 12)
+**Author:** Antigravity
+
+**Scope:** Advanced Media Analysis & OmniUI Documentation
+
+**Delivered:**
+- ✅ **Video Perceptual Hashing**: Added `fo::core::IVideoHasher` interface and `FFmpegVideoHasher` implementation. Extracts frames and computes dHash.
+- ✅ **Audio Fingerprinting**: Added `fo::core::IAudioFingerprinter` interface and `ChromaprintAudioFingerprinter` using FFmpeg + Chromaprint.
+- ✅ **CLI Commands**: Added `vhash` and `afingerprint` commands to `fo_cli` for testing media analysis.
+- ✅ **Build System**: Updated `vcpkg.json` and `CMakeLists.txt` to pull in and link `ffmpeg` and `chromaprint`.
+- ✅ **Version Bump**: Updated to `2.5.0` with corresponding `CHANGELOG.md` entries.
+- ✅ **Documentation**: Updated `ROADMAP.md` and `TODO.md` to mark Advanced Media Analysis as complete.
+
+**Next Steps:**
+1. Hook up the new `vhash` and `afingerprint` engines into the `RuleEngine` or `duplicates` command to allow discovering duplicated videos/audio.
+2. Complete functional implementation of the OmniUI Address Bar and Details View columns.
+3. Vector-Semantic Search integration.
 
 ---
 
