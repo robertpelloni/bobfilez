@@ -2,6 +2,8 @@
 #include <QDateTime>
 #include <QDir>
 #include <chrono>
+#include <iomanip>
+#include <sstream>
 #include "fo/core/export.hpp"
 
 FileModel::FileModel(QObject *parent) : QAbstractListModel(parent) {
@@ -201,7 +203,16 @@ void FileModel::loadPath(const std::filesystem::path &path) {
             auto ftime = entry.last_write_time();
             auto sys_tp = std::chrono::clock_cast<std::chrono::system_clock>(ftime);
             auto t = std::chrono::system_clock::to_time_t(sys_tp);
-            f.dateModified = QString::fromStdString(std::ctime(&t)).trimmed();
+            
+            std::ostringstream ts;
+#ifdef _WIN32
+            std::tm tm_buf;
+            localtime_s(&tm_buf, &t);
+            ts << std::put_time(&tm_buf, "%m/%d/%Y %I:%M %p");
+#else
+            ts << std::put_time(std::localtime(&t), "%m/%d/%Y %I:%M %p");
+#endif
+            f.dateModified = QString::fromStdString(ts.str());
 
             m_allFiles.push_back(f);
         }

@@ -421,3 +421,84 @@
 [submodule "libs/bobui"]
 	path = libs/bobui
 	url = https://github.com/robertpelloni/bobui
+[submodule "libs/pandoc"]
+	path = libs/pandoc
+	url = https://github.com/jgm/pandoc
+[submodule "libs/ghostpdl"]
+	path = libs/ghostpdl
+	url = https://github.com/ArtifexSoftware/ghostpdl
+[submodule "libs/LibRaw"]
+	path = libs/LibRaw
+	url = https://github.com/LibRaw/LibRaw
+[submodule "libs/libde265"]
+	path = libs/libde265
+	url = https://github.com/strukturag/libde265
+[submodule "libs/poppler"]
+	path = libs/poppler
+	url = https://gitlab.freedesktop.org/poppler/poppler
+[submodule "libs/calibre"]
+	path = libs/calibre
+	url = https://github.com/kovidgoyal/calibre
+[submodule "libs/wkhtmltopdf"]
+	path = libs/wkhtmltopdf
+	url = https://github.com/wkhtmltopdf/wkhtmltopdf
+[submodule "libs/Magick.NET"]
+	path = libs/Magick.NET
+	url = https://github.com/dlemstra/Magick.NET
+[submodule "libs/ripgrep"]
+	path = libs/ripgrep
+	url = https://github.com/BurntSushi/ripgrep
+[submodule "libs/the_silver_searcher"]
+	path = libs/the_silver_searcher
+	url = https://github.com/ggreer/the_silver_searcher
+[submodule "libs/pcre2"]
+	path = libs/pcre2
+	url = https://github.com/PCRE2Project/pcre2
+[submodule "libs/re2"]
+	path = libs/re2
+	url = https://github.com/google/re2
+[submodule "libs/rename-utils"]
+	path = libs/rename-utils
+	url = https://github.com/nih-at/ckmame
+[submodule "libs/sigil"]
+	path = libs/sigil
+	url = https://github.com/Sigil-Ebook/Sigil
+[submodule "libs/libarchive"]
+	path = libs/libarchive
+	url = https://github.com/libarchive/libarchive
+[submodule "libs/librsync"]
+	path = libs/librsync
+	url = https://github.com/librsync/librsync
+[submodule "libs/zstd"]
+	path = libs/zstd
+	url = https://github.com/facebook/zstd
+[submodule "libs/lz4"]
+	path = libs/lz4
+	url = https://github.com/lz4/lz4
+[submodule "libs/brotli"]
+	path = libs/brotli
+	url = https://github.com/google/brotli
+[submodule "libs/p7zip"]
+	path = libs/p7zip
+	url = https://github.com/p7zip-project/p7zip
+[submodule "libs/dtl-diff"]
+	path = libs/dtl-diff
+	url = https://github.com/cubicdaiya/dtl
+[submodule "libs/cmark"]
+	path = libs/cmark
+	url = https://github.com/commonmark/cmark
+[submodule "libs/7zip"]
+	path = libs/7zip
+	url = https://github.com/nicehash/NiceHashQuickMiner
+[submodule "libs/glad"]
+	path = libs/glad
+	url = https://github.com/Dav1dde/glad
+[submodule "libs/rapidjson"]
+	path = libs/rapidjson
+	url = https://github.com/Tencent/rapidjson
+[submodule "libs/md4c"]
+	path = libs/md4c
+	url = https://github.com/mity/md4c
+[submodule "libs/highlightjs"]
+	path = libs/highlightjs
+	url = https://github.com/highlightjs/highlight.js

@@ -137,7 +137,14 @@ ApplicationWindow {
                         RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 10
                             Label { text: "📁"; color: "#888" }
-                            Label { text: fileModel.currentPath; color: "white"; Layout.fillWidth: true; elide: Text.ElideLeft }
+                            TextInput { 
+                                text: fileModel.currentPath
+                                color: "white"
+                                Layout.fillWidth: true
+                                clip: true
+                                selectByMouse: true
+                                onAccepted: fileModel.openFolder(text)
+                            }
                         }
                     }
 
@@ -204,6 +211,10 @@ ApplicationWindow {
                                     Label { text: modelData.text; color: "white"; font.pixelSize: 13 }
                                 }
                                 background: Rectangle { color: hovered ? "#3d3d3d" : "transparent"; radius: 4 }
+                                onClicked: {
+                                    if (modelData.text === "This PC") fileModel.openFolder("C:/")
+                                    else if (modelData.text === "Network") fileModel.openFolder("//localhost")
+                                }
                             }
                         }
                         Item { Layout.fillHeight: true }
@@ -221,10 +232,10 @@ ApplicationWindow {
                         Layout.fillWidth: true; height: 32; color: "transparent"
                         RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 15; spacing: 0
-                            Label { text: "Name"; color: "#888"; font.pixelSize: 12; Layout.fillWidth: true }
-                            Label { text: "Date modified"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150 }
-                            Label { text: "Type"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
-                            Label { text: "Size"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
+                            Label { text: "Name"; color: "#888"; font.pixelSize: 12; Layout.fillWidth: true; MouseArea { anchors.fill: parent; onClicked: fileModel.sortBy("Name", true) } }
+                            Label { text: "Date modified"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150; MouseArea { anchors.fill: parent; onClicked: fileModel.sortBy("Date modified", false) } }
+                            Label { text: "Type"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100; MouseArea { anchors.fill: parent; onClicked: fileModel.sortBy("Type", true) } }
+                            Label { text: "Size"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100; MouseArea { anchors.fill: parent; onClicked: fileModel.sortBy("Size", false) } }
                         }
                     }
 
@@ -236,8 +247,33 @@ ApplicationWindow {
                                 color: isSelected ? "#3d3d3d" : (hovered ? "#2d2d2d" : "transparent")
                                 radius: 4
                             }
-                            onClicked: fileModel.toggleSelection(index)
-                            onDoubleClicked: if (isDirectory) fileModel.openFolder(fileModel.currentPath + "/" + fileName)
+                            
+                            MouseArea {
+                                anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: function(mouse) {
+                                    if (mouse.button === Qt.LeftButton) {
+                                        fileModel.toggleSelection(index)
+                                    } else if (mouse.button === Qt.RightButton) {
+                                        fileModel.toggleSelection(index)
+                                        fileContextMenu.popup()
+                                    }
+                                }
+                                onDoubleClicked: function(mouse) {
+                                    if (mouse.button === Qt.LeftButton && isDirectory) {
+                                        fileModel.openFolder(fileModel.currentPath + "/" + fileName)
+                                    }
+                                }
+                            }
+
+                            Menu {
+                                id: fileContextMenu
+                                MenuItem { text: "Open" }
+                                MenuItem { text: "Copy" }
+                                MenuItem { text: "Delete" }
+                                MenuSeparator {}
+                                MenuItem { text: "Properties" }
+                            }
 
                             contentItem: RowLayout {
                                 anchors.fill: parent; anchors.leftMargin: 15; spacing: 0

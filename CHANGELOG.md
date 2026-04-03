@@ -1,6 +1,54 @@
 # Changelog
 
-## [2.5.0] - 2026-04-02
+## [2.6.0] - 2026-04-03
+
+### Added — Comprehensive File Management Suite
+
+#### 🔄 File Format Conversion Engine
+- **`conversion_interface.hpp`**: Universal converter interface with `IConverter` abstract base, `ConversionEngine` orchestrator, and `ConversionResult` tracking.
+- **`conversion_engine.cpp`**: Three fully-wired converter backends:
+  - **FFmpegConverter**: Video (mp4/mkv/avi/webm/mov/gif/flv) ↔ all codecs (H.264/H.265/VP9/AV1), audio (mp3/flac/aac/ogg/opus/wav), with CRF, bitrate, preset, resolution, trim, and thread options.
+  - **ImageMagickConverter**: 200+ image formats (png/jpg/webp/avif/heic/tiff/bmp/ico/psd/raw/jp2/jxl/exr) with quality, resize, colorspace, EXIF-strip, PDF page extraction.
+  - **PandocConverter**: Documents (md/rst/html/docx/odt/epub/latex/pdf) with TOC, templates, CSS, numbered headings, PDF engine choice.
+- **`gui/panels/BatchConvertPanel.qml`**: Full-featured batch conversion UI with source file list, output format picker, per-backend options panels (video/image/document), output directory picker, collision policy, thread slider, live progress, error log.
+- **New submodules**: `pandoc`, `ghostpdl`, `poppler`, `LibRaw`, `libde265`, `calibre`, `wkhtmltopdf`, `Magick.NET`, `pcre2`, `re2`, `ripgrep`, `the_silver_searcher`, `sigil`, `md4c`, `cmark`, `highlightjs`, `rapidjson`.
+
+#### 📝 Batch File Renaming Engine
+- **`batch_rename_interface.hpp`**: Complete rename rule system with 13 rule types: Replace, Insert, Delete, Trim, Case (9 modes), Number (counter with padding), DateTime, EXIF/Metadata, Extension, Truncate, Sanitize, Hash, Transliterate, RegexGroups.
+- **`BatchRenameEngine`**: Chain-based rule application, preview generation with conflict detection, execute with undo support, preset save/load.
+- **`gui/panels/BatchRenamePanel.qml`**: Split-pane UI — left rule chain builder with per-rule configuration panels, right live preview table (original→new with conflict coloring). Built-in preset library.
+
+#### 🔍 Search & Find-in-Files Engine
+- **`search_interface.hpp`**: Comprehensive `SearchOptions` covering Everything+AgentRansack+grepWin+dnGrep feature sets: filename/content modes, PCRE2/wildcard/fuzzy match, size/date/attribute filters, `.gitignore` awareness, archive search, multi-threaded parallel search, find-and-replace in files with backup/undo.
+- **`gui/panels/SearchPanel.qml`**: Three-mode tabbed UI (Filename Search / Content Search / Find & Replace), all filter options, results list with expandable content match lines, sort/group controls, export CSV.
+
+#### 📦 Batch File Operations
+- **`fileops_interface.hpp`**: Five operation engines:
+  - **FileCopyMoveEngine**: TeraCopy-style copy/move with verify (xxHash/MD5/SHA-256), collision policy, throttle, retry, hardlink/symlink support.
+  - **FolderSyncEngine**: FreeFileSync-style mirror/update/two-way/custom sync with versioning, sync database, real-time watch, delta detection.
+  - **FileDiffEngine**: WinMerge-style file/folder diff (Myers/Patience/Histogram algorithms), side-by-side or unified output, HTML export.
+  - **BackupEngine**: Areca/Duplicati-style full/incremental/differential backup with Zstd/LZ4/Brotli/7z compression, AES-256/ChaCha20 encryption, volume splitting, rsync delta.
+  - **ArchiveEngine**: 7-Zip-style create/extract for zip/7z/tar.*/brotli/lz4/zstd with solid mode, SFX, volume split, password.
+- **`gui/panels/FileOpsPanel.qml`**: Five-tab comprehensive panel (Copy/Move / Sync / Diff / Backup / Archive).
+- **New submodules**: `libarchive`, `librsync`, `zstd`, `lz4`, `brotli`, `dtl-diff`, `p7zip`, `7zip`.
+
+#### 🔬 Hex Editor
+- **`hex_editor_interface.hpp`**: Full `HexBuffer` with mmap-backed sparse overlay (edit any file without full copy), undo/redo, insert/delete bytes, PCRE2/hex-pattern/ASCII/UTF-16 search with `??` wildcards.
+- **`DataInterpretation`**: Interprets selection as int8/16/32/64 (LE+BE), uint variants, float32/64, ASCII, UTF-8, UTF-16, GUID, Windows FILETIME, Unix timestamp, CRC-32/CRC-16, binary, octal.
+- **`gui/panels/HexEditorPanel.qml`**: Full hex view with offset column, hex bytes, ASCII panel, configurable columns (8/16/32), Data Inspector sidebar, search bar with mode selector, Go-to-offset, keyboard navigation.
+
+#### 🖼 Image Viewer
+- **`image_viewer_interface.hpp`**: XnViewMP-inspired — ThumbnailCache (LRU disk cache), ImageInfo with full EXIF/IPTC/XMP, ImageHistogram (per-channel), ColorAdjustments (brightness/contrast/saturation/hue/exposure/highlights/shadows/sharpness/temperature/vibrance/clarity), SlideshowOptions with transitions, lossless JPEG rotate/flip via exiftran.
+- **`gui/panels/ImageViewerPanel.qml`**: Full XnViewMP-style viewer — filmstrip, zoom controls, rotate/flip toolbar, slideshow with interval, Histogram panel, Color Adjustments panel, EXIF Metadata panel, multi-page support (TIFF/GIF/PDF), keyboard navigation.
+
+#### 📖 Markdown Viewer
+- **`markdown_viewer_interface.hpp`**: `MarkdownRenderer` using md4c + cmark — CommonMark + GFM tables/task-lists/autolinks/strikethrough, math (KaTeX), Mermaid diagrams, highlight.js syntax highlighting, footnotes, wikilinks, emoji, YAML frontmatter, word count, reading time. Export: HTML, PDF, DOCX via Pandoc.
+- **`gui/panels/MarkdownViewerPanel.qml`**: Split-pane editor+preview with WebEngineView, TOC sidebar, theme switcher (Light/Dark/Sepia), all extension toggles, font/width controls, export menu.
+
+### Version
+- Bumped to **2.6.0**.
+
+
 
 ### Added
 - **Advanced Media Analysis Engine**:

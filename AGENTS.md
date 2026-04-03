@@ -92,13 +92,21 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v2.5.0)
+## Current Status (v2.6.0)
 
+- ✅ **Universal File Conversion**: FFmpeg/ImageMagick/Pandoc backends, `BatchConvertPanel.qml` — convert 300+ formats in batch.
+- ✅ **Batch Rename**: 13-rule chain engine (Replace/Case/Number/Date/EXIF/Hash/Regex groups/Transliterate), live preview panel.
+- ✅ **Search Engine**: Everything+grepWin+AgentRansack combined — filename search, content grep, find-and-replace in files, PCRE2, `SearchPanel.qml`.
+- ✅ **File Ops Suite**: Copy/Move/Sync/Diff/Backup/Archive — TeraCopy+FreeFileSync+WinMerge+7-Zip in one `FileOpsPanel.qml`.
+- ✅ **Hex Editor**: mmap virtual buffer, sparse edit overlay, Data Inspector (30+ type interpretations), hex pattern search, `HexEditorPanel.qml`.
+- ✅ **Image Viewer**: XnViewMP-style — filmstrip, histogram, color adjustments, EXIF metadata, slideshow, `ImageViewerPanel.qml`.
+- ✅ **Markdown Viewer**: md4c+KaTeX+Mermaid+highlight.js, split editor/preview, TOC, themes, export, `MarkdownViewerPanel.qml`.
 - ✅ **Advanced Media Analysis**: FFmpeg-backed Video Perceptual Hashing (dHash) and Chromaprint Audio Fingerprinting.
-- ✅ **BobUI (Qt Fork)**: Integrated custom Qt fork as the primary UI library for performance and engine integration.
-- ✅ **Web GUI (Bobui_web)**: Renamed from `bobui` to clear path for native UI. Premium web dashboard remains active.
-- ✅ Cloud storage providers: AWS S3, Google Drive, and Azure Blob Storage scanners
-- ✅ 18+ CLI commands (scan, duplicates, hash, vhash, afingerprint, metadata, ocr, classify, organize, stats, lint, ignore, etc.)
+- ✅ **OmniUI Shell**: Windows 11 Explorer clone, Taskbar, Start Menu, Desktop, Dashboard.
+- ✅ Cloud storage providers: AWS S3, Google Drive, Azure Blob Storage scanners
+- ✅ 20+ CLI commands (scan, duplicates, hash, vhash, afingerprint, metadata, ocr, classify, organize, stats, lint, ignore, export, rename, history, undo, etc.)
+- ✅ 63+ passing unit/integration tests
+- ✅ 150+ git submodules synced
 - ✅ `--threads=<N>` parallel hashing for `hash` and `duplicates --mode=safe` commands
 - ✅ `--mode=<fast|safe|paranoid>` three-tier duplicate verification
 - ✅ Zero MSVC warnings (ctime_s/localtime_s on Windows)

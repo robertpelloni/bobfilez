@@ -4,10 +4,10 @@
 
 ### Category A: Core Navigation & View (The "Windows 11" Experience)
 - [x] **Tabbed Interface:** Support for multiple directory tabs.
-- [ ] **Breadcrumbs & Address Bar:** Clickable segments for navigation.
-- [x] **Sidebar Navigation:** Quick Access, OneDrive, This PC, Network.
+- [x] **Breadcrumbs & Address Bar:** Clickable segments for navigation (editable text input).
+- [x] **Sidebar Navigation:** Quick Access, OneDrive, This PC, Network (links working).
 - [ ] **View Modes:** List (current), Details (expanded), Icons (Grid), Tiles.
-- [ ] **Context Menus:** Modern, right-click file/folder actions.
+- [x] **Context Menus:** Modern, right-click file/folder actions.
 - [x] **Status Bar:** Item counts and selection info.
 
 ### Category B: Core Operations

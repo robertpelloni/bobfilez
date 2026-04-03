@@ -377,8 +377,8 @@ int main(int argc, char** argv) {
             exclude_patterns.push_back(a.substr(10));
         } else if (a.rfind("--mode=", 0) == 0) {
             verification_mode = a.substr(7);
-            if (verification_mode != "fast" && verification_mode != "safe" && verification_mode != "paranoid") {
-                std::cerr << "Unknown mode: " << verification_mode << " (use fast, safe, or paranoid)\n";
+            if (verification_mode != "fast" && verification_mode != "safe" && verification_mode != "paranoid" && verification_mode != "media") {
+                std::cerr << "Unknown mode: " << verification_mode << " (use fast, safe, paranoid, or media)\n";
                 return 2;
             }
         } else if (a == "--no-recursive") {
@@ -480,41 +480,162 @@ int main(int argc, char** argv) {
         } else if (command == "duplicates") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
-            if (verbose) std::cerr << "Scanned " << files.size() << " files, finding duplicates...\n";
-            auto groups = engine.find_duplicates(files);
-            if (verbose) std::cerr << "Found " << groups.size() << " duplicate groups\n";
-
-            // Apply verification mode
-            if (verification_mode == "safe" || verification_mode == "paranoid") {
-                if (verbose) std::cerr << "Running strong hash verification...\n";
-                // Collect all files that need strong hashing across all groups
-                struct StrongHashTask { size_t group_idx; size_t file_idx; std::string hash; };
-                std::vector<StrongHashTask> tasks;
-                for (size_t gi = 0; gi < groups.size(); ++gi) {
-                    for (size_t fi = 0; fi < groups[gi].files.size(); ++fi) {
-                        tasks.push_back({gi, fi, ""});
+            
+            std::vector<fo::core::DuplicateGroup> groups;
+            
+            if (verification_mode == "media") {
+                if (verbose) std::cerr << "Scanned " << files.size() << " files, analyzing media...\n";
+                // Separate videos and audio
+                std::vector<fo::core::FileInfo> videos;
+                std::vector<fo::core::FileInfo> audios;
+                
+                for (const auto& f : files) {
+                    std::string ext = std::filesystem::path(f.uri).extension().string();
+                    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                    if (ext == ".mp4" || ext == ".mkv" || ext == ".avi" || ext == ".mov" || ext == ".webm") videos.push_back(f);
+                    else if (ext == ".mp3" || ext == ".flac" || ext == ".wav" || ext == ".aac" || ext == ".ogg" || ext == ".m4a") audios.push_back(f);
+                }
+                
+                if (verbose) std::cerr << "Found " << videos.size() << " videos and " << audios.size() << " audio files.\n";
+                
+                // --- Video Deduplication ---
+                auto vhasher = fo::core::Registry<fo::core::IVideoHasher>::instance().create("ffmpeg");
+                if (vhasher && !videos.empty()) {
+                    if (verbose) std::cerr << "Hashing " << videos.size() << " videos...\n";
+                    std::vector<fo::core::VideoHashResult> vhashes(videos.size());
+                    
+                    if (num_threads > 1) {
+                        std::vector<std::thread> threads;
+                        size_t chunk = (videos.size() + num_threads - 1) / num_threads;
+                        for (int t = 0; t < num_threads; ++t) {
+                            size_t start = t * chunk;
+                            size_t end = std::min(start + chunk, videos.size());
+                            if (start >= videos.size()) break;
+                            threads.emplace_back([&, start, end]() {
+                                auto th_hasher = fo::core::Registry<fo::core::IVideoHasher>::instance().create("ffmpeg");
+                                for (size_t i = start; i < end; ++i) {
+                                    try { vhashes[i] = th_hasher->hash_video(videos[i].uri, 32); } catch (...) {}
+                                }
+                            });
+                        }
+                        for (auto& th : threads) th.join();
+                    } else {
+                        for (size_t i = 0; i < videos.size(); ++i) {
+                            try { vhashes[i] = vhasher->hash_video(videos[i].uri, 32); } catch (...) {}
+                        }
+                    }
+                    
+                    // Group similar videos O(N^2)
+                    std::vector<bool> grouped(videos.size(), false);
+                    for (size_t i = 0; i < videos.size(); ++i) {
+                        if (grouped[i] || vhashes[i].frame_hashes.empty()) continue;
+                        
+                        fo::core::DuplicateGroup dg;
+                        dg.files.push_back(videos[i]);
+                        grouped[i] = true;
+                        
+                        for (size_t j = i + 1; j < videos.size(); ++j) {
+                            if (grouped[j] || vhashes[j].frame_hashes.empty()) continue;
+                            if (vhashes[i].similarity(vhashes[j]) >= 0.90) { // 90% similarity
+                                dg.files.push_back(videos[j]);
+                                grouped[j] = true;
+                            }
+                        }
+                        if (dg.files.size() > 1) {
+                            dg.size = dg.files[0].size; // reference size
+                            dg.fast64 = "vhash_sim";
+                            groups.push_back(std::move(dg));
+                        }
                     }
                 }
-
-                auto& hasher = engine.hasher();
-                if (num_threads > 1 && tasks.size() > 1) {
-                    // Parallel strong hashing
-                    std::vector<std::thread> threads;
-                    size_t chunk = (tasks.size() + num_threads - 1) / num_threads;
-                    for (int t = 0; t < num_threads; ++t) {
-                        size_t start = t * chunk;
-                        size_t end = std::min(start + chunk, tasks.size());
-                        if (start >= tasks.size()) break;
-                        threads.emplace_back([&, start, end]() {
-                            auto th = fo::core::Registry<fo::core::IHasher>::instance().create(hasher.name());
-                            for (size_t i = start; i < end; ++i) {
-                                auto strong = th->strong(std::filesystem::path(groups[tasks[i].group_idx].files[tasks[i].file_idx].uri));
-                                tasks[i].hash = strong.value_or("unknown");
-                            }
-                        });
+                
+                // --- Audio Deduplication ---
+                auto ahasher = fo::core::Registry<fo::core::IAudioFingerprinter>::instance().create("chromaprint");
+                if (ahasher && !audios.empty()) {
+                    if (verbose) std::cerr << "Fingerprinting " << audios.size() << " audios...\n";
+                    std::vector<fo::core::AudioFingerprint> afingerprints(audios.size());
+                    
+                    if (num_threads > 1) {
+                        std::vector<std::thread> threads;
+                        size_t chunk = (audios.size() + num_threads - 1) / num_threads;
+                        for (int t = 0; t < num_threads; ++t) {
+                            size_t start = t * chunk;
+                            size_t end = std::min(start + chunk, audios.size());
+                            if (start >= audios.size()) break;
+                            threads.emplace_back([&, start, end]() {
+                                auto th_hasher = fo::core::Registry<fo::core::IAudioFingerprinter>::instance().create("chromaprint");
+                                for (size_t i = start; i < end; ++i) {
+                                    try { afingerprints[i] = th_hasher->fingerprint(audios[i].uri, 120.0); } catch (...) {}
+                                }
+                            });
+                        }
+                        for (auto& th : threads) th.join();
+                    } else {
+                        for (size_t i = 0; i < audios.size(); ++i) {
+                            try { afingerprints[i] = ahasher->fingerprint(audios[i].uri, 120.0); } catch (...) {}
+                        }
                     }
-                    for (auto& th : threads) th.join();
-                } else {
+                    
+                    // Group similar audios O(N^2)
+                    std::vector<bool> grouped(audios.size(), false);
+                    for (size_t i = 0; i < audios.size(); ++i) {
+                        if (grouped[i] || afingerprints[i].fingerprints.empty()) continue;
+                        
+                        fo::core::DuplicateGroup dg;
+                        dg.files.push_back(audios[i]);
+                        grouped[i] = true;
+                        
+                        for (size_t j = i + 1; j < audios.size(); ++j) {
+                            if (grouped[j] || afingerprints[j].fingerprints.empty()) continue;
+                            if (afingerprints[i].similarity(afingerprints[j]) >= 0.85) { // 85% similarity
+                                dg.files.push_back(audios[j]);
+                                grouped[j] = true;
+                            }
+                        }
+                        if (dg.files.size() > 1) {
+                            dg.size = dg.files[0].size; // reference size
+                            dg.fast64 = "afingerprint_sim";
+                            groups.push_back(std::move(dg));
+                        }
+                    }
+                }
+                if (verbose) std::cerr << "Media analysis completed.\n";
+            } else {
+                if (verbose) std::cerr << "Scanned " << files.size() << " files, finding duplicates...\n";
+                groups = engine.find_duplicates(files);
+                if (verbose) std::cerr << "Found " << groups.size() << " duplicate groups\n";
+
+                // Apply verification mode
+                if (verification_mode == "safe" || verification_mode == "paranoid") {
+                    if (verbose) std::cerr << "Running strong hash verification...\n";
+                    // Collect all files that need strong hashing across all groups
+                    struct StrongHashTask { size_t group_idx; size_t file_idx; std::string hash; };
+                    std::vector<StrongHashTask> tasks;
+                    for (size_t gi = 0; gi < groups.size(); ++gi) {
+                        for (size_t fi = 0; fi < groups[gi].files.size(); ++fi) {
+                            tasks.push_back({gi, fi, ""});
+                        }
+                    }
+
+                    auto& hasher = engine.hasher();
+                    if (num_threads > 1 && tasks.size() > 1) {
+                        // Parallel strong hashing
+                        std::vector<std::thread> threads;
+                        size_t chunk = (tasks.size() + num_threads - 1) / num_threads;
+                        for (int t = 0; t < num_threads; ++t) {
+                            size_t start = t * chunk;
+                            size_t end = std::min(start + chunk, tasks.size());
+                            if (start >= tasks.size()) break;
+                            threads.emplace_back([&, start, end]() {
+                                auto th = fo::core::Registry<fo::core::IHasher>::instance().create(hasher.name());
+                                for (size_t i = start; i < end; ++i) {
+                                    auto strong = th->strong(std::filesystem::path(groups[tasks[i].group_idx].files[tasks[i].file_idx].uri));
+                                    tasks[i].hash = strong.value_or("unknown");
+                                }
+                            });
+                        }
+                        for (auto& th : threads) th.join();
+                    } else {
                     // Sequential strong hashing
                     for (auto& task : tasks) {
                         auto strong = hasher.strong(std::filesystem::path(groups[task.group_idx].files[task.file_idx].uri));
@@ -577,6 +698,8 @@ int main(int argc, char** argv) {
                 }
                 groups = std::move(verified);
             }
+            
+            } // End of else block for normal duplicates
 
             if (count_only) {
                 std::cout << groups.size() << "\n";
