@@ -150,18 +150,35 @@ Rectangle {
                                 Layout.fillWidth: true
                                 text: searchPanel.searchQuery
                                 color: "white"; font.pixelSize: 14
-                                placeholderText: searchPanel.activeMode === 0 ? "Filename or path (regex / wildcard / fuzzy)..." :
-                                                 searchPanel.activeMode === 1 ? "Search in file contents..." :
-                                                 searchPanel.activeMode === 2 ? "Find (in file contents)..." :
-                                                 "Describe the image you're looking for (e.g. 'a dog playing in a park at sunset')..."
+                                placeholderText: searchPanel.activeMode === 0 ? "Everything syntax: ext:mp4 size:>1gb date:today ..." :
+                                                 searchPanel.activeMode === 1 ? "Boolean content search: word1 AND word2 ..." :
+                                                 searchPanel.activeMode === 2 ? "Find & Replace in files..." :
+                                                 "Semantic Query: 'a dog in the grass'..."
                                 onTextChanged: searchPanel.searchQuery = text
                                 onAccepted: searchPanel.startSearch()
                             }
+                            // Syntax Help Button
+                            Label { text: "❓"; color: "#666"; MouseArea { anchors.fill: parent; onClicked: syntaxHelp.open() } }
                             // Live clear button
                             Label { text: "✕"; color: "#666"; visible: qField.text.length > 0
                                 MouseArea { anchors.fill: parent; onClicked: { qField.text = ""; searchPanel.searchQuery = "" } } }
                         }
                     }
+
+                    Popup {
+                        id: syntaxHelp
+                        parent: Overlay.overlay; x: (parent.width - width)/2; y: 100; width: 400; height: 350
+                        background: Rectangle { color: "#1e1e1e"; radius: 8; border.color: "#333" }
+                        ColumnLayout {
+                            anchors.fill: parent; anchors.margins: 20; spacing: 10
+                            Label { text: "Everything Search Syntax"; color: "white"; font.bold: true; font.pixelSize: 16 }
+                            Label { text: "• ext:cpp;hpp  - filter by extension\n• size:>100mb  - filter by size\n• dm:today     - modified today\n• !word        - NOT match\n• \"exact phrase\" - literal match\n• path:C:/Users - match path"; color: "#aaa"; font.pixelSize: 12 }
+                            Label { text: "Boolean Operators"; color: "white"; font.bold: true; font.pixelSize: 13 }
+                            Label { text: "• AND (default) - word1 word2\n• OR - word1 | word2\n• NOT - !word"; color: "#aaa"; font.pixelSize: 12 }
+                            Button { text: "Close"; Layout.alignment: Qt.AlignHCenter; onClicked: syntaxHelp.close() }
+                        }
+                    }
+
 
                     Button {
                         text: searchPanel.isSearching ? "⏳" : "▶ Search"

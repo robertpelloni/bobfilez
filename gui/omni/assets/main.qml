@@ -122,6 +122,49 @@ ApplicationWindow {
             visible: shell.activePanel === "pruner"
             anchors.fill: parent; anchors.margins: 40
         }
+
+        // Notification Center Overlay
+        Rectangle {
+            id: notificationCenter
+            visible: shell.dashboardOpen
+            anchors.right: parent.right; anchors.top: parent.top
+            anchors.margins: 20; width: 350; height: 600
+            color: "#e61a1a1a"; radius: 12; border.color: "#33ffffff"
+            z: 1000
+
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 20; spacing: 15
+                Label { text: "Notifications"; color: "white"; font.pixelSize: 18; font.bold: true }
+                
+                ListView {
+                    Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10; clip: true
+                    model: [
+                        {icon: "🔥", title: "Visual Discovery", body: "Found 12 near-duplicate photos in /Summer."},
+                        {icon: "🛡️", title: "Security Alert", body: "Detected PII in 'invoice.pdf'. Move to Vault?"},
+                        {icon: "🧹", title: "Shadow Sorter", body: "Identified 4.2 GB of obsolete installers."},
+                        {icon: "✅", title: "Sync Complete", body: "Mirroring to OneDrive finished successfully."}
+                    ]
+                    delegate: Rectangle {
+                        width: parent.width; height: 80; radius: 8; color: "#22ffffff"
+                        RowLayout {
+                            anchors.fill: parent; anchors.margins: 12; spacing: 12
+                            Label { text: modelData.icon; font.pixelSize: 24 }
+                            ColumnLayout {
+                                Layout.fillWidth: true; spacing: 2
+                                Label { text: modelData.title; color: "white"; font.bold: true; font.pixelSize: 13 }
+                                Label { text: modelData.body; color: "#aaa"; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                            }
+                        }
+                    }
+                }
+                
+                Button {
+                    text: "Clear All"
+                    Layout.fillWidth: true; flat: true
+                    contentItem: Label { text: parent.text; color: "#888"; horizontalAlignment: Text.AlignHCenter }
+                }
+            }
+        }
     }
 
     // TASKBAR

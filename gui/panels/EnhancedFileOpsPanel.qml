@@ -627,6 +627,7 @@ Rectangle {
                         SC{Layout.fillWidth:true;model:["Do nothing","Open destination folder","Eject drive","Shutdown PC","Sleep","Log off","Play sound file"]}
                         CheckBox{contentItem:Label{text:"Estimate only (no copy, just calculate)";color:"#ccc";leftPadding:4;font.pixelSize:11}}
                         CheckBox{contentItem:Label{text:"Write log file to temp folder";color:"#ccc";leftPadding:4;font.pixelSize:11}checked:true}
+                        CheckBox{contentItem:Label{text:"Register as system handler (TeraCopy mode)";color:"#0078d4";leftPadding:4;font.pixelSize:11}}
                     }
                 }
             }

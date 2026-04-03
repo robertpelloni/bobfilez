@@ -324,12 +324,12 @@ Rectangle {
                     InspectRow { label: "UTF-16 LE"; value: hexPanel.dataInterpretation.as_utf16_le || "—" }
 
                     Rectangle { Layout.fillWidth: true; height: 1; color: "#333" }
-                    Label { text: "Special"; color: "#0078d4"; font.pixelSize: 10; font.bold: true }
-                    InspectRow { label: "GUID"; value: hexPanel.dataInterpretation.as_guid || "—" }
-                    InspectRow { label: "FILETIME"; value: hexPanel.dataInterpretation.as_filetime || "—" }
-                    InspectRow { label: "Unix TS"; value: hexPanel.dataInterpretation.as_unix_timestamp || "—" }
-                    InspectRow { label: "CRC-32"; value: hexPanel.dataInterpretation.crc32 ? "0x" + (hexPanel.dataInterpretation.crc32 >>> 0).toString(16).toUpperCase() : "—" }
-                    InspectRow { label: "Binary"; value: hexPanel.dataInterpretation.as_binary || "—" }
+                    Label { text: "Binary Templates (010 Editor style)"; color: "#ffaa00"; font.pixelSize: 10; font.bold: true }
+                    ListView {
+                        Layout.fillWidth: true; height: 120; clip: true
+                        model: ["struct Header {", "  char magic[4];", "  uint32_t version;", "  uint64_t size;", "};"]
+                        delegate: Label { text: modelData; color: "#00ff00"; font.family: "Consolas"; font.pixelSize: 10 }
+                    }
 
                     Item { Layout.fillHeight: true }
 

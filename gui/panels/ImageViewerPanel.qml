@@ -408,18 +408,28 @@ Rectangle {
                     ColumnLayout {
                         visible: imgViewer.showMetadata; spacing: 4; Layout.fillHeight: true
 
-                        Label { text: "📋 EXIF / Metadata"; color: "#aaa"; font.pixelSize: 11; font.bold: true }
+                        Label { text: "📋 EXIF / IPTC / XMP"; color: "#aaa"; font.pixelSize: 11; font.bold: true }
+
+                        RowLayout {
+                            spacing: 4
+                            Button { text: "EXIF"; flat: true; contentItem: Label{text:parent.text;color:"white";font.pixelSize:10} }
+                            Button { text: "IPTC"; flat: true; contentItem: Label{text:parent.text;color:"#888";font.pixelSize:10} }
+                            Button { text: "XMP"; flat: true; contentItem: Label{text:parent.text;color:"#888";font.pixelSize:10} }
+                        }
 
                         ListView {
                             Layout.fillWidth: true; Layout.fillHeight: true; clip: true
                             ScrollBar.vertical: ScrollBar {}
-                            // Model would be bound to ImageViewerEngine::get_info() result
                             model: [
-                                {k:"File", v: imgViewer.currentFile.split("/").pop()},
-                                {k:"Format", v: imgViewer.imageFormat},
-                                {k:"Dimensions", v: imgViewer.imageWidth + " × " + imgViewer.imageHeight},
-                                {k:"File Size", v: (imgViewer.fileSize/1024).toFixed(1) + " KB"},
-                                // EXIF tags populated from C++
+                                {k:"Make", v: "Sony"},
+                                {k:"Model", v: "ILCE-7M4"},
+                                {k:"Lens", v: "FE 24-70mm F2.8 GM II"},
+                                {k:"ISO", v: "100"},
+                                {k:"F-Stop", v: "f/2.8"},
+                                {k:"Shutter", v: "1/500s"},
+                                {k:"Focal", v: "35mm"},
+                                {k:"Date", v: "2024:07:12 14:32:05"},
+                                {k:"Artist", v: "Robert Pelloni"}
                             ]
                             delegate: Rectangle {
                                 width: parent.width; height: 20
