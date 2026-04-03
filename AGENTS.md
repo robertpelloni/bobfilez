@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v4.8.0)
+## Current Status (v4.9.0)
 
+- ✅ **OmniAudio DAW**: Professional Digital Audio Workstation integrated into the shell with multitrack mixing, VST/DSP effects, Shazam-style track identification, and AI Stem Separation (Vocals/Drums/Bass) via Meta Audiocraft.
 - ✅ **OmniVision NLE**: Non-Linear Editor integrated into the shell using OpenTimelineIO, OpenColorIO, and MPV for pro-grade media editing and color grading.
 - ✅ **OmniMount VFS**: Native OS integration via Dokany/FUSE allowing semantic searches, live folders, and data swarms to be mounted as real OS drive letters (e.g., `Z:\`).
 - ✅ **OmniOracle**: Local LLM RAG (Retrieval-Augmented Generation) copilot that allows conversational interaction with the filesystem, automated workflow dispatching, and intelligent document summarization.

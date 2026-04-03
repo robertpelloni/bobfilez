@@ -171,6 +171,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 20
         }
 
+        // OmniAudio DAW (Music Production)
+        OmniAudioPanel {
+            visible: shell.activePanel === "omniaudio"
+            anchors.fill: parent; anchors.margins: 20
+        }
+
         // OmniGraph (Semantic Knowledge Graph)
         OmniGraphPanel {
             visible: shell.activePanel === "omnigraph"

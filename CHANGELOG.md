@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.9.0] - 2026-04-03
+
+### Added — The "OmniAudio DAW" Release
+
+#### 🎧 OmniAudio: In-Shell Digital Audio Workstation
+- **`omniaudio_engine_interface.hpp` & `omniaudio_engine.cpp`**: Implemented a professional Digital Audio Workstation (DAW) engine directly into the file manager shell.
+- **AI Stem Separation**: Integrated Meta `audiocraft` (Demucs) concepts to automatically extract isolated stems (Vocals, Drums, Bass, Melody) from any mixed audio track with a single click.
+- **Acoustic Fingerprinting**: Implemented `ShazamIO` / `audio-recognizer` logic to instantly identify unknown audio files and tag them with correct artist/album metadata.
+- **`OmniAudioPanel.qml`**: A comprehensive multi-track timeline UI featuring draggable audio clips, simulated waveform rendering, a master mixer with vertical VU meters and faders, and a VST/DSP plugin rack.
+
+### Version
+- Bumped to **4.9.0**.
+
 ## [4.8.0] - 2026-04-03
 
 ### Added — The "OmniVision NLE" Release

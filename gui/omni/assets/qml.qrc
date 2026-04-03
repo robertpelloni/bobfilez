@@ -33,6 +33,7 @@
         <file>../../panels/OmniFlowPanel.qml</file>
         <file>../../panels/TimeMachinePanel.qml</file>
         <file>../../panels/OmniVisionPanel.qml</file>
+        <file>../../panels/OmniAudioPanel.qml</file>
         <file>../../panels/PhotoDevelopPanel.qml</file>
         <file>../../panels/PhotoLibraryPanel.qml</file>
         <file>../../panels/OraclePanel.qml</file>
