@@ -5,6 +5,8 @@
         <file>Dashboard.qml</file>
         <file>DesktopIcons.qml</file>
         <file>StartMenu.qml</file>
+        <file>Taskbar.qml</file>
+        <file>ExplorerWindow.qml</file>
         <file>../../panels/BatchConvertPanel.qml</file>
         <file>../../panels/BatchRenamePanel.qml</file>
         <file>../../panels/EnhancedFileOpsPanel.qml</file>
