@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.24] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Recovery Reduction" Release
+
+#### 🩹 Third Routed-Panel Conversion
+- Updated **`gui/panels/RecoveryPanel.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with plain `QtQuick` primitives and small local helpers, including:
+  - `Label` → `Text`
+  - action `Button`s → local `PanelButton` helper
+  - `GroupBox` integrity-exceptions section → explicit titled `Text` + `Rectangle` container
+  - repeated dashboard metrics → local `StatCard` helper
+- Added a local `corruptionColor()` helper to keep conditional stat styling readable and explicit.
+
+#### 📊 Routed-Panel Pattern Strengthened
+- This is the **third successful routed-panel controls-removal pass** after `DigitalRotPanel.qml` and `SwarmPanel.qml`.
+- It further validates the current strategy of targeting dashboard-style, interaction-light panels before richer widget-heavy surfaces.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **37 QML files** importing `QtQuick.Controls`
+  - to **36 QML files**
+- The migration remains incremental, quantitative, and cumulative.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_RECOVERY_REDUCTION.md`** documenting why `RecoveryPanel.qml` was such a strong follow-up target and how the helper-based conversion preserves readability.
+
+### Version
+- Bumped to **6.0.24**.
+
 ## [6.0.23] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Swarm Reduction" Release

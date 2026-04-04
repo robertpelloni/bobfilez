@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 115b272f | **Branch:** main | **Version:** 6.0.23
+**Generated:** 2026-04-04 | **Commit:** 0ac3a19f | **Branch:** main | **Version:** 6.0.24
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -95,8 +95,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.23)
+## Current Status (v6.0.24)
 
+- ✅ **QtQuick.Controls Recovery Reduction**: Removed `QtQuick.Controls` usage from `RecoveryPanel.qml`, replacing labels, buttons, and the `GroupBox` section with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 37 QML files to 36.
+- ✅ **Third Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer pattern is now supported by three successful dashboard-style conversions, strengthening the case for continuing with similar low-diversity panels before richer surfaces.
 - ✅ **QtQuick.Controls Swarm Reduction**: Removed `QtQuick.Controls` usage from `SwarmPanel.qml`, replacing labels, buttons, the `GroupBox` section, and the `ProgressBar` with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 38 QML files to 37.
 - ✅ **Second Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer pattern is holding: self-contained dashboard-style panels remain the safest next-wave candidates after the shell-assets layer.
 - ✅ **QtQuick.Controls Digital Rot Reduction**: Removed `QtQuick.Controls` usage from `DigitalRotPanel.qml`, replacing labels, buttons, and the `GroupBox` section with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 39 QML files to 38.
@@ -193,6 +195,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 39)
+**Author:** GPT
+
+**Scope:** v6.0.24 QtQuick.Controls Recovery Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/panels/RecoveryPanel.qml`.
+- ✅ Replaced labels, buttons, and the `GroupBox` integrity-exceptions section with plain `QtQuick` primitives plus local helper components (`PanelButton`, `StatCard`).
+- ✅ Added a small local `corruptionColor()` helper to keep stat styling explicit and readable.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 37 QML files to 36.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_RECOVERY_REDUCTION.md` documenting why `RecoveryPanel.qml` was a strong follow-up dashboard-style panel target.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Continue with other self-contained, dashboard-style routed panels before richer control-dense surfaces.
+2. Keep the controls-import count as the primary quantitative migration metric.
+3. Continue favoring small local helper components over premature shared abstractions.
 
 ---
 
