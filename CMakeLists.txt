@@ -5,14 +5,16 @@ project(bobfilezEngine LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         CACHE STRING "Vcpkg toolchain file")
 endif()
 
 option(FO_BUILD_CLI "Build the CLI engine" ON)
-option(FO_BUILD_GUI "Build the Qt GUI" OFF)
-option(FO_BUILD_OMNI "Build the OmniUI Shell" ON)
+option(FO_BUILD_GUI "Build the BobUI GUI" OFF)
+option(FO_BUILD_OMNI "Build the BobUI / Omni shell" ON)
 option(FO_BUILD_BENCH "Build benchmark tools" ON)
 option(FO_BUILD_TESTS "Build unit tests" ON)
 option(FO_BUILD_FUZZERS "Build libFuzzer targets" OFF)
@@ -20,6 +22,11 @@ option(FO_BUILD_FUZZERS "Build libFuzzer targets" OFF)
 # Read version from VERSION.md
 file(READ "${CMAKE_SOURCE_DIR}/VERSION.md" FO_VERSION_STRING)
 string(STRIP "${FO_VERSION_STRING}" FO_VERSION_STRING)
+
+if(FO_BUILD_GUI OR FO_BUILD_OMNI)
+  include(BobUIQtSetup)
+  fo_configure_bobui_qt()
+endif()
 
 add_subdirectory(core)
 if(FO_BUILD_CLI)

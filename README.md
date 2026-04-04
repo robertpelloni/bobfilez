@@ -11,7 +11,7 @@ bobfilez is built for power users who need:
 - **Flexible metadata extraction** (EXIF, filename parsing, OCR)
 - **Perceptual image hashing** for near-duplicate photos
 - **Blazing-fast hashing** with multiple algorithms (xxHash, SHA-256, BLAKE3)
-- **CLI-first architecture** with optional Qt/Electron GUIs
+- **CLI-first architecture** with optional BobUI (Qt fork) / web GUIs
 - **Complete control** over scanning, hashing, and organization workflows
 
 Unlike other tools that crash, misidentify duplicates, or sacrifice speed for features, bobfilez lets you **choose your trade-offs** via swappable providers and detailed benchmarking.
@@ -81,17 +81,18 @@ cmake --build build
 
 See [`README_CLI.md`](README_CLI.md) for detailed CLI usage.
 
-### GUI (Legacy Qt App)
+### GUI (BobUI / OmniUI)
 
-The original Qt GUI (`Openfilez`) is being refactored to use the CLI engine as a backend. For now, build with:
+The preferred native UI stack is **BobUI** (`github.com/robertpelloni/bobui`), Robert Pelloni's Qt fork, exposed in this repo at `libs/bobui`.
 
-```bash
-# Open in Visual Studio (Windows)
-# or Qt Creator (cross-platform)
-Openfilez.sln / Openfilez.pro
-```
+For CMake-based GUI builds, bobfilez now prefers BobUI as the **Qt6 package provider** for `fo_gui` / `fo_omni`.
 
-GUI decoupling roadmap: see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Practical notes:
+- the CMake targets still use standard `Qt6::Core`, `Qt6::Gui`, etc.
+- but the expected provider is **BobUI-built Qt6**, not a separately installed stock Qt
+- you can point discovery explicitly with `BOBUI_ROOT` if needed
+
+Legacy Visual Studio / `.sln` artifacts still exist, but the product direction is BobUI / OmniUI rather than a generic stock-Qt frontend.
 
 ---
 
@@ -159,7 +160,8 @@ filez uses a **plugin architecture** where:
 
 - **CMake** 3.16+
 - **C++20 compiler** (MSVC 2019+, GCC 10+, Clang 12+)
-- **vcpkg** (optional, for Exiv2/BLAKE3/Tesseract)
+- **vcpkg** (optional, for Exiv2/BLAKE3/Tesseract and other native deps)
+- **BobUI** for native GUI / Omni builds (`libs/bobui`, or a BobUI-built Qt6 install exposed via `BOBUI_ROOT`)
 
 ### Linux / macOS
 
@@ -186,11 +188,16 @@ cmake --build build -j$(nproc)
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg; .\bootstrap-vcpkg.bat; .\vcpkg integrate install
 
-# Build
+# CLI / headless build
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 
-# Run
+# Preferred native GUI / Omni build (using BobUI as the Qt6 provider)
+$env:BOBUI_ROOT="C:\path\to\bobui-or-bobui-install"
+cmake -S . -B build-gui -G "Visual Studio 17 2022" -A x64 -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
+cmake --build build-gui --config Release
+
+# Run CLI
 .\build\cli\Release\fo_cli.exe --help
 ```
 

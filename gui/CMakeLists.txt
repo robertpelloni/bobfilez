@@ -5,6 +5,8 @@ endif()
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Qml Quick REQUIRED)
 
+message(STATUS "fo_gui will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
+
 # OmniUI Core Sources (Local path relative to gui/)
 set(OMNI_CORE_DIR ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/core)
 set(OMNI_CORE_SOURCES

@@ -1,5 +1,39 @@
 # Changelog
 
+## [6.0.6] - 2026-04-04
+
+### Improved — The "BobUI Qt Provider Preference" Release
+
+#### 🖥️ BobUI-First GUI Discovery
+- Added **`cmake/BobUIQtSetup.cmake`**.
+- The root build now prefers **`github.com/robertpelloni/bobui`** as the Qt provider whenever `FO_BUILD_GUI` or `FO_BUILD_OMNI` is enabled.
+- The helper checks:
+  - `BOBUI_ROOT`
+  - `FO_BOBUI_ROOT`
+  - local `libs/bobui`
+- It appends likely BobUI build/install prefixes to `CMAKE_PREFIX_PATH` so `find_package(Qt6 ...)` can resolve against BobUI rather than assuming a separately installed stock Qt.
+
+#### 🔧 Build Wording Cleanup
+- Updated root option descriptions to refer to the **BobUI GUI** / **BobUI Omni shell** instead of generic Qt wording.
+- Added status messages in:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+  to make the BobUI-backed Qt resolution path explicit during configure.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BOBUI_PROVIDER_SETUP.md`** documenting the correct integration model:
+  - BobUI is a Qt fork
+  - bobfilez should still consume normal `Qt6::*` targets
+  - but those packages should come from BobUI when GUI builds are enabled
+- Updated **`README.md`** to describe BobUI as the preferred native GUI stack.
+
+#### 🧭 Go Port Status Clarification
+- Confirmed there is **no active Go port** in the current bobfilez tree.
+- The maintained alternate implementation present in-repo is still **`filez-java/`**.
+
+### Version
+- Bumped to **6.0.6**.
+
 ## [6.0.5] - 2026-04-04
 
 ### Fixed — The "Headless Build Stabilization" Release
