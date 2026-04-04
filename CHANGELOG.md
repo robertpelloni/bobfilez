@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.25] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Forensic Reduction" Release
+
+#### 🛡️ Fourth Routed-Panel Conversion
+- Updated **`gui/panels/ForensicPanel.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with plain `QtQuick` primitives and small local helpers, including:
+  - `Label` → `Text`
+  - action `Button`s → local `PanelButton` helper
+  - `GroupBox` chain-of-custody section → explicit titled `Text` + `Rectangle` container
+  - repeated ledger summary cards → local `StatCard` helper
+- Removed the stock `ScrollBar.vertical: ScrollBar {}` attachment so the list view is fully free of Controls usage.
+- Added local `integrityFillColor()` and `integrityTextColor()` helpers to keep badge styling explicit and readable.
+
+#### 📊 Routed-Panel Pattern Reinforced Again
+- This is the **fourth successful routed-panel controls-removal pass** after `DigitalRotPanel.qml`, `SwarmPanel.qml`, and `RecoveryPanel.qml`.
+- The dashboard-style, interaction-light migration lane is now strongly established.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **36 QML files** importing `QtQuick.Controls`
+  - to **35 QML files**
+- The migration remains cumulative, measurable, and low-risk.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_FORENSIC_REDUCTION.md`** documenting why `ForensicPanel.qml` was a strong next candidate and how the helper-based rewrite preserved clarity.
+
+### Version
+- Bumped to **6.0.25**.
+
 ## [6.0.24] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Recovery Reduction" Release
