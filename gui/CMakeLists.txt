@@ -19,6 +19,8 @@ set(GUI_SOURCES
     omni/src/main.cpp
     omni/src/FileModel.cpp
     omni/src/FileModel.h
+    omni/src/NativeMarkdownView.cpp
+    omni/src/NativeMarkdownView.h
     ${OMNI_CORE_SOURCES}
 )
 

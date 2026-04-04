@@ -1,14 +1,14 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtWebEngine 1.9
+import Omni.Native 1.0
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MarkdownViewerPanel.qml
 // Full-featured Markdown viewer/editor — features from Typora, Mark Text, Obsidian.
 //
 // Left: optional source editor (Monaco-style syntax highlighting)
-// Right: live rendered HTML via WebEngineView (KaTeX math, Mermaid, highlight.js)
+// Right: native rendered preview via MarkdownView (no WebEngine dependency)
 //
 // Features:
 //   • Live preview as you type (debounced 300ms)
@@ -27,7 +27,6 @@ Rectangle {
 
     property string filePath: ""
     property string rawMarkdown: ""
-    property string renderedHtml: ""
     property bool showEditor: true        // Split view: editor + preview
     property bool showToc: true           // TOC sidebar
     property int wordCount: 0
@@ -44,6 +43,34 @@ Rectangle {
     signal exportPdf()
     signal exportDocx()
     signal refreshRender()
+
+    function parseTocEntries(markdown) {
+        var entries = []
+        var lines = markdown.split("\n")
+        for (var i = 0; i < lines.length; ++i) {
+            var line = lines[i]
+            var match = line.match(/^(#{1,6})\s+(.*)$/)
+            if (match) {
+                var headingText = match[2].trim()
+                var anchor = headingText.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-")
+                entries.push({ level: match[1].length, text: headingText, anchor: anchor })
+            }
+        }
+        return entries
+    }
+
+    function performNativeRender() {
+        previewView.sourceMarkdown = mdPanel.rawMarkdown
+        previewView.themeMode = mdPanel.activeTheme
+        mdPanel.wordCount = previewView.wordCount
+        mdPanel.readingTimeMins = previewView.readingTimeMinutes
+        mdPanel.documentTitle = previewView.documentTitle
+        mdPanel.tocEntries = parseTocEntries(mdPanel.rawMarkdown)
+    }
+
+    onRefreshRender: performNativeRender()
+
+    Component.onCompleted: performNativeRender()
 
     ColumnLayout {
         anchors.fill: parent; spacing: 0
@@ -223,10 +250,7 @@ Rectangle {
                                 }
                             }
 
-                            MouseArea { anchors.fill: parent; onClicked: {
-                                // Scroll WebEngine to anchor
-                                previewView.runJavaScript("document.getElementById('" + (modelData.anchor || "") + "')?.scrollIntoView({behavior:'smooth'})")
-                            }}
+                            MouseArea { anchors.fill: parent; onClicked: previewView.scrollToAnchor(modelData.anchor || "") }
                         }
                     }
                 }
@@ -281,35 +305,18 @@ Rectangle {
 
             Rectangle { visible: mdPanel.showEditor; width: 1; Layout.fillHeight: true; color: "#2a2a2a" }
 
-            // Preview (WebEngineView)
+            // Preview (NativeMarkdownView)
             Rectangle {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 color: mdPanel.activeTheme === 0 ? "#ffffff" : mdPanel.activeTheme === 2 ? "#f4e8d0" : "#1e1e1e"
 
-                WebEngineView {
+                MarkdownView {
                     id: previewView
                     anchors.fill: parent
-
-                    // Load rendered HTML from C++ MarkdownRenderer
-                    // This is updated whenever mdPanel.renderedHtml changes
-                    onRenderedHtmlChanged: previewView.loadHtml(mdPanel.renderedHtml, "qrc:/")
-
-                    // Handle wikilink navigation
-                    onNavigationRequested: function(req) {
-                        var url = req.url.toString()
-                        if (url.startsWith("wiki://")) {
-                            req.reject()
-                            // emit wikiLinkClicked signal
-                        }
-                    }
-                }
-
-                // Binding: when renderedHtml changes, update WebEngineView
-                Connections {
-                    target: mdPanel
-                    function onRenderedHtmlChanged() {
-                        previewView.loadHtml(mdPanel.renderedHtml, "file:///")
-                    }
+                    sourceMarkdown: mdPanel.rawMarkdown
+                    themeMode: mdPanel.activeTheme
+                    fontFamily: "system-ui"
+                    fontPixelSize: 16
                 }
             }
         }

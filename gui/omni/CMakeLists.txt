@@ -5,7 +5,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 WebEngineQuick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
 
 message(STATUS "fo_omni will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
 
@@ -13,6 +13,7 @@ add_executable(fo_omni
     src/main.cpp
     src/FileModel.cpp
     src/TreemapModel.cpp
+    src/NativeMarkdownView.cpp
     assets/qml.qrc
 )
 
@@ -26,7 +27,6 @@ target_link_libraries(fo_omni PRIVATE
     Qt6::Qml
     Qt6::Quick
     Qt6::QuickControls2
-    Qt6::WebEngineQuick
     fo_core
 )
 

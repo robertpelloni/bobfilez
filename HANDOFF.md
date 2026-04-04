@@ -1,57 +1,57 @@
-# HANDOFF.md — bobfilez Session 25
+# HANDOFF.md — bobfilez Session 26
 
 ## Current Status (2026-04-04)
-**Version:** 6.0.10  
-**Focus:** BobUI native migration cost audit
+**Version:** 6.0.11  
+**Focus:** Markdown WebEngine removal (phase 1 dependency reduction)
 
 ---
 
 ## What Was Done This Session
 
-### 1. Audited the Real Native UI Surface
-- Measured the current bobfilez native shell/UI layer and confirmed it is still overwhelmingly QML-driven.
-- Quantified the current surface as:
-  - **49 QML files**
-  - **9,844 QML lines**
-  - **39 route-driven shell/panel surfaces** hosted by `gui/omni/assets/main.qml`
-- Confirmed the C++ bridge layer is still thin and mostly limited to model exposure (`FileModel`, `TreemapModel`).
-
-### 2. Separated the Migration Questions Properly
-- Audited the cost of removing each dependency category separately instead of treating them as one problem:
-  - `QtWebEngine`
-  - `QtCharts`
-  - `QtGraphicalEffects`
-  - `QtQuick.Controls`
-  - QML composition itself
-  - QtQuick runtime itself
-- This revealed that these have very different costs and should not be planned as one giant rewrite blob.
-
-### 3. Confirmed the Most Important Architectural Constraint
-- Inspected BobUI/OmniUI widget classes and confirmed current BobUI primitives are based on:
-  - `QQuickItem`
+### 1. Removed the Explicit WebEngine Path from Markdown Preview
+- Added a native preview item:
+  - `gui/omni/src/NativeMarkdownView.h`
+  - `gui/omni/src/NativeMarkdownView.cpp`
+- The new preview uses:
   - `QQuickPaintedItem`
-- Therefore:
-  - a BobUI-first migration does **not** currently remove the `QtQuick` dependency
-  - it can reduce dependence on stock controls/effects/web modules
-  - but it does not support a true "no QtQuick" end state with the current BobUI architecture
+  - `QTextDocument`
+  - `fo::core::MarkdownRenderer`
+- This replaces the old browser-style preview path in the markdown panel.
 
-### 4. Confirmed bobfilez Is Not Yet Truly BobUI-Driven
-- Verified that current bobfilez bootstrap does **not** call BobUI's `OmniUI::registerQmlTypes()`.
-- Current shell startup registers only:
-  - `FileModel`
-  - `TreemapModel`
-- This means bobfilez is still primarily a **stock Qt Quick shell** with selective/partial BobUI intent, not a finished BobUI-native shell.
+### 2. Reworked the Markdown Panel
+- Updated **`gui/panels/MarkdownViewerPanel.qml`** to remove:
+  - `import QtWebEngine 1.9`
+  - `WebEngineView`
+- Added:
+  - `import Omni.Native 1.0`
+  - native `MarkdownView` usage
+- Preserved basic panel behavior by keeping:
+  - source editor
+  - word count / reading time / title wiring
+  - simple TOC generation
+- Accepted that this is a simplification step rather than full feature parity with JS-driven browser rendering.
 
-### 5. Produced the Migration Recommendation
-- Added **`docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md`**.
-- Recommendation captured there:
-  1. remove `WebEngineQuick` first
-  2. reduce nonessential stock Qt modules next
-  3. adopt BobUI widgets/layouts incrementally while keeping QML as a composition layer for now
-  4. do **not** try to remove QtQuick entirely unless BobUI itself evolves beyond its current Quick-based architecture
+### 3. Removed `WebEngineQuick` from the Omni Target
+- Updated **`gui/omni/CMakeLists.txt`** to remove:
+  - `WebEngineQuick` from `find_package(Qt6 ...)`
+  - `Qt6::WebEngineQuick` from linking
+- Updated **`gui/omni/src/main.cpp`** to register the new native markdown preview QML type.
+- Updated **`gui/CMakeLists.txt`** so the shared GUI target also includes the new source file.
+
+### 4. Validated the Intended Architectural Result
+- Confirmed there are no remaining `QtWebEngine`, `WebEngineView`, or `WebEngineQuick` references under `gui/`.
+- Re-ran the BobUI consumer probe against the in-place BobUI build tree.
+- Result:
+  - the remaining blocker is still `Qt6Qml`
+  - **not** `WebEngineQuick`
+- This proves the dependency reduction worked as intended and did not change the deeper BobUI declarative-stack blocker already identified.
+
+### 5. Updated Interface and Implementation Documentation
+- Updated **`core/include/fo/core/markdown_viewer_interface.hpp`** comments to describe browser/WebEngine rendering as optional rather than mandatory.
+- Added **`docs/ai/implementation/MARKDOWN_WEBENGINE_REMOVAL.md`** documenting the implementation, feature tradeoffs, and why this was the right phase-one cut.
 
 ### 6. Documentation and Release Alignment
-- Reconciled release/docs metadata to **6.0.10**.
+- Reconciled release/docs metadata to **6.0.11**.
 
 ---
 
@@ -59,8 +59,8 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Full BobUI / Omni shell build | 🟡 Still blocked | BobUI exports a top-level `Qt6Config.cmake` in its in-place build tree, but the current BobUI repo still lacks `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` / `Qt6WebEngineQuick` for bobfilez's present GUI targets. |
-| BobUI-native migration plan | 🟡 Now clarified | Removing `WebEngineQuick` is realistic; removing most QML is expensive; removing `QtQuick` itself is not compatible with current BobUI because BobUI widgets are Quick-based. |
+| Full BobUI / Omni shell build | 🟡 Still blocked | BobUI exports a top-level `Qt6Config.cmake` in its in-place build tree, but the current BobUI repo still lacks `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` for bobfilez's present GUI targets. `WebEngineQuick` is no longer part of the immediate blocker set after this session's markdown change. |
+| BobUI-native migration plan | 🟡 In progress | The first recommended cut (`WebEngineQuick`) is now demonstrated. Removing most QML is still expensive; removing `QtQuick` itself is still incompatible with current BobUI because BobUI widgets are Quick-based. |
 | BOBGUI adoption | ⚪ Not recommended | `bobgui` is available for study, but it is not the right primary UI foundation for bobfilez’s current Qt/QML/Omni direction. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
 
@@ -71,10 +71,9 @@
 1. **Stay on the BobUI path for native UI work**
    - Treat `bobgui` as a comparison/reference library, not the main bobfilez shell foundation.
 
-2. **Target the dependency cuts in the right order**
-   - first `WebEngineQuick`
-   - then `QtCharts` / effects / stock controls
-   - only later revisit wholesale QML reduction
+2. **Take the next smallest dependency cut**
+   - after `WebEngineQuick`, audit and replace `QtCharts` next
+   - then attack `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects`
 
 3. **Do not plan around removing `QtQuick` yet**
    - the current BobUI implementation itself is Quick-based, so a true no-Quick target is premature.

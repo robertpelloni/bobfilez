@@ -5,6 +5,7 @@
 
 #include "FileModel.h"
 #include "TreemapModel.h"
+#include "NativeMarkdownView.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<FileModel>("Omni.File", 1, 0, "FileModel");
     qmlRegisterType<fo::gui::TreemapModel>("Omni.Viz", 1, 0, "TreemapModel");
+    qmlRegisterType<fo::gui::NativeMarkdownView>("Omni.Native", 1, 0, "MarkdownView");
 
     QQmlApplicationEngine engine;
     const QUrl main_qml(QStringLiteral("qrc:/main.qml"));

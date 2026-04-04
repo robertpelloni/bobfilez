@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 938c5fad | **Branch:** main | **Version:** 6.0.10
+**Generated:** 2026-04-04 | **Commit:** 1bf99c42 | **Branch:** main | **Version:** 6.0.11
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **Markdown WebEngine Removal**: Added a native `NativeMarkdownView` preview item, removed `QtWebEngine` / `WebEngineView` usage from `MarkdownViewerPanel.qml`, and removed `WebEngineQuick` from the `fo_omni` dependency set while confirming the remaining BobUI consumer blocker is still `Qt6Qml`.
 - ✅ **BobUI Native Migration Audit**: Added `docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md` and confirmed the current shell is still ~10k lines of QML; removing `WebEngineQuick` is feasible, but removing `QtQuick` itself is not realistic with current BobUI because BobUI widgets are built on `QQuickItem` / `QQuickPaintedItem`.
 - ✅ **BobUI In-Place Build Probe**: Added `scripts/build_bobui_inplace.bat` and confirmed BobUI can export a top-level `Qt6Config.cmake` from an in-place developer build, but the current BobUI tree still lacks `Qt6Qml` and therefore is not yet a full drop-in provider for bobfilez's GUI targets.
 - ✅ **BOBGUI Comparison Added**: Added `libs/bobgui` as a submodule and documented the architectural comparison in `docs/ai/implementation/BOBGUI_VS_BOBUI.md`; conclusion: BobUI remains the correct primary native UI foundation for bobfilez.
@@ -177,6 +178,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 26)
+**Author:** GPT
+
+**Scope:** v6.0.11 Markdown WebEngine Removal
+
+**Delivered:**
+- ✅ Added `gui/omni/src/NativeMarkdownView.h/.cpp` as a native markdown preview surface backed by `QQuickPaintedItem`, `QTextDocument`, and the core `MarkdownRenderer`.
+- ✅ Updated `gui/panels/MarkdownViewerPanel.qml` to remove `QtWebEngine` / `WebEngineView` and use `Omni.Native 1.0` `MarkdownView` instead.
+- ✅ Updated `gui/omni/CMakeLists.txt` to remove `WebEngineQuick` from required Qt components and link libraries.
+- ✅ Updated `gui/CMakeLists.txt`, `gui/omni/src/main.cpp`, and `core/include/fo/core/markdown_viewer_interface.hpp` to support the native preview path cleanly.
+- ✅ Added `docs/ai/implementation/MARKDOWN_WEBENGINE_REMOVAL.md` documenting the implementation, tradeoffs, and validation.
+- ✅ Re-ran the BobUI consumer probe and confirmed the remaining blocker is still `Qt6Qml`, not `WebEngineQuick`.
+
+**Next Steps:**
+1. Use the same strategy on `QtCharts` next.
+2. After that, audit and replace `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects`.
+3. Keep the migration incremental and avoid broad QML deletion until more BobUI-native surfaces are real.
 
 ---
 

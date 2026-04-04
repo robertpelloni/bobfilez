@@ -1,5 +1,41 @@
 # Changelog
 
+## [6.0.11] - 2026-04-04
+
+### Fixed — The "Markdown WebEngine Removal" Release
+
+#### 🧾 Native Markdown Preview
+- Added **`gui/omni/src/NativeMarkdownView.h`** and **`gui/omni/src/NativeMarkdownView.cpp`**.
+- The new preview item renders markdown natively through `QQuickPaintedItem` + `QTextDocument` while reusing the existing core `MarkdownRenderer`.
+- Exposed basic preview metadata back to QML:
+  - word count
+  - reading time
+  - document title
+
+#### 🧹 WebEngineQuick Dependency Reduction
+- Updated **`gui/panels/MarkdownViewerPanel.qml`** to remove:
+  - `import QtWebEngine 1.9`
+  - `WebEngineView`
+- Replaced the preview pane with the new native `MarkdownView` type registered under `Omni.Native 1.0`.
+- Updated **`gui/omni/CMakeLists.txt`** to remove `WebEngineQuick` from the required Qt component set and target link libraries.
+
+#### 🧩 Bootstrap / Shared GUI Wiring
+- Updated **`gui/omni/src/main.cpp`** to register the native markdown preview QML type.
+- Updated **`gui/CMakeLists.txt`** so the shared `fo_gui` path also includes `NativeMarkdownView` sources.
+- Updated **`core/include/fo/core/markdown_viewer_interface.hpp`** comments so browser/WebEngine rendering is described as an optional frontend path rather than the only rendering model.
+
+#### ✅ Verification / Finding
+- Confirmed there are no remaining `QtWebEngine`, `WebEngineView`, or `WebEngineQuick` references under `gui/`.
+- Re-ran the BobUI consumer probe and confirmed the remaining blocker is still:
+  - `Qt6Qml`
+- In other words, this phase successfully removed one heavyweight GUI dependency without changing the deeper declarative-stack blocker already identified.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/MARKDOWN_WEBENGINE_REMOVAL.md`** documenting the implementation, validation, tradeoffs, and next-step implications.
+
+### Version
+- Bumped to **6.0.11**.
+
 ## [6.0.10] - 2026-04-04
 
 ### Analyzed — The "BobUI Native Migration Audit" Release

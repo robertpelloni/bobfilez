@@ -12,7 +12,9 @@
 /// Rendering pipeline:
 ///   1. md4c or cmark parses Markdown → AST
 ///   2. HTML renderer generates styled HTML
-///   3. QML WebEngineView renders with highlight.js + KaTeX + Mermaid
+///   3. Frontends may either:
+///      - render HTML in a browser/WebEngine-style surface, or
+///      - project the rendered/native markdown into a Qt/BobUI preview widget
 ///
 /// Supported extensions:
 ///   CommonMark          — baseline spec (full)
@@ -142,7 +144,7 @@ public:
     void set_options(const MarkdownRenderOptions& opts);
     const MarkdownRenderOptions& options() const;
 
-    /// Generate the HTML wrapper (head+style+scripts) for use with WebEngineView
+    /// Generate the HTML wrapper (head+style+scripts) for browser/WebEngine-style previews
     /// The returned HTML includes KaTeX, Mermaid, and highlight.js from CDN or bundled.
     static std::string generate_template(const MarkdownRenderOptions& opts);
 
