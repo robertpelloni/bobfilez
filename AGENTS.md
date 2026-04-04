@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 25f0830f | **Branch:** main | **Version:** 6.0.6
+**Generated:** 2026-04-04 | **Commit:** 92a794af | **Branch:** main | **Version:** 6.0.7
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -30,7 +30,8 @@ bobfilez/
 
 ```powershell
 build.bat                                    # Quick build (Windows)
-scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omini off)
+scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omni off)
+scripts\build_bobui_gui.bat                 # BobUI-backed GUI/Omni probe/build entrypoint
 cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
 .\build-msvc\tests\fo_tests.exe            # Headless test suite
 .\build-msvc\tests\fo_tests.exe --gtest_filter=*Name*  # Single headless test
@@ -95,9 +96,11 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **BobUI Submodule Updated**: Advanced `libs/bobui` to `581de545a4` from upstream `origin/main`.
 - ✅ **BobUI-First GUI Provider Wiring**: Added `cmake/BobUIQtSetup.cmake` and updated the root build so GUI / Omni targets prefer the local BobUI fork (`libs/bobui` / `BOBUI_ROOT`) as the Qt6 package provider instead of assuming a separately installed stock Qt.
+- ✅ **BobUI Probe Script & Findings**: Added `scripts/build_bobui_gui.bat` and confirmed that a raw `libs/bobui` checkout is detected but still fails GUI configure until BobUI exports a built Qt6 package layout (`Qt6Config.cmake`).
 - ✅ **BobUI Integration Documentation**: Added `docs/ai/implementation/BOBUI_PROVIDER_SETUP.md` and updated `README.md` to clarify that BobUI is a Qt fork supplying normal `Qt6::*` targets, not a separate target namespace.
-- ✅ **Go-Port Status Clarified**: Confirmed there is no active bobfilez Go port in the current repository state; the maintained alternate implementation still present in-tree is `filez-java/`.
+- ✅ **Go-Port Status Clarified**: Confirmed there is no active bobfilez Go port in the current repository state, and removed the obsolete `filez-java/` experiment so no alternate port is currently maintained in-tree.
 - ✅ **Headless Build Stabilization**: Added `scripts/build_headless.bat`, optionalized native `ffmpeg`/`chromaprint` behind the `media-analysis` feature in `vcpkg.json`, fixed headless MSVC compile issues across the expanded core/CLI surface, and verified a successful `build-msvc` build.
 - ✅ **Build Verification**: Confirmed `fo_core`, `fo_cli`, `fo_tests`, and benchmark binaries build successfully in the headless MSVC profile; ran `build-msvc/tests/fo_tests.exe` with **63 / 63 tests passing**.
 - ✅ **Tracked-Only Status Workflow**: Added `scripts/repo_status.py` and documented that `git status --untracked-files=no` avoids the current Windows long-path warning path while still surfacing tracked changes and dirty submodules.
@@ -173,6 +176,25 @@ Update this section when finishing a session:
 
 ---
 
+### Update: 2026-04-04 (Session 22)
+**Author:** GPT
+
+**Scope:** v6.0.7 BobUI Update, GUI Probe, and Java-Port Removal
+
+**Delivered:**
+- ✅ Updated `libs/bobui` from `01634f269f` to `581de545a4` on `origin/main`.
+- ✅ Removed the obsolete `filez-java/` tree plus Java-only packaging artifacts (`scripts/package_java_msi.bat`, `wix/filez_java.wxs`).
+- ✅ Added `scripts/build_bobui_gui.bat` as a repeatable BobUI-backed GUI/Omni configure/build probe.
+- ✅ Confirmed the current GUI blocker precisely: BobUI source checkout is detected, but configure still fails until BobUI exports `Qt6Config.cmake` / `qt6-config.cmake` from a built/install prefix.
+- ✅ Updated `README.md`, `DEPLOY.md`, `CHANGELOG.md`, `HANDOFF.md`, and `docs/ai/implementation/BOBUI_PROVIDER_SETUP.md` to reflect the new BobUI-first path and alternate-port cleanup.
+
+**Next Steps:**
+1. Build/install BobUI itself so its Qt6 package configs exist.
+2. Point `BOBUI_ROOT` at that built/exported prefix and rerun `scripts/build_bobui_gui.bat`.
+3. If needed, add a source-tree fallback integration later, but the cleanest path is still BobUI-as-built-provider.
+
+---
+
 ### Update: 2026-04-04 (Session 21)
 **Author:** GPT
 
@@ -183,7 +205,7 @@ Update this section when finishing a session:
 - ✅ Updated the root `CMakeLists.txt` option wording from generic Qt to BobUI-oriented GUI / Omni naming.
 - ✅ Updated `gui/CMakeLists.txt`, `gui/omni/CMakeLists.txt`, and `README.md` to clarify that BobUI is the preferred Qt fork for native UI builds.
 - ✅ Added `docs/ai/implementation/BOBUI_PROVIDER_SETUP.md` documenting the correct BobUI-as-provider integration model.
-- ✅ Audited the repo for a maintained Go implementation and confirmed there is no active bobfilez Go port in the current tree; `filez-java/` remains the visible alternate port.
+- ✅ Audited the repo for a maintained Go implementation and confirmed there is no active bobfilez Go port in the current tree.
 - ✅ Re-ran the headless path to ensure BobUI discovery changes did not break non-GUI builds.
 
 **Next Steps:**

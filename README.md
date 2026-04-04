@@ -91,6 +91,7 @@ Practical notes:
 - the CMake targets still use standard `Qt6::Core`, `Qt6::Gui`, etc.
 - but the expected provider is **BobUI-built Qt6**, not a separately installed stock Qt
 - you can point discovery explicitly with `BOBUI_ROOT` if needed
+- the easiest native probe/build path is `scripts\build_bobui_gui.bat`
 
 Legacy Visual Studio / `.sln` artifacts still exist, but the product direction is BobUI / OmniUI rather than a generic stock-Qt frontend.
 
@@ -194,6 +195,9 @@ cmake --build build --config Release
 
 # Preferred native GUI / Omni build (using BobUI as the Qt6 provider)
 $env:BOBUI_ROOT="C:\path\to\bobui-or-bobui-install"
+scripts\build_bobui_gui.bat build-bobui
+
+# Or manual configure/build
 cmake -S . -B build-gui -G "Visual Studio 17 2022" -A x64 -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
 cmake --build build-gui --config Release
 

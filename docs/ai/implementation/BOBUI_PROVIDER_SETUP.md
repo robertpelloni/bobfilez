@@ -47,7 +47,18 @@ At the moment, the right integration strategy is:
 
 ## Expected usage
 
-### Example PowerShell flow
+### Preferred helper script
+```powershell
+scripts\build_bobui_gui.bat
+```
+
+You can also override the default BobUI path:
+```powershell
+$env:BOBUI_ROOT = "C:\path\to\bobui-or-bobui-install"
+scripts\build_bobui_gui.bat build-bobui
+```
+
+### Manual PowerShell flow
 ```powershell
 $env:BOBUI_ROOT = "C:\path\to\bobui-or-bobui-install"
 cmake -S . -B build-gui -G Ninja -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
@@ -57,7 +68,12 @@ cmake --build build-gui
 ## Current limitation
 This repository now prefers BobUI correctly at the CMake level, but the machine still needs a **BobUI-built Qt6 package layout** available for `find_package(Qt6 ...)` to succeed.
 
-If `libs/bobui` is only a source checkout and has not been configured/built/installed yet, GUI configure may still fail until the corresponding package config files exist.
+Observed probe result with a raw `libs/bobui` checkout:
+- BobUI source tree is detected correctly
+- configure still fails at `find_package(Qt6 ...)`
+- exact blocker: missing `Qt6Config.cmake` / `qt6-config.cmake`
+
+If `libs/bobui` is only a source checkout and has not been configured/built/installed yet, GUI configure will still fail until the corresponding package config files exist.
 
 ## Go-port status
 As of this session, there is **no active Go port** in the bobfilez repository.
@@ -66,6 +82,6 @@ Observed state:
 - no top-level Go module for bobfilez
 - no `filez-go/` or equivalent tracked implementation tree
 - no current handoff/docs thread describing an active Go rewrite
-- the maintained alternate implementation present in-tree is `filez-java/`
+- no alternate port is currently maintained in-tree after removal of the old Java experiment
 
 So the practical answer is: the Go port is not currently part of the maintained codebase, or it was dropped before the present repo state.

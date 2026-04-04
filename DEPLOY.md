@@ -27,31 +27,22 @@ By default, the UI is served at `http://localhost:3131`.
 
 ## 3. Native GUI (BobUI Qt Fork)
 *(In Progress)*
-To build the new premium native GUI (links against `libs/bobui`):
+To build the new premium native GUI using **BobUI** as the Qt provider:
 
 ```bash
-# Requires Qt6 and MSVC (Windows) or Clang (Linux/macOS)
-cmake -S . -B build -G Ninja -DFO_BUILD_GUI=ON
-cmake --build build --target fo_gui
+# Preferred helper
+scripts/build_bobui_gui.bat
+
+# Or manually after BobUI has been built/installed and exported Qt6 package configs
+# Example:
+#   BOBUI_ROOT=/path/to/bobui-or-bobui-install
+cmake -S . -B build -G Ninja -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
+cmake --build build --target fo_gui fo_omni
 ```
 
 ---
 
-## 4. Java CLI/GUI Deployment
-To build the standalone cross-platform Java application:
-
-```bash
-cd filez-java
-./gradlew :cli:fatJar
-```
-Then run with:
-```bash
-java -jar cli/build/libs/filez-all.jar
-```
-
----
-
-## 5. MSI Installer (Windows Only)
+## 4. MSI Installer (Windows Only)
 Requires the **WiX Toolset v3.11** or higher.
 
 ```bash
@@ -61,7 +52,7 @@ This generates an `.msi` in the root directory using settings from `wix/`.
 
 ---
 
-## 6. AppImage (Linux) & DMG (macOS)
+## 5. AppImage (Linux) & DMG (macOS)
 Scripts are provided for Unix-like systems:
 
 ```bash

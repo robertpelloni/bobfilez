@@ -1,5 +1,34 @@
 # Changelog
 
+## [6.0.7] - 2026-04-04
+
+### Changed — The "BobUI Update & Port Cleanup" Release
+
+#### 🧩 BobUI Submodule Update
+- Updated **`libs/bobui`** from `01634f269f` to `581de545a4` on `origin/main`.
+- This brings in the latest BobUI / OmniUI upstream state, including broader framework changes and the current BobUI repository structure.
+
+#### 🧹 Alternate-Port Cleanup
+- Removed the obsolete **`filez-java/`** experiment from the repository.
+- Removed Java-only packaging artifacts:
+  - `scripts/package_java_msi.bat`
+  - `wix/filez_java.wxs`
+- Updated deployment and architecture notes so bobfilez no longer describes any maintained alternate port currently living in-tree.
+
+#### 🧪 Feasibility Finding
+- Added **`scripts/build_bobui_gui.bat`** as a repeatable MSVC/Ninja probe/build entrypoint for BobUI-backed GUI targets.
+- BobUI can **likely** be made to work as the GUI provider for bobfilez, but not by pointing bobfilez at a raw BobUI source checkout alone.
+- A real configure probe against `BOBUI_ROOT=libs/bobui` now fails with the expected package-discovery blocker:
+  - missing `Qt6Config.cmake` / `qt6-config.cmake`
+- The current integration therefore still needs a **BobUI-built/exported Qt6 package layout** so `find_package(Qt6 ...)` can resolve successfully.
+- In other words, the path forward is:
+  1. build/install BobUI
+  2. point `BOBUI_ROOT` at that built/exported prefix
+  3. configure bobfilez GUI / Omni targets against those package configs
+
+### Version
+- Bumped to **6.0.7**.
+
 ## [6.0.6] - 2026-04-04
 
 ### Improved — The "BobUI Qt Provider Preference" Release
@@ -29,7 +58,7 @@
 
 #### 🧭 Go Port Status Clarification
 - Confirmed there is **no active Go port** in the current bobfilez tree.
-- The maintained alternate implementation present in-repo is still **`filez-java/`**.
+- At that point the repo still contained the older `filez-java/` experiment; this was removed in **6.0.7**.
 
 ### Version
 - Bumped to **6.0.6**.
