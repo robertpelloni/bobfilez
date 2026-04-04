@@ -1,5 +1,33 @@
 # Changelog
 
+## [6.0.2] - 2026-04-03
+
+### Improved — The "OmniShell Route Audit & Repo Hygiene" Release
+
+#### 🧭 Route Audit & Launcher Coverage
+- Added **`docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md`** to document every `shell.activePanel` route currently hosted by `gui/omni/assets/main.qml`.
+- Audited which routes are reachable from the **Taskbar**, **Start Menu**, and **Explorer/sidebar** surfaces.
+- Identified the current hidden/contextual route set (`rename`, `convert`, `hex`, `image`, `md`, `watcher`, `fileops`, `visual_dedup`, `pruner`, `achievements`, `forensic`, `develop`) for deliberate future exposure decisions.
+
+#### 📌 Taskbar Wiring
+- Upgraded **`gui/omni/assets/Taskbar.qml`** from placeholder pinned-app icons to real Bobfilez launchers.
+- Added direct taskbar routing for:
+  - `explorer`
+  - `omnigit`
+  - `omnivision`
+  - `omniaudio`
+  - `terminal`
+  - `omnishare`
+- Added active-route indicator logic based on `shell.activePanel`, so the taskbar now reflects which pinned subsystem is currently open.
+
+#### 🧹 Repo Hygiene Notes
+- Added targeted ignore rules to **`.gitignore`** for generated test/build trees such as `tests/test_cmake_build/` and `tests/**/build_output/`.
+- This is intended to reduce noise from generated artifacts and deeply nested dependency outputs.
+- **Finding:** `git status` still emitted filename-too-long warnings even after these ignores were added, indicating the underlying generated tree may need direct cleanup/pruning rather than ignore-only mitigation.
+
+### Version
+- Bumped to **6.0.2**.
+
 ## [6.0.1] - 2026-04-03
 
 ### Fixed — The "OmniShell Bootstrap Stabilization" Release

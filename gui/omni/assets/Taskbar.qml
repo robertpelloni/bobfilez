@@ -90,11 +90,12 @@ Rectangle {
             // Pinned Apps Repeater
             Repeater {
                 model: [
-                    {icon: "🌐", color: "#4285f4", active: true},
-                    {icon: "✉️", color: "#ea4335", active: false},
-                    {icon: "📝", color: "#34a853", active: false},
-                    {icon: "📷", color: "#fbbc05", active: false},
-                    {icon: "🎬", color: "#ff0000", active: true}
+                    {icon: "📁", id: "explorer", accent: "#4caf50"},
+                    {icon: "🐙", id: "omnigit", accent: "#8b5cf6"},
+                    {icon: "🎬", id: "omnivision", accent: "#ef4444"},
+                    {icon: "🎧", id: "omniaudio", accent: "#f59e0b"},
+                    {icon: "⌨️", id: "terminal", accent: "#22c55e"},
+                    {icon: "📤", id: "omnishare", accent: "#38bdf8"}
                 ]
                 Rectangle {
                     width: 40; height: 40; radius: 4
@@ -105,12 +106,16 @@ Rectangle {
                     Rectangle {
                         anchors.bottom: parent.bottom; anchors.bottomMargin: 2
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: modelData.active ? 12 : 0; height: 3; radius: 1.5
-                        color: "#0078d4"
+                        width: shell.activePanel === modelData.id ? 12 : 0
+                        height: 3; radius: 1.5
+                        color: modelData.accent
                         Behavior on width { NumberAnimation { duration: 200 } }
                     }
 
                     HoverHandler { id: appHover }
+                    MouseArea { anchors.fill: parent; onClicked: shell.openPanel(modelData.id) }
+                    ToolTip.visible: appHover.hovered
+                    ToolTip.text: modelData.id
                 }
             }
         }

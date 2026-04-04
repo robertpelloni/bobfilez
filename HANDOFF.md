@@ -1,51 +1,60 @@
-# HANDOFF.md — bobfilez Session 16
+# HANDOFF.md — bobfilez Session 17
 
 ## Current Status (2026-04-03)
-**Version:** 6.0.1  
-**Focus:** OmniShell bootstrap stabilization and launch-surface wiring audit
+**Version:** 6.0.2  
+**Focus:** OmniShell route audit, taskbar launcher wiring, and repo-hygiene analysis
 
 ---
 
 ## What Was Done This Session
 
-### 1. OmniShell Bootstrap Hardening
-- Updated **`gui/omni/CMakeLists.txt`** to include **`src/TreemapModel.cpp`** in the `fo_omni` target.
-  - This was a concrete build issue because `TopologyPanel.qml` imports `Omni.Viz 1.0` and instantiates `TreemapModel`, but the bridge implementation file was not part of the executable target.
-- Added a local include path for `gui/omni/src` so bridge headers are resolved consistently.
-- Replaced the BobUI-specific startup flow in **`gui/omni/src/main.cpp`** with a lean Qt-native bootstrap:
-  - `QGuiApplication`
-  - `QQmlApplicationEngine`
-  - `qmlRegisterType<FileModel>(...)`
-  - `qmlRegisterType<fo::gui::TreemapModel>(...)`
-  - `engine.load(QUrl("qrc:/main.qml"))`
-- This removes an unnecessary dependency on the heavyweight `OmniApplication` / `OmniApp.h` path for the standalone shell target, which should reduce fragility during local builds.
+### 1. OmniShell Route Audit
+- Added **`docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md`**.
+- Audited the current shell-host route inventory from `gui/omni/assets/main.qml`.
+- Captured the relationship between:
+  - `shell.activePanel` routes
+  - Start Menu pinned entries
+  - Taskbar launchers
+  - Explorer/sidebar route jumps
+- Explicitly documented the still-hidden/contextual route set:
+  - `rename`
+  - `convert`
+  - `hex`
+  - `image`
+  - `md`
+  - `watcher`
+  - `fileops`
+  - `visual_dedup`
+  - `pruner`
+  - `achievements`
+  - `forensic`
+  - `develop`
+- Key finding: the shell host currently supports more routes than the visible shell chrome exposes, so launcher coverage must now be managed intentionally rather than ad hoc.
 
-### 2. Namespace / Resource Alignment
-- Corrected Treemap registration to use the actual C++ namespace type:
-  - `fo::gui::TreemapModel`
-- Aligned QML loading to **`qrc:/main.qml`**, which matches the shell's resource-based packaging model instead of relying on a filesystem-relative path.
-- This improves consistency between the executable bootstrap and `assets/qml.qrc`.
+### 2. Taskbar Launcher Wiring
+- Reworked **`gui/omni/assets/Taskbar.qml`** so the pinned-app row is no longer decorative/placeholder-only.
+- Added real taskbar launchers for:
+  - `explorer`
+  - `omnigit`
+  - `omnivision`
+  - `omniaudio`
+  - `terminal`
+  - `omnishare`
+- Added active-route indicator logic keyed off `shell.activePanel`, so the taskbar visually reflects which pinned subsystem is open.
+- This improves discoverability for flagship subsystems and reduces launch-surface drift.
 
-### 3. Start Menu Wiring Audit
-- Expanded **`gui/omni/assets/StartMenu.qml`** pinned apps so the launch surface better reflects the shell host's available `activePanel` routes.
-- Added direct pinned entries for:
-  - `Search`
-  - `OmniTerminal`
-  - `OmniShare`
-  - `OmniCluster`
-  - `Topology`
-  - `Vault`
-- This reduces routing drift between what the shell can open and what the user can discover from the Start Menu.
-
-### 4. Verification Attempt + Findings
-- Ran a new **CMake configure/build attempt**.
-- Outcome:
-  - configuration proceeded into **vcpkg dependency resolution/build**
-  - build flow **timed out while building FFmpeg**
-- Important note: no processes were killed.
-- Additional repo-health findings remained unchanged:
-  - `git status` warns about filename-too-long paths under `tests/test_cmake_build/.../pybind11/...`
-  - unrelated submodule/worktree modifications still exist and were intentionally left untouched
+### 3. Repo-Hygiene Mitigation Attempt
+- Added ignore rules in **`.gitignore`** for generated test/build trees:
+  - `tests/test_cmake_build/`
+  - `tests/**/build_output/`
+  - `tests/build/`
+  - `tests/build_output/`
+- Purpose: reduce git noise from generated artifacts and deeply nested dependency output.
+- Result:
+  - **`git status` still emitted filename-too-long warnings** from nested `tests/test_cmake_build/.../pybind11/...` paths.
+- Conclusion:
+  - ignore-only mitigation is not sufficient here
+  - the underlying generated directories likely need to be **pruned/cleaned directly** in a future hygiene pass
 
 ---
 
@@ -53,27 +62,27 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Full compile verification | 🟡 Pending | Bootstrap issues were reduced, but end-to-end build success still depends on long-running dependency compilation finishing cleanly. |
-| OmniApp/BobUI integration strategy | 🟡 Transitional | `fo_omni` now uses a simpler Qt-native startup path. If deeper OmniUI runtime features are required later, that integration should be reintroduced deliberately rather than implicitly. |
-| Start menu coverage | 🟡 Improved | More panels are exposed, but a full route audit across all `activePanel` keys is still worthwhile. |
-| Long-path generated test artifacts | 🟡 Pending | Deep nested test output still pollutes `git status` with path-length warnings. |
-| Dirty submodules/worktrees | 🟡 Pending | Existing unrelated submodule modifications must still be treated carefully in future commits. |
+| Long-path generated test trees | 🔴 Still noisy | `.gitignore` mitigation did not fully suppress `git status` warnings; a direct cleanup pass is likely required. |
+| Full build verification | 🟡 Pending | Shell bootstrap stabilization was completed previously, but end-to-end verification is still blocked by long-running dependency builds (notably FFmpeg via vcpkg). |
+| Launcher coverage policy | 🟡 In progress | Route inventory is now documented, but a product decision is still needed on which routes should be globally discoverable vs context-only. |
+| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain in the repo and must still be excluded from broad staging operations. |
 
 ---
 
 ## Recommended Next Steps
 
-1. **Finish build verification**
-   - Retry the build once vcpkg dependency compilation is allowed to complete.
-   - Focus especially on `fo_omni` after the bootstrap simplification.
+1. **Directly clean the generated long-path trees**
+   - Target the nested `tests/test_cmake_build/.../pybind11/...` outputs specifically.
+   - Re-run `git status` afterward to confirm the warning noise is gone.
 
-2. **Audit all shell routes**
-   - Compare `StartMenu.qml` entries against every `shell.activePanel === ...` block in `main.qml`.
-   - Ensure all major flagship panels are reachable from a visible launcher surface.
+2. **Finish build verification**
+   - Retry the configure/build flow once dependency compilation is allowed to complete.
+   - Re-check `fo_omni` after the bootstrap simplification from Session 16.
 
-3. **Clean repo hygiene noise**
-   - Prune or clean the deeply nested generated `tests/test_cmake_build/.../pybind11/...` trees that trigger path-length warnings.
-   - Keep unrelated dirty submodules out of broad staging operations.
+3. **Decide route exposure policy**
+   - Keep flagship Omni systems visible from Start/Taskbar.
+   - Keep file-context tools (`hex`, `image`, `md`, `rename`, `convert`) contextual unless product goals say otherwise.
+   - Consider an explicit “All Apps / Tools” surface if top-level route count continues growing.
 
-4. **Continue stabilization before more mega-features**
-   - Prioritize build correctness, routing correctness, and backend completeness over adding yet another top-level Omni subsystem.
+4. **Continue stabilization before feature expansion**
+   - Prioritize route correctness, repo hygiene, build health, and backend realism over adding another new top-level Omni subsystem.

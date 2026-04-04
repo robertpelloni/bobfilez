@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-03 | **Commit:** 4855e245 | **Branch:** main | **Version:** 6.0.1
+**Generated:** 2026-04-03 | **Commit:** f0729b18 | **Branch:** main | **Version:** 6.0.2
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -92,8 +92,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.1)
+## Current Status (v6.0.2)
 
+- ✅ **OmniShell Route Audit**: Added `docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md` to map shell route coverage across `main.qml`, Start Menu, Taskbar, and explorer-driven launch surfaces.
+- ✅ **Taskbar Launcher Wiring**: Replaced placeholder taskbar app icons with real Bobfilez launchers for Explorer, OmniGit, OmniVision, OmniAudio, OmniTerminal, and OmniShare, including active-panel indicators.
 - ✅ **OmniShell Bootstrap Stabilization**: Fixed the standalone OmniUI target to compile `TreemapModel.cpp`, register `fo::gui::TreemapModel` correctly, and boot from `qrc:/main.qml` using a lean Qt-native startup path.
 - ✅ **Grand Architecture**: Added `ARCHITECTURE.md` to document the unified OmniShell / Omni-tool architecture, subsystem taxonomy, product-parity goals, and current codebase metrics.
 - ✅ **OmniShare Secure File Drops**: Built-in HTTPS-style share-link workflow with expiring links, revocation, and self-hosted transfer concepts.
@@ -155,7 +157,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 
-**Next Steps**: Finish full build verification after dependency compilation completes, prune long-path generated test artifacts, keep shell launch surfaces aligned with `activePanel` routes, and convert scaffold-heavy Omni systems into production backends.
+**Next Steps**: Prune the long-path generated `tests/test_cmake_build` artifacts directly, finish full build verification after dependency compilation completes, expose or intentionally classify the remaining hidden/contextual shell routes, and continue backend-hardening for scaffold-heavy Omni systems.
 
 ## Handoff Protocol
 
