@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-03 | **Commit:** f0729b18 | **Branch:** main | **Version:** 6.0.2
+**Generated:** 2026-04-03 | **Commit:** 35ba60a5 | **Branch:** main | **Version:** 6.0.3
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.2)
+## Current Status (v6.0.3)
 
+- ✅ **Generated Build Artifact Purge**: Removed tracked/generated component `build_output/` trees and documented the cleanup in `docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`.
 - ✅ **OmniShell Route Audit**: Added `docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md` to map shell route coverage across `main.qml`, Start Menu, Taskbar, and explorer-driven launch surfaces.
 - ✅ **Taskbar Launcher Wiring**: Replaced placeholder taskbar app icons with real Bobfilez launchers for Explorer, OmniGit, OmniVision, OmniAudio, OmniTerminal, and OmniShare, including active-panel indicators.
 - ✅ **OmniShell Bootstrap Stabilization**: Fixed the standalone OmniUI target to compile `TreemapModel.cpp`, register `fo::gui::TreemapModel` correctly, and boot from `qrc:/main.qml` using a lean Qt-native startup path.
@@ -157,7 +158,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 
-**Next Steps**: Prune the long-path generated `tests/test_cmake_build` artifacts directly, finish full build verification after dependency compilation completes, expose or intentionally classify the remaining hidden/contextual shell routes, and continue backend-hardening for scaffold-heavy Omni systems.
+**Next Steps**: Tackle the remaining long-path `tests/test_cmake_build` warnings with an extended-path cleanup strategy, finish full build verification after dependency compilation completes, decide final launcher exposure policy for contextual tools, and continue backend-hardening for scaffold-heavy Omni systems.
 
 ## Handoff Protocol
 

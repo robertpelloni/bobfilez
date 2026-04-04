@@ -1,60 +1,42 @@
-# HANDOFF.md — bobfilez Session 17
+# HANDOFF.md — bobfilez Session 18
 
 ## Current Status (2026-04-03)
-**Version:** 6.0.2  
-**Focus:** OmniShell route audit, taskbar launcher wiring, and repo-hygiene analysis
+**Version:** 6.0.3  
+**Focus:** Generated build artifact cleanup and remaining long-path diagnosis
 
 ---
 
 ## What Was Done This Session
 
-### 1. OmniShell Route Audit
-- Added **`docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md`**.
-- Audited the current shell-host route inventory from `gui/omni/assets/main.qml`.
-- Captured the relationship between:
-  - `shell.activePanel` routes
-  - Start Menu pinned entries
-  - Taskbar launchers
-  - Explorer/sidebar route jumps
-- Explicitly documented the still-hidden/contextual route set:
-  - `rename`
-  - `convert`
-  - `hex`
-  - `image`
-  - `md`
-  - `watcher`
-  - `fileops`
-  - `visual_dedup`
-  - `pruner`
-  - `achievements`
-  - `forensic`
-  - `develop`
-- Key finding: the shell host currently supports more routes than the visible shell chrome exposes, so launcher coverage must now be managed intentionally rather than ad hoc.
-
-### 2. Taskbar Launcher Wiring
-- Reworked **`gui/omni/assets/Taskbar.qml`** so the pinned-app row is no longer decorative/placeholder-only.
-- Added real taskbar launchers for:
-  - `explorer`
-  - `omnigit`
-  - `omnivision`
-  - `omniaudio`
-  - `terminal`
-  - `omnishare`
-- Added active-route indicator logic keyed off `shell.activePanel`, so the taskbar visually reflects which pinned subsystem is open.
-- This improves discoverability for flagship subsystems and reduces launch-surface drift.
-
-### 3. Repo-Hygiene Mitigation Attempt
-- Added ignore rules in **`.gitignore`** for generated test/build trees:
-  - `tests/test_cmake_build/`
-  - `tests/**/build_output/`
-  - `tests/build/`
+### 1. Generated Build Artifact Purge
+- Removed generated component-level build trees from the working tree:
+  - `benchmarks/build_output/`
+  - `cli/build_output/`
+  - `core/build_output/`
+  - `fuzz/build_output/`
+  - `gui/build_output/`
   - `tests/build_output/`
-- Purpose: reduce git noise from generated artifacts and deeply nested dependency output.
-- Result:
-  - **`git status` still emitted filename-too-long warnings** from nested `tests/test_cmake_build/.../pybind11/...` paths.
-- Conclusion:
-  - ignore-only mitigation is not sufficient here
-  - the underlying generated directories likely need to be **pruned/cleaned directly** in a future hygiene pass
+- Removed transient `tests/build/` output as part of the same hygiene pass.
+- This cleanup was motivated by the discovery that several of these `build_output/` trees contained tracked CMake-generated artifacts.
+
+### 2. Repo Analysis Findings
+- Confirmed that the removed `build_output/` trees contained machine-specific generated files such as:
+  - `CMakeCache.txt`
+  - `CMakeFiles/4.2.3/*.cmake`
+  - compiler-ID probe sources/binaries/projects
+  - `CMakeConfigureLog.yaml`
+- These are rebuildable environment artifacts and should not be treated as durable source assets.
+- Added **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** to document the cleanup and its rationale.
+
+### 3. Remaining Long-Path Problem
+- After removing the tracked/generated `build_output/` trees, root-level `git status` still emitted filename-too-long warnings for paths like:
+  - `tests/test_cmake_build/subdirectory_embed/build_output/pybind11/...`
+  - `tests/test_cmake_build/subdirectory_function/build_output/pybind11/...`
+  - `tests/test_cmake_build/subdirectory_target/build_output/pybind11/...`
+- Important diagnostic result:
+  - the remaining warning source does **not** appear to be fully explained by the now-removed component `build_output/` trees.
+- Most likely explanation:
+  - a separate generated pybind11/CMake test tree exists (or existed) in a form that normal short-path enumeration does not expose clearly on Windows.
 
 ---
 
@@ -62,27 +44,26 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Long-path generated test trees | 🔴 Still noisy | `.gitignore` mitigation did not fully suppress `git status` warnings; a direct cleanup pass is likely required. |
-| Full build verification | 🟡 Pending | Shell bootstrap stabilization was completed previously, but end-to-end verification is still blocked by long-running dependency builds (notably FFmpeg via vcpkg). |
-| Launcher coverage policy | 🟡 In progress | Route inventory is now documented, but a product decision is still needed on which routes should be globally discoverable vs context-only. |
-| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain in the repo and must still be excluded from broad staging operations. |
+| Long-path warning source | 🔴 Still unresolved | Cleanup improved repo hygiene, but `git status` still reports `tests/test_cmake_build/.../pybind11/...` path warnings. |
+| Full build verification | 🟡 Pending | Artifact cleanup is complete, but compile verification is still pending once dependency builds are allowed to complete. |
+| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain outside this cleanup scope. |
+| Route exposure policy | 🟡 Pending | Route audit work exists, but contextual vs globally visible launcher policy still needs a product decision. |
 
 ---
 
 ## Recommended Next Steps
 
-1. **Directly clean the generated long-path trees**
-   - Target the nested `tests/test_cmake_build/.../pybind11/...` outputs specifically.
-   - Re-run `git status` afterward to confirm the warning noise is gone.
+1. **Use an extended-path cleanup strategy**
+   - Target `tests/test_cmake_build/` specifically using Windows extended-path handling if needed.
+   - Goal: eliminate the remaining filename-too-long warnings from `git status`.
 
 2. **Finish build verification**
-   - Retry the configure/build flow once dependency compilation is allowed to complete.
-   - Re-check `fo_omni` after the bootstrap simplification from Session 16.
+   - Retry configure/build after dependencies complete.
+   - Verify that the cleaned repo state does not regress the recent OmniShell stabilization work.
 
-3. **Decide route exposure policy**
-   - Keep flagship Omni systems visible from Start/Taskbar.
-   - Keep file-context tools (`hex`, `image`, `md`, `rename`, `convert`) contextual unless product goals say otherwise.
-   - Consider an explicit “All Apps / Tools” surface if top-level route count continues growing.
+3. **Keep generated artifacts out of source control**
+   - Maintain `.gitignore` coverage.
+   - Avoid reintroducing component `build_output/` trees in future commits.
 
-4. **Continue stabilization before feature expansion**
-   - Prioritize route correctness, repo hygiene, build health, and backend realism over adding another new top-level Omni subsystem.
+4. **Continue stabilization-first workflow**
+   - Prioritize hygiene, build health, and backend realism before adding another major Omni subsystem.

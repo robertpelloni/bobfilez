@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.0.3] - 2026-04-03
+
+### Cleaned — The "Generated Build Artifact Purge" Release
+
+#### 🧹 Build Artifact Cleanup
+- Removed tracked/generated CMake snapshot directories from the working tree for:
+  - `benchmarks/build_output/`
+  - `cli/build_output/`
+  - `core/build_output/`
+  - `fuzz/build_output/`
+  - `gui/build_output/`
+  - `tests/build_output/`
+- Removed transient `tests/build/` output from the working tree as part of the hygiene pass.
+- Added **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** to document what was removed and why these files should not remain part of normal repo state.
+
+#### 🔍 Findings
+- Confirmed that several component-level `build_output/` trees contained environment-specific CMake-generated artifacts such as `CMakeCache.txt`, compiler-ID files, and configure logs.
+- These artifacts are poor candidates for version control because they are machine-specific and rebuildable.
+- **Important:** root-level `git status` still emitted filename-too-long warnings for nested `tests/test_cmake_build/.../pybind11/...` paths even after the cleanup.
+- This indicates that the remaining long-path issue likely requires a more specialized extended-path pruning pass beyond simple build-output deletion.
+
+### Version
+- Bumped to **6.0.3**.
+
 ## [6.0.2] - 2026-04-03
 
 ### Improved — The "OmniShell Route Audit & Repo Hygiene" Release
