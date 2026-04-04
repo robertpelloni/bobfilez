@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** bda498e0 | **Branch:** main | **Version:** 6.0.15
+**Generated:** 2026-04-04 | **Commit:** 07af8d00 | **Branch:** main | **Version:** 6.0.16
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtQuick.Controls Initial Reduction**: Removed `QtQuick.Controls` usage from `Taskbar.qml` and `StartMenu.qml`, replacing trivial stock controls with lighter `QtQuick` primitives and reducing the global controls-import footprint from 48 QML files to 46.
 - ✅ **BobUI Registration Alignment**: Corrected the stale `OmniUI/core` path to the real `OmniUI/omnicore` layout, wired BobUI omnicore sources/includes into the GUI targets, and added a real `OmniUI::registerQmlTypes()` call in the native shell bootstrap.
 - ✅ **GraphicalEffects Full Removal**: Simplified the six remaining real GraphicalEffects users and fully removed `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usage from the entire `gui/` tree.
 - ✅ **GraphicalEffects Import Cleanup**: Audited actual versus dead effect usage and removed stale `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` imports from 27 QML files while preserving the small set of files that still genuinely use `DropShadow` / `FastBlur`.
@@ -182,6 +183,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 31)
+**Author:** GPT
+
+**Scope:** v6.0.16 QtQuick.Controls Initial Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` imports from `gui/omni/assets/Taskbar.qml` and `gui/omni/assets/StartMenu.qml`.
+- ✅ Replaced stock convenience controls (`Label`, trivial `Button`, `ToolTip`) with simpler `Text` / `Rectangle` / `MouseArea` patterns.
+- ✅ Measured the remaining controls footprint and confirmed the `QtQuick.Controls` import count dropped from 48 QML files to 46.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_INITIAL_REDUCTION.md` documenting the selection criteria, exact changes, and deferred heavier control categories.
+- ✅ Re-ran headless build + full tests so the versioned state remains validated.
+
+**Next Steps:**
+1. Continue with other shell-adjacent files that mostly use `Label` / trivial `Button` controls.
+2. Defer richer control sets (`ComboBox`, `GroupBox`, `ProgressBar`, `CheckBox`, etc.) until the low-risk wins are exhausted.
+3. Keep using BobUI registration wiring as the structural baseline for future UI work.
 
 ---
 

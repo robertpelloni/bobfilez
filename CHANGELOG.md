@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.0.16] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Initial Reduction" Release
+
+#### 🧱 First Controls-Surface Cut
+- Updated **`gui/omni/assets/Taskbar.qml`** to remove `QtQuick.Controls` usage entirely.
+- Updated **`gui/omni/assets/StartMenu.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock convenience controls (`Label`, trivial `Button`, `ToolTip`) with simpler `QtQuick` primitives such as:
+  - `Text`
+  - `Rectangle`
+  - `MouseArea`
+
+#### 📊 Surface Measurement
+- Recomputed the current `QtQuick.Controls` import footprint across the QML tree.
+- Result:
+  - reduced from **48 QML files** importing `QtQuick.Controls`
+  - to **46 QML files**
+- This is a small but real reduction on two shell-critical surfaces.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_INITIAL_REDUCTION.md`** documenting the exact files changed, why they were chosen, what was intentionally deferred, and how this fits the phased migration plan.
+
+### Version
+- Bumped to **6.0.16**.
+
 ## [6.0.15] - 2026-04-04
 
 ### Wired — The "BobUI Registration Alignment" Release

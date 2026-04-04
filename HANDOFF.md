@@ -1,46 +1,42 @@
-# HANDOFF.md — bobfilez Session 30
+# HANDOFF.md — bobfilez Session 31
 
 ## Current Status (2026-04-04)
-**Version:** 6.0.15  
-**Focus:** BobUI registration alignment and current-layout correction
+**Version:** 6.0.16  
+**Focus:** QtQuick.Controls initial reduction
 
 ---
 
 ## What Was Done This Session
 
-### 1. Corrected the BobUI Source Layout Assumption
-- Found that bobfilez GUI CMake was still pointing at an outdated BobUI path:
-  - `libs/bobui/OmniUI/core`
-- The current BobUI tree actually uses:
-  - `libs/bobui/OmniUI/omnicore`
-- Updated both GUI CMake entrypoints to target the real `omnicore` layout.
+### 1. Started the Stock Controls Reduction with Two Shell-Critical Files
+- Updated **`gui/omni/assets/Taskbar.qml`**.
+- Updated **`gui/omni/assets/StartMenu.qml`**.
+- These were chosen because they are high-visibility shell surfaces but only used relatively lightweight control abstractions.
 
-### 2. Wired BobUI Sources and Include Paths Structurally
-- Updated **`gui/CMakeLists.txt`** and **`gui/omni/CMakeLists.txt`** to:
-  - gather BobUI sources recursively from `omnicore/src`
-  - include current BobUI headers from `omnicore/include`
-  - include supporting dependency paths for:
-    - `deps/juce`
-    - `deps/imgui`
-- This shifts the integration from stale assumptions toward the real BobUI tree shape.
+### 2. Removed `QtQuick.Controls` from Both Surfaces
+- Replaced `Label` usage with `Text`.
+- Replaced trivial text-only `Button` uses with small `Rectangle` + `Text` + `MouseArea` shells.
+- Removed the leftover `ToolTip` usage in `Taskbar.qml`.
+- Result:
+  - both files no longer import `QtQuick.Controls`
 
-### 3. Added a Real BobUI Registration Call to Startup
-- Updated **`gui/omni/src/main.cpp`** to include:
-  - `OmniQmlRegistration.h`
-- Added a real startup call to:
-  - `OmniUI::registerQmlTypes();`
-- bobfilez now structurally attempts to back imported BobUI namespaces (`OmniUI`, `OmniLayout`, `OmniData`, etc.) before registering its local bridge types.
+### 3. Measured the Remaining Controls Footprint
+- Re-ran the QML import audit for `QtQuick.Controls`.
+- Result:
+  - previous count: **48 QML files**
+  - current count: **46 QML files**
+- This is a modest but real first cut in the next dependency cluster.
 
-### 4. Documented the Difference Between Structural Wiring and Buildability
-- Added **`docs/ai/implementation/BOBUI_REGISTRATION_WIRING.md`**.
-- Important finding recorded there:
-  - this fixes integration correctness
-  - but it does **not** solve the deeper BobUI provider blocker
-  - full GUI build is still blocked by missing `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` support in the current BobUI provider surface on this machine
+### 4. Documented the Initial Controls Strategy
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_INITIAL_REDUCTION.md`**.
+- The document records:
+  - why these two files were chosen first
+  - what kinds of stock control usage are easy to replace
+  - which richer control categories were intentionally deferred
 
 ### 5. Validation and Release Alignment
-- Re-ran the normal headless validation path to keep versioned binaries aligned.
-- Reconciled release/docs metadata to **6.0.15**.
+- Re-ran the normal headless validation path and full test suite so the versioned state remains current.
+- Reconciled release/docs metadata to **6.0.16**.
 
 ---
 
@@ -49,7 +45,7 @@
 | Area | Status | Notes |
 |------|--------|-------|
 | Full BobUI / Omni shell build | 🟡 Still blocked | BobUI integration is now more structurally correct (real omnicore path + real registration call), but the provider surface still lacks `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` for bobfilez's present GUI targets. |
-| BobUI-native migration plan | 🟡 In progress | Four dependency-surface reductions are complete and BobUI registration is now structurally wired. Removing most QML is still expensive; removing `QtQuick` itself is still incompatible with current BobUI because BobUI widgets are Quick-based. |
+| BobUI-native migration plan | 🟡 In progress | Four dependency-surface reductions plus a first stock-controls reduction are complete. Removing most QML is still expensive; removing `QtQuick` itself is still incompatible with current BobUI because BobUI widgets are Quick-based. |
 | BOBGUI adoption | ⚪ Not recommended | `bobgui` is available for study, but it is not the right primary UI foundation for bobfilez’s current Qt/QML/Omni direction. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
 
@@ -63,8 +59,8 @@
 2. **Use the improved structural wiring as the new baseline**
    - future BobUI GUI probing should assume the current `omnicore` path and the real `OmniUI::registerQmlTypes()` startup call.
 
-3. **Move to the next real dependency cluster**
-   - with GraphicalEffects gone, focus the next pass on stock `QtQuick.Controls` / `QtQuick.Layouts` surfaces.
+3. **Continue the stock controls reduction incrementally**
+   - next target files should be shell-adjacent surfaces with mostly `Label` / trivial `Button` usage before tackling heavier control sets.
 
 4. **Do not plan around removing `QtQuick` yet**
    - the current BobUI implementation itself is Quick-based, so a true no-Quick target is premature.

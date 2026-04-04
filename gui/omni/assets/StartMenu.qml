@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 /// StartMenu.qml — AI-powered Windows 11 style start menu.
@@ -26,7 +25,7 @@ Rectangle {
             color: "#33000000"; border.color: "#33ffffff"
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 12; spacing: 8
-                Label { text: "🔍"; color: "#888" }
+                Text { text: "🔍"; color: "#888" }
                 TextInput {
                     Layout.fillWidth: true; color: "white"; font.pixelSize: 14
                     placeholderText: "Search for apps, settings, and files"; placeholderTextColor: "#666"
@@ -38,9 +37,13 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true; spacing: 10
             RowLayout {
-                Label { text: "Pinned"; color: "white"; font.bold: true; font.pixelSize: 13 }
+                Text { text: "Pinned"; color: "white"; font.bold: true; font.pixelSize: 13 }
                 Item { Layout.fillWidth: true }
-                Button { text: "All apps >"; flat: true; contentItem: Label { text: parent.text; color: "#aaa"; font.pixelSize: 11 } }
+                Rectangle {
+                    color: "transparent"; radius: 4; implicitWidth: 70; implicitHeight: 24
+                    Text { anchors.centerIn: parent; text: "All apps >"; color: "#aaa"; font.pixelSize: 11 }
+                    MouseArea { anchors.fill: parent }
+                }
             }
 
             GridLayout {
@@ -79,11 +82,11 @@ Rectangle {
                         Rectangle {
                             Layout.alignment: Qt.AlignHCenter; width: 40; height: 40; radius: 4
                             color: hoverApp.hovered ? "#22ffffff" : "transparent"
-                            Label { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 24 }
+                            Text { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 24; color: "white" }
                             HoverHandler { id: hoverApp }
                             MouseArea { anchors.fill: parent; onClicked: shell.openPanel(modelData.id) }
                         }
-                        Label { text: modelData.name; color: "white"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter; elide: Text.ElideRight; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter }
+                        Text { text: modelData.name; color: "white"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter; elide: Text.ElideRight; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter }
                     }
                 }
             }
@@ -93,9 +96,13 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10
             RowLayout {
-                Label { text: "Recommended"; color: "white"; font.bold: true; font.pixelSize: 13 }
+                Text { text: "Recommended"; color: "white"; font.bold: true; font.pixelSize: 13 }
                 Item { Layout.fillWidth: true }
-                Button { text: "More >"; flat: true; contentItem: Label { text: parent.text; color: "#aaa"; font.pixelSize: 11 } }
+                Rectangle {
+                    color: "transparent"; radius: 4; implicitWidth: 50; implicitHeight: 24
+                    Text { anchors.centerIn: parent; text: "More >"; color: "#aaa"; font.pixelSize: 11 }
+                    MouseArea { anchors.fill: parent }
+                }
             }
 
             GridLayout {
@@ -114,10 +121,10 @@ Rectangle {
                     RowLayout {
                         Layout.fillWidth: true; spacing: 12
                         Rectangle { width: 32; height: 32; radius: 4; color: "#11ffffff"
-                            Label { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 16 } }
+                            Text { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 16; color: "white" } }
                         Column {
-                            Label { text: modelData.name; color: "white"; font.pixelSize: 12 }
-                            Label { text: modelData.sub; color: "#888"; font.pixelSize: 10 }
+                            Text { text: modelData.name; color: "white"; font.pixelSize: 12 }
+                            Text { text: modelData.sub; color: "#888"; font.pixelSize: 10 }
                         }
                     }
                 }
@@ -135,8 +142,8 @@ Rectangle {
                 RowLayout {
                     spacing: 10
                     Rectangle { width: 32; height: 32; radius: 16; color: "#0078d4"
-                        Label { anchors.centerIn: parent; text: startMenu.userName[0]; color: "white"; font.bold: true } }
-                    Label { text: startMenu.userName; color: "white"; font.pixelSize: 12 }
+                        Text { anchors.centerIn: parent; text: startMenu.userName[0]; color: "white"; font.bold: true } }
+                    Text { text: startMenu.userName; color: "white"; font.pixelSize: 12 }
                 }
 
                 Item { Layout.fillWidth: true }
@@ -145,7 +152,7 @@ Rectangle {
                 Rectangle {
                     width: 32; height: 32; radius: 4
                     color: hoverPower.hovered ? "#22ffffff" : "transparent"
-                    Label { anchors.centerIn: parent; text: "⏻"; color: "white"; font.pixelSize: 18 }
+                    Text { anchors.centerIn: parent; text: "⏻"; color: "white"; font.pixelSize: 18 }
                     HoverHandler { id: hoverPower }
                 }
             }

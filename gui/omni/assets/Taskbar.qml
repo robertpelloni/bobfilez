@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 /// Taskbar.qml — High-fidelity Windows 11 style taskbar for bobfilez shell.
@@ -29,7 +28,7 @@ Rectangle {
         RowLayout {
             spacing: 8
             Item { width: 40; height: 40
-                Label { anchors.centerIn: parent; text: "🌩️"; font.pixelSize: 20 }
+                Text { anchors.centerIn: parent; text: "🌩️"; font.pixelSize: 20; color: "white" }
                 MouseArea { anchors.fill: parent; hoverEnabled: true; onEntered: parent.opacity = 0.7; onExited: parent.opacity = 1.0 }
             }
             NexusPulse { id: sysPulse }
@@ -45,7 +44,7 @@ Rectangle {
             Rectangle {
                 width: 40; height: 40; radius: 4
                 color: startHover.hovered ? "#22ffffff" : "transparent"
-                Label { anchors.centerIn: parent; text: "📁"; font.pixelSize: 24 } // bobfilez logo here
+                Text { anchors.centerIn: parent; text: "📁"; font.pixelSize: 24; color: "white" } // bobfilez logo here
                 HoverHandler { id: startHover }
                 MouseArea { anchors.fill: parent; onClicked: shell.toggleStartMenu() }
             }
@@ -54,7 +53,7 @@ Rectangle {
             Rectangle {
                 width: 40; height: 40; radius: 4
                 color: searchHover.hovered ? "#22ffffff" : "transparent"
-                Label { anchors.centerIn: parent; text: "🔍"; font.pixelSize: 20; color: "#0078d4" }
+                Text { anchors.centerIn: parent; text: "🔍"; font.pixelSize: 20; color: "#0078d4" }
                 HoverHandler { id: searchHover }
                 MouseArea { anchors.fill: parent; onClicked: shell.openPanel("search") }
             }
@@ -63,7 +62,7 @@ Rectangle {
             Rectangle {
                 width: 40; height: 40; radius: 4
                 color: oracleHover.hovered ? "#22ffffff" : "transparent"
-                Label { anchors.centerIn: parent; text: "🤖"; font.pixelSize: 20; color: "#0078d4" }
+                Text { anchors.centerIn: parent; text: "🤖"; font.pixelSize: 20; color: "#0078d4" }
                 HoverHandler { id: oracleHover }
                 MouseArea { anchors.fill: parent; onClicked: shell.openPanel("oracle") }
             }
@@ -72,7 +71,7 @@ Rectangle {
             Rectangle {
                 width: 40; height: 40; radius: 4
                 color: taskHover.hovered ? "#22ffffff" : "transparent"
-                Label { anchors.centerIn: parent; text: "📑"; font.pixelSize: 18 }
+                Text { anchors.centerIn: parent; text: "📑"; font.pixelSize: 18; color: "white" }
                 HoverHandler { id: taskHover }
             }
 
@@ -91,7 +90,7 @@ Rectangle {
                 Rectangle {
                     width: 40; height: 40; radius: 4
                     color: appHover.hovered ? "#22ffffff" : "transparent"
-                    Label { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 22 }
+                    Text { anchors.centerIn: parent; text: modelData.icon; font.pixelSize: 22; color: "white" }
                     
                     // Active indicator line
                     Rectangle {
@@ -105,8 +104,6 @@ Rectangle {
 
                     HoverHandler { id: appHover }
                     MouseArea { anchors.fill: parent; onClicked: shell.openPanel(modelData.id) }
-                    ToolTip.visible: appHover.hovered
-                    ToolTip.text: modelData.id
                 }
             }
         }
@@ -118,7 +115,7 @@ Rectangle {
             spacing: 2
 
             // Hidden icons
-            Label { text: "︿"; color: "#888"; font.pixelSize: 12; Layout.rightMargin: 8 }
+            Text { text: "︿"; color: "#888"; font.pixelSize: 12; Layout.rightMargin: 8 }
 
             // Status icons (clickable group)
             Rectangle {
@@ -126,9 +123,9 @@ Rectangle {
                 color: trayHover.hovered ? "#22ffffff" : "transparent"
                 RowLayout {
                     id: trayRow; anchors.centerIn: parent; spacing: 8
-                    Label { text: "📶"; font.pixelSize: 14; color: "white" }
-                    Label { text: "🔊"; font.pixelSize: 14; color: "white" }
-                    Label { text: "🔋"; font.pixelSize: 14; color: "white" }
+                    Text { text: "📶"; font.pixelSize: 14; color: "white" }
+                    Text { text: "🔊"; font.pixelSize: 14; color: "white" }
+                    Text { text: "🔋"; font.pixelSize: 14; color: "white" }
                 }
                 HoverHandler { id: trayHover }
             }
@@ -139,8 +136,8 @@ Rectangle {
                 color: timeHover.hovered ? "#22ffffff" : "transparent"
                 Column {
                     id: timeCol; anchors.centerIn: parent
-                    Label { text: Qt.formatTime(new Date(), "h:mm AP"); color: "white"; font.pixelSize: 11; horizontalAlignment: Text.AlignRight }
-                    Label { text: Qt.formatDate(new Date(), "M/d/yyyy"); color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignRight }
+                    Text { text: Qt.formatTime(new Date(), "h:mm AP"); color: "white"; font.pixelSize: 11; horizontalAlignment: Text.AlignRight }
+                    Text { text: Qt.formatDate(new Date(), "M/d/yyyy"); color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignRight }
                 }
                 HoverHandler { id: timeHover }
             }
