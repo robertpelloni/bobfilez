@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// TimeMachinePanel.qml — OmniTimeMachine File Reversion UI.
 /// Scrubs backwards through the binary deltas of a file, showing file

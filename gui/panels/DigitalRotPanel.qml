@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// DigitalRotPanel.qml — Autonomous "Digital Rot" Cleanup Agent.
 /// Suggests files to prune based on age, redundancy, and file type patterns.

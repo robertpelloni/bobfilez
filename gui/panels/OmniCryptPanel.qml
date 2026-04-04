@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniCryptPanel.qml — Advanced Cryptography and Steganography Suite.
 /// High-security panel for AES-256-GCM encryption and LSB steganography.

@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.13] - 2026-04-04
+
+### Cleaned — The "GraphicalEffects Import Cleanup" Release
+
+#### ✨ Dead Effect Imports Removed
+- Audited `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usage across the QML tree and separated real effect users from dead imports.
+- Removed stale effect imports from 27 QML files where no effect items (`DropShadow`, `FastBlur`, etc.) were actually instantiated.
+- Left the six real effect-using files unchanged for now so visual behavior remains stable while the dependency surface becomes easier to reason about.
+
+#### 🔍 Key Finding
+- The actual current GraphicalEffects dependency footprint is much smaller than the raw import count previously suggested.
+- Remaining real effect users are concentrated in a small set of shell/chrome surfaces, which makes the next replacement phase more focused and less risky.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/GRAPHICALEFFECTS_IMPORT_CLEANUP.md`** documenting the audit, exact file sets, and the recommended next step.
+
+### Version
+- Bumped to **6.0.13**.
+
 ## [6.0.12] - 2026-04-04
 
 ### Cleaned — The "QtCharts Removal" Release

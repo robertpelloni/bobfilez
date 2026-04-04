@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniAudioPanel.qml — Professional DAW (Digital Audio Workstation) & AI Extractor.
 /// Edit audio, apply VSTs, run Stem Separation, and identify tracks inside the shell.

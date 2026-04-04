@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 import Omni.Viz 1.0
 
 /// TopologyPanel.qml — Visual "Data Topology" Map (Tree-map).

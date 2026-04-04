@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// GamificationPanel.qml — Progress and Reward system for file organization.
 /// Tracks space reclaimed, files organized, and provides a Level/XP system.

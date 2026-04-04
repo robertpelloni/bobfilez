@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// AssetManagerPanel.qml — Universal Media Asset Manager (MAM).
 /// Combines preview, transcoding, tagging, and organization for pro assets.

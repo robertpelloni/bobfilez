@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniClusterPanel.qml — Distributed Grid Computing Manager.
 /// Distribute heavy tasks (FFmpeg, Hashcat, OCR) across multiple

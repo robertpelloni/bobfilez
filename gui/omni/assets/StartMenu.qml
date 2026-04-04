@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// StartMenu.qml — AI-powered Windows 11 style start menu.
 /// Features a search bar, pinned apps, and AI "Recommended" section.

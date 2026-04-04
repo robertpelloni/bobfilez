@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// SwarmPanel.qml — Multi-device Sync and Distributed Nexus Manager.
 /// Control how multiple bobfilez nodes communicate and share indexes.

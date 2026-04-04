@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniMountPanel.qml — UI for mapping Bobfilez features to Native OS Drives.
 /// Uses Dokany (Windows) or FUSE (Linux) to mount "Live Folders" to actual Drive Letters.

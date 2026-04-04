@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniGraphPanel.qml — Visual Force-Directed Node Graph for Files.
 /// Visualizes semantic relationships between documents, photos, people, and places.

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** a7f2642a | **Branch:** main | **Version:** 6.0.12
+**Generated:** 2026-04-04 | **Commit:** 7fc8a9c1 | **Branch:** main | **Version:** 6.0.13
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **GraphicalEffects Import Cleanup**: Audited actual versus dead effect usage and removed stale `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` imports from 27 QML files while preserving the small set of files that still genuinely use `DropShadow` / `FastBlur`.
 - ✅ **QtCharts Removal**: Removed the dead `QtCharts` import from `EnhancedFileOpsPanel.qml`; the panel's live speed graph was already implemented with a `Canvas`, so this safely shrank the GUI dependency surface without affecting behavior.
 - ✅ **Markdown WebEngine Removal**: Added a native `NativeMarkdownView` preview item, removed `QtWebEngine` / `WebEngineView` usage from `MarkdownViewerPanel.qml`, and removed `WebEngineQuick` from the `fo_omni` dependency set while confirming the remaining BobUI consumer blocker is still `Qt6Qml`.
 - ✅ **BobUI Native Migration Audit**: Added `docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md` and confirmed the current shell is still ~10k lines of QML; removing `WebEngineQuick` is feasible, but removing `QtQuick` itself is not realistic with current BobUI because BobUI widgets are built on `QQuickItem` / `QQuickPaintedItem`.
@@ -179,6 +180,24 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 28)
+**Author:** GPT
+
+**Scope:** v6.0.13 GraphicalEffects Import Cleanup
+
+**Delivered:**
+- ✅ Audited all QML imports of `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` and separated real effect users from dead imports.
+- ✅ Removed stale effect imports from 27 QML files that did not actually instantiate effect items.
+- ✅ Confirmed the remaining real effect users are now limited to a small, focused set of shell/chrome surfaces.
+- ✅ Added `docs/ai/implementation/GRAPHICALEFFECTS_IMPORT_CLEANUP.md` documenting the audit, cleanup scope, and next-step target list.
+
+**Next Steps:**
+1. Replace or simplify the remaining six real effect users.
+2. Keep pruning dead declarative-module surface before attempting broad rewrites.
+3. Continue preserving behavior while shrinking dependency noise.
 
 ---
 

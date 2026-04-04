@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// RecoveryPanel.qml — Forensic Data Recovery and Self-Healing UI.
 /// Detect bit-rot, undelete files, and restore from Swarm/Cloud mirrors.

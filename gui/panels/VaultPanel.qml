@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// VaultPanel.qml — Secure interface for the Encrypted Vault.
 /// Manage files protected by AES-256-GCM.

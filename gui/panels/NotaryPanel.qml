@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// NotaryPanel.qml — Digital Notary and Cryptographic Signing UI.
 /// Sign files with Ed25519 or GPG to ensure authenticity.

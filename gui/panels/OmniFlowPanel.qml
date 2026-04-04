@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniFlowPanel.qml — Visual Node-Based Automation Editor.
 /// Drag, drop, and connect logic nodes to build complex file operations.
