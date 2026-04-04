@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 07af8d00 | **Branch:** main | **Version:** 6.0.16
+**Generated:** 2026-04-04 | **Commit:** 376e2e59 | **Branch:** main | **Version:** 6.0.17
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtQuick.Controls Second Reduction**: Removed `QtQuick.Controls` usage from `DesktopIcons.qml`, `NexusPulse.qml`, and `WindowManager.qml`, reducing the global controls-import footprint further from 46 QML files to 43.
 - ✅ **QtQuick.Controls Initial Reduction**: Removed `QtQuick.Controls` usage from `Taskbar.qml` and `StartMenu.qml`, replacing trivial stock controls with lighter `QtQuick` primitives and reducing the global controls-import footprint from 48 QML files to 46.
 - ✅ **BobUI Registration Alignment**: Corrected the stale `OmniUI/core` path to the real `OmniUI/omnicore` layout, wired BobUI omnicore sources/includes into the GUI targets, and added a real `OmniUI::registerQmlTypes()` call in the native shell bootstrap.
 - ✅ **GraphicalEffects Full Removal**: Simplified the six remaining real GraphicalEffects users and fully removed `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usage from the entire `gui/` tree.
@@ -183,6 +184,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 32)
+**Author:** GPT
+
+**Scope:** v6.0.17 QtQuick.Controls Second Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` imports from `DesktopIcons.qml`, `NexusPulse.qml`, and `WindowManager.qml`.
+- ✅ Replaced the remaining trivial `Label` usage in the first two with `Text` and removed the dead Controls import from the third.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 46 QML files to 43.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_SECOND_REDUCTION.md` documenting the file choices, rationale, and measurement update.
+- ✅ Re-ran headless build + full tests so the versioned state remains validated.
+
+**Next Steps:**
+1. Continue with other shell-adjacent files that mostly use `Label` / trivial `Button` usage.
+2. Keep deferring richer control categories until enough low-risk wins are accumulated.
+3. Preserve quantitative import-count measurement after each pass.
 
 ---
 

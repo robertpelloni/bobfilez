@@ -1,5 +1,33 @@
 # Changelog
 
+## [6.0.17] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Second Reduction" Release
+
+#### 🧱 Additional Shell-Adjacent Control Cleanup
+- Updated **`gui/omni/assets/DesktopIcons.qml`** to remove `QtQuick.Controls` usage.
+- Updated **`gui/omni/assets/NexusPulse.qml`** to remove `QtQuick.Controls` usage.
+- Updated **`gui/omni/assets/WindowManager.qml`** to remove a dead `QtQuick.Controls` import.
+- Replaced the remaining trivial `Label` usage in the first two files with `Text`.
+
+#### 📊 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **46 QML files** importing `QtQuick.Controls`
+  - to **43 QML files**
+- Combined with the first reduction pass, the shell-adjacent no-Controls set now includes:
+  - `Taskbar.qml`
+  - `StartMenu.qml`
+  - `DesktopIcons.qml`
+  - `NexusPulse.qml`
+  - `WindowManager.qml`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_SECOND_REDUCTION.md`** documenting the file choices, measurement update, and what categories remain intentionally deferred.
+
+### Version
+- Bumped to **6.0.17**.
+
 ## [6.0.16] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Initial Reduction" Release

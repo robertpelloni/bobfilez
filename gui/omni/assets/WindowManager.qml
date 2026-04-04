@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 /// WindowManager.qml — Windows 11 style window orchestration for OmniShell.

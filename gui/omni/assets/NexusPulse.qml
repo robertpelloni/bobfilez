@@ -1,6 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
 
 /// NexusPulse.qml — Real-time system activity monitor for the Taskbar.
 /// Visualizes CPU pressure, Nexus task load, and active I/O.
@@ -39,6 +38,6 @@ Rectangle {
             }
         }
 
-        Label { text: pulse.activeTasks.toString(); color: "white"; font.pixelSize: 10; font.bold: true }
+        Text { text: pulse.activeTasks.toString(); color: "white"; font.pixelSize: 10; font.bold: true }
     }
 }

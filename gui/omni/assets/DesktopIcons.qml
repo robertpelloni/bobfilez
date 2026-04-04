@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 /// DesktopIcons.qml — Windows 11 style desktop icon grid.
@@ -36,13 +35,14 @@ Item {
             ColumnLayout {
                 anchors.fill: parent; anchors.margins: 4; spacing: 4
                 
-                Label {
+                Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: modelData.icon
                     font.pixelSize: 40
+                    color: "white"
                 }
                 
-                Label {
+                Text {
                     Layout.fillWidth: true
                     text: modelData.name
                     color: "white"; font.pixelSize: 11
@@ -50,7 +50,6 @@ Item {
                     wrapMode: Text.WordWrap
                     elide: Text.ElideRight
                     maximumLineCount: 2
-                    
                     style: Text.Outline; styleColor: "black" // Desktop readability
                 }
             }
