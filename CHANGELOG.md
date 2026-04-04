@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.0.19] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls OmniPeek Reduction" Release
+
+#### 👁️ OmniPeek Overlay Conversion
+- Updated **`gui/omni/assets/OmniPeekOverlay.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with lighter `QtQuick` primitives, including:
+  - `Label` → `Text`
+  - header/buttons → `Rectangle` + `Text` + `MouseArea` + `HoverHandler`
+  - viewer buttons → lightweight custom button shells
+  - `ScrollView` + `TextArea` → `Flickable` + read-only `TextEdit`
+
+#### 📊 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **42 QML files** importing `QtQuick.Controls`
+  - to **41 QML files**
+- This demonstrates the controls-reduction strategy can extend beyond minimal shell chrome into richer overlay surfaces while remaining incremental.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_OMNIPEEK_REDUCTION.md`** documenting the replacement set, tradeoffs, and why OmniPeek was a safe next-step target.
+
+### Version
+- Bumped to **6.0.19**.
+
 ## [6.0.18] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Explorer Reduction" Release

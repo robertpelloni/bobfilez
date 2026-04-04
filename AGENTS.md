@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** ec09edda | **Branch:** main | **Version:** 6.0.18
+**Generated:** 2026-04-04 | **Commit:** 820100d4 | **Branch:** main | **Version:** 6.0.19
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtQuick.Controls OmniPeek Reduction**: Removed `QtQuick.Controls` usage from `OmniPeekOverlay.qml`, replacing labels, header/buttons, and the `ScrollView`/`TextArea` stack with lighter `QtQuick` primitives and reducing the global controls-import footprint from 42 QML files to 41.
 - ✅ **QtQuick.Controls Explorer Reduction**: Removed `QtQuick.Controls` usage from `ExplorerWindow.qml`, replacing labels, buttons, delegates, and the stock scroll bar with lighter `QtQuick` primitives and reducing the global controls-import footprint from 43 QML files to 42.
 - ✅ **QtQuick.Controls Second Reduction**: Removed `QtQuick.Controls` usage from `DesktopIcons.qml`, `NexusPulse.qml`, and `WindowManager.qml`, reducing the global controls-import footprint further from 46 QML files to 43.
 - ✅ **QtQuick.Controls Initial Reduction**: Removed `QtQuick.Controls` usage from `Taskbar.qml` and `StartMenu.qml`, replacing trivial stock controls with lighter `QtQuick` primitives and reducing the global controls-import footprint from 48 QML files to 46.
@@ -185,6 +186,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 34)
+**Author:** GPT
+
+**Scope:** v6.0.19 QtQuick.Controls OmniPeek Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/omni/assets/OmniPeekOverlay.qml`.
+- ✅ Replaced labels, header/button shells, and the `ScrollView` + `TextArea` preview stack with lighter `QtQuick` primitives (`Text`, `Rectangle`, `MouseArea`, `HoverHandler`, `Flickable`, `TextEdit`).
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 42 QML files to 41.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_OMNIPEEK_REDUCTION.md` documenting the conversion, tradeoffs, and why this was still a safe incremental target.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Continue with other self-contained shell/overlay surfaces before richer panel forms.
+2. Keep tracking the global controls-import count after each pass.
+3. Delay heavy control families until enough low-risk reductions are complete.
 
 ---
 

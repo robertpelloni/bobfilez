@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 /// OmniPeekOverlay.qml — Universal Instant Preview Engine for bobfilez.
@@ -39,15 +38,25 @@ Rectangle {
                 Layout.fillWidth: true; height: 40; color: "transparent"
                 RowLayout {
                     anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
-                    Label { text: peekOverlay.peekType === "Model3D" ? "🧊" : 
+                    Text { text: peekOverlay.peekType === "Model3D" ? "🧊" : 
                                   peekOverlay.peekType === "Video" ? "🎬" :
                                   peekOverlay.peekType === "DatabaseSchema" ? "🗄️" :
                                   peekOverlay.peekType === "BinaryAssembly" ? "⚙️" :
-                                  peekOverlay.peekType === "ArchiveTree" ? "📦" : "📄"; font.pixelSize: 18 }
-                    Label { text: peekOverlay.filePath.split("/").pop(); color: "white"; font.pixelSize: 14; font.bold: true; elide: Text.ElideMiddle; Layout.fillWidth: true }
-                    Label { text: "⚡ " + peekOverlay.loadTimeMs.toFixed(1) + " ms"; color: "#0078d4"; font.pixelSize: 11; font.bold: true }
-                    Button { text: "Open Externally"; flat: true; contentItem: Label { text: parent.text; color: "#aaa"; font.pixelSize: 11 } }
-                    Button { text: "✕"; flat: true; onClicked: peekOverlay.visible = false; contentItem: Label { text: parent.text; color: "white"; font.pixelSize: 16 } }
+                                  peekOverlay.peekType === "ArchiveTree" ? "📦" : "📄"; font.pixelSize: 18; color: "white" }
+                    Text { text: peekOverlay.filePath.split("/").pop(); color: "white"; font.pixelSize: 14; font.bold: true; elide: Text.ElideMiddle; Layout.fillWidth: true }
+                    Text { text: "⚡ " + peekOverlay.loadTimeMs.toFixed(1) + " ms"; color: "#0078d4"; font.pixelSize: 11; font.bold: true }
+                    Rectangle {
+                        width: openExternallyText.implicitWidth + 16; height: 28; radius: 4; color: openExternallyHover.hovered ? "#22ffffff" : "transparent"
+                        Text { id: openExternallyText; anchors.centerIn: parent; text: "Open Externally"; color: "#aaa"; font.pixelSize: 11 }
+                        HoverHandler { id: openExternallyHover }
+                        MouseArea { anchors.fill: parent }
+                    }
+                    Rectangle {
+                        width: 28; height: 28; radius: 4; color: closeHover.hovered ? "#22ffffff" : "transparent"
+                        Text { anchors.centerIn: parent; text: "✕"; color: "white"; font.pixelSize: 16 }
+                        HoverHandler { id: closeHover }
+                        MouseArea { anchors.fill: parent; onClicked: peekOverlay.visible = false }
+                    }
                 }
             }
 
@@ -62,12 +71,19 @@ Rectangle {
                 Rectangle {
                     visible: peekOverlay.peekType === "Model3D"
                     anchors.fill: parent; color: "#1e1e1e"
-                    Label { anchors.centerIn: parent; text: "🧊 3D Canvas rendering (Interactive via raylib)"; color: "#888"; font.pixelSize: 14 }
+                    Text { anchors.centerIn: parent; text: "🧊 3D Canvas rendering (Interactive via raylib)"; color: "#888"; font.pixelSize: 14 }
                     // Rotation controls
                     Row { anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottomMargin: 15; spacing: 10
-                        Button { text: "↺"; flat: true }
-                        Button { text: "Reset View"; flat: true }
-                        Button { text: "↻"; flat: true }
+                        Repeater {
+                            model: ["↺", "Reset View", "↻"]
+                            Rectangle {
+                                width: modelData === "Reset View" ? 90 : 36; height: 28; radius: 4
+                                color: overlayBtnHover.hovered ? "#22ffffff" : "transparent"
+                                Text { anchors.centerIn: parent; text: modelData; color: "white"; font.pixelSize: modelData === "Reset View" ? 11 : 16 }
+                                HoverHandler { id: overlayBtnHover }
+                                MouseArea { anchors.fill: parent }
+                            }
+                        }
                     }
                 }
 
@@ -76,19 +92,26 @@ Rectangle {
                     visible: peekOverlay.peekType === "Video" || peekOverlay.peekType === "Image"
                     anchors.fill: parent; color: "black"
                     Image { anchors.fill: parent; anchors.margins: 10; source: "image:/thumb/placeholder"; fillMode: Image.PreserveAspectFit }
-                    Rectangle { visible: peekOverlay.peekType === "Video"; anchors.centerIn: parent; width: 60; height: 60; radius: 30; color: "#aa000000"; Label { anchors.centerIn: parent; text: "▶"; color: "white"; font.pixelSize: 24 } }
+                    Rectangle { visible: peekOverlay.peekType === "Video"; anchors.centerIn: parent; width: 60; height: 60; radius: 30; color: "#aa000000"; Text { anchors.centerIn: parent; text: "▶"; color: "white"; font.pixelSize: 24 } }
                 }
 
-                // Text/Code/Hex/Schema/Tree Viewer (ScrollView + TextArea)
-                ScrollView {
+                // Text/Code/Hex/Schema/Tree Viewer (Flickable + TextEdit)
+                Flickable {
                     visible: ["DatabaseSchema", "BinaryAssembly", "ArchiveTree", "TextCode"].indexOf(peekOverlay.peekType) >= 0
                     anchors.fill: parent; anchors.margins: 10; clip: true
-                    TextArea {
+                    contentWidth: width
+                    contentHeight: textPreview.paintedHeight
+
+                    TextEdit {
+                        id: textPreview
+                        width: parent.width
                         text: peekOverlay.contentPayload
                         color: peekOverlay.peekType === "BinaryAssembly" ? "#00ff00" :
                                peekOverlay.peekType === "DatabaseSchema" ? "#ffaa00" : "#d4d4d4"
                         font.family: "Consolas,monospace"; font.pixelSize: 13
-                        background: null; readOnly: true; wrapMode: TextArea.Wrap
+                        wrapMode: TextEdit.Wrap
+                        readOnly: true
+                        selectByMouse: true
                     }
                 }
             }
@@ -98,9 +121,9 @@ Rectangle {
                 Layout.fillWidth: true; height: 30; color: "transparent"
                 RowLayout {
                     anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
-                    Label { text: peekOverlay.metaDataText; color: "#888"; font.pixelSize: 11; font.family: "Consolas" }
+                    Text { text: peekOverlay.metaDataText; color: "#888"; font.pixelSize: 11; font.family: "Consolas" }
                     Item { Layout.fillWidth: true }
-                    Label { text: "Space: Close"; color: "#555"; font.pixelSize: 10 }
+                    Text { text: "Space: Close"; color: "#555"; font.pixelSize: 10 }
                 }
             }
         }
