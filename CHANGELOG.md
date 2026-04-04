@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.23] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Swarm Reduction" Release
+
+#### 🛸 Second Routed-Panel Conversion
+- Updated **`gui/panels/SwarmPanel.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with plain `QtQuick` primitives and small local helpers, including:
+  - `Label` → `Text`
+  - action `Button`s → local `PanelButton` helper
+  - `GroupBox` detected-nodes section → explicit titled `Text` + `Rectangle` container
+  - `ProgressBar` → local `SlimProgressBar` helper
+- Added a small local `statusColor(status)` helper to keep status styling explicit and readable.
+
+#### 📊 Routed-Panel Pattern Reinforced
+- This is the **second successful routed-panel controls-removal pass** after `DigitalRotPanel.qml`.
+- It strengthens the emerging migration rule that dashboard-style, interaction-light panels are the best next-wave candidates.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **38 QML files** importing `QtQuick.Controls`
+  - to **37 QML files**
+- The reduction campaign remains quantitative and cumulative.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_SWARM_REDUCTION.md`** documenting why `SwarmPanel.qml` was a cleaner next target than richer panels and how the helper-based conversion preserved readability.
+
+### Version
+- Bumped to **6.0.23**.
+
 ## [6.0.22] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Digital Rot Reduction" Release
