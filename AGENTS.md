@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** ba667b9b | **Branch:** main | **Version:** 6.0.14
+**Generated:** 2026-04-04 | **Commit:** bda498e0 | **Branch:** main | **Version:** 6.0.15
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **BobUI Registration Alignment**: Corrected the stale `OmniUI/core` path to the real `OmniUI/omnicore` layout, wired BobUI omnicore sources/includes into the GUI targets, and added a real `OmniUI::registerQmlTypes()` call in the native shell bootstrap.
 - ✅ **GraphicalEffects Full Removal**: Simplified the six remaining real GraphicalEffects users and fully removed `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usage from the entire `gui/` tree.
 - ✅ **GraphicalEffects Import Cleanup**: Audited actual versus dead effect usage and removed stale `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` imports from 27 QML files while preserving the small set of files that still genuinely use `DropShadow` / `FastBlur`.
 - ✅ **QtCharts Removal**: Removed the dead `QtCharts` import from `EnhancedFileOpsPanel.qml`; the panel's live speed graph was already implemented with a `Canvas`, so this safely shrank the GUI dependency surface without affecting behavior.
@@ -181,6 +182,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 30)
+**Author:** GPT
+
+**Scope:** v6.0.15 BobUI Registration Alignment
+
+**Delivered:**
+- ✅ Corrected GUI integration paths from stale `OmniUI/core` references to the real `OmniUI/omnicore` layout in both GUI CMake files.
+- ✅ Added recursive BobUI omnicore source inclusion plus current include paths (`omnicore/include`, `omnicore/src`, `deps/juce`, `deps/imgui`).
+- ✅ Updated `gui/omni/src/main.cpp` to include `OmniQmlRegistration.h` and call `OmniUI::registerQmlTypes()` before registering bobfilez-local bridge types.
+- ✅ Added `docs/ai/implementation/BOBUI_REGISTRATION_WIRING.md` documenting the stale-path bug, the structural correction, and the remaining Qt module/provider limitation.
+- ✅ Re-ran headless validation to keep the versioned state aligned while full GUI buildability remains blocked upstream by missing `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` support.
+
+**Next Steps:**
+1. Continue targeting stock `QtQuick.Controls` / `QtQuick.Layouts` surfaces next.
+2. Reuse the corrected `omnicore` + registration baseline for all future BobUI probing.
+3. Keep separating structural integration fixes from provider-surface limitations in documentation and planning.
 
 ---
 

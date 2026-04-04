@@ -7,11 +7,12 @@ find_package(Qt6 COMPONENTS Core Gui Widgets Qml Quick REQUIRED)
 
 message(STATUS "fo_gui will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
 
-# OmniUI Core Sources (Local path relative to gui/)
-set(OMNI_CORE_DIR ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/core)
-set(OMNI_CORE_SOURCES
-    ${OMNI_CORE_DIR}/src/OmniApp.cpp
-    ${OMNI_CORE_DIR}/src/JuceWidget.cpp
+# BobUI OmniCore sources (current repository layout)
+set(OMNI_CORE_DIR ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/omnicore)
+file(GLOB_RECURSE OMNI_CORE_SOURCES CONFIGURE_DEPENDS
+    ${OMNI_CORE_DIR}/src/*.cpp
+)
+list(APPEND OMNI_CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/juce/juce_mock.cpp
 )
 
@@ -40,7 +41,9 @@ add_executable(fo_gui
 target_include_directories(fo_gui PRIVATE 
     omni/src 
     ${OMNI_CORE_DIR}/include
+    ${OMNI_CORE_DIR}/src
     ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/juce
+    ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/imgui
 )
 
 target_link_libraries(fo_gui PRIVATE 

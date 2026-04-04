@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.15] - 2026-04-04
+
+### Wired — The "BobUI Registration Alignment" Release
+
+#### 🧩 BobUI Layout / Bootstrap Correction
+- Updated **`gui/CMakeLists.txt`** and **`gui/omni/CMakeLists.txt`** to point at the current BobUI source layout:
+  - `libs/bobui/OmniUI/omnicore`
+- Removed the stale `OmniUI/core` assumption.
+- Added recursive BobUI omnicore source inclusion and the corresponding include paths for:
+  - `omnicore/include`
+  - `omnicore/src`
+  - `deps/juce`
+  - `deps/imgui`
+
+#### 🚀 Real BobUI QML Registration Call
+- Updated **`gui/omni/src/main.cpp`** to include:
+  - `OmniQmlRegistration.h`
+- Added a real startup call to:
+  - `OmniUI::registerQmlTypes();`
+- This means bobfilez now structurally attempts to back imports such as `OmniUI`, `OmniLayout`, and `OmniData` with BobUI registrations instead of only registering its local bridge types.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BOBUI_REGISTRATION_WIRING.md`** documenting the stale-path bug, the current BobUI layout, the bootstrap correction, and the remaining limitations.
+
+#### 🔍 Important Limitation
+- This does **not** solve the already-known full GUI blocker:
+  - BobUI still lacks the full `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` provider surface needed by bobfilez's current GUI targets on this machine.
+- This release improves integration correctness, not end-to-end GUI buildability.
+
+### Version
+- Bumped to **6.0.15**.
+
 ## [6.0.14] - 2026-04-04
 
 ### Simplified — The "GraphicalEffects Full Removal" Release

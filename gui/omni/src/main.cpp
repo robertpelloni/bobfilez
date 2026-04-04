@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include <QUrl>
 
+#include "OmniQmlRegistration.h"
 #include "FileModel.h"
 #include "TreemapModel.h"
 #include "NativeMarkdownView.h"
@@ -11,6 +12,11 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    // Register BobUI / OmniUI namespaces first so any existing OmniUI/OmniData/
+    // OmniLayout imports in bobfilez QML are backed by real type registrations.
+    OmniUI::registerQmlTypes();
+
+    // bobfilez-specific bridges remain registered in their own namespaces.
     qmlRegisterType<FileModel>("Omni.File", 1, 0, "FileModel");
     qmlRegisterType<fo::gui::TreemapModel>("Omni.Viz", 1, 0, "TreemapModel");
     qmlRegisterType<fo::gui::NativeMarkdownView>("Omni.Native", 1, 0, "MarkdownView");
