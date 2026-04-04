@@ -75,6 +75,42 @@ Observed probe result with a raw `libs/bobui` checkout:
 
 If `libs/bobui` is only a source checkout and has not been configured/built/installed yet, GUI configure will still fail until the corresponding package config files exist.
 
+## In-place BobUI build attempt
+An in-place BobUI developer build was attempted using:
+- `scripts/build_bobui_inplace.bat`
+
+### Result
+The BobUI configure step **did succeed** in `libs/bobui/build-bobui/` after bypassing the repo's MSVC minimum-version gate with:
+- `-DQT_NO_MSVC_MIN_VERSION_CHECK=ON`
+
+That configure generated:
+- `libs/bobui/build-bobui/lib/cmake/Qt6/Qt6Config.cmake`
+
+### What worked
+Bobfilez could then finally resolve the top-level Qt package config from the BobUI build tree.
+
+### What failed next
+A follow-up bobfilez consumer probe failed because BobUI's build tree does **not** provide the components bobfilez currently requests:
+- `Qt6Qml`
+- therefore also no usable `Qt6Quick`
+- and by implication no path to `Qt6QuickControls2` / `Qt6WebEngineQuick` from the current BobUI tree
+
+Exact next blocker observed:
+- missing `Qt6QmlConfig.cmake`
+
+## Practical conclusion
+BobUI can be made to work as a **QtBase-class provider**, but in its current checked-out state it is **not yet a full drop-in replacement for the bobfilez GUI stack**.
+
+Why:
+- bobfilez native UI currently depends on `Qml`, `Quick`, `QuickControls2`, and `WebEngineQuick`
+- the current BobUI repository appears to provide a QtBase-derived foundation plus OmniUI, but **not** the full declarative/web module set expected by bobfilez's current CMake files
+
+## What would make it work
+One of these paths is required:
+1. **Expand BobUI** so it also exports the missing Qt declarative/web components.
+2. **Refactor bobfilez GUI targets away from QML/Quick/WebEngine** and onto BobUI/OmniUI-only C++ surfaces.
+3. **Use BobUI only for the subset it actually provides** while retaining another provider for the missing declarative modules (messier hybrid path).
+
 ## Go-port status
 As of this session, there is **no active Go port** in the bobfilez repository.
 

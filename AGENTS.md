@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** d2dc81e7 | **Branch:** main | **Version:** 6.0.8
+**Generated:** 2026-04-04 | **Commit:** 7e8c9730 | **Branch:** main | **Version:** 6.0.9
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -31,6 +31,7 @@ bobfilez/
 ```powershell
 build.bat                                    # Quick build (Windows)
 scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omni off)
+scripts\build_bobui_inplace.bat             # Configure/build BobUI itself under libs/bobui/build-bobui
 scripts\build_bobui_gui.bat                 # BobUI-backed GUI/Omni probe/build entrypoint
 cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
 .\build-msvc\tests\fo_tests.exe            # Headless test suite
@@ -96,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **BobUI In-Place Build Probe**: Added `scripts/build_bobui_inplace.bat` and confirmed BobUI can export a top-level `Qt6Config.cmake` from an in-place developer build, but the current BobUI tree still lacks `Qt6Qml` and therefore is not yet a full drop-in provider for bobfilez's GUI targets.
 - ✅ **BOBGUI Comparison Added**: Added `libs/bobgui` as a submodule and documented the architectural comparison in `docs/ai/implementation/BOBGUI_VS_BOBUI.md`; conclusion: BobUI remains the correct primary native UI foundation for bobfilez.
 - ✅ **BobUI Submodule Updated**: Advanced `libs/bobui` to `581de545a4` from upstream `origin/main`.
 - ✅ **BobUI-First GUI Provider Wiring**: Added `cmake/BobUIQtSetup.cmake` and updated the root build so GUI / Omni targets prefer the local BobUI fork (`libs/bobui` / `BOBUI_ROOT`) as the Qt6 package provider instead of assuming a separately installed stock Qt.
@@ -174,6 +176,24 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 24)
+**Author:** GPT
+
+**Scope:** v6.0.9 In-Place BobUI Build Probe
+
+**Delivered:**
+- ✅ Added `scripts/build_bobui_inplace.bat` to configure/build BobUI itself under `libs/bobui/build-bobui`.
+- ✅ Confirmed BobUI can configure in place and export `lib/cmake/Qt6/Qt6Config.cmake` when the MSVC minimum-version gate is explicitly overridden.
+- ✅ Re-ran bobfilez against the BobUI build tree and confirmed the next blocker is missing `Qt6Qml` (and therefore no current path to `Qt6Quick`, `Qt6QuickControls2`, or `Qt6WebEngineQuick`).
+- ✅ Updated `docs/ai/implementation/BOBUI_PROVIDER_SETUP.md` with the exact provider/build findings.
+
+**Next Steps:**
+1. Decide whether to expand BobUI's module surface or refactor bobfilez away from its current QML/Quick/WebEngine dependency set.
+2. Keep using `scripts/build_bobui_inplace.bat` and `scripts/build_bobui_gui.bat` as the standard BobUI validation scripts.
+3. Do not assume the remaining issue is just package discovery; the missing component set is now the primary blocker.
 
 ---
 

@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.0.9] - 2026-04-04
+
+### Investigated — The "In-Place BobUI Build Probe" Release
+
+#### 🧪 BobUI Build Attempt
+- Added **`scripts/build_bobui_inplace.bat`** to configure and build BobUI in place under `libs/bobui/build-bobui`.
+- Confirmed that BobUI can be configured as an in-place **developer build** on this machine when the MSVC minimum-version guard is explicitly bypassed.
+- The configure step generated a real:
+  - `libs/bobui/build-bobui/lib/cmake/Qt6/Qt6Config.cmake`
+
+#### 🔍 Critical Finding
+- Re-ran bobfilez against the in-place BobUI build tree.
+- bobfilez was finally able to see the top-level **Qt6** package config from BobUI, but failed immediately on required missing components:
+  - `Qt6Qml`
+  - therefore also no practical `Qt6Quick`, `Qt6QuickControls2`, or `Qt6WebEngineQuick`
+- This demonstrates that the current BobUI tree is **not yet a full drop-in provider** for the bobfilez GUI stack as currently written.
+
+#### 📘 Documentation
+- Updated **`docs/ai/implementation/BOBUI_PROVIDER_SETUP.md`** with the exact in-place build/probe result and the current decision tree.
+
+### Version
+- Bumped to **6.0.9**.
+
 ## [6.0.8] - 2026-04-04
 
 ### Added — The "BOBGUI Evaluation" Release

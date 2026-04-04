@@ -21,30 +21,21 @@ if "%VCVARS%"=="" (
     exit /b 1
 )
 
-set "BUILD_DIR=build-bobui"
-if not "%~1"=="" (
-    set "BUILD_DIR=%~1"
-)
-
-if not "%~2"=="" (
-    set "BOBUI_ROOT=%~2"
-)
-
-if "%BOBUI_ROOT%"=="" (
-    set "BOBUI_ROOT=%~dp0..\libs\bobui"
-)
+set "BOBUI_SRC=%~dp0..\libs\bobui"
+set "BOBUI_BUILD=%BOBUI_SRC%\build-bobui"
 
 echo [INFO] Using vcvars: %VCVARS%
 call "%VCVARS%"
 if errorlevel 1 exit /b %errorlevel%
 
-cd /d "%~dp0.."
+cd /d "%BOBUI_SRC%"
+if not exist "%BOBUI_BUILD%" mkdir "%BOBUI_BUILD%"
+cd /d "%BOBUI_BUILD%"
 
-echo [INFO] BOBUI_ROOT=%BOBUI_ROOT%
-echo [INFO] Configuring BobUI-backed GUI build into %BUILD_DIR%...
-cmake -S . -B "%BUILD_DIR%" -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON -DBOBUI_ROOT=%BOBUI_ROOT%
+echo [INFO] Configuring BobUI in-place developer build...
+call ..\configure.bat -developer-build -nomake tests -nomake examples -cmake-generator Ninja
 if errorlevel 1 exit /b %errorlevel%
 
-echo [INFO] Building BobUI-backed GUI targets...
-cmake --build "%BUILD_DIR%" --parallel 2
+echo [INFO] Building BobUI in-place...
+cmake --build . --parallel 2
 exit /b %errorlevel%
