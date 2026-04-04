@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 7e8c9730 | **Branch:** main | **Version:** 6.0.9
+**Generated:** 2026-04-04 | **Commit:** 938c5fad | **Branch:** main | **Version:** 6.0.10
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **BobUI Native Migration Audit**: Added `docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md` and confirmed the current shell is still ~10k lines of QML; removing `WebEngineQuick` is feasible, but removing `QtQuick` itself is not realistic with current BobUI because BobUI widgets are built on `QQuickItem` / `QQuickPaintedItem`.
 - ✅ **BobUI In-Place Build Probe**: Added `scripts/build_bobui_inplace.bat` and confirmed BobUI can export a top-level `Qt6Config.cmake` from an in-place developer build, but the current BobUI tree still lacks `Qt6Qml` and therefore is not yet a full drop-in provider for bobfilez's GUI targets.
 - ✅ **BOBGUI Comparison Added**: Added `libs/bobgui` as a submodule and documented the architectural comparison in `docs/ai/implementation/BOBGUI_VS_BOBUI.md`; conclusion: BobUI remains the correct primary native UI foundation for bobfilez.
 - ✅ **BobUI Submodule Updated**: Advanced `libs/bobui` to `581de545a4` from upstream `origin/main`.
@@ -176,6 +177,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 25)
+**Author:** GPT
+
+**Scope:** v6.0.10 BobUI Native Migration Cost Audit
+
+**Delivered:**
+- ✅ Added `docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md` with a detailed breakdown of what it would cost to remove QML / Quick / WebEngine from bobfilez.
+- ✅ Quantified the current native UI surface as 49 QML files, 9,844 QML lines, and 39 shell/panel routes.
+- ✅ Confirmed that current BobUI widgets/layouts are Quick-based (`QQuickItem` / `QQuickPaintedItem`), so a BobUI-first migration does not currently remove the `QtQuick` dependency.
+- ✅ Confirmed current bobfilez bootstrap is still only registering `FileModel` and `TreemapModel`, not the broader BobUI QML type surface.
+- ✅ Produced a phased recommendation: remove `WebEngineQuick` first, then reduce other stock Qt module usage, then incrementally adopt BobUI widgets while keeping QML as a composition layer for now.
+
+**Next Steps:**
+1. Start with the smallest high-value cut: replace `MarkdownViewerPanel.qml` / `QtWebEngine`.
+2. Audit `QtCharts` and `GraphicalEffects` replacements next.
+3. Only pursue wholesale QML reduction after BobUI-native widget adoption is real and wired.
 
 ---
 

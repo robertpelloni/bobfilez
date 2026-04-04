@@ -1,5 +1,48 @@
 # Changelog
 
+## [6.0.10] - 2026-04-04
+
+### Analyzed — The "BobUI Native Migration Audit" Release
+
+#### 🧭 Migration Cost Audit
+- Added **`docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md`**.
+- Audited the real cost of removing the current bobfilez dependency set on:
+  - QML composition
+  - `QtQuick.Controls`
+  - `QtQuick.Layouts`
+  - `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects`
+  - `QtWebEngine`
+  - `QtCharts`
+- Quantified the current native shell surface as:
+  - **49 QML files**
+  - **9,844 QML lines**
+  - **39 routed shell/panel surfaces** in `main.qml`
+
+#### 🔍 Critical Architectural Finding
+- Confirmed that current BobUI widgets/layouts are themselves based on:
+  - `QQuickItem`
+  - `QQuickPaintedItem`
+- This means a BobUI-first migration does **not** currently imply removal of **QtQuick** itself.
+- The practical migration targets must therefore be separated:
+  - remove `WebEngineQuick` → realistic
+  - reduce stock Quick Controls / Effects → hard but incremental
+  - remove QML composition entirely → major rewrite
+  - remove QtQuick itself → not realistic with current BobUI architecture
+
+#### 🧱 Additional Integration Finding
+- Confirmed that bobfilez currently does **not** call BobUI's `OmniUI::registerQmlTypes()` in its bootstrap path.
+- This means the project is still largely a **stock Qt Quick shell with thin C++ model bridges**, not yet a genuinely BobUI-driven shell.
+
+#### ✅ Recommendation Captured
+- The best near-term path is:
+  1. remove `WebEngineQuick`
+  2. trim other nonessential stock Qt modules
+  3. adopt BobUI widgets/layouts incrementally while keeping QML as a composition layer for now
+- A wholesale "delete QML" push is currently the wrong first move.
+
+### Version
+- Bumped to **6.0.10**.
+
 ## [6.0.9] - 2026-04-04
 
 ### Investigated — The "In-Place BobUI Build Probe" Release
