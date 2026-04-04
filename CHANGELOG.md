@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.0.20] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Main Host Reduction" Release
+
+#### 🧭 Main Shell Host Cleanup
+- Updated **`gui/omni/assets/main.qml`** to remove `QtQuick.Controls` usage entirely.
+- Converted the notification-center surface from stock controls to lighter `QtQuick` primitives, including:
+  - `Label` → `Text`
+  - `Clear All` button → `Rectangle` + `Text` + `MouseArea` + `HoverHandler`
+- This removes a stock-controls dependency from the shell host itself without touching the routed tool/panel components.
+
+#### 📊 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **41 QML files** importing `QtQuick.Controls`
+  - to **40 QML files**
+- This keeps the controls-reduction effort measurable and cumulative.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_MAIN_REDUCTION.md`** documenting why `main.qml` was a good target, what was localized enough to convert safely, and how this fits the incremental migration plan.
+
+### Version
+- Bumped to **6.0.20**.
+
 ## [6.0.19] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls OmniPeek Reduction" Release

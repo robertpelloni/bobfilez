@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import Omni.File 1.0
 
@@ -297,7 +296,7 @@ ApplicationWindow {
 
             ColumnLayout {
                 anchors.fill: parent; anchors.margins: 20; spacing: 15
-                Label { text: "Notifications"; color: "white"; font.pixelSize: 18; font.bold: true }
+                Text { text: "Notifications"; color: "white"; font.pixelSize: 18; font.bold: true }
                 
                 ListView {
                     Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10; clip: true
@@ -311,20 +310,22 @@ ApplicationWindow {
                         width: parent.width; height: 80; radius: 8; color: "#22ffffff"
                         RowLayout {
                             anchors.fill: parent; anchors.margins: 12; spacing: 12
-                            Label { text: modelData.icon; font.pixelSize: 24 }
+                            Text { text: modelData.icon; font.pixelSize: 24; color: "white" }
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Label { text: modelData.title; color: "white"; font.bold: true; font.pixelSize: 13 }
-                                Label { text: modelData.body; color: "#aaa"; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                                Text { text: modelData.title; color: "white"; font.bold: true; font.pixelSize: 13 }
+                                Text { text: modelData.body; color: "#aaa"; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                             }
                         }
                     }
                 }
                 
-                Button {
-                    text: "Clear All"
-                    Layout.fillWidth: true; flat: true
-                    contentItem: Label { text: parent.text; color: "#888"; horizontalAlignment: Text.AlignHCenter }
+                Rectangle {
+                    Layout.fillWidth: true; height: 30; radius: 4
+                    color: clearAllHover.hovered ? "#22ffffff" : "transparent"
+                    Text { anchors.centerIn: parent; text: "Clear All"; color: "#888"; horizontalAlignment: Text.AlignHCenter }
+                    HoverHandler { id: clearAllHover }
+                    MouseArea { anchors.fill: parent }
                 }
             }
         }

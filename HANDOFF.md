@@ -1,45 +1,40 @@
-# HANDOFF.md — bobfilez Session 34
+# HANDOFF.md — bobfilez Session 35
 
 ## Current Status (2026-04-04)
-**Version:** 6.0.19  
-**Focus:** QtQuick.Controls OmniPeek reduction
+**Version:** 6.0.20  
+**Focus:** QtQuick.Controls main host reduction
 
 ---
 
 ## What Was Done This Session
 
-### 1. Converted `OmniPeekOverlay.qml` Off `QtQuick.Controls`
-- Updated **`gui/omni/assets/OmniPeekOverlay.qml`**.
-- This was chosen as the next safe target because it is self-contained, visually important, and its stock controls were still replaceable with local `QtQuick` primitives.
+### 1. Converted `main.qml` Off `QtQuick.Controls`
+- Updated **`gui/omni/assets/main.qml`**.
+- The target was the notification-center subsection, which was the last localized stock-controls usage in the shell host itself.
 
-### 2. Replaced Stock Controls with Plain Qt Quick Primitives
-- Replaced `Label` with `Text` throughout the overlay.
-- Replaced header/action `Button`s with `Rectangle` + `Text` + `MouseArea` + `HoverHandler` shells.
-- Replaced the model-viewer control buttons with a small lightweight repeater of custom button shells.
-- Replaced the text viewer stack:
-  - `ScrollView` → `Flickable`
-  - `TextArea` → read-only `TextEdit`
+### 2. Replaced the Localized Controls with Plain Qt Quick Primitives
+- Replaced `Label` with `Text` in the notification-center overlay.
+- Replaced the trivial `Clear All` button with a `Rectangle` + `Text` + `MouseArea` + `HoverHandler` shell.
 - Result:
-  - `OmniPeekOverlay.qml` no longer imports `QtQuick.Controls`
+  - `main.qml` no longer imports `QtQuick.Controls`
 
 ### 3. Re-Measured the Controls Footprint
 - Re-ran the global `QtQuick.Controls` import audit.
 - Result:
-  - previous count: **42 QML files**
-  - current count: **41 QML files**
-- This proves the reduction strategy can now handle a richer overlay surface, not just shell chrome.
+  - previous count: **41 QML files**
+  - current count: **40 QML files**
+- This is another small but real, quantified reduction in the stock-controls surface.
 
-### 4. Documented the OmniPeek Conversion Strategy
-- Added **`docs/ai/implementation/QTQUICK_CONTROLS_OMNIPEEK_REDUCTION.md`**.
+### 4. Documented the Main-Host Reduction Strategy
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_MAIN_REDUCTION.md`**.
 - The document records:
-  - the replacement set
-  - why OmniPeek was still a safe incremental target
-  - what manual behavior is now owned directly
-  - what heavier panel categories remain intentionally deferred
+  - why `main.qml` was a safe next target
+  - what was localized enough to convert without disturbing routed panels
+  - why this remains preferable to jumping immediately into richer panel forms
 
 ### 5. Validation and Release Alignment
 - Re-ran the normal headless validation path so the versioned state remains current.
-- Reconciled release/docs metadata to **6.0.19**.
+- Reconciled release/docs metadata to **6.0.20**.
 
 ---
 
@@ -48,7 +43,7 @@
 | Area | Status | Notes |
 |------|--------|-------|
 | Full BobUI / Omni shell build | 🟡 Still blocked | BobUI integration is now more structurally correct (real omnicore path + real registration call), but the provider surface still lacks `Qt6Qml` / `Qt6Quick` / `Qt6QuickControls2` for bobfilez's present GUI targets. |
-| BobUI-native migration plan | 🟡 In progress | Four dependency-surface reductions plus four stock-controls reduction passes are complete. Removing most QML is still expensive; removing `QtQuick` itself is still incompatible with current BobUI because BobUI widgets are Quick-based. |
+| BobUI-native migration plan | 🟡 In progress | Four dependency-surface reductions plus five stock-controls reduction passes are complete. Removing most QML is still expensive; removing `QtQuick` itself is still incompatible with current BobUI because BobUI widgets are Quick-based. |
 | BOBGUI adoption | ⚪ Not recommended | `bobgui` is available for study, but it is not the right primary UI foundation for bobfilez’s current Qt/QML/Omni direction. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
 
@@ -63,7 +58,7 @@
    - future BobUI GUI probing should assume the current `omnicore` path and the real `OmniUI::registerQmlTypes()` startup call.
 
 3. **Continue the stock controls reduction incrementally**
-   - keep targeting self-contained shell and overlay surfaces before touching richer panel forms with heavy `ComboBox` / `CheckBox` / `GroupBox` / `ProgressBar` / `Menu` usage.
+   - keep targeting localized shell-host or overlay surfaces before touching rich panel forms with heavy `ComboBox` / `CheckBox` / `GroupBox` / `ProgressBar` / `Menu` usage.
 
 4. **Do not plan around removing `QtQuick` yet**
    - the current BobUI implementation itself is Quick-based, so a true no-Quick target is premature.

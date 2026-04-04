@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 820100d4 | **Branch:** main | **Version:** 6.0.19
+**Generated:** 2026-04-04 | **Commit:** a54e88a4 | **Branch:** main | **Version:** 6.0.20
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtQuick.Controls Main Host Reduction**: Removed `QtQuick.Controls` usage from `main.qml` by converting the localized notification-center surface to plain `QtQuick` primitives, reducing the global controls-import footprint from 41 QML files to 40.
 - ✅ **QtQuick.Controls OmniPeek Reduction**: Removed `QtQuick.Controls` usage from `OmniPeekOverlay.qml`, replacing labels, header/buttons, and the `ScrollView`/`TextArea` stack with lighter `QtQuick` primitives and reducing the global controls-import footprint from 42 QML files to 41.
 - ✅ **QtQuick.Controls Explorer Reduction**: Removed `QtQuick.Controls` usage from `ExplorerWindow.qml`, replacing labels, buttons, delegates, and the stock scroll bar with lighter `QtQuick` primitives and reducing the global controls-import footprint from 43 QML files to 42.
 - ✅ **QtQuick.Controls Second Reduction**: Removed `QtQuick.Controls` usage from `DesktopIcons.qml`, `NexusPulse.qml`, and `WindowManager.qml`, reducing the global controls-import footprint further from 46 QML files to 43.
@@ -186,6 +187,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 35)
+**Author:** GPT
+
+**Scope:** v6.0.20 QtQuick.Controls Main Host Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/omni/assets/main.qml`.
+- ✅ Converted the localized notification-center subsection from `Label` / trivial `Button` usage to `Text` plus a lightweight custom rectangle-button shell.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 41 QML files to 40.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_MAIN_REDUCTION.md` documenting why `main.qml` was a safe localized target and what remains deferred.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Continue with localized shell/overlay surfaces before richer panel forms.
+2. Keep the controls-import count as a quantitative migration metric.
+3. Delay the heavy panel-control families until a clearer replacement strategy exists.
 
 ---
 
