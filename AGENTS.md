@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** d55743e9 | **Branch:** main | **Version:** 6.0.21
+**Generated:** 2026-04-04 | **Commit:** 70bfbc90 | **Branch:** main | **Version:** 6.0.22
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -95,8 +95,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.21)
+## Current Status (v6.0.22)
 
+- ✅ **QtQuick.Controls Digital Rot Reduction**: Removed `QtQuick.Controls` usage from `DigitalRotPanel.qml`, replacing labels, buttons, and the `GroupBox` section with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 39 QML files to 38.
+- ✅ **First Routed-Panel Controls-Free Milestone**: Confirmed the campaign has successfully moved beyond shell assets and into the routed panel layer, starting with the simplest interaction-light panel target.
 - ✅ **QtQuick.Controls Dashboard Reduction**: Removed `QtQuick.Controls` usage from `Dashboard.qml`, replacing labels, buttons, `GroupBox`, and `ProgressBar` usage with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 40 QML files to 39.
 - ✅ **Shell-Assets Controls-Free Milestone**: Confirmed `gui/omni/assets/` now contains zero QML files importing `QtQuick.Controls`.
 - ✅ **QtQuick.Controls Main Host Reduction**: Removed `QtQuick.Controls` usage from `main.qml` by converting the localized notification-center surface to plain `QtQuick` primitives, reducing the global controls-import footprint from 41 QML files to 40.
@@ -189,6 +191,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 37)
+**Author:** GPT
+
+**Scope:** v6.0.22 QtQuick.Controls Digital Rot Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/panels/DigitalRotPanel.qml`.
+- ✅ Replaced labels, buttons, and the `GroupBox` suggestions section with plain `QtQuick` primitives plus local helper components (`PanelButton`, `StatCard`).
+- ✅ Simplified the local helper implementation by exposing a `clicked` signal from `PanelButton` instead of stacking extra mouse handlers in button instances.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 39 QML files to 38.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_DIGITAL_ROT_REDUCTION.md` documenting why this was the correct first routed-panel target and why it marks a migration-phase shift.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Continue with the next simplest routed panels rather than the menu-heavy or form-heavy ones.
+2. Keep the controls-import count as the primary quantitative migration metric.
+3. Use small local helper components where they improve clarity without forcing premature cross-panel abstractions.
 
 ---
 

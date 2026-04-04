@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.22] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Digital Rot Reduction" Release
+
+#### 🧹 First Routed-Panel Conversion
+- Updated **`gui/panels/DigitalRotPanel.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with plain `QtQuick` primitives and small local helpers, including:
+  - `Label` → `Text`
+  - action `Button`s → local `PanelButton` helper
+  - `GroupBox` suggestions section → explicit titled `Text` + `Rectangle` container
+  - repeated stat cards → local `StatCard` helper
+- Preserved the panel's existing scanning toggle behavior and dashboard-style presentation.
+
+#### 🧭 Migration Phase Shift
+- This is the **first successful controls-removal pass in the routed panel layer** after completion of the shell-assets layer.
+- It confirms that the incremental strategy can continue into panels, provided the panel is self-contained and interaction-light.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **39 QML files** importing `QtQuick.Controls`
+  - to **38 QML files**
+- This keeps the campaign quantitative while the migration frontier moves from shell assets into routed panels.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_DIGITAL_ROT_REDUCTION.md`** documenting why `DigitalRotPanel.qml` was the correct first panel target, what helper-component strategy was used, and why this represents a new migration phase.
+
+### Version
+- Bumped to **6.0.22**.
+
 ## [6.0.21] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Dashboard Reduction" Release
