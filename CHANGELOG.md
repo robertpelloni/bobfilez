@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.0.4] - 2026-04-03
+
+### Added — The "Tracked-Only Status Workflow" Release
+
+#### 🧰 Repo Status Tooling
+- Added **`scripts/repo_status.py`** as a cross-platform helper for a safer day-to-day status view.
+- The helper runs:
+  - `git status --short --branch --untracked-files=no`
+- This captures the important tracked-change signal while avoiding the noisy long-path untracked scan currently seen on this Windows host.
+
+#### 🔍 New Diagnostic Finding
+- Confirmed that the remaining long-path warning is specifically tied to **untracked-file scanning**.
+- `git status --untracked-files=no` completes cleanly and still reports:
+  - tracked file changes
+  - deletions
+  - dirty submodules
+- Updated **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** to record this finding and the temporary workflow recommendation.
+
+### Version
+- Bumped to **6.0.4**.
+
 ## [6.0.3] - 2026-04-03
 
 ### Cleaned — The "Generated Build Artifact Purge" Release

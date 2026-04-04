@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-03 | **Commit:** 35ba60a5 | **Branch:** main | **Version:** 6.0.3
+**Generated:** 2026-04-03 | **Commit:** fc96f977 | **Branch:** main | **Version:** 6.0.4
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.3)
+## Current Status (v6.0.4)
 
+- ✅ **Tracked-Only Status Workflow**: Added `scripts/repo_status.py` and documented that `git status --untracked-files=no` avoids the current Windows long-path warning path while still surfacing tracked changes and dirty submodules.
 - ✅ **Generated Build Artifact Purge**: Removed tracked/generated component `build_output/` trees and documented the cleanup in `docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`.
 - ✅ **OmniShell Route Audit**: Added `docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md` to map shell route coverage across `main.qml`, Start Menu, Taskbar, and explorer-driven launch surfaces.
 - ✅ **Taskbar Launcher Wiring**: Replaced placeholder taskbar app icons with real Bobfilez launchers for Explorer, OmniGit, OmniVision, OmniAudio, OmniTerminal, and OmniShare, including active-panel indicators.
@@ -158,7 +159,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 
-**Next Steps**: Tackle the remaining long-path `tests/test_cmake_build` warnings with an extended-path cleanup strategy, finish full build verification after dependency compilation completes, decide final launcher exposure policy for contextual tools, and continue backend-hardening for scaffold-heavy Omni systems.
+**Next Steps**: Use `python scripts/repo_status.py` for clean tracked-change inspection, continue investigating the remaining long-path untracked-scan issue with extended-path tooling if full `git status` must be cleaned up, finish build verification after dependency compilation completes, and continue backend-hardening for scaffold-heavy Omni systems.
 
 ## Handoff Protocol
 

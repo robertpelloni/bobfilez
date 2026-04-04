@@ -42,7 +42,25 @@ Most likely explanations:
 2. A nested pybind11/CMake test artifact tree exists in a form that Windows path handling and normal listing APIs do not expose cleanly.
 3. Additional cleanup may require Windows extended-path tooling or a more targeted pruning script.
 
+## Additional Diagnostic Discovery
+A useful operational workaround was confirmed:
+
+- `git status --untracked-files=no`
+
+On this repo/host, the tracked-only status view avoids the long-path warning path and still reports the important day-to-day signals:
+- tracked file modifications
+- deletions
+- dirty submodules
+
+This means the remaining warning is specifically tied to **untracked-file scanning**, not the normal tracked-change path.
+
+To standardize this safer view, the repo now includes:
+- **`scripts/repo_status.py`**
+
+That helper runs a tracked-only status and prints a note about when full `git status` may still be noisy.
+
 ## Recommended Follow-up
-1. Re-run `git status` and confirm the reduced state after staged deletions.
-2. If the long-path warning persists, perform a dedicated extended-path cleanup pass for `tests/test_cmake_build/`.
-3. Keep generated build artifacts out of version control going forward via `.gitignore` plus periodic cleanup.
+1. Use `python scripts/repo_status.py` for routine tracked-change inspection on affected Windows hosts.
+2. Re-run full `git status` only when untracked-file visibility is specifically needed.
+3. If the long-path warning still needs full resolution, perform a dedicated extended-path cleanup pass for `tests/test_cmake_build/`.
+4. Keep generated build artifacts out of version control going forward via `.gitignore` plus periodic cleanup.

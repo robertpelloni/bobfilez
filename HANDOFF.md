@@ -1,42 +1,45 @@
-# HANDOFF.md — bobfilez Session 18
+# HANDOFF.md — bobfilez Session 19
 
 ## Current Status (2026-04-03)
-**Version:** 6.0.3  
-**Focus:** Generated build artifact cleanup and remaining long-path diagnosis
+**Version:** 6.0.4  
+**Focus:** Long-path diagnosis refinement and tracked-only status workflow
 
 ---
 
 ## What Was Done This Session
 
-### 1. Generated Build Artifact Purge
-- Removed generated component-level build trees from the working tree:
-  - `benchmarks/build_output/`
-  - `cli/build_output/`
-  - `core/build_output/`
-  - `fuzz/build_output/`
-  - `gui/build_output/`
-  - `tests/build_output/`
-- Removed transient `tests/build/` output as part of the same hygiene pass.
-- This cleanup was motivated by the discovery that several of these `build_output/` trees contained tracked CMake-generated artifacts.
+### 1. Refined Long-Path Diagnosis
+- Continued investigating the persistent Windows `git status` warning for paths under:
+  - `tests/test_cmake_build/.../pybind11/...`
+- Used normal path enumeration and Windows extended-path probing to inspect:
+  - `tests/`
+  - `tests/test_cmake_build/`
+- Important finding:
+  - the problematic `tests/test_cmake_build/` tree is **not visible through normal directory enumeration**, even when probing with extended-path logic.
+- This reinforces the earlier conclusion that the remaining warning is not a simple ordinary directory cleanup case.
 
-### 2. Repo Analysis Findings
-- Confirmed that the removed `build_output/` trees contained machine-specific generated files such as:
-  - `CMakeCache.txt`
-  - `CMakeFiles/4.2.3/*.cmake`
-  - compiler-ID probe sources/binaries/projects
-  - `CMakeConfigureLog.yaml`
-- These are rebuildable environment artifacts and should not be treated as durable source assets.
-- Added **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** to document the cleanup and its rationale.
+### 2. Key Operational Discovery
+- Confirmed that:
+  - `git status --untracked-files=no`
+  - completes **without** the long-path warning noise
+  - still reports the actionable repo state for daily development:
+    - tracked file modifications
+    - deletions
+    - dirty submodules
+- This means the warning is specifically tied to the **untracked-file scan path**, not the tracked-file status path.
 
-### 3. Remaining Long-Path Problem
-- After removing the tracked/generated `build_output/` trees, root-level `git status` still emitted filename-too-long warnings for paths like:
-  - `tests/test_cmake_build/subdirectory_embed/build_output/pybind11/...`
-  - `tests/test_cmake_build/subdirectory_function/build_output/pybind11/...`
-  - `tests/test_cmake_build/subdirectory_target/build_output/pybind11/...`
-- Important diagnostic result:
-  - the remaining warning source does **not** appear to be fully explained by the now-removed component `build_output/` trees.
-- Most likely explanation:
-  - a separate generated pybind11/CMake test tree exists (or existed) in a form that normal short-path enumeration does not expose clearly on Windows.
+### 3. New Tooling
+- Added **`scripts/repo_status.py`**.
+- Purpose:
+  - provide a standard, clean tracked-only repo status workflow for this project on affected Windows hosts
+  - reduce repeated friction during sessions while the deeper untracked-scan issue remains unresolved
+- The script runs:
+  - `git status --short --branch --untracked-files=no`
+  - and prints an explanatory note for future agents/users.
+
+### 4. Documentation Updates
+- Updated **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** with the new tracked-only diagnostic result.
+- Reconciled release/docs metadata to **6.0.4**.
 
 ---
 
@@ -44,26 +47,25 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Long-path warning source | 🔴 Still unresolved | Cleanup improved repo hygiene, but `git status` still reports `tests/test_cmake_build/.../pybind11/...` path warnings. |
-| Full build verification | 🟡 Pending | Artifact cleanup is complete, but compile verification is still pending once dependency builds are allowed to complete. |
-| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain outside this cleanup scope. |
-| Route exposure policy | 🟡 Pending | Route audit work exists, but contextual vs globally visible launcher policy still needs a product decision. |
+| Full untracked-scan long-path issue | 🟡 Reduced operational impact, not fully fixed | The warning persists for full untracked scans, but the team now has a clean tracked-only workflow. |
+| Full build verification | 🟡 Pending | Repo hygiene and shell stabilization improved, but dependency-heavy build verification still needs to finish. |
+| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain outside this session’s scope. |
+| Route exposure policy | 🟡 Pending | Shell route coverage is documented, but final exposure policy still needs product direction. |
 
 ---
 
 ## Recommended Next Steps
 
-1. **Use an extended-path cleanup strategy**
-   - Target `tests/test_cmake_build/` specifically using Windows extended-path handling if needed.
-   - Goal: eliminate the remaining filename-too-long warnings from `git status`.
+1. **Use the new tracked-only workflow**
+   - Run `python scripts/repo_status.py` for normal repo-state checks on affected Windows hosts.
 
-2. **Finish build verification**
-   - Retry configure/build after dependencies complete.
-   - Verify that the cleaned repo state does not regress the recent OmniShell stabilization work.
+2. **Continue build verification**
+   - Resume configure/build validation after dependency compilation completes.
+   - Re-check the recent OmniShell stabilization path in `fo_omni`.
 
-3. **Keep generated artifacts out of source control**
-   - Maintain `.gitignore` coverage.
-   - Avoid reintroducing component `build_output/` trees in future commits.
+3. **Treat the long-path issue as a deeper tooling quirk unless full untracked scans are required**
+   - If a true fix is still desired, continue with specialized extended-path investigation.
+   - Otherwise, the operational workaround is now documented and standardized.
 
-4. **Continue stabilization-first workflow**
-   - Prioritize hygiene, build health, and backend realism before adding another major Omni subsystem.
+4. **Keep stabilizing before expanding scope**
+   - Continue emphasizing hygiene, build correctness, launcher correctness, and backend realism over new subsystem sprawl.
