@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** cfe007e8 | **Branch:** main | **Version:** 6.0.25
+**Generated:** 2026-04-04 | **Commit:** a2f8ce68 | **Branch:** main | **Version:** 6.0.26
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -95,8 +95,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.25)
+## Current Status (v6.0.26)
 
+- ✅ **QtQuick.Controls Gamification Reduction**: Removed `QtQuick.Controls` usage from `GamificationPanel.qml`, replacing labels, the `ProgressBar`, the `GroupBox` section, and the stock `ToolTip` behavior with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 35 QML files to 34.
+- ✅ **Fifth Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer migration rule now extends beyond simple dashboard cards into a lightweight hover-detail surface, still without reintroducing stock Controls.
 - ✅ **QtQuick.Controls Forensic Reduction**: Removed `QtQuick.Controls` usage from `ForensicPanel.qml`, replacing labels, buttons, the `GroupBox` section, and the stock `ScrollBar` attachment with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 36 QML files to 35.
 - ✅ **Fourth Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer migration rule is holding across multiple dashboard-style surfaces, strengthening confidence in continued selective reduction.
 - ✅ **QtQuick.Controls Recovery Reduction**: Removed `QtQuick.Controls` usage from `RecoveryPanel.qml`, replacing labels, buttons, and the `GroupBox` section with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 37 QML files to 36.
@@ -197,6 +199,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 41)
+**Author:** GPT
+
+**Scope:** v6.0.26 QtQuick.Controls Gamification Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/panels/GamificationPanel.qml`.
+- ✅ Replaced labels, the `ProgressBar`, the `GroupBox` achievements section, and the daily-quest button with plain `QtQuick` primitives plus local helper components (`PanelButton`, `SlimProgressBar`, `StatCard`).
+- ✅ Replaced the stock `ToolTip` behavior on achievements with a small local hover-popup rectangle, preserving lightweight hover detail without retaining Controls.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 35 QML files to 34.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_GAMIFICATION_REDUCTION.md` documenting why `GamificationPanel.qml` was a safe next escalation and how the local hover-popup replacement fits the migration strategy.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Continue with other self-contained, dashboard-style routed panels before richer control-dense surfaces.
+2. Keep the controls-import count as the primary quantitative migration metric.
+3. Continue favoring small local helper components over premature shared abstractions.
 
 ---
 

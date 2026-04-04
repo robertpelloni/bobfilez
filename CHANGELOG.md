@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.26] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Gamification Reduction" Release
+
+#### 🏆 Fifth Routed-Panel Conversion
+- Updated **`gui/panels/GamificationPanel.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with plain `QtQuick` primitives and small local helpers, including:
+  - `Label` → `Text`
+  - action `Button` → local `PanelButton` helper
+  - `ProgressBar` → local `SlimProgressBar` helper
+  - `GroupBox` achievements section → explicit titled `Text` + `Rectangle` container
+  - repeated summary cards → local `StatCard` helper
+- Replaced the stock `ToolTip` behavior on achievement badges with a small local hover-popup rectangle, preserving lightweight hover detail without retaining the Controls dependency.
+
+#### 📊 Routed-Panel Pattern Expanded Slightly
+- This is the **fifth successful routed-panel controls-removal pass**.
+- It also proves that limited hover-detail behavior can be replaced locally while keeping the panel self-contained and readable.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **35 QML files** importing `QtQuick.Controls`
+  - to **34 QML files**
+- The reduction campaign remains cumulative, measurable, and low-risk.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_GAMIFICATION_REDUCTION.md`** documenting why `GamificationPanel.qml` was a safe next escalation and how the local hover-popup replacement fits the migration strategy.
+
+### Version
+- Bumped to **6.0.26**.
+
 ## [6.0.25] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Forensic Reduction" Release
