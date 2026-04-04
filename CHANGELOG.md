@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.21] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Dashboard Reduction" Release
+
+#### 📊 Dashboard Shell-Asset Conversion
+- Updated **`gui/omni/assets/Dashboard.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock convenience controls with plain `QtQuick` primitives and local inline helpers, including:
+  - `Label` → `Text`
+  - settings `Button` → `Rectangle` + `Text` + `MouseArea` + `HoverHandler`
+  - `GroupBox` sections → explicit titled `Text` + `Rectangle` containers
+  - `ProgressBar` → local `SlimProgressBar` helper component
+  - quick action `Button`s → local `QuickActionChip` helper component
+
+#### 🧭 Shell-Assets Milestone
+- Confirmed that **`gui/omni/assets/` now has zero QML files importing `QtQuick.Controls`**.
+- This marks the shell-assets layer as fully converted away from stock controls, leaving the remaining imports concentrated in routed panel files.
+
+#### 📈 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **40 QML files** importing `QtQuick.Controls`
+  - to **39 QML files**
+- The migration remains incremental, measurable, and low-risk.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_DASHBOARD_REDUCTION.md`** documenting the conversion strategy, the helper-component approach, and the new shell-assets milestone.
+
+### Version
+- Bumped to **6.0.21**.
+
 ## [6.0.20] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Main Host Reduction" Release

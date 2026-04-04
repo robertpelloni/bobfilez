@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** a54e88a4 | **Branch:** main | **Version:** 6.0.20
+**Generated:** 2026-04-04 | **Commit:** d55743e9 | **Branch:** main | **Version:** 6.0.21
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -95,8 +95,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.6)
+## Current Status (v6.0.21)
 
+- ✅ **QtQuick.Controls Dashboard Reduction**: Removed `QtQuick.Controls` usage from `Dashboard.qml`, replacing labels, buttons, `GroupBox`, and `ProgressBar` usage with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 40 QML files to 39.
+- ✅ **Shell-Assets Controls-Free Milestone**: Confirmed `gui/omni/assets/` now contains zero QML files importing `QtQuick.Controls`.
 - ✅ **QtQuick.Controls Main Host Reduction**: Removed `QtQuick.Controls` usage from `main.qml` by converting the localized notification-center surface to plain `QtQuick` primitives, reducing the global controls-import footprint from 41 QML files to 40.
 - ✅ **QtQuick.Controls OmniPeek Reduction**: Removed `QtQuick.Controls` usage from `OmniPeekOverlay.qml`, replacing labels, header/buttons, and the `ScrollView`/`TextArea` stack with lighter `QtQuick` primitives and reducing the global controls-import footprint from 42 QML files to 41.
 - ✅ **QtQuick.Controls Explorer Reduction**: Removed `QtQuick.Controls` usage from `ExplorerWindow.qml`, replacing labels, buttons, delegates, and the stock scroll bar with lighter `QtQuick` primitives and reducing the global controls-import footprint from 43 QML files to 42.
@@ -187,6 +189,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 36)
+**Author:** GPT
+
+**Scope:** v6.0.21 QtQuick.Controls Dashboard Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/omni/assets/Dashboard.qml`.
+- ✅ Replaced labels, settings button, `GroupBox`, and `ProgressBar` usage with plain `QtQuick` primitives plus local inline helpers (`SlimProgressBar`, `QuickActionChip`).
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 40 QML files to 39.
+- ✅ Confirmed the larger milestone that `gui/omni/assets/` now contains zero QML files importing `QtQuick.Controls`.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_DASHBOARD_REDUCTION.md` documenting the conversion strategy and shell-assets completion milestone.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Move the controls-reduction campaign into the simplest routed panel files.
+2. Keep the controls-import count as the primary quantitative migration metric.
+3. Continue avoiding the heaviest control-dense panels until lighter panel candidates are exhausted.
 
 ---
 
