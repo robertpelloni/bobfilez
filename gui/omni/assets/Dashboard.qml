@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
-import QtGraphicalEffects 1.15
 
 /// Dashboard.qml — High-fidelity OmniShell Command Center.
 /// Features system telemetry, Nexus task monitoring, and data cleanup metrics.
@@ -11,8 +10,14 @@ Rectangle {
     width: 400; height: 750
     color: "#e6111111"; radius: 12; border.color: "#33ffffff"
     
-    layer.enabled: true
-    layer.effect: DropShadow { radius: 15; samples: 20; color: "#aa000000" }
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -2
+        radius: 14
+        color: "transparent"
+        border.color: "#22000000"
+        z: -1
+    }
 
     ColumnLayout {
         anchors.fill: parent; anchors.margins: 20; spacing: 20

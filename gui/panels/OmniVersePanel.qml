@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniVersePanel.qml — 3D Spatial File Explorer Launcher.
 /// Interfaces with the hardware-accelerated C++ raylib engine to launch
@@ -108,7 +107,6 @@ Rectangle {
             Rectangle {
                 anchors.centerIn: parent; width: 450; height: 200
                 color: "#aa000000"; radius: 10; border.color: "#444"
-                layer.enabled: true; layer.effect: DropShadow { radius: 20; color: "#aa000000" }
 
                 ColumnLayout {
                     anchors.centerIn: parent; spacing: 15

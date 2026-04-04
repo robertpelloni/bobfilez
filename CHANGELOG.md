@@ -1,5 +1,33 @@
 # Changelog
 
+## [6.0.14] - 2026-04-04
+
+### Simplified — The "GraphicalEffects Full Removal" Release
+
+#### ✨ Final Effect Users Replaced
+- Reworked the remaining real `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` users in:
+  - `gui/omni/assets/AcrylicBackground.qml`
+  - `gui/omni/assets/Dashboard.qml`
+  - `gui/omni/assets/ExplorerWindow.qml`
+  - `gui/omni/assets/OmniPeekOverlay.qml`
+  - `gui/omni/assets/Taskbar.qml`
+  - `gui/panels/OmniVersePanel.qml`
+- Removed the last actual uses of:
+  - `DropShadow`
+  - `FastBlur`
+- Replaced them with simpler native borders / tint layers / layout-preserving fallbacks.
+
+#### ✅ Verification / Finding
+- Confirmed there are now **no remaining** `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` imports under `gui/`.
+- Confirmed there are now **no remaining** GraphicalEffects primitives under `gui/` such as `DropShadow` or `FastBlur`.
+- This completes the GraphicalEffects cleanup sequence started in the prior release.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/GRAPHICALEFFECTS_FULL_REMOVAL.md`** documenting the exact files changed, what visual simplifications were made, and why the tradeoff is acceptable at this stage.
+
+### Version
+- Bumped to **6.0.14**.
+
 ## [6.0.13] - 2026-04-04
 
 ### Cleaned — The "GraphicalEffects Import Cleanup" Release

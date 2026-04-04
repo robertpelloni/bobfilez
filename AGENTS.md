@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 7fc8a9c1 | **Branch:** main | **Version:** 6.0.13
+**Generated:** 2026-04-04 | **Commit:** ba667b9b | **Branch:** main | **Version:** 6.0.14
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **GraphicalEffects Full Removal**: Simplified the six remaining real GraphicalEffects users and fully removed `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usage from the entire `gui/` tree.
 - ✅ **GraphicalEffects Import Cleanup**: Audited actual versus dead effect usage and removed stale `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` imports from 27 QML files while preserving the small set of files that still genuinely use `DropShadow` / `FastBlur`.
 - ✅ **QtCharts Removal**: Removed the dead `QtCharts` import from `EnhancedFileOpsPanel.qml`; the panel's live speed graph was already implemented with a `Canvas`, so this safely shrank the GUI dependency surface without affecting behavior.
 - ✅ **Markdown WebEngine Removal**: Added a native `NativeMarkdownView` preview item, removed `QtWebEngine` / `WebEngineView` usage from `MarkdownViewerPanel.qml`, and removed `WebEngineQuick` from the `fo_omni` dependency set while confirming the remaining BobUI consumer blocker is still `Qt6Qml`.
@@ -180,6 +181,31 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 29)
+**Author:** GPT
+
+**Scope:** v6.0.14 GraphicalEffects Full Removal
+
+**Delivered:**
+- ✅ Removed the last real `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` usages from:
+  - `AcrylicBackground.qml`
+  - `Dashboard.qml`
+  - `ExplorerWindow.qml`
+  - `OmniPeekOverlay.qml`
+  - `Taskbar.qml`
+  - `OmniVersePanel.qml`
+- ✅ Replaced `DropShadow` / `FastBlur` styling with simpler border/tint/backplate fallbacks that preserve shell usability.
+- ✅ Added `docs/ai/implementation/GRAPHICALEFFECTS_FULL_REMOVAL.md` documenting the implementation and tradeoffs.
+- ✅ Re-ran headless build + full test suite to keep the versioned state validated.
+- ✅ Confirmed there are no remaining GraphicalEffects imports or effect-item usages anywhere under `gui/`.
+
+**Next Steps:**
+1. Target stock `QtQuick.Controls` / `QtQuick.Layouts` usage or wire real BobUI type registration next.
+2. Keep reducing dependency surface while preserving shell continuity.
+3. Avoid trying to remove `QtQuick` itself until BobUI architecture changes.
 
 ---
 

@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// Taskbar.qml — High-fidelity Windows 11 style taskbar for bobfilez shell.
 /// Features centered app icons, glassmorphism (Acrylic/Mica), and a system tray.
@@ -12,15 +11,7 @@ Rectangle {
     anchors.bottom: parent.bottom
     color: "#cc1a1a1a" // Translucent dark
     
-    // Acrylic effect (requires bobui / QtGraphicalEffects)
-    layer.enabled: true
-    layer.effect: DropShadow {
-        transparentBorder: true
-        color: "#80000000"
-        radius: 8
-        samples: 17
-        verticalOffset: -2
-    }
+    // Lightweight taskbar chrome without GraphicalEffects.
 
     // Border for top edge
     Rectangle {

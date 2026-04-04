@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 
 /// OmniPeekOverlay.qml — Universal Instant Preview Engine for bobfilez.
 /// Pops up over the Explorer when pressing Spacebar to render 3D models,
@@ -29,9 +28,6 @@ Rectangle {
         anchors.centerIn: parent
         color: "#161616"; radius: 12
         border.color: "#333"; border.width: 1
-
-        layer.enabled: true
-        layer.effect: DropShadow { radius: 25; samples: 30; color: "#aa000000"; horizontalOffset: 0; verticalOffset: 15 }
 
         MouseArea { anchors.fill: parent } // Block clicks from falling through
 

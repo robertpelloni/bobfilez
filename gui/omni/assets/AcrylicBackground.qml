@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import Qt5Compat.GraphicalEffects 1.15 // For Qt 6 compatibility layer
 
 Item {
     id: root
@@ -13,13 +12,14 @@ Item {
         opacity: tintOpacity
     }
 
-    // Blurred background simulation
-    // In a real shell, this would sample the desktop wallpaper
-    FastBlur {
+    // Lightweight acrylic fallback.
+    // We intentionally avoid a blur effect item here to keep the dependency
+    // surface smaller while preserving the tinted translucent shell feel.
+    Rectangle {
         anchors.fill: parent
-        source: backgroundSource
-        radius: blurRadius
         visible: backgroundSource !== null
+        color: "#10ffffff"
+        opacity: 0.25
     }
 
     // Noise Texture Layer

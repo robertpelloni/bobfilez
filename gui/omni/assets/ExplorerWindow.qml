@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
 import Omni.File 1.0
 
 /// ExplorerWindow.qml — High-fidelity Windows 11 style file explorer.
@@ -14,16 +13,9 @@ Rectangle {
     border.color: "#333"
     clip: true
 
-    // Window Glow/Shadow effect
-    layer.enabled: true
-    layer.effect: DropShadow {
-        transparentBorder: true
-        horizontalOffset: 0
-        verticalOffset: 8
-        radius: 20
-        samples: 25
-        color: "#60000000"
-    }
+    // Lightweight shadow fallback: keep a stronger border rather than a
+    // GraphicalEffects shadow item so the window remains visually separated.
+    border.width: 1
 
     ColumnLayout {
         anchors.fill: parent; spacing: 0
