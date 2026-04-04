@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <thread>
 #include <mutex>
+#include <regex>
 
 // Parse size string with optional K/M/G suffix (e.g., "1M" -> 1048576)
 static std::uintmax_t parse_size_string(const std::string& s) {
@@ -419,6 +420,15 @@ int main(int argc, char** argv) {
     try {
         auto timer_start = std::chrono::steady_clock::now();
         fo::core::Engine engine(cfg);
+
+        // Convenience aliases for newer command blocks added later in the file.
+        std::vector<std::string> args;
+        args.reserve(static_cast<size_t>(argc > 1 ? argc - 1 : 0));
+        for (int i = 1; i < argc; ++i) args.emplace_back(argv[i]);
+
+        std::vector<std::string> paths;
+        paths.reserve(roots.size());
+        for (const auto& root : roots) paths.push_back(root.string());
 
         // Post-scan filter lambda for size, exclude patterns, and depth
         auto apply_filters = [&](std::vector<fo::core::FileInfo>& files) {
@@ -1540,12 +1550,12 @@ int main(int argc, char** argv) {
             }
 
             std::string target_format;
-            std::string output_path;
+            std::string requested_output_path;
             int quality = -1;
 
             for (auto& a : args) {
                 if (a.rfind("--to=", 0) == 0) target_format = a.substr(4);
-                else if (a.rfind("--output=", 0) == 0) output_path = a.substr(9);
+                else if (a.rfind("--output=", 0) == 0) requested_output_path = a.substr(9);
                 else if (a.rfind("--quality=", 0) == 0) quality = std::stoi(a.substr(10));
             }
 
@@ -1557,8 +1567,8 @@ int main(int argc, char** argv) {
             for (auto& input_file : paths) {
                 std::filesystem::path inp(input_file);
                 std::filesystem::path outp;
-                if (!output_path.empty()) {
-                    outp = output_path;
+                if (!requested_output_path.empty()) {
+                    outp = requested_output_path;
                 } else {
                     outp = inp;
                     outp.replace_extension("." + target_format);

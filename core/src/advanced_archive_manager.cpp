@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 #include <regex>
+#include <chrono>
+#include <cstdint>
 
 #ifdef _WIN32
 #define popen  _popen
@@ -12,6 +14,12 @@
 #endif
 
 namespace fo::core {
+
+static std::string generate_uuid() {
+    static uint64_t counter = 0;
+    return "archive-" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count())
+        + "-" + std::to_string(++counter);
+}
 
 static std::pair<int, std::string> run_7z(const std::string& cmd) {
     std::string output;
@@ -134,14 +142,14 @@ bool AdvancedArchiveManager::convert(const std::filesystem::path& src_archive,
 
     ArchiveExtractOptions ex_opts;
     ex_opts.dest_dir = temp_dir;
-    if (!extract(src_archive, ex_opts)) return false;
+    if (!ArchiveEngine::extract(src_archive, ex_opts)) return false;
 
     std::vector<std::filesystem::path> files;
     for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
         files.push_back(entry.path());
     }
 
-    bool success = create(files, dst_archive, opts);
+    bool success = ArchiveEngine::create(files, dst_archive, opts);
     std::filesystem::remove_all(temp_dir);
     return success;
 }

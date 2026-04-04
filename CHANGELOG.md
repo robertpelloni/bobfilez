@@ -1,5 +1,56 @@
 # Changelog
 
+## [6.0.5] - 2026-04-04
+
+### Fixed — The "Headless Build Stabilization" Release
+
+#### 🛠️ Windows/MSVC Build Recovery
+- Added **`scripts/build_headless.bat`** to provide a repeatable Windows/MSVC fallback build that:
+  - locates `vcvars64.bat`
+  - configures `build-msvc` with `FO_BUILD_GUI=OFF` and `FO_BUILD_OMNI=OFF`
+  - builds the core library, CLI, tests, and benchmarks with conservative parallelism
+- This gives the repo a reliable non-Qt build path even when the full Omni/Qt environment is not installed.
+
+#### 📦 Dependency Strategy Improvement
+- Updated **`vcpkg.json`** so native `ffmpeg` and `chromaprint` are no longer forced in the default dependency set.
+- Added a new optional **`media-analysis`** feature containing those heavier packages.
+- This prevents the default Windows build from being blocked by FFmpeg compilation/link failures on hosts that only need the core/CLI/test toolchain.
+
+#### 🔧 Core/CLI Compile Fixes
+- Fixed multiple latent compile issues that were surfaced once the dependency blockers were reduced, including problems across:
+  - `core/CMakeLists.txt`
+  - `cli/fo_cli.cpp`
+  - `core/include/fo/core/batch_rename_interface.hpp`
+  - `core/include/fo/core/conversion_interface.hpp`
+  - `core/include/fo/core/enhanced_fileops_interface.hpp`
+  - `core/include/fo/core/omnivision_engine_interface.hpp`
+  - `core/include/fo/core/search_interface.hpp`
+  - `core/src/advanced_archive_manager.cpp`
+  - `core/src/batch_rename_engine.cpp`
+  - `core/src/conversion_engine.cpp`
+  - `core/src/enhanced_fileops.cpp`
+  - `core/src/hex_editor.cpp`
+  - `core/src/markdown_viewer.cpp`
+  - `core/src/omniverse_engine.cpp`
+  - `core/src/wasm_bridge.cpp`
+- Removed the remaining MSVC warning in the CLI `convert` command caused by a shadowed `output_path` variable.
+
+#### ✅ Verification
+- Verified successful headless build outputs for:
+  - `fo_core`
+  - `fo_cli`
+  - `fo_tests`
+  - benchmark binaries
+- Ran **`build-msvc/tests/fo_tests.exe`** successfully:
+  - **63 / 63 tests passed**
+- Ran **`build-msvc/cli/fo_cli.exe --help`** successfully as a CLI smoke test.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/HEADLESS_BUILD_STABILIZATION.md`** to record the dependency strategy, script, compile fixes, verification results, and the remaining Qt6 blocker for the full GUI/shell build.
+
+### Version
+- Bumped to **6.0.5**.
+
 ## [6.0.4] - 2026-04-03
 
 ### Added — The "Tracked-Only Status Workflow" Release

@@ -10,6 +10,7 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
+#include <map>
 
 namespace fo::core {
 

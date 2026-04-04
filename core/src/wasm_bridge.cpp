@@ -1,16 +1,18 @@
-#include "fo/core/engine.hpp"
-#include <emscripten/bind.h>
-#include <vector>
-#include <string>
-
-using namespace emscripten;
-using namespace fo::core;
-
 /// @file wasm_bridge.cpp
 /// @brief Emscripten bindings for bobfilez core.
 ///
-/// This allows the high-performance C++ engine to run in the browser
-/// via WebAssembly, enabling "Universal Data Custodian" features.
+/// This translation unit is only relevant for WebAssembly builds.
+/// Native desktop builds should compile successfully without any Emscripten SDK.
+
+#ifdef __EMSCRIPTEN__
+
+#include "fo/core/engine.hpp"
+#include <emscripten/bind.h>
+#include <string>
+#include <vector>
+
+using namespace emscripten;
+using namespace fo::core;
 
 EMSCRIPTEN_BINDINGS(bobfilez) {
     class_<FileInfo>("FileInfo")
@@ -24,3 +26,5 @@ EMSCRIPTEN_BINDINGS(bobfilez) {
         .constructor<>()
         .function("scan", &Engine::scan);
 }
+
+#endif

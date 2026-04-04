@@ -1,45 +1,64 @@
-# HANDOFF.md — bobfilez Session 19
+# HANDOFF.md — bobfilez Session 20
 
-## Current Status (2026-04-03)
-**Version:** 6.0.4  
-**Focus:** Long-path diagnosis refinement and tracked-only status workflow
+## Current Status (2026-04-04)
+**Version:** 6.0.5  
+**Focus:** Headless MSVC build stabilization and verification
 
 ---
 
 ## What Was Done This Session
 
-### 1. Refined Long-Path Diagnosis
-- Continued investigating the persistent Windows `git status` warning for paths under:
-  - `tests/test_cmake_build/.../pybind11/...`
-- Used normal path enumeration and Windows extended-path probing to inspect:
-  - `tests/`
-  - `tests/test_cmake_build/`
-- Important finding:
-  - the problematic `tests/test_cmake_build/` tree is **not visible through normal directory enumeration**, even when probing with extended-path logic.
-- This reinforces the earlier conclusion that the remaining warning is not a simple ordinary directory cleanup case.
+### 1. Recovered a Reliable Windows Build Path
+- Investigated the earlier default build failure path and confirmed the most expensive blocker was the forced native FFmpeg/Chromaprint dependency chain during vcpkg resolution.
+- Updated **`vcpkg.json`** so:
+  - default dependency installation no longer forces `ffmpeg` / `chromaprint`
+  - those packages now live under an explicit **`media-analysis`** feature
+- This preserves optional native media-analysis support while allowing standard core/CLI/test builds to proceed on machines that do not need those in-process providers.
 
-### 2. Key Operational Discovery
-- Confirmed that:
-  - `git status --untracked-files=no`
-  - completes **without** the long-path warning noise
-  - still reports the actionable repo state for daily development:
-    - tracked file modifications
-    - deletions
-    - dirty submodules
-- This means the warning is specifically tied to the **untracked-file scan path**, not the tracked-file status path.
+### 2. Fixed CMake and Source-Level Build Breaks
+- Updated **`core/CMakeLists.txt`** so optional FFmpeg/Chromaprint target wiring occurs only after `fo_core` exists.
+- Added vendored **md4c** source wiring so the markdown backend compiles consistently.
+- Fixed multiple compile blockers surfaced by the headless build, including issues in:
+  - `cli/fo_cli.cpp`
+  - `core/include/fo/core/batch_rename_interface.hpp`
+  - `core/include/fo/core/conversion_interface.hpp`
+  - `core/include/fo/core/enhanced_fileops_interface.hpp`
+  - `core/include/fo/core/omnivision_engine_interface.hpp`
+  - `core/include/fo/core/search_interface.hpp`
+  - `core/src/advanced_archive_manager.cpp`
+  - `core/src/batch_rename_engine.cpp`
+  - `core/src/conversion_engine.cpp`
+  - `core/src/enhanced_fileops.cpp`
+  - `core/src/hex_editor.cpp`
+  - `core/src/markdown_viewer.cpp`
+  - `core/src/omniverse_engine.cpp`
+  - `core/src/wasm_bridge.cpp`
+- Removed the last remaining MSVC warning in the CLI `convert` command by renaming the shadowing local `output_path` variable.
 
-### 3. New Tooling
-- Added **`scripts/repo_status.py`**.
-- Purpose:
-  - provide a standard, clean tracked-only repo status workflow for this project on affected Windows hosts
-  - reduce repeated friction during sessions while the deeper untracked-scan issue remains unresolved
-- The script runs:
-  - `git status --short --branch --untracked-files=no`
-  - and prints an explanatory note for future agents/users.
+### 3. Added a Standard Headless Build Script
+- Added **`scripts/build_headless.bat`**.
+- The script:
+  - locates an installed `vcvars64.bat`
+  - configures `build-msvc`
+  - disables GUI / Omni targets
+  - builds tests and benchmarks too
+- This is now the best fallback path for Windows verification when Qt6 / Omni dependencies are unavailable.
 
-### 4. Documentation Updates
-- Updated **`docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`** with the new tracked-only diagnostic result.
-- Reconciled release/docs metadata to **6.0.4**.
+### 4. Verified the Build Outputs and Tests
+- Successfully built the headless profile with:
+  - `fo_core`
+  - `fo_cli`
+  - `fo_tests`
+  - benchmark binaries
+- Ran the CLI smoke test:
+  - `build-msvc/cli/fo_cli.exe --help`
+- Ran the test suite:
+  - `build-msvc/tests/fo_tests.exe`
+  - **63 / 63 tests passed**
+
+### 5. Documentation and Release Alignment
+- Added **`docs/ai/implementation/HEADLESS_BUILD_STABILIZATION.md`**.
+- Reconciled release/docs metadata to **6.0.5**.
 
 ---
 
@@ -47,25 +66,25 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Full untracked-scan long-path issue | 🟡 Reduced operational impact, not fully fixed | The warning persists for full untracked scans, but the team now has a clean tracked-only workflow. |
-| Full build verification | 🟡 Pending | Repo hygiene and shell stabilization improved, but dependency-heavy build verification still needs to finish. |
-| Dirty submodules/worktrees | 🟡 Pending | Unrelated dirty submodule/worktree changes remain outside this session’s scope. |
-| Route exposure policy | 🟡 Pending | Shell route coverage is documented, but final exposure policy still needs product direction. |
+| Full Qt/Omni shell build | 🟡 Pending | Headless MSVC build is now validated, but full GUI validation still requires Qt6 discovery on this machine. |
+| Media-analysis native providers | 🟡 Optionalized, not default-verified | `ffmpeg` / `chromaprint` remain available through the `media-analysis` vcpkg feature, but that feature was not revalidated in this session. |
+| Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
+| Backend realism in many Omni subsystems | 🟡 Pending | A large number of v3+ / v4+ / v5+ engines remain scaffold-first implementations rather than production-complete backends. |
 
 ---
 
 ## Recommended Next Steps
 
-1. **Use the new tracked-only workflow**
-   - Run `python scripts/repo_status.py` for normal repo-state checks on affected Windows hosts.
+1. **Preserve the headless build as the default verification fallback**
+   - Use `scripts/build_headless.bat` for reliable Windows validation when GUI prerequisites are missing.
 
-2. **Continue build verification**
-   - Resume configure/build validation after dependency compilation completes.
-   - Re-check the recent OmniShell stabilization path in `fo_omni`.
+2. **Resume full GUI verification when Qt6 is available**
+   - Re-run a full configure/build with GUI and Omni targets enabled.
+   - Validate the recent OmniShell bootstrap simplification in a real Qt environment.
 
-3. **Treat the long-path issue as a deeper tooling quirk unless full untracked scans are required**
-   - If a true fix is still desired, continue with specialized extended-path investigation.
-   - Otherwise, the operational workaround is now documented and standardized.
+3. **Keep using tracked-only repo inspection on this host**
+   - `python scripts/repo_status.py`
+   - avoid full untracked scans unless specifically needed
 
-4. **Keep stabilizing before expanding scope**
-   - Continue emphasizing hygiene, build correctness, launcher correctness, and backend realism over new subsystem sprawl.
+4. **Continue stabilization before adding more flagship scope**
+   - prioritize build correctness, test health, and backend hardening over more mock subsystem expansion.

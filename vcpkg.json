@@ -16,8 +16,15 @@
       ]
     },
     "cpr",
-    "azure-storage-blobs-cpp",
-    "ffmpeg",
-    "chromaprint"
-  ]
+    "azure-storage-blobs-cpp"
+  ],
+  "features": {
+    "media-analysis": {
+      "description": "Optional native FFmpeg and Chromaprint libraries for in-process video hashing and audio fingerprinting providers.",
+      "dependencies": [
+        "ffmpeg",
+        "chromaprint"
+      ]
+    }
+  }
 }

@@ -149,7 +149,7 @@ using SearchProgressCb = std::function<void(
 struct ReplaceOptions {
     std::string find_pattern;
     std::string replace_with;
-    MatchMode match_mode = MatchMode::Literal;
+    SearchOptions::MatchMode match_mode = SearchOptions::MatchMode::Literal;
     bool case_sensitive = false;
     bool whole_word = false;
     bool backup_files = true;          // Create .bak before modifying

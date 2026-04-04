@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-03 | **Commit:** fc96f977 | **Branch:** main | **Version:** 6.0.4
+**Generated:** 2026-04-04 | **Commit:** 122ea2f1 | **Branch:** main | **Version:** 6.0.5
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -17,7 +17,7 @@ bobfilez/
 ├── gui/            # fo_gui Qt6 application (migrating to BobUI)
 ├── bobui/          # Custom Qt fork for premium UI (main library)
 ├── bobui_web/      # Web-based dashboard (formerly bobui)
-├── tests/          # GTest unit/integration tests (59 tests)
+├── tests/          # GTest unit/integration tests (63 tests)
 ├── benchmarks/     # Google Benchmark harness
 ├── libs/           # 130+ git submodules (DO NOT modify directly)
 ├── docs/           # Documentation (ROADMAP, SUBMODULES, LLM_INSTRUCTIONS)
@@ -30,10 +30,11 @@ bobfilez/
 
 ```powershell
 build.bat                                    # Quick build (Windows)
-cmake -S . -B build -G Ninja && cmake --build build  # Manual
-.\build\tests\fo_tests.exe                   # All tests
-.\build\tests\fo_tests.exe --gtest_filter=*Name*     # Single test
-.\build\cli\fo_cli.exe --help                # CLI usage
+scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omini off)
+cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
+.\build-msvc\tests\fo_tests.exe            # Headless test suite
+.\build-msvc\tests\fo_tests.exe --gtest_filter=*Name*  # Single headless test
+.\build-msvc\cli\fo_cli.exe --help         # Headless CLI smoke test
 ```
 
 ## Where to Look
@@ -92,8 +93,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.4)
+## Current Status (v6.0.5)
 
+- ✅ **Headless Build Stabilization**: Added `scripts/build_headless.bat`, optionalized native `ffmpeg`/`chromaprint` behind the `media-analysis` feature in `vcpkg.json`, fixed headless MSVC compile issues across the expanded core/CLI surface, and verified a successful `build-msvc` build.
+- ✅ **Build Verification**: Confirmed `fo_core`, `fo_cli`, `fo_tests`, and benchmark binaries build successfully in the headless MSVC profile; ran `build-msvc/tests/fo_tests.exe` with **63 / 63 tests passing**.
 - ✅ **Tracked-Only Status Workflow**: Added `scripts/repo_status.py` and documented that `git status --untracked-files=no` avoids the current Windows long-path warning path while still surfacing tracked changes and dirty submodules.
 - ✅ **Generated Build Artifact Purge**: Removed tracked/generated component `build_output/` trees and documented the cleanup in `docs/ai/implementation/REPO_HYGIENE_CLEANUP.md`.
 - ✅ **OmniShell Route Audit**: Added `docs/ai/implementation/OMNISHELL_ROUTE_AUDIT.md` to map shell route coverage across `main.qml`, Start Menu, Taskbar, and explorer-driven launch surfaces.
@@ -164,6 +167,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 20)
+**Author:** GPT
+
+**Scope:** v6.0.5 Headless Build Stabilization & Verification
+
+**Delivered:**
+- ✅ Added `scripts/build_headless.bat` to provide a repeatable Windows/MSVC/Ninja fallback build with `FO_BUILD_GUI=OFF` and `FO_BUILD_OMNI=OFF`.
+- ✅ Updated `vcpkg.json` to move `ffmpeg` and `chromaprint` behind the optional `media-analysis` feature instead of forcing them into the default dependency graph.
+- ✅ Fixed latent compile errors across the expanded core/CLI implementation surface and removed the final MSVC warning in `cli/fo_cli.cpp`.
+- ✅ Added `docs/ai/implementation/HEADLESS_BUILD_STABILIZATION.md` documenting the dependency strategy, build script, compile fixes, and remaining Qt6 blocker.
+- ✅ Verified successful build outputs for `fo_core`, `fo_cli`, `fo_tests`, and benchmarks under `build-msvc/`.
+- ✅ Ran `build-msvc/tests/fo_tests.exe` successfully: **63 / 63 tests passed**.
+
+**Next Steps:**
+1. Re-run a full GUI/Omni build once Qt6 is available on the machine.
+2. Decide whether the optional `media-analysis` feature should remain opt-in permanently or be reintroduced into a richer default/dev profile later.
+3. Continue backend hardening for the still-scaffolded Omni subsystems now that headless verification is reliable again.
 
 ---
 

@@ -57,9 +57,10 @@ public:
         nodes.push_back(root_node);
 
         int count = 12; // Mock 12 files
+        constexpr float k_pi = 3.14159265358979323846f;
         for (int i = 0; i < count; ++i) {
             float phi = std::acos(1.0f - 2.0f * (i + 0.5f) / count);
-            float theta = M_PI * (1.0f + std::sqrt(5.0f)) * i;
+            float theta = k_pi * (1.0f + std::sqrt(5.0f)) * i;
 
             float r = 250.0f; // Orbit radius
             

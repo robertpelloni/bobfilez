@@ -24,6 +24,13 @@ set(HASHLIBRARY_SOURCES
 # xxHash is header-only if XXH_INLINE_ALL is defined; no separate .c needed
 set(XXHASH_INCLUDE ${LIBS_DIR}/xxHash)
 
+# md4c (vendored markdown parser / HTML renderer)
+set(MD4C_SOURCES
+    ${LIBS_DIR}/md4c/src/md4c.c
+    ${LIBS_DIR}/md4c/src/md4c-html.c
+    ${LIBS_DIR}/md4c/src/entity.c
+)
+
 # SQLite3
 set(SQLITE3_SOURCES ${LIBS_DIR}/sqlite3/sqlite3.c)
 
@@ -84,24 +91,13 @@ if(azure-storage-blobs-cpp_FOUND)
     message(STATUS "Found Azure Storage Blobs SDK, enabling Azure Blob provider")
 endif()
 
-if(FFmpeg_FOUND)
-    message(STATUS "Found FFmpeg, enabling video hashing provider")
-    target_compile_definitions(fo_core PUBLIC FO_HAVE_FFMPEG)
-    target_link_libraries(fo_core PUBLIC FFmpeg::avformat FFmpeg::avcodec FFmpeg::avutil FFmpeg::swscale)
-endif()
-
-if(chromaprint_FOUND)
-    message(STATUS "Found Chromaprint, enabling audio fingerprint provider")
-    target_compile_definitions(fo_core PUBLIC FO_HAVE_CHROMAPRINT)
-    target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
-endif()
-
 add_library(fo_core STATIC
     ${FO_CORE_HEADERS}
     ${FO_CORE_SOURCES}
     ${TINYEXIF_SOURCES}
     ${TINYXML2_SOURCES}
     ${HASHLIBRARY_SOURCES}
+    ${MD4C_SOURCES}
     ${SQLITE3_SOURCES}
     ${DIRENT_SOURCES}
 )
@@ -112,6 +108,7 @@ target_include_directories(fo_core
     PRIVATE ${LIBS_DIR}/tinyxml2
     PRIVATE ${LIBS_DIR}/hash-library
     PRIVATE ${XXHASH_INCLUDE}
+    PRIVATE ${LIBS_DIR}/md4c/src
     PRIVATE ${LIBS_DIR}/dirent/src
     PRIVATE ${LIBS_DIR}/sqlite3
     PRIVATE ${LIBS_DIR}
@@ -161,6 +158,18 @@ endif()
 if(azure-storage-blobs-cpp_FOUND)
     target_compile_definitions(fo_core PRIVATE FO_HAVE_AZURE_STORAGE)
     target_link_libraries(fo_core PUBLIC Azure::azure-storage-blobs)
+endif()
+
+if(FFmpeg_FOUND)
+    message(STATUS "Found FFmpeg, enabling video hashing provider")
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_FFMPEG)
+    target_link_libraries(fo_core PUBLIC FFmpeg::avformat FFmpeg::avcodec FFmpeg::avutil FFmpeg::swscale)
+endif()
+
+if(chromaprint_FOUND)
+    message(STATUS "Found Chromaprint, enabling audio fingerprint provider")
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_CHROMAPRINT)
+    target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
 endif()
 
 target_compile_features(fo_core PUBLIC cxx_std_20)

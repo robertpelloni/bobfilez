@@ -25,6 +25,7 @@
 #include <functional>
 #include <optional>
 #include <map>
+#include <memory>
 
 namespace fo::core {
 
@@ -37,6 +38,7 @@ struct ConvertOption {
     std::vector<std::string> choices; // For type=="choice"
     std::string min_val;      // For numeric types
     std::string max_val;
+    std::string ui_hint;      // Optional extra UI hint / step / soft max metadata
 };
 
 /// Result of a single file conversion attempt.

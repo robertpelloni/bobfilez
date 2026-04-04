@@ -41,6 +41,7 @@
 #include <optional>
 #include <map>
 #include <chrono>
+#include <memory>
 
 namespace fo::core {
 
@@ -73,7 +74,7 @@ public:
                                const std::filesystem::path& original_path,
                                const std::map<std::string, std::string>& metadata) const = 0;
     virtual std::string description() const = 0;
-    virtual bool enabled = true;
+    bool enabled = true;
 };
 
 //─────────────────────────── Concrete Rule Types ───────────────────────────//

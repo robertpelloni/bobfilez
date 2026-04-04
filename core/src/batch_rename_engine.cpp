@@ -228,8 +228,8 @@ std::string CaseRule::apply(const std::string& s, int, const std::filesystem::pa
         for (char& c : result) {
             if (std::isalpha(c)) { c = std::toupper(c); break; }
         }
-    } else if (mode == Mode::snake_case || mode == Mode::KebabCase) {
-        char sep = (mode == Mode::snake_case) ? '_' : '-';
+    } else if (mode == Mode::SnakeCase || mode == Mode::KebabCase) {
+        char sep = (mode == Mode::SnakeCase) ? '_' : '-';
         std::string out;
         bool last_was_sep = false;
         for (size_t i = 0; i < result.length(); ++i) {

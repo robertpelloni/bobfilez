@@ -66,9 +66,9 @@ MarkdownRenderResult MarkdownRenderer::render(const std::string& markdown_text) 
     unsigned parser_flags = MD_FLAG_COLLAPSEWHITESPACE;
     if (opts_.gfm_tables) parser_flags |= MD_FLAG_TABLES;
     if (opts_.gfm_task_lists) parser_flags |= MD_FLAG_TASKLISTS;
-    if (opts_.gfm_autolinks) parser_flags |= MD_FLAG_AUTOLINKS;
+    if (opts_.gfm_autolinks) parser_flags |= MD_FLAG_PERMISSIVEAUTOLINKS;
     if (opts_.gfm_strikethrough) parser_flags |= MD_FLAG_STRIKETHROUGH;
-    if (opts_.footnotes) parser_flags |= MD_FLAG_FOOTNOTES;
+    // Vendored md4c in this repo does not expose a dedicated footnotes flag.
     if (opts_.wikilinks) parser_flags |= MD_FLAG_WIKILINKS;
     if (opts_.math_inline || opts_.math_block) parser_flags |= MD_FLAG_LATEXMATHSPANS;
 

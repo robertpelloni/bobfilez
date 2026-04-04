@@ -549,6 +549,7 @@ public:
     std::string description() const override { return "Poppler (pdftoppm/pdftotext) — fast PDF to image/text extraction"; }
     std::vector<std::string> supported_input_extensions() const override { return {"pdf"}; }
     std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"png","jpg","txt","html"}; }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override { return {}; }
     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
         std::string target = out.extension().string();
         std::transform(target.begin(), target.end(), target.begin(), ::tolower);
@@ -572,6 +573,7 @@ public:
     std::string description() const override { return "wkhtmltopdf — Webkit-based HTML to PDF/Image conversion"; }
     std::vector<std::string> supported_input_extensions() const override { return {"html","htm"}; }
     std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"pdf","png","jpg"}; }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override { return {}; }
     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
         std::string target = out.extension().string();
         std::string tool = (target == ".pdf") ? "wkhtmltopdf" : "wkhtmltoimage";
@@ -593,6 +595,7 @@ public:
     std::string description() const override { return "Inkscape CLI — vector format conversion (SVG/PDF/EPS/PNG)"; }
     std::vector<std::string> supported_input_extensions() const override { return {"svg","pdf","eps","ai"}; }
     std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"png","jpg","pdf","svg","eps"}; }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override { return {}; }
     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
         std::string cmd = "inkscape \"" + in.string() + "\" --export-filename=\"" + out.string() + "\"";
         auto t0 = std::chrono::steady_clock::now();
@@ -612,6 +615,7 @@ public:
     std::string description() const override { return "SoX — advanced audio processing and format conversion"; }
     std::vector<std::string> supported_input_extensions() const override { return {"wav","mp3","flac","ogg","aiff"}; }
     std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"wav","mp3","flac","ogg","aiff"}; }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override { return {}; }
     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
         std::string cmd = "sox \"" + in.string() + "\" \"" + out.string() + "\"";
         auto t0 = std::chrono::steady_clock::now();
@@ -631,6 +635,7 @@ public:
     std::string description() const override { return "7-Zip — cross-convert between archive formats (zip/7z/tar)"; }
     std::vector<std::string> supported_input_extensions() const override { return {"zip","7z","tar","gz","rar"}; }
     std::vector<std::string> supported_output_extensions(const std::string&) const override { return {"zip","7z","tar","gz"}; }
+    std::vector<ConvertOption> available_options(const std::string&, const std::string&) const override { return {}; }
     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
         std::filesystem::path tmp = std::filesystem::temp_directory_path() / ("fo_conv_" + std::to_string(std::hash<std::string>{}(in.string())));
         std::filesystem::create_directories(tmp);

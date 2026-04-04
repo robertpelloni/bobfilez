@@ -8,7 +8,6 @@
 #include <chrono>
 #include <thread>
 #include <system_error>
-#include <uuid/uuid.h> // Assuming a UUID generator or we'll generate a simple one
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -317,7 +316,7 @@ FileOpResult EnhancedCopyEngine::copy_single_enhanced(
                 res.success = true;
                 return res;
             }
-        } else if (opts.collision == CollisionPolicy::RenameAuto) {
+        } else if (opts.collision == CollisionPolicy::Rename) {
             int counter = 2;
             auto stem = target.stem().string();
             auto ext = target.extension().string();
@@ -372,7 +371,7 @@ FileOpResult EnhancedCopyEngine::copy_single_enhanced(
 
 #ifdef _WIN32
     // Optional: Use Win32 CreateFile with FILE_FLAG_NO_BUFFERING for FastCopy parity.
-    if (opts.no_cache) {
+    if (opts.no_buffering) {
         HANDLE hSrc = CreateFileW(src.wstring().c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         HANDLE hDst = CreateFileW(target.wstring().c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, NULL);
         if (hSrc != INVALID_HANDLE_VALUE && hDst != INVALID_HANDLE_VALUE) {

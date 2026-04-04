@@ -120,26 +120,6 @@ struct FileError {
 
 using ErrorHandlerCb = std::function<FileErrorAction(const FileError&)>;
 
-//─────────────────────────── Queue Job ───────────────────────────────────────
-
-/// A single job in the transfer queue
-struct TransferJob {
-    std::string id;                           // Unique job ID (UUID)
-    std::string name;                         // Display name
-    std::vector<std::filesystem::path> sources;
-    std::filesystem::path dest;
-    CopyMoveOptions opts;
-    enum class State {
-        Queued, Running, Paused, Done, Failed, Cancelled
-    } state = State::Queued;
-    TransferStats stats;
-    std::chrono::system_clock::time_point created_at;
-    std::chrono::system_clock::time_point started_at;
-    std::chrono::system_clock::time_point finished_at;
-    std::string log_path;                     // Path to per-job log file
-    std::vector<FileOpResult> results;
-};
-
 //─────────────────────────── Enhanced Options ────────────────────────────────
 
 /// Extended copy/move options (superset of CopyMoveOptions)
@@ -184,6 +164,26 @@ struct EnhancedCopyOptions : public CopyMoveOptions {
 
     // Estimate-only mode (dry run with size calculation)
     bool estimate_only = false;
+};
+
+//─────────────────────────── Queue Job ───────────────────────────────────────
+
+/// A single job in the transfer queue
+struct TransferJob {
+    std::string id;                           // Unique job ID (UUID)
+    std::string name;                         // Display name
+    std::vector<std::filesystem::path> sources;
+    std::filesystem::path dest;
+    EnhancedCopyOptions opts;
+    enum class State {
+        Queued, Running, Paused, Done, Failed, Cancelled
+    } state = State::Queued;
+    TransferStats stats;
+    std::chrono::system_clock::time_point created_at;
+    std::chrono::system_clock::time_point started_at;
+    std::chrono::system_clock::time_point finished_at;
+    std::string log_path;                     // Path to per-job log file
+    std::vector<FileOpResult> results;
 };
 
 //─────────────────────────── Enhanced Copy Engine ────────────────────────────
