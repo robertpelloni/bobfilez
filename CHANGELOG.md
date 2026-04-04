@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.12] - 2026-04-04
+
+### Cleaned — The "QtCharts Removal" Release
+
+#### 📉 Dead GUI Dependency Removed
+- Updated **`gui/panels/EnhancedFileOpsPanel.qml`** to remove:
+  - `import QtCharts 2.5`
+- Confirmed that the panel's real-time speed graph was already implemented with a native `Canvas`-based painter path rather than `ChartView` / `LineSeries` / other QtCharts types.
+- This means the `QtCharts` import had become unused dependency residue and could be removed safely.
+
+#### ✅ Verification / Finding
+- Confirmed there are no remaining `QtCharts` references under `gui/` after this cleanup.
+- This further shrinks the native UI dependency surface without changing behavior.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTCHARTS_REMOVAL.md`** documenting why the removal was safe, what the panel was already using instead, and why this matches the phased BobUI migration strategy.
+
+### Version
+- Bumped to **6.0.12**.
+
 ## [6.0.11] - 2026-04-04
 
 ### Fixed — The "Markdown WebEngine Removal" Release

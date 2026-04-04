@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 1bf99c42 | **Branch:** main | **Version:** 6.0.11
+**Generated:** 2026-04-04 | **Commit:** a7f2642a | **Branch:** main | **Version:** 6.0.12
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtCharts Removal**: Removed the dead `QtCharts` import from `EnhancedFileOpsPanel.qml`; the panel's live speed graph was already implemented with a `Canvas`, so this safely shrank the GUI dependency surface without affecting behavior.
 - ✅ **Markdown WebEngine Removal**: Added a native `NativeMarkdownView` preview item, removed `QtWebEngine` / `WebEngineView` usage from `MarkdownViewerPanel.qml`, and removed `WebEngineQuick` from the `fo_omni` dependency set while confirming the remaining BobUI consumer blocker is still `Qt6Qml`.
 - ✅ **BobUI Native Migration Audit**: Added `docs/ai/implementation/BOBUI_NATIVE_MIGRATION_AUDIT.md` and confirmed the current shell is still ~10k lines of QML; removing `WebEngineQuick` is feasible, but removing `QtQuick` itself is not realistic with current BobUI because BobUI widgets are built on `QQuickItem` / `QQuickPaintedItem`.
 - ✅ **BobUI In-Place Build Probe**: Added `scripts/build_bobui_inplace.bat` and confirmed BobUI can export a top-level `Qt6Config.cmake` from an in-place developer build, but the current BobUI tree still lacks `Qt6Qml` and therefore is not yet a full drop-in provider for bobfilez's GUI targets.
@@ -178,6 +179,24 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 27)
+**Author:** GPT
+
+**Scope:** v6.0.12 QtCharts Removal
+
+**Delivered:**
+- ✅ Removed `import QtCharts 2.5` from `gui/panels/EnhancedFileOpsPanel.qml`.
+- ✅ Confirmed the panel's real-time throughput graph was already canvas-rendered and did not actually rely on any QtCharts types.
+- ✅ Added `docs/ai/implementation/QTCHARTS_REMOVAL.md` documenting why this was safe and how it fits the phased BobUI migration plan.
+- ✅ Confirmed there are no remaining `QtCharts` references under `gui/`.
+
+**Next Steps:**
+1. Target `QtGraphicalEffects` / `Qt5Compat.GraphicalEffects` next.
+2. Keep dependency cuts incremental and behavior-preserving.
+3. Continue avoiding broad QML rewrites until the smaller module-surface cleanup is further along.
 
 ---
 
