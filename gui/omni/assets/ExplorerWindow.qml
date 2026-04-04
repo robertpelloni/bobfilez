@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import Omni.File 1.0
 
@@ -35,8 +34,8 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
-                            Label { text: "📁 " + fileModel.currentPath.split('/').pop(); color: "white"; elide: Text.ElideRight; Layout.fillWidth: true }
-                            Label { text: "✕"; color: "#888"; font.pixelSize: 10 }
+                            Text { text: "📁 " + fileModel.currentPath.split('/').pop(); color: "white"; elide: Text.ElideRight; Layout.fillWidth: true }
+                            Text { text: "✕"; color: "#888"; font.pixelSize: 10 }
                         }
                     }
                 }
@@ -47,13 +46,13 @@ Rectangle {
                 Row {
                     spacing: 0
                     Rectangle { width: 46; height: 40; color: "transparent"
-                        Label { anchors.centerIn: parent; text: "－"; color: "white" }
+                        Text { anchors.centerIn: parent; text: "－"; color: "white" }
                     }
                     Rectangle { width: 46; height: 40; color: "transparent"
-                        Label { anchors.centerIn: parent; text: "▢"; color: "white" }
+                        Text { anchors.centerIn: parent; text: "▢"; color: "white" }
                     }
                     Rectangle { width: 46; height: 40; color: "transparent"
-                        Label { anchors.centerIn: parent; text: "✕"; color: "white" }
+                        Text { anchors.centerIn: parent; text: "✕"; color: "white" }
                         MouseArea { anchors.fill: parent; onClicked: shell.openPanel("none") }
                     }
                 }
@@ -68,9 +67,21 @@ Rectangle {
                 
                 Row {
                     spacing: 5
-                    Button { flat: true; text: "←"; font.pixelSize: 18; enabled: false }
-                    Button { flat: true; text: "↑"; font.pixelSize: 18; onClicked: fileModel.goUp() }
-                    Button { flat: true; text: "↻"; font.pixelSize: 18; onClicked: fileModel.refresh() }
+                    Repeater {
+                        model: [
+                            { text: "←", enabled: false, action: function() {} },
+                            { text: "↑", enabled: true, action: function() { fileModel.goUp() } },
+                            { text: "↻", enabled: true, action: function() { fileModel.refresh() } }
+                        ]
+                        Rectangle {
+                            width: 30; height: 30; radius: 4
+                            color: navHover.hovered && modelData.enabled ? "#22ffffff" : "transparent"
+                            opacity: modelData.enabled ? 1.0 : 0.35
+                            Text { anchors.centerIn: parent; text: modelData.text; color: "white"; font.pixelSize: 18 }
+                            HoverHandler { id: navHover }
+                            MouseArea { anchors.fill: parent; enabled: modelData.enabled; onClicked: modelData.action() }
+                        }
+                    }
                 }
 
                 Rectangle { width: 1; height: 24; color: "#444" }
@@ -80,7 +91,7 @@ Rectangle {
                     Layout.fillWidth: true; height: 32; color: "#2d2d2d"; radius: 4; border.color: "#444"
                     RowLayout {
                         anchors.fill: parent; anchors.leftMargin: 10
-                        Label { text: "📁"; color: "#888" }
+                        Text { text: "📁"; color: "#888" }
                         TextInput { 
                             text: fileModel.currentPath
                             color: "white"; Layout.fillWidth: true; clip: true; selectByMouse: true
@@ -94,7 +105,7 @@ Rectangle {
                     Layout.preferredWidth: 250; height: 32; color: "#2d2d2d"; radius: 4; border.color: "#444"
                     RowLayout {
                         anchors.fill: parent; anchors.leftMargin: 10
-                        Label { text: "🔍"; color: "#888" }
+                        Text { text: "🔍"; color: "#888" }
                         TextInput { 
                             id: explorerSearch; Layout.fillWidth: true; color: "white"; font.pixelSize: 13
                             placeholderText: "Search " + fileModel.currentPath.split('/').pop()
@@ -112,16 +123,18 @@ Rectangle {
             Layout.fillWidth: true; height: 48; color: "#1c1c1c"
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 15; spacing: 20
-                Label { text: "➕ New"; color: "white"; font.bold: true }
+                Text { text: "➕ New"; color: "white"; font.bold: true }
                 Rectangle { width: 1; height: 20; color: "#444" }
-                Label { text: "✂️"; color: "#888" }; Label { text: "📋"; color: "#888" }; Label { text: "↗️"; color: "#888" }; Label { text: "🗑️"; color: "#888" }
+                Text { text: "✂️"; color: "#888" }; Text { text: "📋"; color: "#888" }; Text { text: "↗️"; color: "#888" }; Text { text: "🗑️"; color: "#888" }
                 Rectangle { width: 1; height: 20; color: "#444" }
-                Label { text: "🔀 Sort"; color: "white" }
-                Label { text: "≣ View"; color: "white" }
+                Text { text: "🔀 Sort"; color: "white" }
+                Text { text: "≣ View"; color: "white" }
                 Item { Layout.fillWidth: true }
-                Button { 
-                    text: "✨ Deduplicate"; highlighted: true
-                    onClicked: fileModel.findDuplicates()
+                Rectangle {
+                    width: 120; height: 30; radius: 5; color: dedupeHover.hovered ? "#1a88f0" : "#0078d4"
+                    Text { anchors.centerIn: parent; text: "✨ Deduplicate"; color: "white"; font.bold: true; font.pixelSize: 12 }
+                    HoverHandler { id: dedupeHover }
+                    MouseArea { anchors.fill: parent; onClicked: fileModel.findDuplicates() }
                 }
             }
         }
@@ -146,20 +159,24 @@ Rectangle {
                             { icon: "🔗", text: "Live Folders" },
                             { icon: "🐙", text: "Repositories" }
                         ]
-                        ItemDelegate {
-                            Layout.fillWidth: true; height: 32
-                            contentItem: RowLayout {
-                                spacing: 10
-                                Label { text: modelData.icon; font.pixelSize: 16 }
-                                Label { text: modelData.text; color: "white"; font.pixelSize: 13 }
+                        Rectangle {
+                            Layout.fillWidth: true; height: 32; radius: 4
+                            color: sideHover.hovered ? "#3d3d3d" : "transparent"
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 8; spacing: 10
+                                Text { text: modelData.icon; font.pixelSize: 16; color: "white" }
+                                Text { text: modelData.text; color: "white"; font.pixelSize: 13 }
                             }
-                            background: Rectangle { color: hovered ? "#3d3d3d" : "transparent"; radius: 4 }
-                            onClicked: {
-                                if (modelData.text === "This PC") fileModel.openFolder("C:/")
-                                else if (modelData.text === "Cloud Drives") shell.openPanel("cloud")
-                                else if (modelData.text === "Network (SFTP/SMB)") shell.openPanel("network")
-                                else if (modelData.text === "Repositories") shell.openPanel("omnigit")
-                                else if (modelData.text === "Live Folders") shell.openPanel("hierarchy")
+                            HoverHandler { id: sideHover }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    if (modelData.text === "This PC") fileModel.openFolder("C:/")
+                                    else if (modelData.text === "Cloud Drives") shell.openPanel("cloud")
+                                    else if (modelData.text === "Network (SFTP/SMB)") shell.openPanel("network")
+                                    else if (modelData.text === "Repositories") shell.openPanel("omnigit")
+                                    else if (modelData.text === "Live Folders") shell.openPanel("hierarchy")
+                                }
                             }
                         }
                     }
@@ -178,18 +195,18 @@ Rectangle {
                     Layout.fillWidth: true; height: 32; color: "transparent"
                     RowLayout {
                         anchors.fill: parent; anchors.leftMargin: 15; spacing: 0
-                        Label { text: "Name"; color: "#888"; font.pixelSize: 12; Layout.fillWidth: true }
-                        Label { text: "Date modified"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150 }
-                        Label { text: "Size"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
+                        Text { text: "Name"; color: "#888"; font.pixelSize: 12; Layout.fillWidth: true }
+                        Text { text: "Date modified"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150 }
+                        Text { text: "Size"; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
                     }
                 }
 
                 ListView {
                     id: fileListView; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; model: fileModel
-                    delegate: ItemDelegate {
-                        width: fileListView.width; height: 32
-                        background: Rectangle { color: isSelected ? "#3d3d3d" : (hovered ? "#2d2d2d" : "transparent"); radius: 4 }
-                        
+                    delegate: Rectangle {
+                        width: fileListView.width; height: 32; radius: 4
+                        color: isSelected ? "#3d3d3d" : (rowHover.hovered ? "#2d2d2d" : "transparent")
+
                         MouseArea {
                             anchors.fill: parent
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -204,18 +221,18 @@ Rectangle {
                                 }
                             }
                         }
+                        HoverHandler { id: rowHover }
 
                         Keys.onSpacePressed: shell.togglePeek(fileModel.currentPath + "/" + fileName)
 
-                        contentItem: RowLayout {
+                        RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 15; spacing: 10
-                            Label { text: isDirectory ? "📁" : "📄"; font.pixelSize: 16 }
-                            Label { text: fileName; color: "white"; font.pixelSize: 13; Layout.fillWidth: true; elide: Text.ElideRight }
-                            Label { text: dateModified; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150 }
-                            Label { text: fileSize; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
+                            Text { text: isDirectory ? "📁" : "📄"; font.pixelSize: 16; color: "white" }
+                            Text { text: fileName; color: "white"; font.pixelSize: 13; Layout.fillWidth: true; elide: Text.ElideRight }
+                            Text { text: dateModified; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 150 }
+                            Text { text: fileSize; color: "#888"; font.pixelSize: 12; Layout.preferredWidth: 100 }
                         }
                     }
-                    ScrollBar.vertical: ScrollBar { }
                 }
             }
         }
@@ -227,9 +244,9 @@ Rectangle {
             Layout.fillWidth: true; height: 28; color: "#1c1c1c"
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 15; anchors.rightMargin: 15
-                Label { text: fileModel.rowCount() + " items"; color: "#888"; font.pixelSize: 11 }
+                Text { text: fileModel.rowCount() + " items"; color: "#888"; font.pixelSize: 11 }
                 Item { Layout.fillWidth: true }
-                Label { text: "✨ OmniEngine Active"; color: "#0078d4"; font.pixelSize: 11 }
+                Text { text: "✨ OmniEngine Active"; color: "#0078d4"; font.pixelSize: 11 }
             }
         }
     }

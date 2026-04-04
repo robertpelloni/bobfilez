@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 376e2e59 | **Branch:** main | **Version:** 6.0.17
+**Generated:** 2026-04-04 | **Commit:** ec09edda | **Branch:** main | **Version:** 6.0.18
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -97,6 +97,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **QtQuick.Controls Explorer Reduction**: Removed `QtQuick.Controls` usage from `ExplorerWindow.qml`, replacing labels, buttons, delegates, and the stock scroll bar with lighter `QtQuick` primitives and reducing the global controls-import footprint from 43 QML files to 42.
 - ✅ **QtQuick.Controls Second Reduction**: Removed `QtQuick.Controls` usage from `DesktopIcons.qml`, `NexusPulse.qml`, and `WindowManager.qml`, reducing the global controls-import footprint further from 46 QML files to 43.
 - ✅ **QtQuick.Controls Initial Reduction**: Removed `QtQuick.Controls` usage from `Taskbar.qml` and `StartMenu.qml`, replacing trivial stock controls with lighter `QtQuick` primitives and reducing the global controls-import footprint from 48 QML files to 46.
 - ✅ **BobUI Registration Alignment**: Corrected the stale `OmniUI/core` path to the real `OmniUI/omnicore` layout, wired BobUI omnicore sources/includes into the GUI targets, and added a real `OmniUI::registerQmlTypes()` call in the native shell bootstrap.
@@ -184,6 +185,25 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 33)
+**Author:** GPT
+
+**Scope:** v6.0.18 QtQuick.Controls Explorer Reduction
+
+**Delivered:**
+- ✅ Removed `QtQuick.Controls` usage from `gui/omni/assets/ExplorerWindow.qml`.
+- ✅ Replaced labels, toolbar buttons, command-bar action button, sidebar/file-list delegates, and stock scroll bar usage with lighter `QtQuick` primitives.
+- ✅ Re-measured the global controls footprint and confirmed the import count dropped from 43 QML files to 42.
+- ✅ Added `docs/ai/implementation/QTQUICK_CONTROLS_EXPLORER_REDUCTION.md` documenting the conversion, tradeoffs, and why ExplorerWindow was the next safe escalation target.
+- ✅ Re-ran headless build + full tests so the versioned state remains validated.
+
+**Next Steps:**
+1. Continue with shell-adjacent surfaces before richer control-heavy panels.
+2. Keep measuring import-count reduction after each pass.
+3. Avoid touching heavy control sets until the simple surface wins are mostly exhausted.
 
 ---
 

@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.18] - 2026-04-04
+
+### Reduced — The "QtQuick.Controls Explorer Reduction" Release
+
+#### 🪟 Explorer Window Conversion
+- Updated **`gui/omni/assets/ExplorerWindow.qml`** to remove `QtQuick.Controls` usage entirely.
+- Replaced stock controls with lighter `QtQuick` patterns, including:
+  - `Label` → `Text`
+  - toolbar `Button`s → `Rectangle` + `Text` + `MouseArea` + `HoverHandler`
+  - command-bar action button → custom rectangle button shell
+  - `ItemDelegate` → rectangle/list-row shells
+  - removed the stock `ScrollBar` attachment
+
+#### 📊 Surface Measurement
+- Re-ran the global `QtQuick.Controls` import audit.
+- Result:
+  - reduced from **43 QML files** importing `QtQuick.Controls`
+  - to **42 QML files**
+- The shell-adjacent no-Controls set now includes:
+  - `Taskbar.qml`
+  - `StartMenu.qml`
+  - `DesktopIcons.qml`
+  - `NexusPulse.qml`
+  - `WindowManager.qml`
+  - `ExplorerWindow.qml`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/QTQUICK_CONTROLS_EXPLORER_REDUCTION.md`** documenting the replacement set, tradeoffs, and why this was the next safe escalation after the earlier shell control cleanups.
+
+### Version
+- Bumped to **6.0.18**.
+
 ## [6.0.17] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Second Reduction" Release
