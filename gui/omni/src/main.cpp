@@ -1,24 +1,32 @@
-#include <QApplication>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "OmniApp.h"
+#include <QUrl>
+
 #include "FileModel.h"
 #include "TreemapModel.h"
 
 int main(int argc, char *argv[])
 {
-    OmniApplication app(argc, argv);
-    app.initializeJuce();
+    QGuiApplication app(argc, argv);
 
     qmlRegisterType<FileModel>("Omni.File", 1, 0, "FileModel");
-    qmlRegisterType<TreemapModel>("Omni.Viz", 1, 0, "TreemapModel");
+    qmlRegisterType<fo::gui::TreemapModel>("Omni.Viz", 1, 0, "TreemapModel");
 
-    FileModel fileModel;
-    
-    // Inject the model into the QML context
-    // In a real OmniUI app, this might be handled by OmniApp
-    
-    app.loadMainSource("assets/main.qml");
+    QQmlApplicationEngine engine;
+    const QUrl main_qml(QStringLiteral("qrc:/main.qml"));
 
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
+        &app,
+        [main_qml](QObject* object, const QUrl& object_url) {
+            if (!object && object_url == main_qml) {
+                QCoreApplication::exit(-1);
+            }
+        },
+        Qt::QueuedConnection);
+
+    engine.load(main_qml);
     return app.exec();
 }

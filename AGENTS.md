@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-03 | **Commit:** 808f4537 | **Branch:** main | **Version:** 6.0.0
+**Generated:** 2026-04-03 | **Commit:** 4855e245 | **Branch:** main | **Version:** 6.0.1
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -92,8 +92,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.0)
+## Current Status (v6.0.1)
 
+- ✅ **OmniShell Bootstrap Stabilization**: Fixed the standalone OmniUI target to compile `TreemapModel.cpp`, register `fo::gui::TreemapModel` correctly, and boot from `qrc:/main.qml` using a lean Qt-native startup path.
 - ✅ **Grand Architecture**: Added `ARCHITECTURE.md` to document the unified OmniShell / Omni-tool architecture, subsystem taxonomy, product-parity goals, and current codebase metrics.
 - ✅ **OmniShare Secure File Drops**: Built-in HTTPS-style share-link workflow with expiring links, revocation, and self-hosted transfer concepts.
 - ✅ **OmniTerminal AI Shell**: Embedded terminal surface with AI command suggestions and shell-session orchestration concepts.
@@ -154,7 +155,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **Batch Rename**: 15-rule chain engine with Character Map and Scripting support.
 - ✅ **Search Engine**: Everything+grepWin+AgentRansack parity with index-accelerated search.
 
-**Next Steps**: Build verification, OmniShell panel wiring validation, submodule hygiene cleanup, semantic/backend implementation pass, and documentation/version reconciliation across release artifacts.
+**Next Steps**: Finish full build verification after dependency compilation completes, prune long-path generated test artifacts, keep shell launch surfaces aligned with `activePanel` routes, and convert scaffold-heavy Omni systems into production backends.
 
 ## Handoff Protocol
 

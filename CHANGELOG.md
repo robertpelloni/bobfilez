@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.1] - 2026-04-03
+
+### Fixed — The "OmniShell Bootstrap Stabilization" Release
+
+#### 🛠️ OmniUI / OmniShell Stabilization
+- Fixed **`gui/omni/CMakeLists.txt`** to compile **`src/TreemapModel.cpp`**, which is required by `TopologyPanel.qml` and was previously missing from the target source list.
+- Added a local include path for `gui/omni/src` so shell bridge headers are resolved consistently during compilation.
+- Replaced the BobUI-specific OmniApp bootstrap in **`gui/omni/src/main.cpp`** with a leaner Qt-native startup path using `QGuiApplication` + `QQmlApplicationEngine`.
+- Corrected QML type registration to explicitly register **`fo::gui::TreemapModel`** under `Omni.Viz 1.0`, matching the namespace used by `TopologyPanel.qml`.
+- Switched shell startup to load **`qrc:/main.qml`**, aligning runtime boot with the packaged QML resource file instead of a filesystem-relative path.
+
+#### 🧭 OmniShell Surface Wiring
+- Expanded **`StartMenu.qml`** pinned apps to expose the newer shell capabilities directly:
+  - `Search`
+  - `OmniTerminal`
+  - `OmniShare`
+  - `OmniCluster`
+  - `Topology`
+  - `Vault`
+- This reduces routing drift between the shell's `activePanel` host and the visible launch surface.
+
+#### 🔍 Verification Findings
+- Attempted a fresh CMake configure/build path for the repo. Configuration progressed into dependency resolution but **timed out while vcpkg was building FFmpeg**, so full compile validation remains pending.
+- Reconfirmed repo-hygiene issues already captured in docs:
+  - filename-too-long warnings under nested `tests/test_cmake_build/.../pybind11/...`
+  - unrelated dirty submodules/worktrees remained intentionally untouched
+
+### Version
+- Bumped to **6.0.1**.
+
 ## [6.0.0] - 2026-04-03
 
 ### Added — The "Grand Architecture & Unification" Release
