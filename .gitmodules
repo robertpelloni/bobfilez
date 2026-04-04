@@ -502,3 +502,6 @@
 [submodule "libs/highlightjs"]
 	path = libs/highlightjs
 	url = https://github.com/highlightjs/highlight.js
+[submodule "libs/bobgui"]
+	path = libs/bobgui
+	url = https://github.com/robertpelloni/bobgui

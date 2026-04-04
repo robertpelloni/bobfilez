@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.0.8] - 2026-04-04
+
+### Added — The "BOBGUI Evaluation" Release
+
+#### 📦 New Submodule
+- Added **`libs/bobgui`** as a new git submodule:
+  - `https://github.com/robertpelloni/bobgui`
+
+#### 🔎 Comparative Analysis
+- Added **`docs/ai/implementation/BOBGUI_VS_BOBUI.md`**.
+- Compared `bobgui` and `bobui` across:
+  - architecture lineage
+  - language/runtime model
+  - build system
+  - platform/toolkit assumptions
+  - practical fit for bobfilez
+- Conclusion:
+  - **`bobui` is the better library for bobfilez** because it aligns with the existing Qt/QML/Omni shell direction and avoids a frontend rewrite.
+  - `bobgui` appears stronger as a standalone GTK-style toolkit foundation, but is a poor strategic fit for the current bobfilez UI architecture.
+
+### Version
+- Bumped to **6.0.8**.
+
 ## [6.0.7] - 2026-04-04
 
 ### Changed — The "BobUI Update & Port Cleanup" Release

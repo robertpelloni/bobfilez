@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 92a794af | **Branch:** main | **Version:** 6.0.7
+**Generated:** 2026-04-04 | **Commit:** d2dc81e7 | **Branch:** main | **Version:** 6.0.8
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -96,6 +96,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 
 ## Current Status (v6.0.6)
 
+- ✅ **BOBGUI Comparison Added**: Added `libs/bobgui` as a submodule and documented the architectural comparison in `docs/ai/implementation/BOBGUI_VS_BOBUI.md`; conclusion: BobUI remains the correct primary native UI foundation for bobfilez.
 - ✅ **BobUI Submodule Updated**: Advanced `libs/bobui` to `581de545a4` from upstream `origin/main`.
 - ✅ **BobUI-First GUI Provider Wiring**: Added `cmake/BobUIQtSetup.cmake` and updated the root build so GUI / Omni targets prefer the local BobUI fork (`libs/bobui` / `BOBUI_ROOT`) as the Qt6 package provider instead of assuming a separately installed stock Qt.
 - ✅ **BobUI Probe Script & Findings**: Added `scripts/build_bobui_gui.bat` and confirmed that a raw `libs/bobui` checkout is detected but still fails GUI configure until BobUI exports a built Qt6 package layout (`Qt6Config.cmake`).
@@ -173,6 +174,24 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 23)
+**Author:** GPT
+
+**Scope:** v6.0.8 BOBGUI Evaluation vs BobUI
+
+**Delivered:**
+- ✅ Added `libs/bobgui` as a new submodule pointing to `https://github.com/robertpelloni/bobgui`.
+- ✅ Inspected `bobgui` and `bobui` side-by-side for architecture, build system, language model, and practical fit.
+- ✅ Added `docs/ai/implementation/BOBGUI_VS_BOBUI.md` capturing the comparison and recommendation.
+- ✅ Confirmed that for bobfilez specifically, **BobUI is the better library** because it aligns with the existing Qt/QML/Omni direction and avoids a frontend rewrite.
+
+**Next Steps:**
+1. Keep `bobgui` as a reference/alternative toolkit only.
+2. Continue pursuing BobUI as the native shell/UI foundation.
+3. Build/install BobUI so bobfilez can finally resolve `Qt6Config.cmake` from a BobUI-built prefix.
 
 ---
 
