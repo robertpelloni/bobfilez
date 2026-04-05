@@ -1,5 +1,38 @@
 # Changelog
 
+## [6.0.38] - 2026-04-05
+
+### Validated — The "BTK Upstream Refresh" Release
+
+#### 🔄 BTK Updated to Latest Upstream Master and Rebased Cleanly
+- Refreshed `libs/btk` to the newer upstream `origin/master` tip:
+  - `18e3770af` — `build: validate BTK focus reason package smoke`
+- Rebased bobfilez's two required MSVC fixes on top of that newer BTK tip:
+  - `0546ebd70` — `fix: restore msvc build for focus and input routing`
+  - `4f5a809e4` — `fix: restore qapplication property lookups for msvc`
+- Updated the reproducible pushed BTK branch carrying those rebased fixes:
+  - `origin/pi/msvc-focus-fixes-20260405`
+
+#### ✅ BTK Build Result Still Good
+- Re-ran `scripts/build_btk_inplace.bat` after the upstream refresh and rebase.
+- Confirmed BTK still configures and builds successfully on this host with the rebased MSVC fixes applied.
+
+#### 🔍 Downstream bobfilez Boundary Unchanged
+- Re-ran `scripts/build_btk_gui.bat` against the refreshed BTK state.
+- bobfilez still stops at the same honest compatibility boundary:
+  - missing BTK/CopperSpice component `Declarative`
+- This confirms the strategic conclusion did not depend on an older BTK snapshot; the same blocker persists on the newer upstream master.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_UPSTREAM_REFRESH_2026_04_05.md`** documenting:
+  - the newer upstream BTK tip
+  - the rebased local MSVC fixes
+  - the successful BTK rebuild
+  - the unchanged downstream `Declarative` boundary
+
+### Version
+- Bumped to **6.0.38**.
+
 ## [6.0.37] - 2026-04-05
 
 ### Refactored — The "Native UI Launch Profiles and Runtime Bundles" Release
