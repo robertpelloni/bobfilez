@@ -1,5 +1,40 @@
 # Changelog
 
+## [6.0.28] - 2026-04-04
+
+### Validated — The "BTK Native Provider Probe" Release
+
+#### 🧪 Real BTK Consumer Validation
+- Registered **`libs/btk`** as a real tracked submodule in the superproject.
+- Ran the new BTK-native validation scripts:
+  - `scripts/build_btk_inplace.bat`
+  - `scripts/build_btk_gui.bat`
+
+#### 🔍 BTK In-Place Build Findings
+- BTK **configures successfully** on this host.
+- The current BTK build then fails in BTK's own source during compilation, centered on:
+  - `src/core/kernel/btkinputowner.h`
+  - `src/core/kernel/btkinputowner.cpp`
+- The error shape points to MSVC-side parsing / macro fallout around `Capabilities` / `Q_DECLARE_FLAGS` in `BtkInputOwner`.
+
+#### 🧩 BTK Build-Tree Export Findings
+- Fixed the initial BTK provider hint ordering in **`cmake/BTKFrameworkSetup.cmake`** so bobfilez prefers the generated `libs/btk/build-btk` package config over the raw source-tree template.
+- After that fix, the BTK-backed bobfilez GUI probe advanced to a more meaningful failure:
+  - `find_package(BTK CONFIG)` locates `libs/btk/build-btk/BTKConfig.cmake`
+  - but that config currently references missing companion files such as:
+    - `CopperSpiceLibraryTargets.cmake`
+    - `CopperSpiceBinaryTargets.cmake`
+    - `BTKMacros.cmake`
+    - `BTKDeploy.cmake`
+- Result:
+  - the active blocker is now in **BTK build/export readiness**, not in the older BobUI wiring path
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE.md`** documenting the repaired submodule registration, the BTK in-place build result, the BTK build-tree export failure, and the new next-step boundary.
+
+### Version
+- Bumped to **6.0.28**.
+
 ## [6.0.27] - 2026-04-04
 
 ### Migrated — The "BTK Native Framework Switch" Release

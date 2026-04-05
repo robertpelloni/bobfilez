@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** 6893c179 | **Branch:** main | **Version:** 6.0.27
+**Generated:** 2026-04-04 | **Commit:** fb277a1a | **Branch:** main | **Version:** 6.0.28
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.27)
+## Current Status (v6.0.28)
 
+- ✅ **BTK Native Provider Probe**: Registered `libs/btk` as a real tracked submodule, confirmed BTK configures in place on this host, fixed the initial BTK package-hint ordering bug in `cmake/BTKFrameworkSetup.cmake`, and demonstrated that the current blocker is now BTK build/export readiness rather than legacy BobUI wiring.
 - ✅ **BTK Native Framework Switch**: Replaced the active BobUI/Qt-fork integration path with a BTK-oriented provider model, added `cmake/BTKFrameworkSetup.cmake`, renamed the native GUI scripts to `build_btk_*.bat`, removed the BobUI-specific `OmniQmlRegistration` bootstrap dependency, and replaced active BobUI QML imports in the photo panels.
 - ✅ **QtQuick.Controls Gamification Reduction**: Removed `QtQuick.Controls` usage from `GamificationPanel.qml`, replacing labels, the `ProgressBar`, the `GroupBox` section, and the stock `ToolTip` behavior with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 35 QML files to 34.
 - ✅ **Fifth Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer migration rule now extends beyond simple dashboard cards into a lightweight hover-detail surface, still without reintroducing stock Controls.
@@ -199,6 +200,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 43)
+**Author:** GPT
+
+**Scope:** v6.0.28 BTK Native Provider Probe
+
+**Delivered:**
+- ✅ Registered `libs/btk` as a real tracked submodule in the superproject.
+- ✅ Ran `scripts/build_btk_inplace.bat` and confirmed BTK configures successfully on this machine before failing during its own compile in `btkinputowner.*`.
+- ✅ Fixed the initial BTK provider-hint ordering bug in `cmake/BTKFrameworkSetup.cmake` so bobfilez prefers the generated `libs/btk/build-btk` package config over the raw source-tree template.
+- ✅ Ran `scripts/build_btk_gui.bat` and confirmed the next blocker is now BTK build/export readiness: generated `BTKConfig.cmake` references missing companion export files for downstream consumption.
+- ✅ Added `docs/ai/implementation/BTK_PROVIDER_PROBE.md` documenting the BTK in-place build result and the downstream package-export failure.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Fix BTK's own `btkinputowner.*` MSVC build failure or produce a valid BTK install/export prefix.
+2. Re-probe bobfilez GUI / Omni against that finished BTK package surface.
+3. Continue historical BobUI-reference cleanup later, but keep the active build/debug path focused on BTK readiness first.
 
 ---
 

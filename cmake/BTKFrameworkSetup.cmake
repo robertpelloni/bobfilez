@@ -30,13 +30,13 @@ function(fo_configure_btk_framework)
     set(_btk_prefix_hints)
     foreach(_btk_root IN LISTS _btk_roots)
         list(APPEND _btk_prefix_hints
-            "${_btk_root}"
+            "${_btk_root}/build-btk"
+            "${_btk_root}/build-btk/install"
             "${_btk_root}/build"
             "${_btk_root}/build/install"
             "${_btk_root}/out"
             "${_btk_root}/out/install"
             "${_btk_root}/install"
-            "${_btk_root}/cmake"
             "${_btk_root}/lib/cmake"
             "${_btk_root}/lib/cmake/BTK"
             "${_btk_root}/lib/cmake/CopperSpice"
