@@ -1,20 +1,14 @@
-
 if (NOT FO_BUILD_GUI)
     return()
 endif()
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Qml Quick REQUIRED)
+find_package(BTK REQUIRED CONFIG)
 
-message(STATUS "fo_gui will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
+fo_resolve_btk_target(Core BTK_CORE_TARGET)
+fo_resolve_btk_target(Gui BTK_GUI_TARGET)
+fo_resolve_btk_target(Declarative BTK_DECLARATIVE_TARGET)
 
-# BobUI OmniCore sources (current repository layout)
-set(OMNI_CORE_DIR ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/omnicore)
-file(GLOB_RECURSE OMNI_CORE_SOURCES CONFIGURE_DEPENDS
-    ${OMNI_CORE_DIR}/src/*.cpp
-)
-list(APPEND OMNI_CORE_SOURCES
-    ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/juce/juce_mock.cpp
-)
+message(STATUS "fo_gui will use BTK-provided native framework packages when available via CMAKE_PREFIX_PATH / BTK_ROOT")
 
 set(GUI_SOURCES
     omni/src/main.cpp
@@ -22,7 +16,6 @@ set(GUI_SOURCES
     omni/src/FileModel.h
     omni/src/NativeMarkdownView.cpp
     omni/src/NativeMarkdownView.h
-    ${OMNI_CORE_SOURCES}
 )
 
 set(QML_ASSETS
@@ -39,21 +32,12 @@ add_executable(fo_gui
 )
 
 target_include_directories(fo_gui PRIVATE 
-    omni/src 
-    ${OMNI_CORE_DIR}/include
-    ${OMNI_CORE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/juce
-    ${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/imgui
+    omni/src
 )
 
 target_link_libraries(fo_gui PRIVATE 
-    Qt6::Core 
-    Qt6::Gui 
-    Qt6::Widgets 
-    Qt6::Qml 
-    Qt6::Quick 
+    ${BTK_CORE_TARGET}
+    ${BTK_GUI_TARGET}
+    ${BTK_DECLARATIVE_TARGET}
     fo_core
 )
-
-# Standard Qt resource handling could go here
-# qt_add_resources(fo_gui assets.qrc)

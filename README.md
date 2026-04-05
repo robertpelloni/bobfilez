@@ -81,19 +81,19 @@ cmake --build build
 
 See [`README_CLI.md`](README_CLI.md) for detailed CLI usage.
 
-### GUI (BobUI / OmniUI)
+### GUI (BTK Native Framework)
 
-The preferred native UI stack is **BobUI** (`github.com/robertpelloni/bobui`), Robert Pelloni's Qt fork, exposed in this repo at `libs/bobui`.
+The preferred native UI stack is now **BTK** (`github.com/robertpelloni/btk`), exposed in this repo through the `libs/btk` integration path.
 
-For CMake-based GUI builds, bobfilez now prefers BobUI as the **Qt6 package provider** for `fo_gui` / `fo_omni`.
+For CMake-based GUI builds, bobfilez now prefers BTK as the native framework provider for `fo_gui` / `fo_omni`.
 
 Practical notes:
-- the CMake targets still use standard `Qt6::Core`, `Qt6::Gui`, etc.
-- but the expected provider is **BobUI-built Qt6**, not a separately installed stock Qt
-- you can point discovery explicitly with `BOBUI_ROOT` if needed
-- the easiest native probe/build path is `scripts\build_bobui_gui.bat`
+- BTK is **not** a Qt6 drop-in BobUI-style provider; it exposes BTK / CopperSpice packages instead
+- bobfilez's native build scripts now look for `BTK_ROOT`
+- the easiest native probe/build path is `scripts\build_btk_gui.bat`
+- BobUI-specific `OmniUI/omnicore` assumptions have been removed from the active GUI bootstrap path
 
-Legacy Visual Studio / `.sln` artifacts still exist, but the product direction is BobUI / OmniUI rather than a generic stock-Qt frontend.
+Legacy Visual Studio / `.sln` artifacts still exist, but the product direction is now BTK-backed native UI rather than the earlier BobUI / Qt-fork path.
 
 ---
 
@@ -162,7 +162,7 @@ filez uses a **plugin architecture** where:
 - **CMake** 3.16+
 - **C++20 compiler** (MSVC 2019+, GCC 10+, Clang 12+)
 - **vcpkg** (optional, for Exiv2/BLAKE3/Tesseract and other native deps)
-- **BobUI** for native GUI / Omni builds (`libs/bobui`, or a BobUI-built Qt6 install exposed via `BOBUI_ROOT`)
+- **BTK** for native GUI / Omni builds (`libs/btk`, or a BTK build/install exposed via `BTK_ROOT`)
 
 ### Linux / macOS
 
@@ -193,9 +193,9 @@ cd vcpkg; .\bootstrap-vcpkg.bat; .\vcpkg integrate install
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 
-# Preferred native GUI / Omni build (using BobUI as the Qt6 provider)
-$env:BOBUI_ROOT="C:\path\to\bobui-or-bobui-install"
-scripts\build_bobui_gui.bat build-bobui
+# Preferred native GUI / Omni build (using BTK as the native framework provider)
+$env:BTK_ROOT="C:\path\to\btk-or-btk-install"
+scripts\build_btk_gui.bat build-btk
 
 # Or manual configure/build
 cmake -S . -B build-gui -G "Visual Studio 17 2022" -A x64 -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON

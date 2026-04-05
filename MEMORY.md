@@ -1,8 +1,8 @@
 # Memory: Observations & Design Preferences
 
 ## Observations (2026-04-01)
-- **Transition back to Native (BobUI)**: We are moving the primary GUI back to a custom-forked Qt library (`libs/bobui`). This allows for tighter integration with the C++ engine (`fo_core`), lower memory overhead, and true native performance.
-- **Node.js BobUI as `bobui_web`**: The existing Node.js-based GUI is now `bobui_web`. It remains a valuable asset for cross-platform, remote management of the deduplication engine.
+- **Transition to BTK Native Framework**: The native GUI direction is now being retargeted to `libs/btk` / `BTK_ROOT` rather than the older BobUI/Qt-fork path.
+- **Node.js Web Dashboard**: The existing Node.js-based GUI remains `bobui_web`. It is still a valuable asset for cross-platform, remote management of the deduplication engine.
 - **Submodule Scale**: The project has reached a massive scale (130+ submodules). Managing these with a dashboard (`SUBMODULES.md`) is essential for the health of the project.
 - **Plugin Architecture Success**: The engine remains robust and modular despite the constant addition of new providers and UI layers.
 

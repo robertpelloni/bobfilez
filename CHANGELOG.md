@@ -1,5 +1,47 @@
 # Changelog
 
+## [6.0.27] - 2026-04-04
+
+### Migrated — The "BTK Native Framework Switch" Release
+
+#### 🔁 Native Framework Direction Changed
+- Replaced the active BobUI/Qt-fork native-framework direction with **BTK** (`https://github.com/robertpelloni/btk`).
+- Updated the primary native-provider terminology, docs, and build scripts to refer to:
+  - `libs/btk`
+  - `BTK_ROOT`
+  - BTK-backed native GUI / Omni builds
+
+#### 🧩 Build-System Retargeting
+- Replaced **`cmake/BobUIQtSetup.cmake`** with **`cmake/BTKFrameworkSetup.cmake`**.
+- Updated root and GUI CMake wiring to:
+  - prefer BTK discovery via `BTK_ROOT` / `FO_BTK_ROOT`
+  - stop assuming a BobUI/Qt6 provider model
+  - resolve BTK / CopperSpice imported targets instead of `Qt6::*`
+- Updated GUI helper scripts:
+  - `scripts/build_bobui_gui.bat` → `scripts/build_btk_gui.bat`
+  - `scripts/build_bobui_inplace.bat` → `scripts/build_btk_inplace.bat`
+
+#### 🚫 BobUI-Specific Bootstrap Assumptions Removed
+- Updated **`gui/omni/src/main.cpp`** to remove the BobUI-specific bootstrap dependency:
+  - removed `#include "OmniQmlRegistration.h"`
+  - removed `OmniUI::registerQmlTypes()`
+- Updated GUI CMake targets to remove the BobUI-specific `OmniUI/omnicore` source-tree dependency.
+
+#### 🖼️ BobUI QML Imports Replaced in Active Panels
+- Updated **`gui/panels/PhotoDevelopPanel.qml`** and **`gui/panels/PhotoLibraryPanel.qml`**.
+- Removed BobUI-specific imports:
+  - `import OmniUI 1.0`
+  - `import OmniLayout 1.0`
+  - `import OmniData 1.0`
+- Replaced their BobUI widget usage with local Qt Quick / Qt Quick Controls primitives so those panels no longer depend on BobUI namespaces.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_SWITCH.md`** documenting the architectural difference between BobUI and BTK, the retargeted provider model, and the remaining compatibility work.
+- Updated key project docs and agent instructions to describe BTK as the current native-framework direction.
+
+### Version
+- Bumped to **6.0.27**.
+
 ## [6.0.26] - 2026-04-04
 
 ### Reduced — The "QtQuick.Controls Gamification Reduction" Release

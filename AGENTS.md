@@ -1,12 +1,12 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** a2f8ce68 | **Branch:** main | **Version:** 6.0.26
+**Generated:** 2026-04-04 | **Commit:** 6893c179 | **Branch:** main | **Version:** 6.0.27
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
 ## Overview
 
-**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), native custom Qt fork (`bobui`), 130+ library submodules. Part of the bob software ecosystem.
+**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), BTK-native UI direction, 130+ library submodules. Part of the bob software ecosystem.
 
 ## Structure
 
@@ -14,9 +14,8 @@
 bobfilez/
 ├── core/           # fo_core static library (interfaces, providers, engine, DB)
 ├── cli/            # fo_cli executable (15+ commands)
-├── gui/            # fo_gui BobUI-backed Qt6 application
-├── bobui/          # Custom Qt fork for premium UI (main library)
-├── bobui_web/      # Web-based dashboard (formerly bobui)
+├── gui/            # fo_gui / fo_omni native UI targets (BTK retarget in progress)
+├── bobui_web/      # Web-based dashboard (legacy name retained)
 ├── tests/          # GTest unit/integration tests (63 tests)
 ├── benchmarks/     # Google Benchmark harness
 ├── libs/           # 130+ git submodules (DO NOT modify directly)
@@ -31,8 +30,8 @@ bobfilez/
 ```powershell
 build.bat                                    # Quick build (Windows)
 scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omni off)
-scripts\build_bobui_inplace.bat             # Configure/build BobUI itself under libs/bobui/build-bobui
-scripts\build_bobui_gui.bat                 # BobUI-backed GUI/Omni probe/build entrypoint
+scripts\build_btk_inplace.bat               # Configure/build BTK itself under libs/btk/build-btk
+scripts\build_btk_gui.bat                   # BTK-backed GUI/Omni probe/build entrypoint
 cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
 .\build-msvc\tests\fo_tests.exe            # Headless test suite
 .\build-msvc\tests\fo_tests.exe --gtest_filter=*Name*  # Single headless test
@@ -95,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.26)
+## Current Status (v6.0.27)
 
+- ✅ **BTK Native Framework Switch**: Replaced the active BobUI/Qt-fork integration path with a BTK-oriented provider model, added `cmake/BTKFrameworkSetup.cmake`, renamed the native GUI scripts to `build_btk_*.bat`, removed the BobUI-specific `OmniQmlRegistration` bootstrap dependency, and replaced active BobUI QML imports in the photo panels.
 - ✅ **QtQuick.Controls Gamification Reduction**: Removed `QtQuick.Controls` usage from `GamificationPanel.qml`, replacing labels, the `ProgressBar`, the `GroupBox` section, and the stock `ToolTip` behavior with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 35 QML files to 34.
 - ✅ **Fifth Routed-Panel Controls-Free Milestone**: Confirmed the panel-layer migration rule now extends beyond simple dashboard cards into a lightweight hover-detail surface, still without reintroducing stock Controls.
 - ✅ **QtQuick.Controls Forensic Reduction**: Removed `QtQuick.Controls` usage from `ForensicPanel.qml`, replacing labels, buttons, the `GroupBox` section, and the stock `ScrollBar` attachment with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 36 QML files to 35.
@@ -199,6 +199,27 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 42)
+**Author:** GPT
+
+**Scope:** v6.0.27 BTK Native Framework Switch
+
+**Delivered:**
+- ✅ Replaced the active BobUI/Qt-fork provider wiring with a BTK-oriented integration path.
+- ✅ Added `cmake/BTKFrameworkSetup.cmake` and switched root/native build discovery to `BTK_ROOT` / `FO_BTK_ROOT`.
+- ✅ Renamed the native helper scripts to `scripts/build_btk_gui.bat` and `scripts/build_btk_inplace.bat`.
+- ✅ Removed the BobUI-specific `OmniQmlRegistration` bootstrap dependency from `gui/omni/src/main.cpp` and removed BobUI `omnicore` source-tree inclusion from active GUI CMake files.
+- ✅ Replaced active BobUI QML imports in `PhotoDevelopPanel.qml` and `PhotoLibraryPanel.qml` with local Qt Quick / Qt Quick Controls primitives.
+- ✅ Added `docs/ai/implementation/BTK_PROVIDER_SWITCH.md` documenting the provider-model change and the architectural difference between BobUI and BTK.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Populate and validate a real `libs/btk` checkout with a longer clone/build window.
+2. Re-probe `FO_BUILD_GUI=ON` / `FO_BUILD_OMNI=ON` against an actual BTK build/install prefix.
+3. Continue removing remaining BobUI-specific references from active docs and integration notes where they still describe the current path rather than historical work.
 
 ---
 

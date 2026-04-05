@@ -11,7 +11,7 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 - ✅ **CLI**: Feature-complete `fo_cli` with 16+ commands.
 - ✅ **GUI**: Qt6-based `fo_gui` decoupled from core logic.
 - ✅ **BobUI (Web)**: Premium dark glassmorphism web interface (`bobui_web`).
-- ✅ **BobUI (Qt Fork)**: Integrated custom Qt fork `libs/bobui` for native premium UI.
+- ✅ **BTK Native Framework Direction**: Retargeted the native premium UI path toward `libs/btk` / `BTK_ROOT`.
 - ✅ **Refactoring**: Resolved CLI duplicate code issues and optimized structure.
 - ✅ **Providers**:
     - Scanners: `std::filesystem`, `Win32`, `dirent`, AWS S3, Google Drive, Azure Blob Storage.
@@ -144,12 +144,12 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ## Phase 8: Refinement & Integration (In Progress)
 
-**Goal**: Full integration of BobUI (Qt Fork) and advanced media analysis.
+**Goal**: Full integration of BTK and advanced media analysis.
 
 ### Tasks
-1. **BobUI Native Integration**
-   - [ ] Build and integrate `libs/bobui` into CMake.
-   - [ ] Refactor `fo_gui` with BobUI premium components.
+1. **BTK Native Integration**
+   - [ ] Build and integrate `libs/btk` into CMake.
+   - [ ] Refactor `fo_gui` / `fo_omni` around BTK-compatible native surfaces.
    - [ ] Benchmarking native UI vs web-based UI overhead.
 
 2. **Advanced Media Analysis** (Completed)

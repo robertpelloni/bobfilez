@@ -105,7 +105,7 @@ Bobfilez is a C++20/Qt6 cross-platform file management suite that has evolved fr
 
 - **Language**: C++20 (core), QML/JavaScript (UI), Java 21 (port), HTML/CSS/JS (web)
 - **Build**: CMake + Ninja + vcpkg
-- **UI Toolkit**: BobUI (OmniUI) — Custom Qt6 fork with JUCE audio and ImGui integration
+- **UI Toolkit**: BTK — BTK/CopperSpice-line native framework, with the older BobUI/OmniUI path now being retired from active integration
 - **Database**: SQLite3 (6 schema migrations, WAL mode)
 - **AI Models**: ONNX Runtime (CLIP ViT-B/32, MiniLM-L6, MobileNet-v2, Tesseract v5)
 - **Submodules**: 160+ (FFmpeg, ImageMagick, libgit2, radare2, hashcat, opencv, raylib, libsodium, etc.)
@@ -114,10 +114,10 @@ Bobfilez is a C++20/Qt6 cross-platform file management suite that has evolved fr
 
 | Version | Codename | Key Feature |
 |---------|----------|-------------|
-| 2.0-2.4 | Foundation | CLI, Dedup, Cloud, BobUI |
+| 2.0-2.4 | Foundation | CLI, Dedup, Cloud, Native UI groundwork |
 | 2.5-2.8 | Media Analysis | Video Hash, Audio FP, Conversion, Rename, Search |
 | 2.9-3.0 | Shell Transformation | OmniShell, Nexus, Zero-Copy, PII Sentinel |
-| 3.1-3.5 | Intelligence | VFS, Gamification, Cloud Mount, Photo Suite, BobUI Integration |
+| 3.1-3.5 | Intelligence | VFS, Gamification, Cloud Mount, Photo Suite, Native UI integration |
 | 3.6-3.9 | Automation | Shadow Sorter, Remote Storage, Semantic Tagging, MAM |
 | 4.0-4.2 | Distribution | Data Swarm, Window Tiling, Self-Healing, Digital Notary |
 | 4.3-4.6 | Knowledge | OmniGraph, OmniFlow, TimeMachine, OmniOracle (RAG) |

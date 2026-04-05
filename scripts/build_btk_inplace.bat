@@ -21,21 +21,21 @@ if "%VCVARS%"=="" (
     exit /b 1
 )
 
-set "BOBUI_SRC=%~dp0..\libs\bobui"
-set "BOBUI_BUILD=%BOBUI_SRC%\build-bobui"
+set "BTK_SRC=%~dp0..\libs\btk"
+set "BTK_BUILD=%BTK_SRC%\build-btk"
 
 echo [INFO] Using vcvars: %VCVARS%
 call "%VCVARS%"
 if errorlevel 1 exit /b %errorlevel%
 
-cd /d "%BOBUI_SRC%"
-if not exist "%BOBUI_BUILD%" mkdir "%BOBUI_BUILD%"
-cd /d "%BOBUI_BUILD%"
+cd /d "%BTK_SRC%"
+if not exist "%BTK_BUILD%" mkdir "%BTK_BUILD%"
+cd /d "%BTK_BUILD%"
 
-echo [INFO] Configuring BobUI in-place developer build...
-call ..\configure.bat -developer-build -nomake tests -nomake examples -cmake-generator Ninja
+echo [INFO] Configuring BTK in-place developer build...
+cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 if errorlevel 1 exit /b %errorlevel%
 
-echo [INFO] Building BobUI in-place...
+echo [INFO] Building BTK in-place...
 cmake --build . --parallel 2
 exit /b %errorlevel%

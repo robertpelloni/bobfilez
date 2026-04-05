@@ -1,11 +1,9 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import OmniUI 1.0
-import OmniData 1.0
 
 /// PhotoLibraryPanel.qml — Apple Photos / Google Photos parity library module.
-/// Powered by the revolutionary BobUI (OmniUI) toolkit.
+/// Retargeted to local Qt Quick / Controls primitives for BTK migration.
 /// Features People recognition, Memories, Map view, and Smart Albums.
 
 Rectangle {
@@ -27,9 +25,16 @@ Rectangle {
                 
                 Label { text: "PHOTOS"; color: "#666"; font.bold: true; font.pixelSize: 10 }
                 
-                component NavItem: OmniUI.Button {
-                    Layout.fillWidth: true; flat: true; alignment: Qt.AlignLeft
+                component NavItem: Button {
+                    Layout.fillWidth: true; flat: true
                     property bool active: false
+                    contentItem: Text {
+                        text: parent.text
+                        color: "white"
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 8
+                    }
                     background: Rectangle { color: parent.active ? "#0078d4" : "transparent"; radius: 6 }
                 }
 
@@ -50,7 +55,7 @@ Rectangle {
                 
                 // Import Info
                 Label { text: "8,432 Photos"; color: "#888"; font.pixelSize: 11 }
-                OmniUI.ProgressBar { value: 0.85; Layout.fillWidth: true }
+                ProgressBar { value: 0.85; Layout.fillWidth: true }
             }
         }
 
@@ -65,8 +70,8 @@ Rectangle {
                     anchors.fill: parent; anchors.margins: 20
                     Label { text: ["Library", "Memories", "People", "Places"][libraryPanel.activeView]; color: "white"; font.pixelSize: 24; font.bold: true }
                     Item { Layout.fillWidth: true }
-                    OmniUI.Button { text: "Select"; flat: true }
-                    OmniUI.Button { text: "Import"; background: Rectangle { color: "#0078d4"; radius: 6 } }
+                    Button { text: "Select"; flat: true }
+                    Button { text: "Import"; background: Rectangle { color: "#0078d4"; radius: 6 } }
                 }
             }
 

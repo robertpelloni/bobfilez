@@ -418,9 +418,9 @@
 [submodule "libs/BLAKE3"]
 	path = libs/BLAKE3
 	url = https://github.com/BLAKE3-team/BLAKE3.git
-[submodule "libs/bobui"]
-	path = libs/bobui
-	url = https://github.com/robertpelloni/bobui
+[submodule "libs/btk"]
+	path = libs/btk
+	url = https://github.com/robertpelloni/btk.git
 [submodule "libs/pandoc"]
 	path = libs/pandoc
 	url = https://github.com/jgm/pandoc

@@ -4,9 +4,9 @@
 
 ## GPT-Specific Guidelines
 
-### Current Strategic Goal: BobUI Integration
-- **BobUI (Qt Fork)**: We are integrating a custom Qt fork at `libs/bobui`. This is the new primary native UI framework.
-- **Legacy UI**: The Node.js `bobui` has been renamed to `bobui_web`.
+### Current Strategic Goal: BTK Integration
+- **BTK**: We are retargeting the native UI path to `libs/btk` / `BTK_ROOT`.
+- **Legacy UI**: The Node.js web dashboard remains `bobui_web`.
 - **Performance**: Prioritize native C++ integration with the `fo_core` engine.
 
 ### Workflow

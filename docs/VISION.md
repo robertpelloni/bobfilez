@@ -44,13 +44,13 @@ Modern users accumulate massive, chaotic file collections:
 
 1. **CLI-First Architecture**
    - The CLI (`fo_cli`) is the primary interface—scriptable, composable, fast
-   - **BobUI (Qt Fork)** is the premium, high-performance native interface, deeply integrated with the engine.
+   - **BTK** is now the premium native-interface direction for the engine-backed desktop experience.
    - Other GUIs (Web, Electron) are supported via the `bobui_web` dashboard.
    - No GUI-specific logic in the engine.
 
 2. **Ultimate File Manager & Shell Replacement**
-   - **BobUI (OmniUI)**: The primary native interface is a premium, high-fidelity clone of the modern OS experience.
-   - **Explorer Clone**: A pixel-perfect Windows 11 Explorer interface built with Qt + OmniUI + TypeScript.
+   - **BTK Native Shell Direction**: The primary native interface is a premium, high-fidelity clone of the modern OS experience.
+   - **Explorer Clone**: A pixel-perfect Windows 11 Explorer interface built with a BTK-backed native shell plus supporting UI composition layers.
    - **Shell Replacement**: Beyond a file manager, the project aims to become a full desktop shell replacement (`bob_shell`), featuring its own taskbar, start menu, and window management.
    - **Universal Data Custodian**: Integrating deduplication, organization, media management, and AI assistance into a single, cohesive user experience.
 
@@ -60,7 +60,7 @@ Modern users accumulate massive, chaotic file collections:
    - New providers can be added without modifying core code.
 
 4. **Performance & Integration**
-   - **BobUI (Qt Fork)** provides the fastest possible interface by leveraging custom Qt components optimized for massive file lists.
+   - **BTK** is the current native framework target for high-performance UI integration and long-term shell work.
    - Direct engine integration for real-time feedback and low-latency operations.
 
 
@@ -125,8 +125,8 @@ Modern users accumulate massive, chaotic file collections:
 ┌─────────────────────────────────────────────────────────────────┐
 │                        USER INTERFACES                          │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │   CLI   │  │ BobUI   │  │ BobUI   │  │Electron │            │
-│  │(fo_cli) │  │ (Qt)    │  │ (Web)   │  │ (future)│            │
+│  │   CLI   │  │  BTK    │  │ BobUI   │  │Electron │            │
+│  │(fo_cli) │  │(native) │  │ (Web)   │  │ (future)│            │
 │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘            │
 │       │            │            │            │                  │
 │       └────────────┴─────┬──────┴────────────┘                  │

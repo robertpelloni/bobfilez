@@ -1,12 +1,9 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import OmniUI 1.0
-import OmniLayout 1.0
-import OmniData 1.0
 
 /// PhotoDevelopPanel.qml — Adobe Lightroom Classic parity develop module.
-/// Powered by the revolutionary BobUI (OmniUI) toolkit.
+/// Retargeted to local Qt Quick / Controls primitives for BTK migration.
 /// Features non-destructive adjustments, histogram, and pro-grade sliders.
 
 Rectangle {
@@ -34,18 +31,27 @@ Rectangle {
                 anchors.fill: parent; anchors.margins: 10; spacing: 10
                 
                 Label { text: "PRESETS"; color: "#888"; font.bold: true; font.pixelSize: 11 }
-                OmniUI.ListView {
+                ListView {
                     Layout.fillWidth: true; Layout.fillHeight: true
                     model: ["B&W High Contrast", "Vivid Landscape", "Cinematic Teal", "Soft Portrait", "Matte Look"]
-                    // delegate implementation...
+                    delegate: Text {
+                        text: modelData
+                        color: "#ccc"
+                        font.pixelSize: 12
+                    }
                 }
 
                 Rectangle { height: 1; Layout.fillWidth: true; color: "#333" }
 
                 Label { text: "HISTORY"; color: "#888"; font.bold: true; font.pixelSize: 11 }
-                OmniUI.ListView {
+                ListView {
                     Layout.fillWidth: true; Layout.preferredHeight: 200
                     model: ["Import", "Exposure +0.50", "Highlights -20", "Shadows +15", "Clarity +10"]
+                    delegate: Text {
+                        text: modelData
+                        color: "#ccc"
+                        font.pixelSize: 12
+                    }
                 }
             }
         }
@@ -67,10 +73,10 @@ Rectangle {
             RowLayout {
                 anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottomMargin: 20; spacing: 10
-                OmniUI.Button { text: "Crop"; icon: "✂️"; flat: true }
-                OmniUI.Button { text: "Heal"; icon: "🩹"; flat: true }
-                OmniUI.Button { text: "Mask"; icon: "🎭"; flat: true }
-                OmniUI.Button { text: "Red Eye"; icon: "👁️"; flat: true }
+                Button { text: "✂️ Crop"; flat: true }
+                Button { text: "🩹 Heal"; flat: true }
+                Button { text: "🎭 Mask"; flat: true }
+                Button { text: "👁️ Red Eye"; flat: true }
             }
         }
 
@@ -102,7 +108,7 @@ Rectangle {
                             // WB
                             RowLayout {
                                 Label { text: "Temp"; color: "#888"; font.pixelSize: 11; width: 60 }
-                                OmniUI.Slider { Layout.fillWidth: true; from: 2000; to: 50000; value: developPanel.temperature }
+                                Slider { Layout.fillWidth: true; from: 2000; to: 50000; value: developPanel.temperature }
                                 Label { text: Math.round(developPanel.temperature); color: "#ccc"; width: 40 }
                             }
 
@@ -110,11 +116,11 @@ Rectangle {
                             RowLayout {
                                 spacing: 20; Layout.alignment: Qt.AlignHCenter
                                 Column {
-                                    OmniUI.Dial { id: expDial; from: -5; to: 5; value: developPanel.exposure; size: 60 }
+                                    Dial { id: expDial; from: -5; to: 5; value: developPanel.exposure; width: 60; height: 60 }
                                     Label { text: "Exposure"; color: "#888"; font.pixelSize: 10; anchors.horizontalCenter: parent.horizontalCenter }
                                 }
                                 Column {
-                                    OmniUI.Dial { id: conDial; from: -100; to: 100; value: developPanel.contrast; size: 60 }
+                                    Dial { id: conDial; from: -100; to: 100; value: developPanel.contrast; width: 60; height: 60 }
                                     Label { text: "Contrast"; color: "#888"; font.pixelSize: 10; anchors.horizontalCenter: parent.horizontalCenter }
                                 }
                             }
@@ -124,7 +130,7 @@ Rectangle {
                                 property alias label: lbl.text
                                 property alias val: sl.value
                                 Label { id: lbl; color: "#888"; font.pixelSize: 11; width: 60 }
-                                OmniUI.Slider { id: sl; Layout.fillWidth: true; from: -100; to: 100 }
+                                Slider { id: sl; Layout.fillWidth: true; from: -100; to: 100 }
                                 Label { text: Math.round(sl.value); color: "#ccc"; width: 30 }
                             }
 

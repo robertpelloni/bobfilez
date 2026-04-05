@@ -158,4 +158,4 @@ The project is organized as follows:
 | ai-file-sorter | `ai-file-sorter` | v1.6.0 | `3fec960` | 2026-04-01 | 588 | [Link](https://github.com/hyperfield/ai-file-sorter) |
 | VERT | `VERT` | - | `990f3f5` | 2026-04-01 | 746 | [Link](https://github.com/VERT-sh/VERT) |
 | libs/BLAKE3 | `libs/BLAKE3` | 1.8.4 | `175f664` | 2026-04-01 | 775 | [Link](https://github.com/BLAKE3-team/BLAKE3.git) |
-| libs/bobui | `libs/bobui` | - | `06af949231` | 2026-03-01 | 77649 | [Link](https://github.com/robertpelloni/bobui) |
+| libs/btk | `libs/btk` | - | `20314db1c5` | 2026-04-05 | - | [Link](https://github.com/robertpelloni/btk.git) |
