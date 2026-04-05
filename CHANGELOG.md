@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.37] - 2026-04-05
+
+### Refactored — The "Native UI Launch Profiles and Runtime Bundles" Release
+
+#### 🧩 Fourth Concrete Option C Extraction Step Landed in Code
+- Evolved the prior launch-config extraction into a clearer named-policy model.
+- Added:
+  - `gui/omni/src/NativeUiRuntimeBundle.hpp`
+  - `gui/omni/src/NativeUiRuntimeBundle.cpp`
+  - `gui/omni/src/NativeUiLaunchProfile.hpp`
+  - `gui/omni/src/NativeUiLaunchProfile.cpp`
+- Replaced the previous raw launch-config callback bag in the active bootstrap flow with:
+  - a **runtime bundle** (runtime factory + registration policy)
+  - a **launch profile** (shell root QML + failure policy + chosen bundle)
+- Refactored `gui/omni/src/NativeUiBootstrap.cpp` so it now reads as explicit launch-profile selection rather than ad hoc callback assembly.
+
+#### 🧹 GUI Build Wiring Updated
+- Updated:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- Replaced the active launch-config files in the GUI source lists with the new launch-profile/runtime-bundle files.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_LAUNCH_PROFILES_AND_BUNDLES.md`** documenting:
+  - the difference between runtime bundles and launch profiles
+  - the new bootstrap flow
+  - the preserved behavior
+  - the remaining limitations
+
+### Version
+- Bumped to **6.0.37**.
+
 ## [6.0.36] - 2026-04-05
 
 ### Refactored — The "Native UI Launch Config" Release

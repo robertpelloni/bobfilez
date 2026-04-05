@@ -2,7 +2,7 @@
 
 #include <QGuiApplication>
 
-#include "NativeUiLaunchConfig.hpp"
+#include "NativeUiLaunchProfile.hpp"
 
 namespace fo::gui {
 
@@ -10,23 +10,23 @@ int run_omni_shell(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    const NativeUiLaunchConfig config = create_default_omni_ui_launch_config();
-    if (!config.is_valid()) {
+    const NativeUiLaunchProfile profile = create_default_omni_launch_profile();
+    if (!profile.is_valid()) {
         return -1;
     }
 
-    config.register_types();
+    profile.runtime_bundle.register_types();
 
-    auto runtime = config.runtime_factory();
+    auto runtime = profile.runtime_bundle.runtime_factory();
     if (!runtime) {
         return -1;
     }
 
-    if (config.object_created_handler) {
-        runtime->set_object_created_handler(config.object_created_handler);
+    if (profile.object_created_handler) {
+        runtime->set_object_created_handler(profile.object_created_handler);
     }
 
-    runtime->load(config.main_qml);
+    runtime->load(profile.main_qml);
     return app.exec();
 }
 

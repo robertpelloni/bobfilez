@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.36
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.37
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.36)
+## Current Status (v6.0.37)
 
+- ✅ **Native UI Launch Profiles and Runtime Bundles**: Implemented the fourth Option C refactor by replacing the raw launch-config callback bag with clearer named policy units: `NativeUiRuntimeBundle` for runtime/registration policy and `NativeUiLaunchProfile` for shell launch policy.
 - ✅ **Native UI Launch Config**: Implemented the third Option C refactor by turning active shell launch policy into explicit configuration data (`NativeUiLaunchConfig`) so the bootstrap no longer hardcodes the main QML URL, registration bundle, runtime factory, and root-object failure policy inline.
 - ✅ **Native UI Runtime Policy Extraction**: Implemented the second Option C refactor by separating bootstrap orchestration, declarative runtime construction, and QML type-registration policy into narrower units (`NativeUiBootstrap`, `NativeUiRuntime`, and `OmniQmlRegistration`) while preserving the active runtime behavior.
 - ✅ **Native UI Bootstrap Seam**: Implemented the first real Option C refactor by extracting the active shell runtime bootstrap out of `gui/omni/src/main.cpp` and into a narrower `NativeUiBootstrap` seam, reducing direct provider coupling while preserving the current runtime behavior.

@@ -14,10 +14,12 @@ set(GUI_SOURCES
     omni/src/main.cpp
     omni/src/NativeUiBootstrap.cpp
     omni/src/NativeUiBootstrap.hpp
-    omni/src/NativeUiLaunchConfig.cpp
-    omni/src/NativeUiLaunchConfig.hpp
+    omni/src/NativeUiLaunchProfile.cpp
+    omni/src/NativeUiLaunchProfile.hpp
     omni/src/NativeUiRuntime.cpp
     omni/src/NativeUiRuntime.hpp
+    omni/src/NativeUiRuntimeBundle.cpp
+    omni/src/NativeUiRuntimeBundle.hpp
     omni/src/OmniQmlRegistration.cpp
     omni/src/OmniQmlRegistration.hpp
     omni/src/FileModel.cpp

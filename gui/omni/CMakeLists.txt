@@ -17,10 +17,12 @@ add_executable(fo_omni
     src/main.cpp
     src/NativeUiBootstrap.cpp
     src/NativeUiBootstrap.hpp
-    src/NativeUiLaunchConfig.cpp
-    src/NativeUiLaunchConfig.hpp
+    src/NativeUiLaunchProfile.cpp
+    src/NativeUiLaunchProfile.hpp
     src/NativeUiRuntime.cpp
     src/NativeUiRuntime.hpp
+    src/NativeUiRuntimeBundle.cpp
+    src/NativeUiRuntimeBundle.hpp
     src/OmniQmlRegistration.cpp
     src/OmniQmlRegistration.hpp
     src/FileModel.cpp
