@@ -14,6 +14,8 @@ set(GUI_SOURCES
     omni/src/main.cpp
     omni/src/NativeUiBootstrap.cpp
     omni/src/NativeUiBootstrap.hpp
+    omni/src/NativeUiLaunchConfig.cpp
+    omni/src/NativeUiLaunchConfig.hpp
     omni/src/NativeUiRuntime.cpp
     omni/src/NativeUiRuntime.hpp
     omni/src/OmniQmlRegistration.cpp

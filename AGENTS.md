@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.35
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.36
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.35)
+## Current Status (v6.0.36)
 
+- ✅ **Native UI Launch Config**: Implemented the third Option C refactor by turning active shell launch policy into explicit configuration data (`NativeUiLaunchConfig`) so the bootstrap no longer hardcodes the main QML URL, registration bundle, runtime factory, and root-object failure policy inline.
 - ✅ **Native UI Runtime Policy Extraction**: Implemented the second Option C refactor by separating bootstrap orchestration, declarative runtime construction, and QML type-registration policy into narrower units (`NativeUiBootstrap`, `NativeUiRuntime`, and `OmniQmlRegistration`) while preserving the active runtime behavior.
 - ✅ **Native UI Bootstrap Seam**: Implemented the first real Option C refactor by extracting the active shell runtime bootstrap out of `gui/omni/src/main.cpp` and into a narrower `NativeUiBootstrap` seam, reducing direct provider coupling while preserving the current runtime behavior.
 - ✅ **BTK Framework Decision Matrix**: Converted the BTK probe series into an explicit architecture decision. The documented least-destructive app strategy is now to keep bobfilez on its modern QQml-style shell path, reduce provider coupling, and treat BTK modernization as a separate upstream R&D effort rather than the immediate shell runtime target.

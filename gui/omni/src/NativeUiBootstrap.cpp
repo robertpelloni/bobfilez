@@ -1,37 +1,32 @@
 #include "NativeUiBootstrap.hpp"
 
-#include <QCoreApplication>
 #include <QGuiApplication>
-#include <QUrl>
 
-#include "NativeUiRuntime.hpp"
-#include "OmniQmlRegistration.hpp"
+#include "NativeUiLaunchConfig.hpp"
 
 namespace fo::gui {
-namespace {
-
-ObjectCreatedHandler create_root_object_failure_handler(const QUrl &main_qml)
-{
-    return [main_qml](QObject *object, const QUrl &object_url) {
-        if (!object && object_url == main_qml) {
-            QCoreApplication::exit(-1);
-        }
-    };
-}
-
-} // namespace
 
 int run_omni_shell(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    register_omni_qml_types();
+    const NativeUiLaunchConfig config = create_default_omni_ui_launch_config();
+    if (!config.is_valid()) {
+        return -1;
+    }
 
-    auto runtime = create_default_declarative_ui_runtime();
-    const QUrl main_qml(QStringLiteral("qrc:/main.qml"));
+    config.register_types();
 
-    runtime->set_object_created_handler(create_root_object_failure_handler(main_qml));
-    runtime->load(main_qml);
+    auto runtime = config.runtime_factory();
+    if (!runtime) {
+        return -1;
+    }
+
+    if (config.object_created_handler) {
+        runtime->set_object_created_handler(config.object_created_handler);
+    }
+
+    runtime->load(config.main_qml);
     return app.exec();
 }
 

@@ -17,6 +17,8 @@ add_executable(fo_omni
     src/main.cpp
     src/NativeUiBootstrap.cpp
     src/NativeUiBootstrap.hpp
+    src/NativeUiLaunchConfig.cpp
+    src/NativeUiLaunchConfig.hpp
     src/NativeUiRuntime.cpp
     src/NativeUiRuntime.hpp
     src/OmniQmlRegistration.cpp

@@ -1,5 +1,42 @@
 # Changelog
 
+## [6.0.36] - 2026-04-05
+
+### Refactored — The "Native UI Launch Config" Release
+
+#### 🧩 Third Concrete Option C Extraction Step Landed in Code
+- Continued reducing provider coupling by turning active shell launch policy into explicit configuration data.
+- Added:
+  - `gui/omni/src/NativeUiLaunchConfig.hpp`
+  - `gui/omni/src/NativeUiLaunchConfig.cpp`
+- Refactored `gui/omni/src/NativeUiBootstrap.cpp` so it no longer hardcodes:
+  - the main QML URL
+  - the registration bundle choice
+  - the default runtime factory choice
+  - the root-object failure policy
+- Introduced `NativeUiLaunchConfig` with explicit fields for:
+  - `main_qml`
+  - `register_types`
+  - `runtime_factory`
+  - `object_created_handler`
+- Added `create_default_omni_ui_launch_config()` so the current shell launch policy is centralized rather than being implicit bootstrap behavior.
+
+#### 🧹 GUI Build Wiring Updated
+- Updated:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- Added the new launch-config files to the GUI source lists so the extraction is represented honestly in both native GUI targets.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_LAUNCH_CONFIG.md`** documenting:
+  - the remaining implicit launch policy after earlier extractions
+  - the new configuration object
+  - the bootstrap flow after the refactor
+  - the behavior preserved and the limitations unchanged
+
+### Version
+- Bumped to **6.0.36**.
+
 ## [6.0.35] - 2026-04-05
 
 ### Refactored — The "Native UI Runtime Policy Extraction" Release
