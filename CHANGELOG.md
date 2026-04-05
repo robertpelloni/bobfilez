@@ -1,5 +1,51 @@
 # Changelog
 
+## [6.0.32] - 2026-04-05
+
+### Validated — The "BTK Native Provider Probe Round 5" Release
+
+#### 🧭 Architectural Compatibility Boundary Sharpened Further
+- Confirmed the current blocker is not just missing `Declarative` exposure and not just stale declarative internals.
+- Verified that bobfilez's active native GUI bootstrap in `gui/omni/src/main.cpp` is explicitly **QQml-style**, using:
+  - `QGuiApplication`
+  - `QQmlApplicationEngine`
+  - `QQmlContext`
+  - `qmlRegisterType(...)`
+- Verified that BTK's declarative surface is still explicitly **QDeclarative-era**, centered on classes such as:
+  - `QDeclarativeEngine`
+  - `QDeclarativeComponent`
+  - `QDeclarativeView`
+  - `QDeclarativeItem`
+- Searched the BTK tree and found no actual `QQml*` or `QQuick*` source/header surface, including no discovered:
+  - `QQmlApplicationEngine`
+  - `QQmlEngine`
+  - `QQmlContext`
+  - `QQuickItem`
+  - `QQuickView`
+  - `qqml*.h`
+  - `qquick*.h`
+- This proves the BTK compatibility gap is also a **framework-generation mismatch**: even a revived BTK declarative module would still not directly satisfy bobfilez's current `QQmlApplicationEngine`-based GUI path.
+
+#### 📊 Quantified Declarative Revival Footprint
+- A structural scan over `libs/btk/src/declarative` found:
+  - **61 files** with direct QtScript-related usage
+  - **24 files** referencing `QScriptDeclarativeClass`
+  - **23 files** still using `Q_DECLARE_METATYPE(...)`
+- Confirmed additional missing internal-script surface signs, including absent expected files such as:
+  - `qscriptdeclarativeclass_p.h`
+  - `qscriptengine.h`
+- This gives a more honest estimate of the scale involved if BTK declarative revival is pursued.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND5.md`** documenting:
+  - the `QQml*` vs `QDeclarative*` API-generation mismatch
+  - the absence of `QQml*` / `QQuick*` provider surface in BTK
+  - the quantified QtScript/metatype dependency footprint inside BTK declarative
+  - the conclusion that the next step is now a strategic framework decision, not just another build fix
+
+### Version
+- Bumped to **6.0.32**.
+
 ## [6.0.31] - 2026-04-05
 
 ### Validated — The "BTK Native Provider Probe Round 4" Release
