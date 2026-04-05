@@ -5,6 +5,12 @@ set "BOBGUI_ROOT=%~dp0..\libs\bobgui"
 set "BOBGUI_BUILD=%BOBGUI_ROOT%\_build"
 set "APP_BUILD=%~dp0..\build-bobgui-app"
 
+if exist "%~dp0build_headless.bat" (
+    echo [INFO] Building bobfilez headless targets first so the optional fo_c_api library is available for BobGUI direct-mode detection...
+    call "%~dp0build_headless.bat"
+    if errorlevel 1 exit /b %errorlevel%
+)
+
 where meson >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] meson is required to build the BobGUI frontend

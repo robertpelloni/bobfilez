@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.0.52] - 2026-04-05
+
+### Expanded — The "BobGUI Direct Wiring + C Test Surface" Release
+
+#### 🔌 BobGUI app now prefers the direct C ABI when available
+- Updated `frontends/bobgui_app/main.c` so the BobGUI lane now prefers direct `fo_c_api` integration when compiled with that seam available, while still retaining the existing `fo_cli` fallback path.
+- Kept all BobGUI operations asynchronous, so the move from CLI bridge mode to direct-C-API mode does not regress responsiveness.
+
+#### 🛠️ Meson-side direct C API discovery added
+- Updated `frontends/bobgui_app/meson.build` and added `frontends/bobgui_app/meson_options.txt`.
+- The BobGUI app now attempts to discover `fo_c_api` in common repo-relative build output locations and defines `BOBFILEZ_HAVE_C_API=1` when the direct seam is available.
+
+#### ✅ C consumer validation improved again
+- Added `tests/c_api_smoke.c` and updated `tests/CMakeLists.txt` so a real C-compiled consumer now links against `fo_c_api`.
+- Updated root `CMakeLists.txt` to call `enable_testing()`, which fixes root-level `ctest` discoverability rather than leaving tests trapped only inside the sub-build directory.
+- Validation now succeeds with `ctest --test-dir build-msvc --output-on-failure`: **69 / 69 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_DIRECT_C_API_WIRING_2026_04_05.md` documenting the two-tier BobGUI backend model and the new C consumer smoke-test strategy.
+
+### Version
+- Bumped to **6.0.52**.
+
 ## [6.0.51] - 2026-04-05
 
 ### Added — The "BobGUI Direct C API Shim" Release

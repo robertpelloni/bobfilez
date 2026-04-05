@@ -2,6 +2,10 @@
 
 #include <glib.h>
 
+#ifdef BOBFILEZ_HAVE_C_API
+#include <fo/c_api/bobfilez_c_api.h>
+#endif
+
 #include <string.h>
 
 typedef struct {
@@ -10,6 +14,7 @@ typedef struct {
     BobguiWidget *status_label;
     BobguiWidget *output_view;
     gchar *cli_path;
+    gboolean direct_c_api_available;
 } AppState;
 
 typedef struct {
@@ -28,6 +33,20 @@ typedef struct {
     AppState *state;
     const gchar *operation;
 } ButtonContext;
+
+#ifdef BOBFILEZ_HAVE_C_API
+typedef char *(*BobfilezDirectApiFn) (const char *root_path);
+#endif
+
+static gboolean
+app_has_direct_c_api (void)
+{
+#ifdef BOBFILEZ_HAVE_C_API
+    return TRUE;
+#else
+    return FALSE;
+#endif
+}
 
 static void
 free_app_state (AppState *state)
@@ -64,6 +83,20 @@ find_cli_path (void)
     }
 
     return NULL;
+}
+
+static const gchar *
+active_backend_name (const AppState *state)
+{
+    if (state->direct_c_api_available) {
+        return "fo_c_api";
+    }
+
+    if (state->cli_path != NULL) {
+        return "fo_cli";
+    }
+
+    return "unavailable";
 }
 
 static void
@@ -115,14 +148,17 @@ build_cli_argv (const gchar *cli_path,
 }
 
 static gchar *
-build_output_text (const gchar *operation,
-                   const gchar *stdout_text,
-                   const gchar *stderr_text,
-                   gint exit_status)
+build_cli_output_text (const gchar *operation,
+                       const gchar *stdout_text,
+                       const gchar *stderr_text,
+                       gint exit_status)
 {
     GString *text = g_string_new ("");
 
-    g_string_append_printf (text, "Operation: %s\nExit Status: %d\n\n", operation, exit_status);
+    g_string_append_printf (text,
+                            "Operation: %s\nBackend: fo_cli\nExit Status: %d\n\n",
+                            operation,
+                            exit_status);
 
     if (stdout_text != NULL && stdout_text[0] != '\0') {
         g_string_append (text, stdout_text);
@@ -139,42 +175,109 @@ build_output_text (const gchar *operation,
     return g_string_free (text, FALSE);
 }
 
+static gchar *
+build_direct_output_text (const gchar *operation,
+                          const gchar *json_text)
+{
+    GString *text = g_string_new ("");
+
+    g_string_append_printf (text,
+                            "Operation: %s\nBackend: fo_c_api\n\n",
+                            operation);
+
+    if (json_text != NULL && json_text[0] != '\0') {
+        g_string_append (text, json_text);
+    }
+
+    return g_string_free (text, FALSE);
+}
+
+#ifdef BOBFILEZ_HAVE_C_API
+static BobfilezDirectApiFn
+find_direct_api_function (const gchar *operation)
+{
+    if (g_strcmp0 (operation, "scan") == 0) {
+        return fo_bobfilez_scan_json;
+    }
+    if (g_strcmp0 (operation, "duplicates") == 0) {
+        return fo_bobfilez_duplicates_json;
+    }
+    if (g_strcmp0 (operation, "stats") == 0) {
+        return fo_bobfilez_stats_json;
+    }
+    if (g_strcmp0 (operation, "hash") == 0) {
+        return fo_bobfilez_hash_json;
+    }
+    if (g_strcmp0 (operation, "metadata") == 0) {
+        return fo_bobfilez_metadata_json;
+    }
+
+    return NULL;
+}
+#endif
+
 static gpointer
 run_command_thread (gpointer user_data)
 {
     CommandRequest *request = user_data;
     CommandResult *result = g_new0 (CommandResult, 1);
-    GError *error = NULL;
-    gchar *stdout_text = NULL;
-    gchar *stderr_text = NULL;
-    gint exit_status = 0;
-    GStrv argv;
 
     result->state = request->state;
 
-    argv = build_cli_argv (request->state->cli_path, request->operation, request->target_path);
+    if (request->state->direct_c_api_available) {
+#ifdef BOBFILEZ_HAVE_C_API
+        BobfilezDirectApiFn direct_api = find_direct_api_function (request->operation);
+        if (direct_api == NULL) {
+            result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
+            result->output = g_strdup ("This direct C API build does not expose the requested operation.");
+        } else {
+            char *json_text = direct_api (request->target_path);
+            if (json_text == NULL) {
+                result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
+                result->output = g_strdup (fo_bobfilez_last_error ());
+            } else {
+                result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, request->target_path);
+                result->output = build_direct_output_text (request->operation, json_text);
+                fo_bobfilez_free_string (json_text);
+            }
+        }
+#else
+        result->status = g_strdup ("Direct C API requested but not compiled in.");
+        result->output = g_strdup ("BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.");
+#endif
+    } else if (request->state->cli_path != NULL) {
+        GError *error = NULL;
+        gchar *stdout_text = NULL;
+        gchar *stderr_text = NULL;
+        gint exit_status = 0;
+        GStrv argv = build_cli_argv (request->state->cli_path, request->operation, request->target_path);
 
-    if (!g_spawn_sync (NULL,
-                       argv,
-                       NULL,
-                       G_SPAWN_DEFAULT,
-                       NULL,
-                       NULL,
-                       &stdout_text,
-                       &stderr_text,
-                       &exit_status,
-                       &error)) {
-        result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
-        result->output = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
-        g_clear_error (&error);
+        if (!g_spawn_sync (NULL,
+                           argv,
+                           NULL,
+                           G_SPAWN_DEFAULT,
+                           NULL,
+                           NULL,
+                           &stdout_text,
+                           &stderr_text,
+                           &exit_status,
+                           &error)) {
+            result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
+            result->output = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
+            g_clear_error (&error);
+        } else {
+            result->status = g_strdup_printf ("Completed %s via fo_cli for %s", request->operation, request->target_path);
+            result->output = build_cli_output_text (request->operation, stdout_text, stderr_text, exit_status);
+        }
+
+        g_strfreev (argv);
+        g_free (stdout_text);
+        g_free (stderr_text);
     } else {
-        result->status = g_strdup_printf ("Completed %s for %s", request->operation, request->target_path);
-        result->output = build_output_text (request->operation, stdout_text, stderr_text, exit_status);
+        result->status = g_strdup ("No backend available.");
+        result->output = g_strdup ("Neither fo_c_api nor fo_cli is available for this BobGUI build.");
     }
 
-    g_strfreev (argv);
-    g_free (stdout_text);
-    g_free (stderr_text);
     g_free (request->operation);
     g_free (request->target_path);
     g_free (request);
@@ -191,9 +294,9 @@ start_operation (AppState *state,
     CommandRequest *request;
     GThread *thread;
 
-    if (state->cli_path == NULL) {
-        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "fo_cli.exe was not found. Set BOBFILEZ_CLI or build the CLI first.");
-        set_output_text (state, "Expected one of: build-msvc/cli/fo_cli.exe, build/cli/fo_cli.exe, ../build-msvc/cli/fo_cli.exe, ../build/cli/fo_cli.exe");
+    if (!state->direct_c_api_available && state->cli_path == NULL) {
+        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "No BobGUI backend is available yet.");
+        set_output_text (state, "Expected either a direct fo_c_api-enabled BobGUI build or a reachable fo_cli.exe path.");
         return;
     }
 
@@ -264,7 +367,7 @@ activate (BobguiApplication *app,
     bobgui_widget_set_margin_end (root_box, 20);
 
     title = bobgui_label_new ("bobfilez BobGUI Demo");
-    subtitle = bobgui_label_new ("This BobGUI lane now drives real bobfilez CLI workflows without killing the app thread: scan, duplicates, statistics, hash, and metadata.");
+    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available and otherwise falls back to fo_cli, while keeping the UI responsive on background work.");
 
     path_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     path_entry = bobgui_entry_new ();
@@ -305,15 +408,25 @@ activate (BobguiApplication *app,
     state->path_entry = path_entry;
     state->status_label = status_label;
     state->output_view = output_view;
+    state->direct_c_api_available = app_has_direct_c_api ();
     state->cli_path = find_cli_path ();
 
-    if (state->cli_path != NULL) {
-        gchar *initial = g_strdup_printf ("CLI detected at: %s\n\nEnter a path and click an action button.", state->cli_path);
+    if (state->direct_c_api_available) {
+        gchar *initial = g_strdup_printf (
+            "Direct bobfilez backend detected: %s\n\nThis BobGUI build prefers the direct C ABI seam and keeps fo_cli as an optional fallback path if present: %s",
+            active_backend_name (state),
+            state->cli_path != NULL ? state->cli_path : "(not found)");
         set_output_text (state, initial);
         g_free (initial);
+        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
+    } else if (state->cli_path != NULL) {
+        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nEnter a path and click an action button.", state->cli_path);
+        set_output_text (state, initial);
+        g_free (initial);
+        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");
     } else {
-        set_output_text (state, "fo_cli.exe not found yet. Build the CLI or set BOBFILEZ_CLI to an explicit executable path.");
-        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Waiting for fo_cli.exe");
+        set_output_text (state, "No BobGUI backend was found yet. Build the app with fo_c_api support or provide fo_cli.exe via BOBFILEZ_CLI / standard repo-relative locations.");
+        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Waiting for backend");
     }
 
     g_signal_connect_data (scan_button,

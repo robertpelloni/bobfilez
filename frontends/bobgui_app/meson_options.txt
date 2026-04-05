@@ -1,0 +1,4 @@
+option('bobfilez_c_api',
+  type: 'feature',
+  value: 'auto',
+  description: 'Prefer direct linking against the bobfilez fo_c_api library when available')

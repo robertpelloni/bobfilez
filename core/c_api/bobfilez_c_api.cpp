@@ -3,6 +3,7 @@
 #include "fo/core/engine.hpp"
 #include "fo/core/export.hpp"
 #include "fo/core/interfaces.hpp"
+#include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
 
 #include <algorithm>
@@ -13,6 +14,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -22,6 +24,7 @@
 namespace {
 
 thread_local std::string g_last_error;
+std::once_flag g_provider_registration_once;
 
 void set_last_error(const std::string& message)
 {
@@ -295,12 +298,20 @@ std::string make_metadata_json(const std::vector<fo::core::FileInfo>& files)
     return out.str();
 }
 
+void ensure_providers_registered()
+{
+    std::call_once(g_provider_registration_once, []() {
+        fo::core::register_all_providers();
+    });
+}
+
 template <typename BuildJson>
 char* execute_json_request(const char* root_path, BuildJson&& build_json)
 {
     clear_last_error();
 
     try {
+        ensure_providers_registered();
         const auto root = parse_root_path(root_path);
         const auto files = collect_files(root);
         return duplicate_c_string(build_json(files));
@@ -332,6 +343,7 @@ extern "C" char* fo_bobfilez_duplicates_json(const char* root_path)
     clear_last_error();
 
     try {
+        ensure_providers_registered();
         const auto root = parse_root_path(root_path);
         fo::core::EngineConfig config;
         config.db_path = ":memory:";

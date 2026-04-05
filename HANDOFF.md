@@ -1,67 +1,57 @@
-# HANDOFF.md — bobfilez Session 66
+# HANDOFF.md — bobfilez Session 67
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.51
-**Focus:** Introduced a direct C ABI seam (`fo_c_api`) for future BobGUI/native-C consumers while preserving the broader multi-frontend matrix direction.
+**Version:** 6.0.52
+**Focus:** Wired the BobGUI app to prefer the direct `fo_c_api` seam when available, retained CLI fallback, and expanded validation to include a real C consumer plus root-level `ctest` discoverability.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added a direct C ABI shim for bobfilez workflows
+### 1. BobGUI app now supports both direct and fallback backends cleanly
+Updated:
+- `frontends/bobgui_app/main.c`
+
+The BobGUI lane now has an explicit two-tier backend strategy:
+1. **Preferred:** direct `fo_c_api`
+2. **Fallback:** `fo_cli`
+
+This keeps the frontend practical today while allowing it to move toward true direct native integration without losing the already-working CLI path.
+
+### 2. Added Meson-side direct C API discovery
+Updated:
+- `frontends/bobgui_app/meson.build`
+- added `frontends/bobgui_app/meson_options.txt`
+
+The BobGUI app now tries to discover `fo_c_api` from common repo-relative build output locations and defines `BOBFILEZ_HAVE_C_API=1` when direct support is available.
+
+That means the BobGUI lane can now be built in either mode without maintaining separate app sources.
+
+### 3. Added a true C consumer smoke test
 Added:
-- `core/include/fo/c_api/bobfilez_c_api.h`
-- `core/c_api/bobfilez_c_api.cpp`
-
-And updated:
-- `core/CMakeLists.txt`
-
-This introduces a new native library target:
-- `fo_c_api`
-
-The C ABI exposes JSON-returning wrappers for:
-- `fo_bobfilez_scan_json(...)`
-- `fo_bobfilez_duplicates_json(...)`
-- `fo_bobfilez_stats_json(...)`
-- `fo_bobfilez_hash_json(...)`
-- `fo_bobfilez_metadata_json(...)`
-- `fo_bobfilez_last_error()`
-- `fo_bobfilez_free_string(...)`
-
-This is the first honest direct-consumption seam for C-native frontends such as BobGUI without forcing them to embed the whole C++ API surface.
-
-### 2. The shim deliberately returns JSON, not opaque structs
-That design choice was intentional.
-
-Why:
-- it keeps the C boundary narrow
-- it aligns with the project’s already-proven CLI/web data shape strategy
-- it avoids immediately freezing a larger C struct ABI across multiple richer result types
-- it gives BobGUI/native-C consumers a very low-friction first direct integration path
-
-### 3. Added tests for the new C API seam
-Added:
-- `tests/test_c_api.cpp`
+- `tests/c_api_smoke.c`
 
 Updated:
 - `tests/CMakeLists.txt`
 
-The new tests validate:
-- scan JSON contains created files
-- duplicate JSON contains a duplicate group
-- stats JSON includes counts/extensions
-- hash JSON works on a **single file input**
-- null path input sets an error cleanly
+This is important because it validates that `fo_c_api` is not only callable from C++ test code but also linkable and usable by a real C-compiled consumer.
 
-### 4. Important functional improvement over the current CLI lane
-The new C API shim deliberately supports **single-file hashing** by recognizing a regular file path directly instead of relying only on directory-style scanner traversal.
+### 4. Fixed root-level test discoverability
+Updated:
+- `CMakeLists.txt`
+- `tests/CMakeLists.txt`
 
-That matters because it gives future native consumers a cleaner behavior surface than blindly shelling out through the current CLI path for everything.
+Added root `enable_testing()` so `ctest --test-dir build-msvc --output-on-failure` now correctly discovers and executes the full validation surface instead of silently reporting no tests at the root build directory.
 
 ### 5. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_CLI_BRIDGE_2026_04_05.md`
-- `docs/ai/implementation/BOBGUI_C_API_SHIM_2026_04_05.md`
+- `docs/ai/implementation/BOBGUI_DIRECT_C_API_WIRING_2026_04_05.md`
+
+This documents:
+- the preferred direct BobGUI backend strategy
+- why CLI fallback is still worth keeping
+- why the C smoke test matters
+- the remaining host-side BobGUI/Meson boundary
 
 ### 6. Versioning/docs updated
 Updated:
@@ -77,34 +67,32 @@ Updated:
 
 ### Validation completed
 - `scripts/build_headless.bat` ✅
-- `build-msvc/tests/fo_tests.exe` → **68 / 68 passed** ✅
+- `ctest --test-dir build-msvc --output-on-failure` ✅
+- total validation surface now: **69 / 69 passed** ✅
 
 ### Important architecture finding
-The BobGUI lane now has two legitimate integration tiers:
-1. **CLI bridge** — already practical, async, and useful today
-2. **Direct C ABI shim** — now real, tested, and ready for future BobGUI/native-C linkage work
+The BobGUI lane is now materially stronger because it has:
+- a live CLI bridge path
+- a live direct C ABI path
+- explicit preference ordering
+- a real C consumer smoke validation path
 
-This is much better than the earlier all-or-nothing situation.
+This is the first time the BobGUI lane has a genuinely credible progression from placeholder → bridge → direct integration.
 
-### Host/tooling reality still applies
-Checked tool availability on this host earlier:
-- `meson` → not found on PATH
-- `pkg-config` → not found on PATH
-- `ninja` → not found on PATH
+### Remaining host reality
+The host still does not expose the BobGUI/Meson toolchain on PATH:
+- `meson`
+- `pkg-config`
+- `ninja`
 
-So full BobGUI end-to-end local validation is still blocked by missing BobGUI/Meson ecosystem tooling on this machine.
-
-But importantly, the actual direct integration seam is no longer hypothetical.
+So end-to-end BobGUI app validation on this machine is still blocked by environment/tooling, not by the architecture direction.
 
 ---
 
 ## Recommended Next Steps
-1. Wire `frontends/bobgui_app` to optionally consume `fo_c_api` directly once the BobGUI/Meson toolchain is available on-host.
-2. Keep the current CLI bridge as a fallback mode even after direct linkage exists.
-3. Continue broadening the React/native demo parity where the host/runtime boundary allows it.
-4. Continue preserving the distinction between:
-   - plain Qt lane
-   - BobUI lane
-   - BTK research lane
-   - BobGUI lane
-   rather than blurring framework identities.
+1. Once Meson/pkg-config/ninja are available, validate the BobGUI app in both modes:
+   - direct `fo_c_api`
+   - CLI fallback
+2. Keep the fallback path until the direct path is fully trusted.
+3. Continue expanding the strongest frontend lanes while preserving clear framework boundaries.
+4. Consider whether a future structured C result ABI is worth introducing, or whether JSON remains the correct long-term C boundary for this project.

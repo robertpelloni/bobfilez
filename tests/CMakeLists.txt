@@ -1,3 +1,5 @@
+enable_testing()
+
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(fo_tests
@@ -13,8 +15,16 @@ add_executable(fo_tests
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
 
+add_executable(fo_c_api_smoke
+    c_api_smoke.c
+)
+
+target_link_libraries(fo_c_api_smoke PRIVATE fo_c_api)
+set_target_properties(fo_c_api_smoke PROPERTIES LINKER_LANGUAGE CXX)
+
 include(GoogleTest)
 gtest_discover_tests(fo_tests)
+add_test(NAME fo_c_api_smoke COMMAND fo_c_api_smoke)
 
 # Fuzzing target (conditional)
 option(FO_BUILD_FUZZ_TESTS "Build fuzz tests" OFF)
