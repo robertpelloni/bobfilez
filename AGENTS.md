@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.45
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.46
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -96,10 +96,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.45)
+## Current Status (v6.0.46)
 
-- ✅ **BobUI Provider Restore**: Restored BobUI/Qt6 as the active native GUI / Omni provider path, reintroduced BobUI `OmniUI/omnicore` wiring, restored `OmniUI::registerQmlTypes()` in the active registration path, and recreated `scripts/build_bobui_gui.bat` / `scripts/build_bobui_inplace.bat` as the honest BobUI helper entrypoints.
-- ✅ **BobUI Boundary Validation**: Re-ran the BobUI-backed GUI probe and confirmed bobfilez now discovers BobUI's top-level `Qt6Config.cmake` again, but the current exposed BobUI build tree on this host still lacks `Qt6Qml`; a fresh BobUI in-place build currently stops upstream in corelib (`qtmochelpers.h` / `qlocale.cpp`).
+- ✅ **BobUI Runtime Reality Check**: Refined the active BobUI direction so bobfilez now treats BobUI as the active Omni/UI layer while discovering Qt6 packages via `QT6_ROOT` / `QT_ROOT` / `QTDIR` / `CMAKE_PREFIX_PATH` instead of over-assuming the local BobUI tree is always a complete self-contained Qt6 QML provider.
+- ✅ **BobUI MSVC qtmochelpers Fix**: Patched `libs/bobui/src/corelib/kernel/qtmochelpers.h` so the in-place MSVC BobUI build gets past the old `qlocale.cpp` / `qtmochelpers.h` generic-lambda lookup failure; pushed the fix upstream and advanced the bobfilez gitlink to the merged BobUI `main` state.
+- ✅ **BobUI Host Runtime Boundary Clarified**: Confirmed BobUI's own CI expects external Qt modules such as `qtdeclarative`, and confirmed this host's visible Qt6 QML desktop kit under `D:\Qt` is currently `mingw_64` rather than MSVC; the current native blocker is therefore an honest runtime/toolchain mismatch plus the still-incomplete local BobUI QML package surface, not just the old `QLocale` source failure.
 - ✅ **Native UI Profile Listing**: Added a user-facing `--list-native-ui-profiles` command so the launch-profile architecture is discoverable without inspecting code, while preserving the default launch behavior when the flag is absent.
 - ✅ **Explorer-Only Native Launch Profile**: Added the second genuinely alternate named launch profile, `omni-explorer-only`, backed by its own focused root QML surface (`qrc:/ExplorerShell.qml`) hosting `ExplorerWindow` with a local `FileModel` and minimal shell shim.
 - ✅ **Dashboard-Only Native Launch Profile**: Added the first genuinely alternate named launch profile, `omni-dashboard-only`, backed by a different root QML surface (`qrc:/DashboardShell.qml`) instead of being a fake alias of the full shell root.

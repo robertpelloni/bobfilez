@@ -9,7 +9,7 @@ file(GLOB_RECURSE BOBUI_OMNICORE_SOURCES CONFIGURE_DEPENDS
     "${BOBUI_OMNICORE_DIR}/src/*.cpp"
 )
 
-message(STATUS "fo_gui will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
+message(STATUS "fo_gui will use BobUI Omni wiring and discover Qt6 packages via QT6_ROOT / QT_ROOT / QTDIR / CMAKE_PREFIX_PATH")
 
 set(GUI_SOURCES
     omni/src/main.cpp

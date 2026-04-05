@@ -31,8 +31,11 @@ if not "%~2"=="" (
 )
 
 if "%BOBUI_ROOT%"=="" (
-    set "BOBUI_ROOT=%~dp0..\libs\bobui\build-bobui"
+    set "BOBUI_ROOT=%~dp0..\libs\bobui"
 )
+
+if "%QT6_ROOT%"=="" if not "%QT_ROOT%"=="" set "QT6_ROOT=%QT_ROOT%"
+if "%QT6_ROOT%"=="" if not "%QTDIR%"=="" set "QT6_ROOT=%QTDIR%"
 
 echo [INFO] Using vcvars: %VCVARS%
 call "%VCVARS%"
@@ -41,6 +44,11 @@ if errorlevel 1 exit /b %errorlevel%
 cd /d "%~dp0.."
 
 echo [INFO] BOBUI_ROOT=%BOBUI_ROOT%
+if not "%QT6_ROOT%"=="" (
+    echo [INFO] QT6_ROOT=%QT6_ROOT%
+) else (
+    echo [WARN] QT6_ROOT not set. If BobUI does not expose Qt6Qml/Qt6Quick itself, point QT6_ROOT or QTDIR at a Qt6 install that includes qtdeclarative.
+)
 echo [INFO] Configuring BobUI-backed GUI build into %BUILD_DIR%...
 cmake -S . -B "%BUILD_DIR%" -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON -DBOBUI_ROOT=%BOBUI_ROOT%
 if errorlevel 1 exit /b %errorlevel%

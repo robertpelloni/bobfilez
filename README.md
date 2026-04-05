@@ -83,16 +83,21 @@ See [`README_CLI.md`](README_CLI.md) for detailed CLI usage.
 
 ### GUI (BobUI / Qt6 Native Framework)
 
-The active native UI stack is again **BobUI** (`github.com/robertpelloni/bobui`), used here as a **Qt6 package provider** for `fo_gui` / `fo_omni`.
+The active native UI stack is again **BobUI** (`github.com/robertpelloni/bobui`), centered on BobUI's `OmniUI/omnicore` layer and bobfilez's modern `Qt6::*` / QML shell path.
 
-For CMake-based GUI builds, bobfilez now prefers BobUI through `BOBUI_ROOT` / local `libs/bobui`, while still consuming normal `Qt6::*` targets.
+For CMake-based GUI builds, bobfilez now uses BobUI Omni wiring while discovering Qt6 packages through normal CMake mechanisms such as:
+- `QT6_ROOT`
+- `QT_ROOT`
+- `QTDIR`
+- `CMAKE_PREFIX_PATH`
+- optional BobUI build/install hints
 
 Practical notes:
-- BobUI is treated as a **Qt6 provider**, not a separate bobfilez target namespace
+- BobUI is the active **Omni/UI layer**, but the needed Qt6 `Qml` / `Quick` runtime may still come from a matching external Qt installation
 - the easiest native probe/build path is `scripts\build_bobui_gui.bat`
 - BobUI `OmniUI/omnicore` source wiring and `OmniUI::registerQmlTypes()` are restored in the active native bootstrap path
 - BTK remains documented research, not the active provider path
-- on this machine, the current BobUI boundaries are still honest: the exposed build tree lacks `Qt6Qml`, and a fresh in-place BobUI build currently stops upstream in corelib (`qtmochelpers.h` / `qlocale.cpp`)
+- on this machine, the BobUI story is now more specific: the local BobUI build tree still does not export `Qt6Qml`, while the discovered external Qt6 QML desktop kit under `D:\Qt` is currently `mingw_64` rather than MSVC
 
 Legacy Visual Studio / `.sln` artifacts still exist, but the current native direction is BobUI-backed Qt6 again.
 
@@ -163,7 +168,7 @@ filez uses a **plugin architecture** where:
 - **CMake** 3.16+
 - **C++20 compiler** (MSVC 2019+, GCC 10+, Clang 12+)
 - **vcpkg** (optional, for Exiv2/BLAKE3/Tesseract and other native deps)
-- **BobUI / Qt6** for native GUI / Omni builds (`libs/bobui`, or a BobUI build/install exposed via `BOBUI_ROOT`)
+- **BobUI + compatible Qt6 Qml/Quick runtime** for native GUI / Omni builds (`libs/bobui` for Omni wiring, plus a matching Qt6 desktop install exposed via `QT6_ROOT` / `QT_ROOT` / `QTDIR` when needed)
 
 ### Linux / macOS
 
@@ -194,8 +199,9 @@ cd vcpkg; .\bootstrap-vcpkg.bat; .\vcpkg integrate install
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 
-# Preferred native GUI / Omni build (using BobUI as the Qt6 provider)
-$env:BOBUI_ROOT="C:\path\to\bobui-build-or-install"
+# Preferred native GUI / Omni build (using BobUI Omni wiring plus a compatible Qt6 runtime)
+$env:QT6_ROOT="C:\path\to\qt-msvc-kit"
+$env:BOBUI_ROOT="C:\path\to\bobui-source-or-build"
 scripts\build_bobui_gui.bat
 
 # Or manual configure/build

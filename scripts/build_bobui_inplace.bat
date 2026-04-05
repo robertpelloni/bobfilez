@@ -33,7 +33,7 @@ if not exist "%BOBUI_BUILD%" mkdir "%BOBUI_BUILD%"
 cd /d "%BOBUI_BUILD%"
 
 echo [INFO] Configuring BobUI in-place developer build...
-cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Debug -DQT_NO_MSVC_MIN_VERSION_CHECK=ON
+cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Debug -DQT_NO_MSVC_MIN_VERSION_CHECK=ON -DQT_BUILD_TESTS=OFF -DQT_BUILD_EXAMPLES=OFF -DQT_BUILD_BENCHMARKS=OFF -DQT_BUILD_DOC_SNIPPETS=OFF
 if errorlevel 1 exit /b %errorlevel%
 
 echo [INFO] Building BobUI in-place...

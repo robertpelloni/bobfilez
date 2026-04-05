@@ -1,7 +1,9 @@
 # BobUI Provider Restore — 2026-04-05
 
 ## Summary
-This session restored **BobUI/Qt6** as the active native provider path for bobfilez while preserving the BTK investigation as documented research.
+This session restored **BobUI/Qt6** as the active native path for bobfilez while preserving the BTK investigation as documented research.
+
+> Follow-up note: the later reality check in `BOBUI_QT_RUNTIME_REALITY_CHECK_2026_04_05.md` refines one important nuance: BobUI remains the active Omni/UI direction, but the local BobUI tree should not be over-assumed to be a complete self-contained Qt6 QML runtime provider on this host.
 
 The project had been actively wired for BTK/CopperSpice package discovery, but the user requested a return to BobUI for the active path.
 The restoration was done honestly:
@@ -18,7 +20,8 @@ Added:
 Purpose:
 - prefer `BOBUI_ROOT` / `FO_BOBUI_ROOT` / local `libs/bobui`
 - append likely BobUI build/install prefixes to `CMAKE_PREFIX_PATH`
-- treat BobUI as a **Qt6 package provider** rather than a separate target namespace
+- restore BobUI-oriented Qt discovery rather than the BTK/CopperSpice path
+- keep bobfilez consuming standard `Qt6::*` targets
 
 ### 2. Switched the root build back to BobUI discovery for active GUI/Omni builds
 Updated:
@@ -97,16 +100,9 @@ Observation:
   2. a fresh BobUI in-place build currently fails upstream in BobUI corelib before becoming a fully rebuilt provider surface
 
 ## Practical conclusion
-The active native provider path is now honestly BobUI/Qt6 again.
+The active native direction is BobUI again, but the later follow-up work refined the blocker more precisely:
+- the local BobUI build tree still lacks `Qt6Qml`
+- the old `qtmochelpers.h` / `qlocale.cpp` stop was real, but it is no longer the leading blocker after the later fix
+- the next meaningful host-side requirement is a compatible Qt6 QML runtime/toolchain pairing for bobfilez's MSVC-native lane
 
-However, the machine-specific blockers are now:
-- **the currently reusable BobUI build tree lacks `Qt6Qml`**
-- **a fresh BobUI in-place build currently fails upstream in `qtmochelpers.h` / `qlocale.cpp`**
-
-So the current project state is:
-- BobUI is the active native provider strategy again
-- BTK remains documented research and fallback investigation history
-- the next BobUI-side work would be either:
-  - fix BobUI's current in-place corelib build failure on this host
-  - expand BobUI's module surface to include `Qt6Qml` / `Qt6Quick`
-  - or point bobfilez at a BobUI/Qt6 prefix that already exports those components
+So this restore document remains the right description of the app-side switch back to BobUI, while the newer runtime-reality document captures the more precise provider/toolchain situation discovered afterward.

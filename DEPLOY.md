@@ -27,22 +27,23 @@ By default, the UI is served at `http://localhost:3131`.
 
 ## 3. Native GUI (BobUI / Qt6 Framework)
 *(In Progress)*
-To build the premium native GUI using **BobUI** as the active Qt6 provider:
+To build the premium native GUI using **BobUI** as the active Omni/UI layer plus a compatible Qt6 QML runtime:
 
 ```bash
 # Preferred helper
 scripts/build_bobui_gui.bat
 
-# Or manually after BobUI has been built/installed and exported Qt6 package configs
-# Example:
-#   BOBUI_ROOT=/path/to/bobui-build-or-install
+# Example environment:
+#   QT6_ROOT=/path/to/qt-msvc-kit
+#   BOBUI_ROOT=/path/to/bobui-source-or-build
 cmake -S . -B build -G Ninja -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
 cmake --build build --target fo_gui fo_omni
 ```
 
 Current honest blocker on this machine:
-- the BobUI-exposed build tree still lacks `Qt6Qml`
-- a fresh BobUI in-place build currently stops upstream in corelib (`qtmochelpers.h` / `qlocale.cpp`)
+- the local BobUI build tree still lacks `Qt6Qml`
+- the discovered external desktop Qt6 QML kit under `D:\Qt` is currently `mingw_64`, not an MSVC desktop kit
+- BobUI in-place MSVC builds now get much farther, but still eventually reach a later MSVC compiler-ICE boundary in snippet-related targets rather than the earlier `qlocale.cpp` stop
 
 ---
 

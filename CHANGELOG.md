@@ -1,5 +1,54 @@
 # Changelog
 
+## [6.0.46] - 2026-04-05
+
+### Refined — The "BobUI Runtime Reality Check" Release
+
+#### 🔎 BobUI Runtime Model Corrected
+- Refined the restored BobUI direction to reflect a more honest runtime model.
+- bobfilez still uses **BobUI / OmniUI** as the active native UI layer, but the project no longer assumes the local BobUI tree is always a complete self-contained Qt6 QML runtime provider.
+- Updated discovery/messaging so GUI / Omni builds now search for compatible Qt6 packages via:
+  - `QT6_ROOT`
+  - `QT_ROOT`
+  - `QTDIR`
+  - `CMAKE_PREFIX_PATH`
+  - optional BobUI build/install hints
+
+#### 🧪 BobUI Upstream Probe Advanced Past the Old QLocale Stop
+- Patched `libs/bobui/src/corelib/kernel/qtmochelpers.h` to avoid the earlier MSVC generic-lambda lookup failure in the metaobject copy path.
+- Confirmed the BobUI in-place build now gets far beyond the old `qlocale.cpp` / `qtmochelpers.h` blocker and proceeds deep into later GUI / Widgets / OpenGL targets.
+- Pushed the BobUI-side fix upstream on `robertpelloni/bobui` `main` and updated the bobfilez submodule gitlink accordingly.
+
+#### ⚠️ Current Native Blocker Is Now More Precise
+- Confirmed from BobUI's own CI/workflow model that BobUI expects external Qt modules such as `qtdeclarative` for modern QML/Quick usage.
+- Confirmed this host has Qt6 QML package configs under `D:\Qt`, but the visible desktop kit is currently:
+  - `D:\Qt\6.11.0\mingw_64`
+- bobfilez's active validated native lane remains **MSVC**, so the current blocker is now more precise than before:
+  - local BobUI tree still does not export `Qt6Qml`
+  - available external Qt6 QML desktop kit is **MinGW**, not **MSVC**
+- BobUI in-place MSVC builds also still eventually reach an MSVC internal compiler error in snippet-related targets, but that is now a later toolchain/build-profile issue rather than the original source-level `QLocale` stop.
+
+#### 🛠️ Build Helper Refinement
+- Updated:
+  - `cmake/BobUIQtSetup.cmake`
+  - `scripts/build_bobui_gui.bat`
+  - `scripts/build_bobui_inplace.bat`
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- `build_bobui_inplace.bat` now explicitly disables tests/examples/benchmarks/doc-snippet intent at configure time to reduce non-essential noise during provider probing.
+- `build_bobui_gui.bat` now warns more clearly when no external Qt6 QML runtime root is supplied.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BOBUI_QT_RUNTIME_REALITY_CHECK_2026_04_05.md`** documenting:
+  - the BobUI `qtmochelpers.h` fix
+  - the new later-stage in-place build boundary
+  - BobUI's external-Qt module expectation
+  - the current host's Qt kit situation under `D:\Qt`
+  - why the present blocker is now best understood as a Qt runtime/toolchain mismatch rather than only a BobUI source-tree failure
+
+### Version
+- Bumped to **6.0.46**.
+
 ## [6.0.45] - 2026-04-05
 
 ### Restored — The "BobUI-First Native Provider" Release

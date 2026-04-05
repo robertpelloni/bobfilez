@@ -1,7 +1,9 @@
 # BobUI Provider Setup — v6.0.6
 
 ## Summary
-bobfilez should prefer **BobUI** (`github.com/robertpelloni/bobui`) as its native Qt provider rather than assuming a separately installed stock Qt distribution.
+bobfilez should prefer **BobUI** (`github.com/robertpelloni/bobui`) as its active Omni/UI integration layer while still resolving normal `Qt6::*` targets from a compatible Qt runtime.
+
+> Follow-up note: `BOBUI_QT_RUNTIME_REALITY_CHECK_2026_04_05.md` refines the earlier provider assumption. BobUI is still the intended native direction, but on this host the local BobUI tree alone is not a full self-contained Qt6 QML runtime provider.
 
 ## Important architectural note
 BobUI is a **Qt fork**, not a replacement UI toolkit with completely different target names.
@@ -14,7 +16,7 @@ That means the bobfilez GUI targets still correctly consume standard CMake packa
 - `Qt6::QuickControls2`
 - `Qt6::WebEngineQuick`
 
-What changes is **where those Qt6 packages come from**.
+What changes is how bobfilez combines BobUI Omni wiring with the Qt6 packages it resolves.
 
 ## What was changed
 
@@ -40,10 +42,10 @@ These still call `find_package(Qt6 ...)`, but now do so in a build where BobUI i
 ## Why this approach is correct
 Trying to literally rename all `Qt6::*` references to `BobUI::*` would be incorrect unless BobUI exposes an entirely different exported target scheme.
 
-At the moment, the right integration strategy is:
-1. build/install BobUI (the Qt fork)
-2. expose its generated Qt6 package config path
-3. let bobfilez resolve normal `Qt6::*` targets from BobUI
+At the moment, the practical integration strategy is:
+1. keep BobUI / `OmniUI/omnicore` as the active native UI layer
+2. resolve normal `Qt6::*` targets from a compatible Qt runtime
+3. use BobUI build/install hints when they help, but do not assume the local BobUI tree always includes every declarative module bobfilez needs
 
 ## Expected usage
 
