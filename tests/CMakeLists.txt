@@ -8,9 +8,10 @@ add_executable(fo_tests
     test_database.cpp
     test_integration.cpp
     test_linter.cpp
+    test_c_api.cpp
 )
 
-target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core)
+target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
 
 include(GoogleTest)
 gtest_discover_tests(fo_tests)

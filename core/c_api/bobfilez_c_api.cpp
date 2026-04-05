@@ -1,0 +1,378 @@
+#include "fo/c_api/bobfilez_c_api.h"
+
+#include "fo/core/engine.hpp"
+#include "fo/core/export.hpp"
+#include "fo/core/interfaces.hpp"
+#include "fo/core/registry.hpp"
+
+#include <algorithm>
+#include <chrono>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <iomanip>
+#include <map>
+#include <optional>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+namespace {
+
+thread_local std::string g_last_error;
+
+void set_last_error(const std::string& message)
+{
+    g_last_error = message;
+}
+
+void clear_last_error()
+{
+    g_last_error.clear();
+}
+
+char* duplicate_c_string(const std::string& value)
+{
+    auto* buffer = static_cast<char*>(std::malloc(value.size() + 1));
+    if (buffer == nullptr) {
+        set_last_error("Failed to allocate result buffer.");
+        return nullptr;
+    }
+
+    std::memcpy(buffer, value.c_str(), value.size() + 1);
+    return buffer;
+}
+
+std::filesystem::path parse_root_path(const char* root_path)
+{
+    if (root_path == nullptr || root_path[0] == '\0') {
+        throw std::invalid_argument("A non-empty root path is required.");
+    }
+
+    return std::filesystem::path(root_path);
+}
+
+fo::core::FileInfo create_local_file_info(const std::filesystem::path& path)
+{
+    fo::core::FileInfo file_info;
+    file_info.uri = path.string();
+    file_info.is_dir = std::filesystem::is_directory(path);
+    if (!file_info.is_dir) {
+        file_info.size = std::filesystem::file_size(path);
+    }
+    file_info.mtime = std::filesystem::last_write_time(path);
+    return file_info;
+}
+
+std::vector<fo::core::FileInfo> scan_with_std_provider(const std::filesystem::path& root)
+{
+    auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+    if (!scanner) {
+        throw std::runtime_error("Scanner provider 'std' not found.");
+    }
+
+    return scanner->scan({ root }, {}, false);
+}
+
+std::vector<fo::core::FileInfo> collect_files(const std::filesystem::path& root)
+{
+    if (std::filesystem::exists(root) && std::filesystem::is_regular_file(root)) {
+        return { create_local_file_info(root) };
+    }
+
+    return scan_with_std_provider(root);
+}
+
+std::string make_scan_json(const std::vector<fo::core::FileInfo>& files)
+{
+    std::ostringstream out;
+    out << "[\n";
+    for (size_t i = 0; i < files.size(); ++i) {
+        out << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
+            << "\", \"size\": " << files[i].size
+            << ", \"is_dir\": " << (files[i].is_dir ? "true" : "false") << "}";
+        if (i + 1 < files.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+    out << "]\n";
+    return out.str();
+}
+
+std::string make_duplicates_json(const std::vector<fo::core::DuplicateGroup>& groups)
+{
+    std::ostringstream out;
+    out << "[\n";
+    for (size_t i = 0; i < groups.size(); ++i) {
+        const auto& group = groups[i];
+        out << "  {\"size\": " << group.size
+            << ", \"fast64\": \"" << fo::core::Exporter::json_escape(group.fast64)
+            << "\", \"files\": [\n";
+
+        for (size_t j = 0; j < group.files.size(); ++j) {
+            const auto& file = group.files[j];
+            out << "    {\"path\": \"" << fo::core::Exporter::json_escape(file.uri)
+                << "\", \"size\": " << file.size << "}";
+            if (j + 1 < group.files.size()) {
+                out << ",";
+            }
+            out << "\n";
+        }
+
+        out << "  ]}";
+        if (i + 1 < groups.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+    out << "]\n";
+    return out.str();
+}
+
+std::string make_stats_json(const std::vector<fo::core::FileInfo>& files)
+{
+    std::uintmax_t total_size = 0;
+    int directory_count = 0;
+    int file_count = 0;
+    std::map<std::string, int> extension_counts;
+    std::map<std::string, std::uintmax_t> extension_sizes;
+    int buckets[5] = { 0, 0, 0, 0, 0 };
+    const char* bucket_names[] = { "0-1KB", "1KB-1MB", "1MB-100MB", "100MB-1GB", "1GB+" };
+
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            ++directory_count;
+            continue;
+        }
+
+        ++file_count;
+        total_size += file.size;
+
+        const auto dot = file.uri.find_last_of('.');
+        const auto slash = file.uri.find_last_of("/\\");
+        std::string extension = (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+            ? file.uri.substr(dot)
+            : "(none)";
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
+            return static_cast<char>(std::tolower(ch));
+        });
+        extension_counts[extension]++;
+        extension_sizes[extension] += file.size;
+
+        if (file.size < 1024ULL) {
+            buckets[0]++;
+        } else if (file.size < 1024ULL * 1024) {
+            buckets[1]++;
+        } else if (file.size < 100ULL * 1024 * 1024) {
+            buckets[2]++;
+        } else if (file.size < 1024ULL * 1024 * 1024) {
+            buckets[3]++;
+        } else {
+            buckets[4]++;
+        }
+    }
+
+    std::vector<std::pair<std::string, int>> sorted_extensions(extension_counts.begin(), extension_counts.end());
+    std::sort(sorted_extensions.begin(), sorted_extensions.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.second > rhs.second;
+    });
+
+    std::ostringstream out;
+    out << "{\n"
+        << "  \"total_files\": " << file_count << ",\n"
+        << "  \"total_directories\": " << directory_count << ",\n"
+        << "  \"total_size\": " << total_size << ",\n"
+        << "  \"total_size_human\": \"" << fo::core::Exporter::format_size(total_size) << "\",\n"
+        << "  \"extensions\": [\n";
+
+    const int extension_limit = std::min<int>(static_cast<int>(sorted_extensions.size()), 20);
+    for (int i = 0; i < extension_limit; ++i) {
+        out << "    {\"ext\": \"" << fo::core::Exporter::json_escape(sorted_extensions[i].first)
+            << "\", \"count\": " << sorted_extensions[i].second
+            << ", \"size\": " << extension_sizes[sorted_extensions[i].first] << "}";
+        if (i + 1 < extension_limit) {
+            out << ",";
+        }
+        out << "\n";
+    }
+
+    out << "  ],\n"
+        << "  \"size_distribution\": {\n";
+
+    for (int i = 0; i < 5; ++i) {
+        out << "    \"" << bucket_names[i] << "\": " << buckets[i];
+        if (i < 4) {
+            out << ",";
+        }
+        out << "\n";
+    }
+
+    out << "  }\n"
+        << "}\n";
+    return out.str();
+}
+
+std::string make_hash_json(const std::vector<fo::core::FileInfo>& files)
+{
+    auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+    if (!hasher) {
+        throw std::runtime_error("Hasher provider 'fast64' not found.");
+    }
+
+    std::ostringstream out;
+    out << "[\n";
+
+    bool first = true;
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            continue;
+        }
+
+        if (!first) {
+            out << ",\n";
+        }
+        first = false;
+
+        out << "  {\"path\": \"" << fo::core::Exporter::json_escape(file.uri)
+            << "\", \"hash\": \"" << fo::core::Exporter::json_escape(hasher->fast64(std::filesystem::path(file.uri)))
+            << "\"}";
+    }
+
+    out << "\n]\n";
+    return out.str();
+}
+
+std::string make_metadata_json(const std::vector<fo::core::FileInfo>& files)
+{
+    auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
+    if (!provider) {
+        throw std::runtime_error("Metadata provider 'tinyexif' not found.");
+    }
+
+    std::ostringstream out;
+    out << "[\n";
+    bool first = true;
+
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            continue;
+        }
+
+        fo::core::ImageMetadata metadata;
+        if (!provider->read(std::filesystem::path(file.uri), metadata)) {
+            continue;
+        }
+
+        if (!first) {
+            out << ",\n";
+        }
+        first = false;
+
+        out << "  {\"path\": \"" << fo::core::Exporter::json_escape(file.uri) << "\"";
+        if (metadata.date.has_taken) {
+            const auto time = std::chrono::system_clock::to_time_t(metadata.date.taken);
+            std::tm tm_buffer;
+#ifdef _WIN32
+            localtime_s(&tm_buffer, &time);
+#else
+            localtime_r(&time, &tm_buffer);
+#endif
+            std::ostringstream timestamp;
+            timestamp << std::put_time(&tm_buffer, "%Y-%m-%dT%H:%M:%S");
+            out << ", \"taken\": \"" << timestamp.str() << "\"";
+        }
+        if (metadata.has_gps) {
+            out << ", \"gps_lat\": " << metadata.gps_lat
+                << ", \"gps_lon\": " << metadata.gps_lon;
+        }
+        out << "}";
+    }
+
+    out << "\n]\n";
+    return out.str();
+}
+
+template <typename BuildJson>
+char* execute_json_request(const char* root_path, BuildJson&& build_json)
+{
+    clear_last_error();
+
+    try {
+        const auto root = parse_root_path(root_path);
+        const auto files = collect_files(root);
+        return duplicate_c_string(build_json(files));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+} // namespace
+
+extern "C" const char* fo_bobfilez_last_error(void)
+{
+    return g_last_error.c_str();
+}
+
+extern "C" char* fo_bobfilez_scan_json(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_scan_json(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_duplicates_json(const char* root_path)
+{
+    clear_last_error();
+
+    try {
+        const auto root = parse_root_path(root_path);
+        fo::core::EngineConfig config;
+        config.db_path = ":memory:";
+        config.scanner = "std";
+        config.hasher = "fast64";
+        fo::core::Engine engine(config);
+
+        const auto files = collect_files(root);
+        const auto groups = engine.find_duplicates(files);
+        return duplicate_c_string(make_duplicates_json(groups));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" char* fo_bobfilez_stats_json(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_stats_json(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_hash_json(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_hash_json(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_metadata_json(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_metadata_json(files);
+    });
+}
+
+extern "C" void fo_bobfilez_free_string(char* value)
+{
+    std::free(value);
+}

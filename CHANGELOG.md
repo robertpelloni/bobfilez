@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.0.51] - 2026-04-05
+
+### Added — The "BobGUI Direct C API Shim" Release
+
+#### 🧱 New native C ABI seam for future BobGUI / C consumers
+- Added `core/include/fo/c_api/bobfilez_c_api.h` and `core/c_api/bobfilez_c_api.cpp`.
+- Added the new `fo_c_api` library target in `core/CMakeLists.txt`.
+- Exposed JSON-returning C entrypoints for scan, duplicates, statistics, hash, and metadata plus explicit string lifetime management and last-error reporting.
+- This creates the first real direct-integration seam for BobGUI/native-C consumers without forcing them through the full C++ API surface.
+
+#### ✅ C API validated with new tests
+- Added `tests/test_c_api.cpp` and updated `tests/CMakeLists.txt`.
+- Verified scan, duplicates, stats, single-file hash behavior, and null-input error handling through the new C shim.
+- Headless validation now reports **68 / 68 tests passing**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_C_API_SHIM_2026_04_05.md` documenting the rationale, ABI-shape decision, and future BobGUI linkage path.
+
+### Version
+- Bumped to **6.0.51**.
+
 ## [6.0.50] - 2026-04-05
 
 ### Expanded — The "BobGUI CLI Bridge" Release

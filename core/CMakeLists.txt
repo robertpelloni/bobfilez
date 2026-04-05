@@ -102,6 +102,11 @@ add_library(fo_core STATIC
     ${DIRENT_SOURCES}
 )
 
+add_library(fo_c_api STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/fo/c_api/bobfilez_c_api.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/c_api/bobfilez_c_api.cpp
+)
+
 target_include_directories(fo_core
     PUBLIC ${FO_CORE_INCLUDE_DIR}
     PRIVATE ${LIBS_DIR}/TinyEXIF
@@ -172,10 +177,19 @@ if(chromaprint_FOUND)
     target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
 endif()
 
+target_include_directories(fo_c_api
+    PUBLIC ${FO_CORE_INCLUDE_DIR}
+)
+
+target_link_libraries(fo_c_api PUBLIC fo_core)
+
 target_compile_features(fo_core PUBLIC cxx_std_20)
+target_compile_features(fo_c_api PUBLIC cxx_std_20)
 
 if(MSVC)
   target_compile_options(fo_core PRIVATE /W4 /permissive-)
+  target_compile_options(fo_c_api PRIVATE /W4 /permissive-)
 else()
   target_compile_options(fo_core PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(fo_c_api PRIVATE -Wall -Wextra -Wpedantic)
 endif()

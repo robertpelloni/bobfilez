@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.50
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.51
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.50)
+## Current Status (v6.0.51)
 
+- ✅ **BobGUI C API Shim**: Added a small native C ABI library target, `fo_c_api`, exposing JSON-returning wrappers for scan, duplicates, statistics, hash, and metadata workflows plus explicit string-lifetime helpers and error reporting. This creates the first honest direct-integration seam for future BobGUI/native-C consumers without forcing them through the full C++ API surface.
 - ✅ **BobGUI CLI Bridge Expansion**: Reworked `frontends/bobgui_app/main.c` from a static placeholder into a functional BobGUI-native control surface with a path entry, action buttons, status messaging, a scrollable output view, and asynchronous CLI-backed actions for scan, duplicates, statistics, hash, and metadata.
 - ✅ **Frontend Parity Expansion**: Continued the new `frontends/` strategy by broadening the practical workflow surface instead of leaving the newer lanes at scan-only scaffolding.
 - ✅ **React Web UI (No-Build SPA)**: The `bobui_web/public/react/app.js` React frontend now exposes interactive **Scanner**, **Duplicates**, **Statistics**, **Hasher**, and **Metadata** views backed by the Express/CLI bridge, with corrected handling for the real CLI JSON shapes.
