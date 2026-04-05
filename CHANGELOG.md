@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.50] - 2026-04-05
+
+### Expanded — The "BobGUI CLI Bridge" Release
+
+#### 🧩 BobGUI demo is no longer a static placeholder
+- Reworked `frontends/bobgui_app/main.c` from a label-only BobGUI window into a functional native demo with a path entry, action buttons, status messaging, and a scrollable output surface.
+- Added live BobGUI actions for **Scan**, **Duplicates**, **Statistics**, **Hash**, and **Metadata**.
+
+#### 🔌 Pragmatic bridge strategy for the BobGUI lane
+- Implemented an asynchronous BobGUI-to-CLI bridge instead of pretending a direct C/C++/Meson/CMake cross-build integration was already trivial.
+- The BobGUI app now discovers `fo_cli.exe` from common repo-relative locations or `BOBFILEZ_CLI`, launches requests off the UI thread with GLib threading, captures stdout/stderr, and marshals results back to the UI loop.
+- This keeps the lane aligned with the project’s CLI-first rule while providing real user-facing functionality immediately.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_CLI_BRIDGE_2026_04_05.md` documenting the technical rationale, host constraints, and next-step path toward a future narrow C ABI shim.
+
+### Version
+- Bumped to **6.0.50**.
+
 ## [6.0.49] - 2026-04-05
 
 ### Expanded — The "Frontend Parity Expansion" Release

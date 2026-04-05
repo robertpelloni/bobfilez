@@ -1,120 +1,90 @@
-# HANDOFF.md — bobfilez Session 64
+# HANDOFF.md — bobfilez Session 65
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.49
-**Focus:** Frontend parity expansion, pure Qt lane decoupling, and more honest host/toolchain reporting.
+**Version:** 6.0.50
+**Focus:** BobGUI lane expansion through a pragmatic asynchronous CLI bridge while preserving the broader multi-frontend matrix direction.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Expanded the Qt demo beyond scan + duplicates
-Updated `frontends/qt/src/main.cpp` so `fo_qt_demo` now provides:
-- **Dashboard**
-- **Scanner**
-- **Duplicates**
-- **Statistics**
-- **Hasher**
+### 1. Expanded the BobGUI demo from placeholder to functional tool window
+Updated `frontends/bobgui_app/main.c`.
 
-All heavy work still runs off the main UI thread, but the frontend now exercises a broader set of real `fo_core` workflows instead of staying at the earlier minimal tier.
+The BobGUI lane now includes:
+- a path entry
+- action buttons for:
+  - **Scan**
+  - **Duplicates**
+  - **Statistics**
+  - **Hash**
+  - **Metadata**
+- a status label
+- a scrollable text output view
 
-### 2. Expanded the BobUI demo to match that next-tier workflow family
-Updated:
-- `frontends/bobui/assets/Main.qml`
-- `frontends/bobui/src/QmlEngineWrapper.hpp`
-- `frontends/bobui/src/QmlEngineWrapper.cpp`
-- `frontends/bobui/src/main.cpp`
+This is the first time the BobGUI lane has had a genuine operational surface instead of just a static title/body placeholder.
 
-The BobUI/QML lane now exposes:
-- `runScan(...)`
-- `runDuplicates(...)`
-- `runStats(...)`
-- `runHash(...)`
+### 2. Chose a pragmatic bridge instead of forcing premature direct native linkage
+Rather than pretending the BobGUI Meson/C toolchain could cheaply and cleanly link straight into the CMake/C++20 `fo_core` library on this host today, I implemented a narrower and more honest bridge strategy:
 
-This means the BobUI demo is no longer just a scan/duplicates proof-of-concept; it now has the same broader dashboard/scanner/duplicates/statistics/hasher shape as the Qt/JUCE demo direction.
+- discover `fo_cli.exe`
+- launch CLI-backed requests from the BobGUI app
+- run them off the UI thread using GLib threads
+- capture stdout/stderr
+- return results to the UI thread with `g_idle_add(...)`
 
-### 3. Reworked the React web UI to handle real CLI JSON more correctly
-Updated:
-- `bobui_web/public/react/app.js`
-- `bobui_web/server.js`
+This keeps the lane aligned with the project’s CLI-first rule while delivering real functionality immediately.
 
-Key improvements:
-- Added **Statistics**, **Hasher**, and **Metadata** views to the React SPA.
-- Added `POST /api/metadata` to the Express layer.
-- Fixed web-side normalization for the actual CLI JSON shapes:
-  - `scan` uses `path`
-  - `hash` uses `hash`
-  - `stats.extensions` is an array of records, not a keyed object
-
-This makes the web lane more robust and much closer to a genuine user-facing control surface instead of a narrow demo.
-
-### 4. Made the plain Qt lane honest again
-Updated:
-- `CMakeLists.txt`
-- `scripts/build_qt_gui.bat`
-
-Important architectural change:
-- `FO_BUILD_QT_DEMO` no longer routes through BobUI-specific Qt package discovery.
-- The plain Qt demo now expects external Qt discovery like a true pure-Qt lane.
-
-The build helper now:
-- honors `QT6_ROOT`, `QT_ROOT`, and `QTDIR`
-- auto-detects `D:\Qt\6.11.0\mingw_64` when available
-- warns clearly that the detected host kit is MinGW while this repo’s validated native lane is still MSVC 2019
-
-### 5. Simplified the BTK demo’s result handoff
-Updated:
-- `frontends/btk/src/DemoWindow.hpp`
-- `frontends/btk/src/DemoWindow.cpp`
-
-Replaced rougher experimental UI handoff logic with explicit queued slot application:
-- `applyScanResult(...)`
-- `applyDuplicatesResult(...)`
-
-That is a better fit for the older CopperSpice/BTK runtime style and easier to reason about.
-
-### 6. Documentation updated
+### 3. Added analysis/documentation for the BobGUI bridge decision
 Added:
-- `docs/ai/implementation/FRONTEND_PARITY_EXPANSION_2026_04_05.md`
+- `docs/ai/implementation/BOBGUI_CLI_BRIDGE_2026_04_05.md`
 
+This documents:
+- why a CLI bridge is the right intermediate step
+- why a direct C ABI shim is still a valid future direction
+- what host/tooling constraints still block full BobGUI validation here
+
+### 4. Versioning/docs updated
 Updated:
-- `CHANGELOG.md`
-- `AGENTS.md`
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
+- `CHANGELOG.md`
+- `AGENTS.md`
+- `HANDOFF.md`
 
 ---
 
 ## Validation / Findings
 
-### Host reality remains the same
-- `D:\Qt` exists.
-- Visible desktop Qt kit is still `D:\Qt\6.11.0\mingw_64`.
-- Active validated native build environment in this repo remains MSVC 2019 Build Tools.
-
-### Validation completed this session
+### Validation completed
 - `scripts/build_headless.bat` ✅
 - `build-msvc/tests/fo_tests.exe` → **63 / 63 passed** ✅
-- `scripts/build_juce_gui.bat` ✅ after the newer JUCE frontend additions remained in place
 
-### Why the pure Qt lane change matters
-Previously the plain Qt demo could accidentally resolve Qt through BobUI package hints, which blurred the distinction between:
-- a **plain Qt** lane, and
-- a **BobUI-backed** lane.
+### BobGUI host/tooling reality
+Checked tool availability on this host:
+- `meson` → not found on PATH
+- `pkg-config` → not found on PATH
+- `ninja` → not found on PATH
 
-That is now cleaned up. The resulting behavior is more honest even though the host still lacks the ideal MSVC desktop Qt kit.
+So the BobGUI lane is now much more functional in code, but full local build validation is still blocked by missing BobGUI/Meson ecosystem tooling on this machine.
 
-### What is green vs. conditional
-- **React/web**: implemented and broadened; suitable for browser-side manual validation.
-- **JUCE**: already working and remains the most validated native alternate lane.
-- **Qt demo**: code path broadened and build helper clarified, but full host-native validation still depends on an MSVC-compatible desktop Qt kit.
-- **BobUI demo**: feature coverage expanded, but full validation still depends on the QML/Qt runtime boundary discussed in prior sessions.
-- **BTK demo**: cleaner internal demo code, but BTK remains a research/native-experiment lane rather than the active Omni runtime path.
+### Why this approach was still correct
+A direct BobGUI-to-`fo_core` integration would require more infrastructure:
+- a narrow exported C ABI shim around `fo_core`
+- Meson/CMake interoperability work
+- careful runtime/toolchain handling across GLib/BobGUI/C++ on Windows
+
+That is still a sensible follow-up, but the CLI bridge delivered real user-facing progress now without pretending those deeper build-boundary problems were already solved.
 
 ---
 
 ## Recommended Next Steps
-1. Manually validate the new React **Statistics**, **Hasher**, and **Metadata** views in a browser.
-2. Continue broadening parity in the native demos where the host/runtime boundary allows it.
-3. Add a narrow C bridge if we want BobGUI to call `fo_core` directly instead of remaining the least-integrated lane.
-4. Install or point to an MSVC-compatible Qt desktop kit to fully validate the decoupled pure Qt and BobUI demo lanes.
+1. Add a **small C ABI shim** around selected `fo_core` workflows if we want BobGUI to move from CLI-backed integration to true direct library integration.
+2. Keep broadening the React/native demo parity where the host/runtime boundary allows it.
+3. Install the missing BobGUI/Meson toolchain (`meson`, `pkg-config`, `ninja`) if we want to validate the BobGUI lane end-to-end on this host.
+4. Continue preserving the distinction between:
+   - plain Qt lane
+   - BobUI lane
+   - BTK research lane
+   - BobGUI lane
+   rather than blurring framework identities.

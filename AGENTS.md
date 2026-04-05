@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.49
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.50
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.49)
+## Current Status (v6.0.50)
 
+- ✅ **BobGUI CLI Bridge Expansion**: Reworked `frontends/bobgui_app/main.c` from a static placeholder into a functional BobGUI-native control surface with a path entry, action buttons, status messaging, a scrollable output view, and asynchronous CLI-backed actions for scan, duplicates, statistics, hash, and metadata.
 - ✅ **Frontend Parity Expansion**: Continued the new `frontends/` strategy by broadening the practical workflow surface instead of leaving the newer lanes at scan-only scaffolding.
 - ✅ **React Web UI (No-Build SPA)**: The `bobui_web/public/react/app.js` React frontend now exposes interactive **Scanner**, **Duplicates**, **Statistics**, **Hasher**, and **Metadata** views backed by the Express/CLI bridge, with corrected handling for the real CLI JSON shapes.
 - ✅ **Qt Demo Expansion**: Expanded `fo_qt_demo` into a broader Qt Widgets frontend with **Dashboard**, **Scanner**, **Duplicates**, **Statistics**, and **Hasher** tabs, each calling real `fo_core` logic off the UI thread.
@@ -184,7 +185,7 @@ python scripts/generate_dashboard.py         # Update dashboard
 - ✅ **OmniTimeMachine**: Continuous Data Protection (CDP) engine capturing binary deltas (via `librsync`/`zstd` concepts) to allow instant file reversion.
 - ✅ **Time Machine UI**: Timeline scrubbing interface (`TimeMachinePanel.qml`) allowing users to visualize and restore previous states of any file.
 - ✅ **OmniFlow Automation**: Node-based visual programming editor (`OmniFlowPanel.qml`) allowing users to drag and drop Triggers, Conditions, and Actions.
-- ✅ **OmniGraph**: Semantic Knowledge Graph database tracking relationships between files, tags, people, and locations. 
+- ✅ **OmniGraph**: Semantic Knowledge Graph database tracking relationships between files, tags, people, and locations.
 - ✅ **Graph Visualization**: Interactive Force-Directed Graph UI (`OmniGraphPanel.qml`) allowing natural navigation of data without rigid folder structures.
 - ✅ **Digital Notary**: Cryptographic file signing (Ed25519/SHA-512) to ensure authenticity and tamper-proof distribution.
 - ✅ **Remote Explorer**: Integrated SFTP, SMB, and Cloud storage directly into the OmniShell sidebar for native remote file management.
@@ -897,7 +898,7 @@ Update this section when finishing a session:
 - ✅ **macOS DMG**: Created `scripts/package_macos.sh` incorporating CMake compilation, App Bundle construction, and Ad-Hoc Code Signing.
 - ✅ **Fuzz Testing**: Authored `scripts/build_fuzzer.sh` for Linux and validated existing rules engines using LibFuzzer locally via `build_fuzzer.bat` under WSL.
 - ✅ **Version Bump**: Updated to `2.2.5` and documented in `CHANGELOG.md`.
-- ✅ **Java Port Packaging**: 
+- ✅ **Java Port Packaging**:
   - Compiled a functional cross-platform standalone executable jar using `./gradlew :cli:fatJar`.
   - Authored a WiX toolchain definition (`wix/filez_java.wxs`) resolving native JNI bindings alongside the flat-jar format.
   - Wrote a batch runner to automate this pipeline (`scripts/package_java_msi.bat`).
