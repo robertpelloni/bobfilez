@@ -1,5 +1,51 @@
 # Changelog
 
+## [6.0.45] - 2026-04-05
+
+### Restored — The "BobUI-First Native Provider" Release
+
+#### 🔁 Active Native Provider Path Switched Back to BobUI/Qt6
+- Restored **BobUI** as the active native GUI / Omni provider path.
+- Added:
+  - `cmake/BobUIQtSetup.cmake`
+  - `scripts/build_bobui_gui.bat`
+  - `scripts/build_bobui_inplace.bat`
+- Updated:
+  - `CMakeLists.txt`
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+  - `gui/omni/src/OmniQmlRegistration.cpp`
+- Active GUI/Omni builds now prefer BobUI/Qt6 discovery again through `BOBUI_ROOT` / `libs/bobui` and consume standard `Qt6::*` targets rather than the BTK/CopperSpice target model.
+
+#### 🧩 BobUI omnicore Registration and Source Wiring Restored
+- Restored BobUI `OmniUI/omnicore` source-tree inclusion for the active native GUI targets.
+- Restored BobUI QML registration in the active bootstrap path by calling:
+  - `OmniUI::registerQmlTypes();`
+- bobfilez then still layers its own local bridge registrations on top:
+  - `Omni.File`
+  - `Omni.Viz`
+  - `Omni.Native`
+
+#### 🔍 Honest Current BobUI Boundary Captured
+- Re-ran the BobUI-backed GUI probe.
+- bobfilez now correctly discovers BobUI's top-level `Qt6Config.cmake`, but the current machine still stops at the real next blocker:
+  - missing `Qt6Qml`
+- Observed failure is now specifically that BobUI's local build tree does not provide:
+  - `Qt6QmlConfig.cmake`
+- Re-ran the BobUI in-place build helper as well and confirmed a second honest upstream boundary on this host:
+  - BobUI's own corelib currently stops in `qtmochelpers.h` while compiling `qlocale.cpp`
+- This means BobUI is structurally the active path again, but the present local BobUI state is still not a full drop-in runtime for bobfilez's QML-based native shell on this host.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BOBUI_PROVIDER_RESTORE_2026_04_05.md`** documenting:
+  - the restored BobUI-first path
+  - the recreated helper scripts
+  - the restored omnicore/QML registration wiring
+  - the real current blocker at missing `Qt6Qml`
+
+### Version
+- Bumped to **6.0.45**.
+
 ## [6.0.44] - 2026-04-05
 
 ### Added — The "Native UI Profile Listing" Release

@@ -2,13 +2,14 @@ if (NOT FO_BUILD_GUI)
     return()
 endif()
 
-find_package(BTK REQUIRED CONFIG)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Qml Quick)
 
-fo_resolve_btk_target(Core BTK_CORE_TARGET)
-fo_resolve_btk_target(Gui BTK_GUI_TARGET)
-fo_resolve_btk_target(Declarative BTK_DECLARATIVE_TARGET)
+set(BOBUI_OMNICORE_DIR "${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/omnicore")
+file(GLOB_RECURSE BOBUI_OMNICORE_SOURCES CONFIGURE_DEPENDS
+    "${BOBUI_OMNICORE_DIR}/src/*.cpp"
+)
 
-message(STATUS "fo_gui will use BTK-provided native framework packages when available via CMAKE_PREFIX_PATH / BTK_ROOT")
+message(STATUS "fo_gui will use BobUI-provided Qt6 packages when available via CMAKE_PREFIX_PATH / BOBUI_ROOT")
 
 set(GUI_SOURCES
     omni/src/main.cpp
@@ -43,15 +44,22 @@ set(QML_ASSETS
 add_executable(fo_gui 
     ${GUI_SOURCES}
     ${QML_ASSETS}
+    ${BOBUI_OMNICORE_SOURCES}
 )
 
 target_include_directories(fo_gui PRIVATE 
     omni/src
+    "${BOBUI_OMNICORE_DIR}/include"
+    "${BOBUI_OMNICORE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/juce"
+    "${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/deps/imgui"
 )
 
 target_link_libraries(fo_gui PRIVATE 
-    ${BTK_CORE_TARGET}
-    ${BTK_GUI_TARGET}
-    ${BTK_DECLARATIVE_TARGET}
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Qml
+    Qt6::Quick
     fo_core
 )

@@ -1,55 +1,67 @@
-# HANDOFF.md — bobfilez Session 59
+# HANDOFF.md — bobfilez Session 60
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.44  
-**Focus:** Native UI profile listing — user-facing discovery for the launch-profile architecture
+**Version:** 6.0.45  
+**Focus:** BobUI provider restore — BobUI/Qt6 is the active native path again, with current blockers honestly captured at missing `Qt6Qml` and an upstream BobUI corelib build failure on this host
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added a User-Facing Launch-Profile Listing Command
-- Added a dedicated CLI flag to list available native launch profiles without starting the GUI runtime:
-  - **`--list-native-ui-profiles`**
-- Updated:
-  - **`gui/omni/src/NativeUiProfileRegistry.hpp`**
-  - **`gui/omni/src/NativeUiProfileRegistry.cpp`**
-  - **`gui/omni/src/NativeUiBootstrap.cpp`**
-- Added registry helpers for:
-  - `native_ui_profile_list_argument()`
-  - `should_list_launch_profiles(int argc, char *argv[])`
+### 1. Restored BobUI as the active native provider path
+- Reintroduced BobUI-first native discovery for GUI / Omni builds.
+- Restored:
+  - `cmake/BobUIQtSetup.cmake`
+  - `scripts/build_bobui_gui.bat`
+  - `scripts/build_bobui_inplace.bat`
+- Updated the root/native build wiring so bobfilez again prefers BobUI as a **Qt6 package provider** instead of treating BTK/CopperSpice as the active app path.
 
-### 2. Made the Launch-Profile Architecture Discoverable from the Outside
-- When the listing flag is used, the native entrypoint now:
-  - prints the available launch profile names
-  - marks the default profile
-  - prints the active selection precedence rule
-  - exits without attempting to start the GUI runtime
-- This makes the launch-profile system operationally discoverable instead of only visible in code or docs.
+### 2. Restored BobUI omnicore wiring in the active GUI path
+- Reintroduced BobUI `OmniUI/omnicore` source and include wiring for the native GUI targets.
+- Restored active BobUI registration by calling:
+  - `OmniUI::registerQmlTypes();`
+- Preserved bobfilez-local registrations on top of that:
+  - `Omni.File`
+  - `Omni.Viz`
+  - `Omni.Native`
 
-### 3. Preserved Default Behavior While Improving Usability
-- The default shell launch path remains unchanged when the listing flag is absent.
-- No runtime/provider claim changed.
-- This only adds a user-facing discovery affordance for the existing launch architecture.
+### 3. Revalidated the BobUI-backed GUI probe honestly
+Ran:
+- `scripts/build_bobui_gui.bat`
 
-### 4. Documented the New Listing Command
-- Added:
-  - **`docs/ai/implementation/NATIVE_UI_PROFILE_LISTING.md`**
-  - **`logs/handoffs/2026-04-05-session-59.md`**
-- The new doc records:
-  - the new `--list-native-ui-profiles` flag
-  - the listing behavior
-  - the unchanged default runtime behavior
-  - why this improves launch-profile usability
+Result:
+- bobfilez now correctly discovers:
+  - `libs/bobui/build-bobui/lib/cmake/Qt6/Qt6Config.cmake`
+- configure still stops at the real downstream BobUI boundary on this machine:
+  - missing `Qt6Qml`
+- expected file still absent:
+  - `libs/bobui/build-bobui/lib/cmake/Qt6Qml/Qt6QmlConfig.cmake`
 
-### 5. Release / Metadata Alignment
-- Reconciled release/docs metadata to **6.0.44**.
-- Updated:
-  - **`VERSION.md`**
-  - **`core/include/fo/core/version.hpp`**
-  - **`CHANGELOG.md`**
-  - **`HANDOFF.md`**
-  - **`AGENTS.md`**
+### 4. Revalidated the BobUI in-place build helper honestly
+Ran:
+- `scripts/build_bobui_inplace.bat`
+
+Result:
+- the helper now provides a repeatable BobUI in-place developer-build probe
+- a fresh in-place BobUI build on this host currently fails upstream in BobUI corelib while compiling `qlocale.cpp`
+- current failure signature includes:
+  - `qtmochelpers.h`
+  - `'result': undeclared identifier`
+
+### 5. Updated release/docs metadata to the BobUI-active truth
+Updated:
+- `VERSION.md`
+- `core/include/fo/core/version.hpp`
+- `CHANGELOG.md`
+- `README.md`
+- `DEPLOY.md`
+- `AGENTS.md`
+- `HANDOFF.md`
+- `docs/ai/implementation/BOBUI_PROVIDER_RESTORE_2026_04_05.md`
+
+### 6. Added a session handoff log
+Added:
+- `logs/handoffs/2026-04-05-session-60.md`
 
 ---
 
@@ -57,36 +69,56 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Full BTK-backed GUI / Omni build | 🔴 Still blocked at a strategic compatibility boundary | BTK now builds successfully for its normal enabled module set, but bobfilez's active native GUI bootstrap still cannot configure because `Declarative` is not exported and the framework path no longer looks like a same-generation QML provider. |
-| BTK Declarative/QML support | 🔴 Deeper upstream/provider readiness gap confirmed | Round 4 proved the issue is broader than a missing component-list entry: when `Declarative` is experimentally re-enabled, the module immediately hits stale declarative-specific CMake integration, obsolete metatype declarations, and fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`. |
-| BTK vs bobfilez declarative API generation | 🔴 Direct mismatch confirmed | Round 5 proved BTK's current declarative surface is `QDeclarative*`-era and exposes no discovered `QQml*` / `QQuick*` provider surface, while bobfilez's active bootstrap is explicitly `QQmlApplicationEngine`-based. |
-| Recommended project strategy | 🟢 Decision documented | Round 6 formalized the least-destructive path: keep bobfilez on a modern QQml-style shell path, reduce provider coupling, and treat BTK modernization as a separate upstream R&D effort rather than the immediate app runtime target. |
-| Option C execution status | 🟡 In progress | Round 7 extracted the active shell runtime bootstrap out of `main.cpp`, Round 8 separated bootstrap/runtime/registration responsibilities, Round 9 turned launch policy into explicit configuration, Round 10 refined that into named launch profiles and runtime bundles, Round 11 added a small profile-registry/helper layer, Round 12 added an env-driven selection seam for named launch profiles, Round 13 added CLI-aware profile selection with explicit CLI > env > default precedence, Round 14 added the first genuinely alternate named launch profile (`omni-dashboard-only`), Round 15 added the second real alternate profile (`omni-explorer-only`), and Round 16 added a user-facing profile-listing command so the launch architecture is discoverable without reading code. |
-| BTK upstream refresh status | 🟢 Revalidated | Latest upstream BTK master plus the two rebased MSVC fixes still builds successfully here, and bobfilez still stops at the same missing-`Declarative` boundary. |
-| BTK native migration plan | 🟡 In progress | Active BobUI-specific provider/bootstrap assumptions remain removed from bobfilez, but the remaining blocker is now whether BTK can provide the QML/Declarative layer bobfilez still depends on. |
+| Active native provider direction | 🟢 Settled for now | BobUI/Qt6 is the active app-side provider path again. BTK remains research/background, not the current app target. |
+| BobUI-backed GUI configure | 🔴 Blocked on current local BobUI export surface | bobfilez reaches BobUI's `Qt6Config.cmake`, but configure still fails because `Qt6Qml` is not exported in the current local BobUI build tree. |
+| BobUI in-place build on this host | 🔴 Upstream/provider build failure | A fresh BobUI in-place build currently stops in BobUI corelib (`qtmochelpers.h` / `qlocale.cpp`) before becoming a complete provider surface. |
+| Headless path | 🟢 Stable | Headless build/test workflow remains the reliable validation lane. |
+| BTK research baseline | 🟡 Preserved but not active | Prior BTK findings remain valuable documentation, but BTK is no longer the active runtime direction. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
 
 ---
 
 ## Recommended Next Steps
 
-1. **Treat BTK MSVC build correctness as validated for the currently enabled BTK modules**
-   - the old `btkinputowner.*` blocker is resolved
-   - `CsCore2.1.lib` and related outputs now exist
+1. **Keep BobUI as the active native strategy**
+   - avoid re-flipping provider direction again unless there is a concrete new reason
+   - keep docs and helper scripts aligned to BobUI-first reality
 
-2. **Continue executing Option C incrementally in code**
-   - keep bobfilez aligned to a modern QQml-style shell path
-   - continue reducing provider assumptions where practical
-   - next likely target: only add another profile or runtime bundle if it represents a genuinely different launch workflow beyond the full shell, dashboard-only, and explorer-only modes already present, now that those profiles are also discoverable via CLI listing
+2. **Treat the current BobUI provider problem as two-layered**
+   - downstream: current exposed BobUI build tree lacks `Qt6Qml`
+   - upstream: fresh BobUI in-place build currently fails in `qtmochelpers.h` / `qlocale.cpp`
 
-3. **Treat the refreshed BTK state as the current research baseline**
-   - use the newer upstream BTK master plus the two rebased local MSVC fixes when probing BTK further
-   - do not re-open already-resolved questions about whether the blocker was caused only by an older BTK snapshot
+3. **Investigate the BobUI corelib build failure next**
+   - inspect the current `qtmochelpers.h` / generated metaobject path on this host
+   - determine whether this is an MSVC-specific regression, a configuration mismatch, or a stale generated-source issue
 
-4. **Treat BTK modernization as a separate upstream R&D lane, not the near-term app path**
-   - the missing top-level component entry is only the first symptom
-   - the current `src/declarative` path also needs declarative-specific CMake modernization and a real QtScript/CsScript-era dependency story before it can honestly satisfy bobfilez's QML requirements
-   - even after that, a forward-compatibility story from `QDeclarative*` toward bobfilez's current `QQml*` bootstrap would still need to be solved explicitly
+4. **Only after BobUI builds cleanly, re-probe required Qt6 components**
+   - confirm whether a successful BobUI build exports:
+     - `Qt6Qml`
+     - `Qt6Quick`
+     - `Qt6QuickControls2`
+   - if not, decide whether bobfilez must reduce dependency surface further or BobUI must expose more modules
 
-5. **Continue provider-neutral GUI work**
-   - keep prioritizing the work that remains valuable independent of BTK readiness, such as incremental dependency reduction, asset cleanup, and provider-boundary cleanup
+5. **Continue provider-neutral shell cleanup only where it still pays off**
+   - launch-profile selection/listing is already in a good place
+   - keep further GUI work aligned to real BobUI viability rather than abstract provider churn
+
+---
+
+## Validation Snapshot
+
+### Confirmed
+- BobUI is restored as the active native provider path in project wiring.
+- `OmniUI::registerQmlTypes()` is restored in `gui/omni/src/OmniQmlRegistration.cpp`.
+- `scripts/build_bobui_gui.bat` now reaches BobUI's exported `Qt6Config.cmake`.
+- Current BobUI GUI configure blocker is still missing `Qt6Qml`.
+- `scripts/build_bobui_inplace.bat` now provides a repeatable in-place probe and currently fails upstream in BobUI corelib.
+
+### Not Yet Resolved
+- A complete BobUI build/install prefix that exports the QML/Quick modules bobfilez needs.
+- A successful native GUI / Omni configure/build on this machine using BobUI.
+
+---
+
+## Handoff Summary
+This session cleanly restored **BobUI/Qt6** as the active native runtime direction and documented the result honestly. The app-side provider path is now back where the user wanted it, but the current host still cannot complete native GUI startup because the local BobUI state is incomplete in two ways: the exposed build tree lacks `Qt6Qml`, and a fresh BobUI in-place build currently fails in BobUI corelib (`qtmochelpers.h` / `qlocale.cpp`). The next real work should stay focused on BobUI provider readiness rather than reopening BTK as the active path.

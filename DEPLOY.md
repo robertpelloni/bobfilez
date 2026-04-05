@@ -25,20 +25,24 @@ By default, the UI is served at `http://localhost:3131`.
 
 ---
 
-## 3. Native GUI (BTK Framework)
+## 3. Native GUI (BobUI / Qt6 Framework)
 *(In Progress)*
-To build the new premium native GUI using **BTK** as the native framework provider:
+To build the premium native GUI using **BobUI** as the active Qt6 provider:
 
 ```bash
 # Preferred helper
-scripts/build_btk_gui.bat
+scripts/build_bobui_gui.bat
 
-# Or manually after BTK has been built/installed and exported BTK/CopperSpice package configs
+# Or manually after BobUI has been built/installed and exported Qt6 package configs
 # Example:
-#   BTK_ROOT=/path/to/btk-or-btk-install
+#   BOBUI_ROOT=/path/to/bobui-build-or-install
 cmake -S . -B build -G Ninja -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON
 cmake --build build --target fo_gui fo_omni
 ```
+
+Current honest blocker on this machine:
+- the BobUI-exposed build tree still lacks `Qt6Qml`
+- a fresh BobUI in-place build currently stops upstream in corelib (`qtmochelpers.h` / `qlocale.cpp`)
 
 ---
 

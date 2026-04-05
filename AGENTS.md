@@ -1,12 +1,12 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.44
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.45
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
 ## Overview
 
-**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), BTK-native UI direction, 130+ library submodules. Part of the bob software ecosystem.
+**bobfilez** - C++20 file organization/deduplication engine with plugin architecture. CLI-first (`fo_cli`), BobUI/Qt6-native UI direction with BTK kept as research baseline, 130+ library submodules. Part of the bob software ecosystem.
 
 ## Structure
 
@@ -14,7 +14,7 @@
 bobfilez/
 ├── core/           # fo_core static library (interfaces, providers, engine, DB)
 ├── cli/            # fo_cli executable (15+ commands)
-├── gui/            # fo_gui / fo_omni native UI targets (BTK retarget in progress)
+├── gui/            # fo_gui / fo_omni native UI targets (BobUI/Qt6 active path)
 ├── bobui_web/      # Web-based dashboard (legacy name retained)
 ├── tests/          # GTest unit/integration tests (63 tests)
 ├── benchmarks/     # Google Benchmark harness
@@ -30,8 +30,10 @@ bobfilez/
 ```powershell
 build.bat                                    # Quick build (Windows)
 scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omni off)
-scripts\build_btk_inplace.bat               # Configure/build BTK itself under libs/btk/build-btk
-scripts\build_btk_gui.bat                   # BTK-backed GUI/Omni probe/build entrypoint
+scripts\build_bobui_inplace.bat             # Configure/build BobUI itself under libs/bobui/build-bobui
+scripts\build_bobui_gui.bat                 # BobUI-backed GUI/Omni probe/build entrypoint
+scripts\build_btk_inplace.bat               # BTK research build under libs/btk/build-btk
+scripts\build_btk_gui.bat                   # BTK research probe/build entrypoint
 cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
 .\build-msvc\tests\fo_tests.exe            # Headless test suite
 .\build-msvc\tests\fo_tests.exe --gtest_filter=*Name*  # Single headless test
@@ -94,8 +96,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.44)
+## Current Status (v6.0.45)
 
+- ✅ **BobUI Provider Restore**: Restored BobUI/Qt6 as the active native GUI / Omni provider path, reintroduced BobUI `OmniUI/omnicore` wiring, restored `OmniUI::registerQmlTypes()` in the active registration path, and recreated `scripts/build_bobui_gui.bat` / `scripts/build_bobui_inplace.bat` as the honest BobUI helper entrypoints.
+- ✅ **BobUI Boundary Validation**: Re-ran the BobUI-backed GUI probe and confirmed bobfilez now discovers BobUI's top-level `Qt6Config.cmake` again, but the current exposed BobUI build tree on this host still lacks `Qt6Qml`; a fresh BobUI in-place build currently stops upstream in corelib (`qtmochelpers.h` / `qlocale.cpp`).
 - ✅ **Native UI Profile Listing**: Added a user-facing `--list-native-ui-profiles` command so the launch-profile architecture is discoverable without inspecting code, while preserving the default launch behavior when the flag is absent.
 - ✅ **Explorer-Only Native Launch Profile**: Added the second genuinely alternate named launch profile, `omni-explorer-only`, backed by its own focused root QML surface (`qrc:/ExplorerShell.qml`) hosting `ExplorerWindow` with a local `FileModel` and minimal shell shim.
 - ✅ **Dashboard-Only Native Launch Profile**: Added the first genuinely alternate named launch profile, `omni-dashboard-only`, backed by a different root QML surface (`qrc:/DashboardShell.qml`) instead of being a fake alias of the full shell root.
