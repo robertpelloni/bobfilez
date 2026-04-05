@@ -89,6 +89,18 @@ app.post('/api/hash', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Metadata ──
+app.post('/api/metadata', async (req, res) => {
+    try {
+        const { paths = [], exts } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const args = ['metadata', '--format=json', ...paths];
+        if (exts) args.push(`--ext=${exts}`);
+        const { stdout } = await runCli(args);
+        res.json(JSON.parse(stdout || '[]'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Delete files ──
 app.post('/api/delete', async (req, res) => {
     try {

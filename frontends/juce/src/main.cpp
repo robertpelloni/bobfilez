@@ -4,16 +4,21 @@
 #include <fo/core/interfaces.hpp>
 #include <fo/core/registry.hpp>
 
+#include <fo/core/engine.hpp>
+
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 namespace {
 
-class MainComponent final : public juce::Component
+class DashboardTab final : public juce::Component
 {
 public:
-    MainComponent()
+    DashboardTab()
     {
         title.setText("bobfilez JUCE Demo", juce::dontSendNotification);
         title.setJustificationType(juce::Justification::centred);
@@ -21,7 +26,8 @@ public:
         addAndMakeVisible(title);
 
         body.setText(
-            "This minimal JUCE frontend proves bobfilez can host a native JUCE shell alongside the Qt, BobUI, BTK, BobGUI, and web lanes. Click 'Scan Directory' below to invoke the native C++ fo_core engine.",
+            "This minimal JUCE frontend proves bobfilez can host a native JUCE shell alongside the Qt, BobUI, BTK, BobGUI, and web lanes.\n\n"
+            "Use the tabs above to invoke the native C++ fo_core engine functions.",
             juce::dontSendNotification);
         body.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(body);
@@ -29,12 +35,37 @@ public:
         version.setText("Core version: " + juce::String(fo::core::FO_VERSION.data()), juce::dontSendNotification);
         version.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(version);
+    }
 
-        scanButton.setButtonText("Scan Directory...");
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        title.setBounds(area.removeFromTop(60));
+        body.setBounds(area.removeFromTop(80));
+        version.setBounds(area.removeFromTop(40));
+    }
+
+private:
+    juce::Label title;
+    juce::Label body;
+    juce::Label version;
+};
+
+class ScannerTab final : public juce::Component
+{
+public:
+    ScannerTab()
+    {
+        scanButton.setButtonText("Select Directory to Scan...");
         addAndMakeVisible(scanButton);
 
         resultsLabel.setText("No directory scanned yet.", juce::dontSendNotification);
-        resultsLabel.setJustificationType(juce::Justification::centred);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
         addAndMakeVisible(resultsLabel);
 
         scanButton.onClick = [this]() {
@@ -54,8 +85,6 @@ public:
                 }
             });
         };
-
-        setSize(900, 600);
     }
 
     void paint(juce::Graphics& g) override
@@ -66,25 +95,17 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced(40);
-        title.setBounds(area.removeFromTop(60));
-        body.setBounds(area.removeFromTop(80));
-        version.setBounds(area.removeFromTop(40));
-        
-        area.removeFromTop(40); // spacer
-        
         auto buttonArea = area.removeFromTop(40);
-        scanButton.setBounds(buttonArea.withSizeKeepingCentre(200, 40));
-
-        area.removeFromTop(20); // spacer
-        resultsLabel.setBounds(area.removeFromTop(80));
+        scanButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
     }
 
 private:
     void runScan(const std::string& directoryPath)
     {
         resultsLabel.setText("Scanning: " + juce::String(directoryPath) + " ...", juce::dontSendNotification);
-        
-        // Push the scan to a background thread to avoid blocking the JUCE message thread
+
         juce::Thread::launch([this, directoryPath]() {
             auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
             if (!scanner) {
@@ -95,20 +116,24 @@ private:
             }
 
             std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directoryPath) };
-            std::vector<std::string> exts; // all extensions
+            std::vector<std::string> exts;
             bool follow_symlinks = false;
 
             auto files = scanner->scan(roots, exts, follow_symlinks);
             auto count = files.size();
 
-            // Calculate total size
             std::uintmax_t total_bytes = 0;
             for (const auto& f : files) {
                 total_bytes += f.size;
             }
 
             juce::String resultText = "Scan Complete!\nFound " + juce::String(count) + " files.\n" +
-                                      "Total size: " + juce::String(total_bytes / (1024 * 1024)) + " MB.";
+                                      "Total size: " + juce::String(total_bytes / (1024 * 1024)) + " MB.\n\n" +
+                                      "First few files:\n";
+
+            for (size_t i = 0; i < std::min<size_t>(files.size(), 10); ++i) {
+                resultText << "- " << juce::String(files[i].uri) << "\n";
+            }
 
             juce::MessageManager::callAsync([this, resultText]() {
                 resultsLabel.setText(resultText, juce::dontSendNotification);
@@ -116,14 +141,336 @@ private:
         });
     }
 
-    juce::Label title;
-    juce::Label body;
-    juce::Label version;
     juce::TextButton scanButton;
     juce::Label resultsLabel;
-    
     std::unique_ptr<juce::FileChooser> fileChooser;
 };
+
+class DuplicatesTab final : public juce::Component
+{
+public:
+    DuplicatesTab()
+    {
+        dupeButton.setButtonText("Find Duplicates in Directory...");
+        addAndMakeVisible(dupeButton);
+
+        resultsLabel.setText("No duplicates search run yet.", juce::dontSendNotification);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
+        addAndMakeVisible(resultsLabel);
+
+        dupeButton.onClick = [this]() {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a directory to find duplicates",
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*"
+            );
+
+            auto folderFlags = juce::FileBrowserComponent::canSelectDirectories |
+                               juce::FileBrowserComponent::openMode;
+
+            fileChooser->launchAsync(folderFlags, [this](const juce::FileChooser& fc) {
+                if (fc.getResult().exists()) {
+                    auto path = fc.getResult().getFullPathName().toStdString();
+                    runDupes(path);
+                }
+            });
+        };
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        auto buttonArea = area.removeFromTop(40);
+        dupeButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
+    }
+
+private:
+    void runDupes(const std::string& directoryPath)
+    {
+        resultsLabel.setText("Finding duplicates in: " + juce::String(directoryPath) + "\nThis may take a moment...", juce::dontSendNotification);
+
+        juce::Thread::launch([this, directoryPath]() {
+            try {
+                fo::core::EngineConfig cfg;
+                cfg.db_path = ":memory:"; // In-memory DB for quick demo
+                cfg.scanner = "std";
+                cfg.hasher = "fast64";
+                fo::core::Engine engine(cfg);
+
+                std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directoryPath) };
+                std::vector<std::string> exts;
+                auto files = engine.scan(roots, exts, false, false);
+                auto dupes = engine.find_duplicates(files);
+
+                size_t duplicateFiles = 0;
+                for (const auto& group : dupes) {
+                    duplicateFiles += group.files.size();
+                }
+
+                juce::String resultText = "Search Complete!\nFound " + juce::String(dupes.size()) + " duplicate groups containing " + juce::String(duplicateFiles) + " files.\n\n";
+
+                size_t displayCount = 0;
+                for (const auto& group : dupes) {
+                    if (displayCount++ >= 5) {
+                        resultText << "...and more groups.\n";
+                        break;
+                    }
+                    resultText << "Group Hash (" << juce::String(group.fast64) << "), Size: " << juce::String(group.size) << " bytes\n";
+                    for (const auto& f : group.files) {
+                        resultText << "  - " << juce::String(f.uri) << "\n";
+                    }
+                    resultText << "\n";
+                }
+
+                juce::MessageManager::callAsync([this, resultText]() {
+                    resultsLabel.setText(resultText, juce::dontSendNotification);
+                });
+            } catch (const std::exception& e) {
+                juce::String err = "Exception: " + juce::String(e.what());
+                juce::MessageManager::callAsync([this, err]() {
+                    resultsLabel.setText(err, juce::dontSendNotification);
+                });
+            }
+        });
+    }
+
+    juce::TextButton dupeButton;
+    juce::Label resultsLabel;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+};
+
+class StatsTab final : public juce::Component
+{
+public:
+    StatsTab()
+    {
+        statsButton.setButtonText("Get Directory Statistics...");
+        addAndMakeVisible(statsButton);
+
+        resultsLabel.setText("No statistics gathered yet.", juce::dontSendNotification);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
+        addAndMakeVisible(resultsLabel);
+
+        statsButton.onClick = [this]() {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a directory to analyze",
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*"
+            );
+
+            auto folderFlags = juce::FileBrowserComponent::canSelectDirectories |
+                               juce::FileBrowserComponent::openMode;
+
+            fileChooser->launchAsync(folderFlags, [this](const juce::FileChooser& fc) {
+                if (fc.getResult().exists()) {
+                    auto path = fc.getResult().getFullPathName().toStdString();
+                    runStats(path);
+                }
+            });
+        };
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        auto buttonArea = area.removeFromTop(40);
+        statsButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
+    }
+
+private:
+    void runStats(const std::string& directoryPath)
+    {
+        resultsLabel.setText("Analyzing: " + juce::String(directoryPath) + "\nThis may take a moment...", juce::dontSendNotification);
+
+        juce::Thread::launch([this, directoryPath]() {
+            try {
+                auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+                if (!scanner) throw std::runtime_error("Scanner provider 'std' not found.");
+
+                std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directoryPath) };
+                std::vector<std::string> exts;
+                auto files = scanner->scan(roots, exts, false);
+
+                std::uintmax_t total_size = 0;
+                int dir_count = 0, file_count = 0;
+                std::map<std::string, int> ext_counts;
+
+                for (const auto& f : files) {
+                    if (f.is_dir) { dir_count++; continue; }
+                    file_count++;
+                    total_size += f.size;
+
+                    auto dot = f.uri.find_last_of('.');
+                    auto slash = f.uri.find_last_of("/\\");
+                    std::string ext = (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+                        ? f.uri.substr(dot) : "(none)";
+                    for (auto& c : ext) c = std::tolower(c);
+                    ext_counts[ext]++;
+                }
+
+                // Sort extensions by count
+                std::vector<std::pair<std::string, int>> ext_list(ext_counts.begin(), ext_counts.end());
+                std::sort(ext_list.begin(), ext_list.end(), [](const auto& a, const auto& b) {
+                    return a.second > b.second;
+                });
+
+                juce::String resultText = "Statistics for: " + juce::String(directoryPath) + "\n\n" +
+                                          "Total Files: " + juce::String(file_count) + "\n" +
+                                          "Total Directories: " + juce::String(dir_count) + "\n" +
+                                          "Total Size: " + juce::String(total_size / (1024 * 1024)) + " MB\n\n" +
+                                          "Top Extensions:\n";
+
+                int ext_shown = 0;
+                for (const auto& [ext, count] : ext_list) {
+                    if (ext_shown++ >= 10) break;
+                    resultText << "  " << juce::String(ext) << ": " << juce::String(count) << " files\n";
+                }
+
+                juce::MessageManager::callAsync([this, resultText]() {
+                    resultsLabel.setText(resultText, juce::dontSendNotification);
+                });
+            } catch (const std::exception& e) {
+                juce::String err = "Exception: " + juce::String(e.what());
+                juce::MessageManager::callAsync([this, err]() {
+                    resultsLabel.setText(err, juce::dontSendNotification);
+                });
+            }
+        });
+    }
+
+    juce::TextButton statsButton;
+    juce::Label resultsLabel;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+};
+
+class HashTab final : public juce::Component
+{
+public:
+    HashTab()
+    {
+        hashButton.setButtonText("Hash a File...");
+        addAndMakeVisible(hashButton);
+
+        resultsLabel.setText("No file hashed yet.", juce::dontSendNotification);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
+        addAndMakeVisible(resultsLabel);
+
+        hashButton.onClick = [this]() {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a file to hash",
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*"
+            );
+
+            auto fileFlags = juce::FileBrowserComponent::canSelectFiles |
+                             juce::FileBrowserComponent::openMode;
+
+            fileChooser->launchAsync(fileFlags, [this](const juce::FileChooser& fc) {
+                if (fc.getResult().existsAsFile()) {
+                    auto path = fc.getResult().getFullPathName().toStdString();
+                    runHash(path);
+                }
+            });
+        };
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        auto buttonArea = area.removeFromTop(40);
+        hashButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
+    }
+
+private:
+    void runHash(const std::string& filePath)
+    {
+        resultsLabel.setText("Hashing: " + juce::String(filePath) + "\n...", juce::dontSendNotification);
+
+        juce::Thread::launch([this, filePath]() {
+            try {
+                auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+                if (!hasher) throw std::runtime_error("Hasher provider 'fast64' not found.");
+
+                auto sha256 = fo::core::Registry<fo::core::IHasher>::instance().create("sha256");
+
+                std::filesystem::path p = std::filesystem::u8path(filePath);
+
+                juce::String resultText = "File: " + juce::String(filePath) + "\n\n";
+
+                resultText << "Fast64 Hash: " << juce::String(hasher->fast64(p)) << "\n";
+                if (sha256) {
+                    resultText << "SHA-256 Hash: " << juce::String(sha256->fast64(p)) << "\n"; // actually sha256 implements fast64 returning sha256, or strong()
+                }
+
+                juce::MessageManager::callAsync([this, resultText]() {
+                    resultsLabel.setText(resultText, juce::dontSendNotification);
+                });
+            } catch (const std::exception& e) {
+                juce::String err = "Exception: " + juce::String(e.what());
+                juce::MessageManager::callAsync([this, err]() {
+                    resultsLabel.setText(err, juce::dontSendNotification);
+                });
+            }
+        });
+    }
+
+    juce::TextButton hashButton;
+    juce::Label resultsLabel;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+};
+
+class MainComponent final : public juce::Component
+
+{
+public:
+    MainComponent()
+    {
+        addAndMakeVisible(tabs);
+        tabs.addTab("Dashboard", juce::Colours::transparentBlack, &dashboardTab, false);
+        tabs.addTab("Scanner", juce::Colours::transparentBlack, &scannerTab, false);
+        tabs.addTab("Duplicates", juce::Colours::transparentBlack, &duplicatesTab, false);
+        tabs.addTab("Statistics", juce::Colours::transparentBlack, &statsTab, false);
+        tabs.addTab("Hasher", juce::Colours::transparentBlack, &hashTab, false);
+        tabs.setTabBarDepth(40);
+
+        setSize(900, 600);
+    }
+
+    void resized() override
+    {
+        tabs.setBounds(getLocalBounds());
+    }
+
+private:
+    juce::TabbedComponent tabs{ juce::TabbedButtonBar::Orientation::TabsAtTop };
+    DashboardTab dashboardTab;
+    ScannerTab scannerTab;
+    DuplicatesTab duplicatesTab;
+    StatsTab statsTab;
+    HashTab hashTab;
+};
+
 
 class DemoApplication final : public juce::JUCEApplication
 {

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.48
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.49
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -32,8 +32,11 @@ build.bat                                    # Quick build (Windows)
 scripts\build_headless.bat                  # Verified MSVC/Ninja fallback build (GUI/Omni off)
 scripts\build_bobui_inplace.bat             # Configure/build BobUI itself under libs/bobui/build-bobui
 scripts\build_bobui_gui.bat                 # BobUI-backed GUI/Omni probe/build entrypoint
+scripts\build_qt_gui.bat                    # Plain Qt demo build entrypoint (external Qt discovery)
+scripts\build_juce_gui.bat                  # JUCE demo build entrypoint
 scripts\build_btk_inplace.bat               # BTK research build under libs/btk/build-btk
 scripts\build_btk_gui.bat                   # BTK research probe/build entrypoint
+scripts\build_bobgui_gui.bat                # BobGUI framework + demo app build entrypoint
 cmake -S . -B build -G Ninja && cmake --build build  # Manual/full environment path
 .\build-msvc\tests\fo_tests.exe            # Headless test suite
 .\build-msvc\tests\fo_tests.exe --gtest_filter=*Name*  # Single headless test
@@ -96,10 +99,13 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.48)
+## Current Status (v6.0.49)
 
-- ✅ **Functional Multi-Frontend Parity**: Enhanced the newly created `frontends/` with actual core interactions.
-- ✅ **React Web UI (No-Build SPA)**: The `bobui_web/public/react/app.js` React frontend is now a fully functional SPA communicating directly with the `fo_cli` backend via the Express API. It provides interactive **Scanner** and **Duplicates** views with paginated result tables and search triggers.
+- ✅ **Frontend Parity Expansion**: Continued the new `frontends/` strategy by broadening the practical workflow surface instead of leaving the newer lanes at scan-only scaffolding.
+- ✅ **React Web UI (No-Build SPA)**: The `bobui_web/public/react/app.js` React frontend now exposes interactive **Scanner**, **Duplicates**, **Statistics**, **Hasher**, and **Metadata** views backed by the Express/CLI bridge, with corrected handling for the real CLI JSON shapes.
+- ✅ **Qt Demo Expansion**: Expanded `fo_qt_demo` into a broader Qt Widgets frontend with **Dashboard**, **Scanner**, **Duplicates**, **Statistics**, and **Hasher** tabs, each calling real `fo_core` logic off the UI thread.
+- ✅ **BobUI Demo Expansion**: Expanded the `fo_bobui_demo` QML lane to the same next-tier workflow family through `QmlEngineWrapper`, proving that the BobUI demo can drive real scan/duplicate/stat/hash backend actions once a compatible Qt runtime is present.
+- ✅ **Pure Qt Lane Decoupling**: Stopped routing the plain Qt demo through BobUI-specific Qt package discovery and updated `scripts/build_qt_gui.bat` to auto-detect the visible `D:\Qt\6.11.0\mingw_64` host kit while warning honestly about the current MinGW-vs-MSVC mismatch.
 - ✅ **JUCE Native Parity**: Expanded the `fo_juce_demo` target (`frontends/juce/src/main.cpp`) to invoke an asynchronous native OS file browser (`juce::FileChooser`). It triggers a directory selection which routes directly into the C++ `fo::core::Registry<fo::core::IFileScanner>` executing a true backend `std` scan, aggregating byte sizes, and safely reporting accurate results directly to the JUCE GUI canvas without blocking the main message thread.
 - ✅ **Multi-Frontend Matrix**: Added demo targets for plain Qt6, BobUI, JUCE, BTK, and BobGUI to explicitly support the multi-framework requirement. Added a lightweight React Web UI alongside the classic `bobui_web` dashboard. Added `libs/JUCE` as a submodule and officially tracked `libs/bobui` and `libs/btk` in `.gitmodules`. Added explicit build scripts for the new frontend demos.
 

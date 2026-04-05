@@ -11,6 +11,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/libs/JUCE ${CMAKE_BINARY_DIR}/libs/JUCE EXC
 juce_add_gui_app(fo_juce_demo
     PRODUCT_NAME "bobfilez JUCE Demo"
     COMPANY_NAME "bobfilez"
+    VERSION "${FO_VERSION_STRING}"
 )
 
 juce_generate_juce_header(fo_juce_demo)

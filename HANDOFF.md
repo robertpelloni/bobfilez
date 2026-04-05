@@ -1,35 +1,120 @@
-# HANDOFF.md — bobfilez Session 63
+# HANDOFF.md — bobfilez Session 64
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.48  
-**Focus:** Functional Parity Across Multi-Frontend Matrix — Implemented tangible features in the new React and JUCE frontends, proving true integration with the filez core.
+**Version:** 6.0.49
+**Focus:** Frontend parity expansion, pure Qt lane decoupling, and more honest host/toolchain reporting.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Functional React Web UI Parity
-- Greatly expanded the `bobui_web/public/react/app.js` React frontend to be a fully functional SPA communicating directly with the `fo_cli` backend via the Express API.
-- **Scanner View**: Added an interactive path input field, scan invocation, and a paginated table viewing the results of a raw file scan.
-- **Duplicates View**: Added a duplicate finder tab utilizing the fast hash engine to discover, group, and present duplicated files found along a given path.
-- This effectively transforms the placeholder React scaffold into a legitimate, usable UI for core tasks.
+### 1. Expanded the Qt demo beyond scan + duplicates
+Updated `frontends/qt/src/main.cpp` so `fo_qt_demo` now provides:
+- **Dashboard**
+- **Scanner**
+- **Duplicates**
+- **Statistics**
+- **Hasher**
 
-### 2. Functional JUCE Native Application Parity
-- Enhanced the `fo_juce_demo` target (`frontends/juce/src/main.cpp`) to prove deep, direct C++ linking against the static `fo_core` library.
-- Added an asynchronous native OS file browser (`juce::FileChooser`) that allows users to pick a directory path.
-- Plumbed the directory selection directly into the C++ `fo::core::Registry<fo::core::IFileScanner>` to execute a true backend `std` scan, aggregating byte sizes and reporting accurate results directly to the JUCE GUI canvas.
-- Safely offloaded the heavy lifting of the scan to a background `juce::Thread`, emitting the results to the UI via `juce::MessageManager::callAsync`—establishing the correct concurrency pattern for future UI integrations.
+All heavy work still runs off the main UI thread, but the frontend now exercises a broader set of real `fo_core` workflows instead of staying at the earlier minimal tier.
 
-### 3. Version Bump
-- Bumped `VERSION.md` and related headers to `6.0.48` to log the shift from empty scaffold to functional execution in the alternative frontends.
+### 2. Expanded the BobUI demo to match that next-tier workflow family
+Updated:
+- `frontends/bobui/assets/Main.qml`
+- `frontends/bobui/src/QmlEngineWrapper.hpp`
+- `frontends/bobui/src/QmlEngineWrapper.cpp`
+- `frontends/bobui/src/main.cpp`
+
+The BobUI/QML lane now exposes:
+- `runScan(...)`
+- `runDuplicates(...)`
+- `runStats(...)`
+- `runHash(...)`
+
+This means the BobUI demo is no longer just a scan/duplicates proof-of-concept; it now has the same broader dashboard/scanner/duplicates/statistics/hasher shape as the Qt/JUCE demo direction.
+
+### 3. Reworked the React web UI to handle real CLI JSON more correctly
+Updated:
+- `bobui_web/public/react/app.js`
+- `bobui_web/server.js`
+
+Key improvements:
+- Added **Statistics**, **Hasher**, and **Metadata** views to the React SPA.
+- Added `POST /api/metadata` to the Express layer.
+- Fixed web-side normalization for the actual CLI JSON shapes:
+  - `scan` uses `path`
+  - `hash` uses `hash`
+  - `stats.extensions` is an array of records, not a keyed object
+
+This makes the web lane more robust and much closer to a genuine user-facing control surface instead of a narrow demo.
+
+### 4. Made the plain Qt lane honest again
+Updated:
+- `CMakeLists.txt`
+- `scripts/build_qt_gui.bat`
+
+Important architectural change:
+- `FO_BUILD_QT_DEMO` no longer routes through BobUI-specific Qt package discovery.
+- The plain Qt demo now expects external Qt discovery like a true pure-Qt lane.
+
+The build helper now:
+- honors `QT6_ROOT`, `QT_ROOT`, and `QTDIR`
+- auto-detects `D:\Qt\6.11.0\mingw_64` when available
+- warns clearly that the detected host kit is MinGW while this repo’s validated native lane is still MSVC 2019
+
+### 5. Simplified the BTK demo’s result handoff
+Updated:
+- `frontends/btk/src/DemoWindow.hpp`
+- `frontends/btk/src/DemoWindow.cpp`
+
+Replaced rougher experimental UI handoff logic with explicit queued slot application:
+- `applyScanResult(...)`
+- `applyDuplicatesResult(...)`
+
+That is a better fit for the older CopperSpice/BTK runtime style and easier to reason about.
+
+### 6. Documentation updated
+Added:
+- `docs/ai/implementation/FRONTEND_PARITY_EXPANSION_2026_04_05.md`
+
+Updated:
+- `CHANGELOG.md`
+- `AGENTS.md`
+- `VERSION.md`
+- `core/include/fo/core/version.hpp`
 
 ---
 
-## Current Risks / Gaps
-- **Native GUI Toolchain Blockers**: As noted in Session 61, the pure Qt/BobUI paths on Windows still face a missing MSVC `Qt6Qml` kit constraint, which prevents a clean compilation of the `fo_bobui_demo` on this host.
-- **BobGUI Build Requirements**: The GTK/Meson demo (`bobgui_app`) expects standard UNIX tools (`pkg-config`) to exist on the Windows PATH to resolve headers correctly, so it remains a Linux-first or advanced-user frontend.
+## Validation / Findings
 
-## Next Steps
-1. The new React and JUCE frontends should be considered fully validated patterns. We can safely continue expanding them feature-by-feature (e.g., adding metadata extraction, batch renaming forms).
-2. For the QML-based `fo_bobui_demo` to be validated natively on this machine, an MSVC-compatible `Qt6` distribution must be supplied.
-3. Continue migrating remaining UI concepts from the old prototype panels into these formal `frontends/` targets.
+### Host reality remains the same
+- `D:\Qt` exists.
+- Visible desktop Qt kit is still `D:\Qt\6.11.0\mingw_64`.
+- Active validated native build environment in this repo remains MSVC 2019 Build Tools.
+
+### Validation completed this session
+- `scripts/build_headless.bat` ✅
+- `build-msvc/tests/fo_tests.exe` → **63 / 63 passed** ✅
+- `scripts/build_juce_gui.bat` ✅ after the newer JUCE frontend additions remained in place
+
+### Why the pure Qt lane change matters
+Previously the plain Qt demo could accidentally resolve Qt through BobUI package hints, which blurred the distinction between:
+- a **plain Qt** lane, and
+- a **BobUI-backed** lane.
+
+That is now cleaned up. The resulting behavior is more honest even though the host still lacks the ideal MSVC desktop Qt kit.
+
+### What is green vs. conditional
+- **React/web**: implemented and broadened; suitable for browser-side manual validation.
+- **JUCE**: already working and remains the most validated native alternate lane.
+- **Qt demo**: code path broadened and build helper clarified, but full host-native validation still depends on an MSVC-compatible desktop Qt kit.
+- **BobUI demo**: feature coverage expanded, but full validation still depends on the QML/Qt runtime boundary discussed in prior sessions.
+- **BTK demo**: cleaner internal demo code, but BTK remains a research/native-experiment lane rather than the active Omni runtime path.
+
+---
+
+## Recommended Next Steps
+1. Manually validate the new React **Statistics**, **Hasher**, and **Metadata** views in a browser.
+2. Continue broadening parity in the native demos where the host/runtime boundary allows it.
+3. Add a narrow C bridge if we want BobGUI to call `fo_core` directly instead of remaining the least-integrated lane.
+4. Install or point to an MSVC-compatible Qt desktop kit to fully validate the decoupled pure Qt and BobUI demo lanes.

@@ -1,5 +1,34 @@
 # Changelog
 
+## [6.0.49] - 2026-04-05
+
+### Expanded — The "Frontend Parity Expansion" Release
+
+#### 🖥️ Qt and BobUI demos now reach the same next-tier workflow set
+- Expanded `fo_qt_demo` (`frontends/qt/src/main.cpp`) from a smaller demo into a broader Qt Widgets frontend with **Dashboard**, **Scanner**, **Duplicates**, **Statistics**, and **Hasher** tabs, each backed by real `fo_core` calls running off the UI thread.
+- Expanded `fo_bobui_demo` (`frontends/bobui/assets/Main.qml`, `frontends/bobui/src/QmlEngineWrapper.*`, and `frontends/bobui/src/main.cpp`) to expose the same workflow family to QML through a dedicated QObject bridge, adding real **Statistics** and **Hasher** paths alongside the earlier scan/duplicate flows.
+
+#### 🌐 React web UI shape-handling and feature coverage improved
+- Reworked `bobui_web/public/react/app.js` so the no-build React SPA now exposes **Scanner**, **Duplicates**, **Statistics**, **Hasher**, and **Metadata** views.
+- Fixed several backend shape assumptions in the React layer so it now correctly handles real CLI JSON such as:
+  - `scan` rows using `path`
+  - `hash` rows using `hash`
+  - `stats.extensions` returning an array of extension records
+- Added `POST /api/metadata` to `bobui_web/server.js`, keeping the web lane aligned with the CLI-first model.
+
+#### 🧭 Pure Qt lane made more honest
+- Updated the root `CMakeLists.txt` so the plain Qt demo no longer piggybacks on BobUI-specific Qt package discovery.
+- Updated `scripts/build_qt_gui.bat` to auto-detect the visible `D:\Qt\6.11.0\mingw_64` host kit when no Qt root is supplied and to warn clearly about the current MinGW-vs-MSVC mismatch.
+
+#### 🧪 BTK demo thread handoff simplified
+- Cleaned up `frontends/btk/src/DemoWindow.*` so the BTK demo now uses explicit queued slot application for background results instead of rougher experimental lambda/event scaffolding.
+
+### Documentation
+- Added `docs/ai/implementation/FRONTEND_PARITY_EXPANSION_2026_04_05.md` documenting the parity expansion and the pure-Qt-lane decoupling rationale.
+
+### Version
+- Bumped to **6.0.49**.
+
 ## [6.0.48] - 2026-04-05
 
 ### Added — The "Functional Multi-Frontend Parity" Release

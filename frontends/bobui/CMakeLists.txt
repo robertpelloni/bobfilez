@@ -2,6 +2,9 @@ if (NOT FO_BUILD_BOBUI_DEMO)
     return()
 endif()
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
 
 set(BOBUI_OMNICORE_DIR "${CMAKE_SOURCE_DIR}/libs/bobui/OmniUI/omnicore")
@@ -11,6 +14,8 @@ file(GLOB_RECURSE BOBUI_OMNICORE_SOURCES CONFIGURE_DEPENDS
 
 add_executable(fo_bobui_demo
     src/main.cpp
+    src/QmlEngineWrapper.cpp
+    src/QmlEngineWrapper.hpp
     assets/bobui_demo.qrc
     ${BOBUI_OMNICORE_SOURCES}
 )
