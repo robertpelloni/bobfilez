@@ -73,5 +73,24 @@ function(fo_resolve_btk_target component out_var)
         endif()
     endforeach()
 
-    message(FATAL_ERROR "Could not resolve a BTK/CopperSpice target for component '${component}'")
+    get_property(_imported_targets GLOBAL PROPERTY IMPORTED_TARGETS)
+    set(_framework_targets)
+    foreach(_target IN LISTS _imported_targets)
+        if(_target MATCHES "^(BTK|CopperSpice)::")
+            list(APPEND _framework_targets ${_target})
+        endif()
+    endforeach()
+
+    if(_framework_targets)
+        list(SORT _framework_targets)
+        string(JOIN ", " _framework_targets_text ${_framework_targets})
+    else()
+        set(_framework_targets_text "<none>")
+    endif()
+
+    message(FATAL_ERROR
+        "Could not resolve a BTK/CopperSpice target for component '${component}'. "
+        "Candidates checked: ${_candidate_targets}. "
+        "Imported BTK/CopperSpice targets currently available: ${_framework_targets_text}. "
+        "If '${component}' is Declarative, this usually means the active BTK build/package does not include the Declarative/QML module family.")
 endfunction()

@@ -1,5 +1,50 @@
 # Changelog
 
+## [6.0.30] - 2026-04-05
+
+### Validated — The "BTK Native Provider Probe Round 3" Release
+
+#### ✅ BTK MSVC Build Repaired Enough to Produce Real Framework Outputs
+- Patched the active `libs/btk` submodule to resolve the earlier MSVC build blockers which had prevented BTK from producing consumer-usable binaries.
+- Replaced unsupported `Q_DECLARE_FLAGS(...)` usage with BTK-compatible `using ... = QFlags<...>;` aliases in:
+  - `libs/btk/src/core/kernel/btkinputowner.h`
+  - `libs/btk/src/gui/widgets/btkfocusoverlay.h`
+  - `libs/btk/src/plugins/bearer/networkmanager/qnetworkmanagerservice.h`
+- Normalized newer Qt-style string/property API usage in:
+  - `libs/btk/src/gui/kernel/btkfocusdiagnostics.cpp`
+  - `libs/btk/src/gui/kernel/qapplication_cs.cpp`
+  - `libs/btk/src/gui/widgets/btkfocusoverlay.cpp`
+- Confirmed `scripts/build_btk_inplace.bat` now completes successfully and produces BTK/CopperSpice outputs such as:
+  - `libs/btk/build-btk/lib/CsCore2.1.lib`
+  - `libs/btk/build-btk/lib/CsGui2.1.lib`
+  - related plugin and DLL artifacts
+
+#### 🔍 Sharper Downstream BTK Consumer Finding
+- Re-ran `scripts/build_btk_gui.bat` after BTK's successful in-place build.
+- bobfilez no longer fails because BTK libraries are missing.
+- The current failure is now more honest and architectural:
+  - bobfilez cannot resolve a BTK/CopperSpice target for component `Declarative`
+- Investigation confirmed:
+  - `libs/btk/src/declarative/CMakeLists.txt` exists and defines `CsDeclarative`
+  - but BTK's top-level `CS_OPTIONAL_COMPONENTS` list does **not** include `Declarative`
+  - therefore the current BTK build/package surface does not provide the QML/Declarative module family bobfilez's native GUI expects
+
+#### 🧰 Better Probe Diagnostics
+- Updated `cmake/BTKFrameworkSetup.cmake` so missing BTK/CopperSpice components now report:
+  - the candidate targets checked
+  - the imported BTK/CopperSpice targets actually available
+  - an explicit hint when the missing component is `Declarative`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND3.md`** documenting:
+  - the BTK MSVC build fixes
+  - the successful BTK in-place build result
+  - the new `Declarative`/QML capability boundary
+  - the conclusion that the active blocker is now framework capability, not package layout or missing library outputs
+
+### Version
+- Bumped to **6.0.30**.
+
 ## [6.0.29] - 2026-04-04
 
 ### Validated — The "BTK Native Provider Probe Round 2" Release
