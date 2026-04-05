@@ -57,7 +57,8 @@ QStringList available_launch_profile_names()
 {
     return {
         default_launch_profile_name(),
-        QStringLiteral("omni-dashboard-only")
+        QStringLiteral("omni-dashboard-only"),
+        QStringLiteral("omni-explorer-only")
     };
 }
 
@@ -78,6 +79,10 @@ NativeUiLaunchProfile create_launch_profile_by_name(const QString &name)
 
     if (name == QStringLiteral("omni-dashboard-only")) {
         return create_dashboard_only_launch_profile();
+    }
+
+    if (name == QStringLiteral("omni-explorer-only")) {
+        return create_explorer_only_launch_profile();
     }
 
     return {};

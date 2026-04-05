@@ -18,5 +18,6 @@ struct NativeUiLaunchProfile {
 
 NativeUiLaunchProfile create_default_omni_launch_profile();
 NativeUiLaunchProfile create_dashboard_only_launch_profile();
+NativeUiLaunchProfile create_explorer_only_launch_profile();
 
 } // namespace fo::gui

@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.43] - 2026-04-05
+
+### Added — The "Explorer-Only Native Launch Profile" Release
+
+#### 🧩 Second Genuinely Alternate Named Launch Profile Added
+- Added a second real alternate native shell launch profile:
+  - **`omni-explorer-only`**
+- This profile is backed by a different root QML surface:
+  - `qrc:/ExplorerShell.qml`
+- Added:
+  - `gui/omni/assets/ExplorerShell.qml`
+- Updated:
+  - `gui/omni/assets/qml.qrc`
+  - `gui/omni/src/NativeUiLaunchProfile.hpp`
+  - `gui/omni/src/NativeUiLaunchProfile.cpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+- Added `create_explorer_only_launch_profile()` and registered the profile name in the launch-profile registry.
+- The explorer-only profile can be selected through the existing selection seams:
+  - CLI: `--native-ui-profile=omni-explorer-only`
+  - env: `BOBFILEZ_NATIVE_UI_PROFILE=omni-explorer-only`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_EXPLORER_PROFILE.md`** documenting:
+  - the explorer-only root QML path
+  - the local shell shim used by the wrapper root
+  - how to select the profile via CLI or environment
+  - why it is a meaningful alternate mode rather than an alias
+
+### Version
+- Bumped to **6.0.43**.
+
 ## [6.0.42] - 2026-04-05
 
 ### Added — The "Dashboard-Only Native Launch Profile" Release
