@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.41] - 2026-04-05
+
+### Refactored — The "Native UI Profile CLI Selection" Release
+
+#### 🧩 Seventh Concrete Option C Refinement Landed in Code
+- Extended the native shell launch-profile selection seam so profile choice can be made from the command line as well as the environment.
+- Updated:
+  - `gui/omni/src/NativeUiProfileRegistry.hpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+  - `gui/omni/src/NativeUiBootstrap.cpp`
+- Added registry helpers for:
+  - `native_ui_profile_argument_prefix()`
+  - `selected_launch_profile_name(int argc, char *argv[])`
+  - `create_launch_profile_from_selection(int argc, char *argv[])`
+- The active CLI selector is now:
+  - `--native-ui-profile=<name>`
+- Selection precedence is now explicit:
+  1. command-line override
+  2. environment variable override (`BOBFILEZ_NATIVE_UI_PROFILE`)
+  3. default launch profile
+- Unknown profile names still warn and fall back to the default profile.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_PROFILE_CLI_SELECTION.md`** documenting:
+  - the new CLI selector
+  - the precedence order
+  - the unchanged default behavior
+  - the limitations that remain unchanged
+
+### Version
+- Bumped to **6.0.41**.
+
 ## [6.0.40] - 2026-04-05
 
 ### Refactored — The "Native UI Profile Environment Selection" Release
