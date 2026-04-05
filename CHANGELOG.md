@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.40] - 2026-04-05
+
+### Refactored — The "Native UI Profile Environment Selection" Release
+
+#### 🧩 Sixth Concrete Option C Refinement Landed in Code
+- Added a tiny registry-backed environment selection seam for named native shell launch profiles.
+- Updated:
+  - `gui/omni/src/NativeUiProfileRegistry.hpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+  - `gui/omni/src/NativeUiBootstrap.cpp`
+- Added registry helpers for:
+  - `native_ui_profile_environment_variable()`
+  - `selected_launch_profile_name()`
+  - `create_launch_profile_from_environment()`
+- The active selection variable is now:
+  - `BOBFILEZ_NATIVE_UI_PROFILE`
+- Behavior:
+  - no env var → use the default launch profile
+  - known profile name → use that named profile
+  - unknown profile name → emit a warning and fall back to the default profile
+- This keeps bootstrap logic small while giving future alternate launch profiles a real, explicit selection hook.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_PROFILE_ENV_SELECTION.md`** documenting:
+  - the new environment-driven selection path
+  - the fallback behavior
+  - the unchanged default runtime behavior
+  - the limitations that remain unchanged
+
+### Version
+- Bumped to **6.0.40**.
+
 ## [6.0.39] - 2026-04-05
 
 ### Refactored — The "Native UI Profile Registry" Release

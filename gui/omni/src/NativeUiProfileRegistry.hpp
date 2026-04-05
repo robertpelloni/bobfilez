@@ -10,11 +10,14 @@ namespace fo::gui {
 
 QString default_runtime_bundle_name();
 QString default_launch_profile_name();
+QString native_ui_profile_environment_variable();
+QString selected_launch_profile_name();
 
 QStringList available_runtime_bundle_names();
 QStringList available_launch_profile_names();
 
 NativeUiRuntimeBundle create_runtime_bundle_by_name(const QString &name);
 NativeUiLaunchProfile create_launch_profile_by_name(const QString &name);
+NativeUiLaunchProfile create_launch_profile_from_environment();
 
 } // namespace fo::gui

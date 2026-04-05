@@ -10,7 +10,7 @@ int run_omni_shell(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    const NativeUiLaunchProfile profile = create_launch_profile_by_name(default_launch_profile_name());
+    const NativeUiLaunchProfile profile = create_launch_profile_from_environment();
     if (!profile.is_valid()) {
         return -1;
     }
