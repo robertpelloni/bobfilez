@@ -32,4 +32,14 @@ NativeUiLaunchProfile create_default_omni_launch_profile()
     return profile;
 }
 
+NativeUiLaunchProfile create_dashboard_only_launch_profile()
+{
+    NativeUiLaunchProfile profile;
+    profile.name = QStringLiteral("omni-dashboard-only");
+    profile.main_qml = QUrl(QStringLiteral("qrc:/DashboardShell.qml"));
+    profile.runtime_bundle = create_default_omni_runtime_bundle();
+    profile.object_created_handler = create_root_object_failure_handler(profile.main_qml);
+    return profile;
+}
+
 } // namespace fo::gui

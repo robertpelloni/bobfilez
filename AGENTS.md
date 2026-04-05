@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.40
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.42
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,10 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.40)
+## Current Status (v6.0.42)
 
+- ✅ **Dashboard-Only Native Launch Profile**: Added the first genuinely alternate named launch profile, `omni-dashboard-only`, backed by a different root QML surface (`qrc:/DashboardShell.qml`) instead of being a fake alias of the full shell root.
+- ✅ **Native UI Profile CLI Selection**: Implemented the seventh Option C refinement by adding a command-line selection seam for named launch profiles with explicit CLI > env > default precedence.
 - ✅ **Native UI Profile Environment Selection**: Implemented the sixth Option C refinement by adding an environment-driven selection seam for named launch profiles via `BOBFILEZ_NATIVE_UI_PROFILE`, with safe fallback to the default profile when unset or unknown.
 - ✅ **Native UI Profile Registry**: Implemented the fifth Option C refinement by adding a small registry/helper layer for named launch profiles and runtime bundles, allowing the bootstrap to select the default profile by name instead of directly constructing policy inline.
 - ✅ **BTK Upstream Refresh**: Updated `libs/btk` to the newer upstream master, rebased the two required local MSVC fixes on top of it, confirmed BTK still builds successfully on this host, and verified bobfilez still stops at the same honest downstream boundary: missing `Declarative`.

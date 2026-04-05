@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.0.42] - 2026-04-05
+
+### Added — The "Dashboard-Only Native Launch Profile" Release
+
+#### 🧩 First Genuinely Alternate Named Launch Profile Added
+- Added the first real alternate native shell launch profile:
+  - **`omni-dashboard-only`**
+- This is not a fake alias for the existing shell root. The new profile launches a different root QML surface:
+  - default profile → `qrc:/main.qml`
+  - dashboard-only profile → `qrc:/DashboardShell.qml`
+- Added:
+  - `gui/omni/assets/DashboardShell.qml`
+- Updated:
+  - `gui/omni/assets/qml.qrc`
+  - `gui/omni/src/NativeUiLaunchProfile.hpp`
+  - `gui/omni/src/NativeUiLaunchProfile.cpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+- Added `create_dashboard_only_launch_profile()` and registered the profile name in the launch-profile registry.
+- The new profile can be selected through the already-added selection seams:
+  - CLI: `--native-ui-profile=omni-dashboard-only`
+  - env: `BOBFILEZ_NATIVE_UI_PROFILE=omni-dashboard-only`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_DASHBOARD_PROFILE.md`** documenting:
+  - why this profile is a real alternate launch mode
+  - the new root QML path
+  - how to select the profile via CLI or environment
+  - why the dashboard-only surface is a good first alternate profile
+
+### Version
+- Bumped to **6.0.42**.
+
 ## [6.0.41] - 2026-04-05
 
 ### Refactored — The "Native UI Profile CLI Selection" Release

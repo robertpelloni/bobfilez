@@ -3,6 +3,7 @@
         <file>main.qml</file>
         <file>AcrylicBackground.qml</file>
         <file>Dashboard.qml</file>
+        <file>DashboardShell.qml</file>
         <file>DesktopIcons.qml</file>
         <file>StartMenu.qml</file>
         <file>Taskbar.qml</file>

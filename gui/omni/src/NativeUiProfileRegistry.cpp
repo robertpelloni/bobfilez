@@ -55,7 +55,10 @@ QStringList available_runtime_bundle_names()
 
 QStringList available_launch_profile_names()
 {
-    return {default_launch_profile_name()};
+    return {
+        default_launch_profile_name(),
+        QStringLiteral("omni-dashboard-only")
+    };
 }
 
 NativeUiRuntimeBundle create_runtime_bundle_by_name(const QString &name)
@@ -71,6 +74,10 @@ NativeUiLaunchProfile create_launch_profile_by_name(const QString &name)
 {
     if (name == default_launch_profile_name()) {
         return create_default_omni_launch_profile();
+    }
+
+    if (name == QStringLiteral("omni-dashboard-only")) {
+        return create_dashboard_only_launch_profile();
     }
 
     return {};

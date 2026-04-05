@@ -1,69 +1,55 @@
-# HANDOFF.md — bobfilez Session 56
+# HANDOFF.md — bobfilez Session 57
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.41  
-**Focus:** Native UI profile CLI selection — seventh concrete Option C refinement with CLI+env-driven named profile choice
+**Version:** 6.0.42  
+**Focus:** Dashboard-only native launch profile — first genuinely alternate named profile on the Option C launch architecture
 
 ---
 
 ## What Was Done This Session
 
-### 1. Completed the BTK Upstream Refresh Checkpoint
-- Updated the `libs/btk` submodule against the newer upstream `origin/master` tip:
-  - **`18e3770af`** — `build: validate BTK focus reason package smoke`
-- Rebased bobfilez's two required local BTK MSVC fixes on top of that newer upstream state:
-  - **`0546ebd70`** — `fix: restore msvc build for focus and input routing`
-  - **`4f5a809e4`** — `fix: restore qapplication property lookups for msvc`
-- Force-updated the reproducible pushed BTK branch carrying those rebased fixes:
-  - **`origin/pi/msvc-focus-fixes-20260405`**
+### 1. Added the First Genuinely Alternate Named Launch Profile
+- Added a real alternate native shell launch profile:
+  - **`omni-dashboard-only`**
+- This is not a fake alias for the full shell. It launches a different root QML surface:
+  - default profile → `qrc:/main.qml`
+  - dashboard-only profile → `qrc:/DashboardShell.qml`
 
-### 2. Re-Validated BTK and the Downstream Consumer Boundary
-- Re-ran **`scripts/build_btk_inplace.bat`** after the upstream refresh and rebase.
-- Result:
-  - BTK still configures and builds successfully on this host
-- Re-ran **`scripts/build_btk_gui.bat`** against the refreshed BTK state.
-- Result:
-  - bobfilez still stops at the same honest downstream boundary:
-    - missing BTK/CopperSpice component/target: **`Declarative`**
-- This confirms the strategic conclusion is stable even on the newer upstream BTK snapshot and is not just an artifact of an older provider revision.
-
-### 3. Executed the Seventh Real Option C Refinement in Code
-- Extended the launch-profile selection seam so profile choice can now come from the command line as well as the environment.
-- Updated:
-  - **`gui/omni/src/NativeUiProfileRegistry.hpp`**
-  - **`gui/omni/src/NativeUiProfileRegistry.cpp`**
-  - **`gui/omni/src/NativeUiBootstrap.cpp`**
-- Added registry helpers for:
-  - `native_ui_profile_argument_prefix()`
-  - `selected_launch_profile_name(int argc, char *argv[])`
-  - `create_launch_profile_from_selection(int argc, char *argv[])`
-- The active CLI selector is now:
-  - **`--native-ui-profile=<name>`**
-- Selection precedence is now explicit:
-  1. command-line override
-  2. environment variable override via **`BOBFILEZ_NATIVE_UI_PROFILE`**
-  3. default launch profile
-- Unknown profile names still warn and fall back to the default profile.
-
-### 4. Preserved Default Behavior While Adding a Real Operational Override Path
-- The active shell still launches the same way by default.
-- No runtime/provider claim changed.
-- This only adds a clean, registry-backed way to exercise alternate named launch profiles later without modifying bootstrap code, and without requiring environment changes for one-off runs.
-
-### 5. Documented the New CLI+Env Selection Path
+### 2. Added a Dedicated Dashboard-Only Root Window
 - Added:
-  - **`docs/ai/implementation/BTK_UPSTREAM_REFRESH_2026_04_05.md`**
-  - **`docs/ai/implementation/NATIVE_UI_PROFILE_REGISTRY.md`**
-  - **`docs/ai/implementation/NATIVE_UI_PROFILE_ENV_SELECTION.md`**
-  - **`docs/ai/implementation/NATIVE_UI_PROFILE_CLI_SELECTION.md`**
-- The new CLI-selection doc records:
-  - the active `--native-ui-profile=<name>` selector
-  - the precedence order
-  - the fallback behavior
-  - the unchanged default runtime behavior
+  - **`gui/omni/assets/DashboardShell.qml`**
+- The new root window provides a focused dashboard-only launch mode built around the existing `Dashboard` surface.
+- Updated:
+  - **`gui/omni/assets/qml.qrc`**
+- Added `DashboardShell.qml` to the packaged QML resources so it is available as a real alternate root.
+
+### 3. Wired the Alternate Profile into the Launch-Profile Architecture
+- Updated:
+  - **`gui/omni/src/NativeUiLaunchProfile.hpp`**
+  - **`gui/omni/src/NativeUiLaunchProfile.cpp`**
+  - **`gui/omni/src/NativeUiProfileRegistry.cpp`**
+- Added:
+  - `create_dashboard_only_launch_profile()`
+- Registered the new profile name:
+  - **`omni-dashboard-only`**
+- This means the existing selection seams can now exercise a genuinely different launch mode instead of only resolving the default shell profile.
+
+### 4. Preserved Default Behavior While Making the Architecture Prove Itself
+- The default shell launch path remains unchanged.
+- No runtime/provider claim changed.
+- This change proves that the launch-profile architecture is now doing real work: a named alternate launch mode can be added without rewriting bootstrap logic.
+
+### 5. Documented the First Real Alternate Launch Mode
+- Added:
+  - **`docs/ai/implementation/NATIVE_UI_DASHBOARD_PROFILE.md`**
+- The document records:
+  - why this profile is a real alternate launch mode
+  - the alternate root QML path
+  - how to select it via CLI or environment
+  - why the dashboard-only surface is a good first alternate profile
 
 ### 6. Release / Metadata Alignment
-- Reconciled release/docs metadata to **6.0.41**.
+- Reconciled release/docs metadata to **6.0.42**.
 - Updated:
   - **`VERSION.md`**
   - **`core/include/fo/core/version.hpp`**
@@ -81,7 +67,7 @@
 | BTK Declarative/QML support | 🔴 Deeper upstream/provider readiness gap confirmed | Round 4 proved the issue is broader than a missing component-list entry: when `Declarative` is experimentally re-enabled, the module immediately hits stale declarative-specific CMake integration, obsolete metatype declarations, and fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`. |
 | BTK vs bobfilez declarative API generation | 🔴 Direct mismatch confirmed | Round 5 proved BTK's current declarative surface is `QDeclarative*`-era and exposes no discovered `QQml*` / `QQuick*` provider surface, while bobfilez's active bootstrap is explicitly `QQmlApplicationEngine`-based. |
 | Recommended project strategy | 🟢 Decision documented | Round 6 formalized the least-destructive path: keep bobfilez on a modern QQml-style shell path, reduce provider coupling, and treat BTK modernization as a separate upstream R&D effort rather than the immediate app runtime target. |
-| Option C execution status | 🟡 In progress | Round 7 extracted the active shell runtime bootstrap out of `main.cpp`, Round 8 separated bootstrap/runtime/registration responsibilities, Round 9 turned launch policy into explicit configuration, Round 10 refined that into named launch profiles and runtime bundles, Round 11 added a small profile-registry/helper layer, Round 12 added an env-driven selection seam for named launch profiles, and Round 13 added CLI-aware profile selection with explicit CLI > env > default precedence. |
+| Option C execution status | 🟡 In progress | Round 7 extracted the active shell runtime bootstrap out of `main.cpp`, Round 8 separated bootstrap/runtime/registration responsibilities, Round 9 turned launch policy into explicit configuration, Round 10 refined that into named launch profiles and runtime bundles, Round 11 added a small profile-registry/helper layer, Round 12 added an env-driven selection seam for named launch profiles, Round 13 added CLI-aware profile selection with explicit CLI > env > default precedence, and Round 14 added the first genuinely alternate named launch profile: `omni-dashboard-only`. |
 | BTK upstream refresh status | 🟢 Revalidated | Latest upstream BTK master plus the two rebased MSVC fixes still builds successfully here, and bobfilez still stops at the same missing-`Declarative` boundary. |
 | BTK native migration plan | 🟡 In progress | Active BobUI-specific provider/bootstrap assumptions remain removed from bobfilez, but the remaining blocker is now whether BTK can provide the QML/Declarative layer bobfilez still depends on. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
@@ -97,7 +83,7 @@
 2. **Continue executing Option C incrementally in code**
    - keep bobfilez aligned to a modern QQml-style shell path
    - continue reducing provider assumptions where practical
-   - next likely target: add one additional named profile or bundle only if it represents a real alternate launch policy worth exercising, now that both env-driven and CLI-driven selection seams exist
+   - next likely target: decide whether a second alternate profile (for example a reduced diagnostics shell) is actually worth adding now that the first real alternate profile exists and the selection seams are proven
 
 3. **Treat the refreshed BTK state as the current research baseline**
    - use the newer upstream BTK master plus the two rebased local MSVC fixes when probing BTK further
