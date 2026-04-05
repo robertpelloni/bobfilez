@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.47
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.48
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -96,8 +96,11 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.47)
+## Current Status (v6.0.48)
 
+- ✅ **Functional Multi-Frontend Parity**: Enhanced the newly created `frontends/` with actual core interactions.
+- ✅ **React Web UI (No-Build SPA)**: The `bobui_web/public/react/app.js` React frontend is now a fully functional SPA communicating directly with the `fo_cli` backend via the Express API. It provides interactive **Scanner** and **Duplicates** views with paginated result tables and search triggers.
+- ✅ **JUCE Native Parity**: Expanded the `fo_juce_demo` target (`frontends/juce/src/main.cpp`) to invoke an asynchronous native OS file browser (`juce::FileChooser`). It triggers a directory selection which routes directly into the C++ `fo::core::Registry<fo::core::IFileScanner>` executing a true backend `std` scan, aggregating byte sizes, and safely reporting accurate results directly to the JUCE GUI canvas without blocking the main message thread.
 - ✅ **Multi-Frontend Matrix**: Added demo targets for plain Qt6, BobUI, JUCE, BTK, and BobGUI to explicitly support the multi-framework requirement. Added a lightweight React Web UI alongside the classic `bobui_web` dashboard. Added `libs/JUCE` as a submodule and officially tracked `libs/bobui` and `libs/btk` in `.gitmodules`. Added explicit build scripts for the new frontend demos.
 
 - ✅ **BobUI Runtime Reality Check**: Refined the active BobUI direction so bobfilez now treats BobUI as the active Omni/UI layer while discovering Qt6 packages via `QT6_ROOT` / `QT_ROOT` / `QTDIR` / `CMAKE_PREFIX_PATH` instead of over-assuming the local BobUI tree is always a complete self-contained Qt6 QML provider.

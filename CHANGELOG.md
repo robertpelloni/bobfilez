@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.48] - 2026-04-05
+
+### Added — The "Functional Multi-Frontend Parity" Release
+
+#### 🌐 React Web UI Functional Parity
+- Greatly expanded the `bobui_web/public/react/app.js` React SPA to connect directly with the `fo_cli` backend via the Express API.
+- Added an interactive **File Scanner** view that triggers `/api/scan` and displays paginated results (filename, size).
+- Added an interactive **Duplicate Finder** view that triggers `/api/duplicates` (using the fast hash engine) to group and present duplicated files.
+- The web frontend now provides a true, functional, and visually appealing representation of the backend filez engine using only native ES Modules and `esm.sh` CDN imports.
+
+#### 🎼 JUCE Native GUI Functional Parity
+- Enhanced the `fo_juce_demo` target (`frontends/juce/src/main.cpp`) to prove deep, direct C++ linking against the static `fo_core` library.
+- Added a native OS file browser (`juce::FileChooser`) that allows users to pick a directory path.
+- Wired the directory selection into the C++ `fo::core::Registry<fo::core::IFileScanner>` to execute a real backend `std` scan, aggregating byte sizes and reporting accurate results directly to the JUCE GUI canvas.
+- Implemented background threading (`juce::Thread::launch`) to ensure the scan executes asynchronously without blocking the JUCE message thread, emitting the results to the UI via `juce::MessageManager::callAsync`.
+
+### Version
+- Bumped to **6.0.48**.
+
 ## [6.0.47] - 2026-04-05
 
 ### Added — The "Multi-Frontend Matrix" Release
