@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.33] - 2026-04-05
+
+### Documented — The "BTK Framework Decision Matrix" Release
+
+#### 🧭 Strategy Converted from Probe History into an Actionable Architecture Decision
+- Added **`docs/ai/design/BTK_FRAMEWORK_DECISION_MATRIX.md`** to turn the BTK probe series into a decision-ready architecture artifact.
+- The matrix compares four realistic paths:
+  - upstream BTK modernization toward a `QQml*` / `QQuick*`-class provider
+  - porting bobfilez backward to a `QDeclarative*` era stack
+  - keeping bobfilez on a modern QQml-style shell path while decoupling provider assumptions
+  - replacing the QML shell architecture entirely
+- Included a scored comparison across preservation of current shell work, delivery risk, upstream burden, regression risk, and strategic optionality.
+- The documented recommendation is now explicit:
+  - **primary app strategy:** keep bobfilez on a modern QQml-style shell path and decouple provider assumptions
+  - **optional parallel R&D strategy:** treat BTK modernization as a separate upstream framework effort, not as an immediate bobfilez integration unblock
+
+#### 📊 Architectural Conclusion Sharpened Again
+- Round 5's findings are now translated into a concrete project decision:
+  - BTK is currently blocked not just by missing package exports and stale declarative internals, but also by a direct `QDeclarative*` vs `QQml*` generation mismatch
+  - therefore the least-destructive near-term path is to stop treating BTK as the immediate native runtime for bobfilez's active shell bootstrap
+
+#### 📘 Documentation
+- Added **`docs/ai/design/BTK_FRAMEWORK_DECISION_MATRIX.md`** including:
+  - a scored option matrix
+  - a phased plan
+  - a mermaid decision flow
+  - explicit non-recommendations
+
+### Version
+- Bumped to **6.0.33**.
+
 ## [6.0.32] - 2026-04-05
 
 ### Validated — The "BTK Native Provider Probe Round 5" Release

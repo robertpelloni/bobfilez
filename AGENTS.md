@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.32
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.33
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.32)
+## Current Status (v6.0.33)
 
+- ✅ **BTK Framework Decision Matrix**: Converted the BTK probe series into an explicit architecture decision. The documented least-destructive app strategy is now to keep bobfilez on its modern QQml-style shell path, reduce provider coupling, and treat BTK modernization as a separate upstream R&D effort rather than the immediate shell runtime target.
 - ✅ **BTK Native Provider Probe Round 5**: Confirmed the compatibility gap is also a framework-generation mismatch: BTK's current declarative surface is `QDeclarative*`-era and no real `QQml*` / `QQuick*` provider surface was found, while bobfilez's active native bootstrap is explicitly `QQmlApplicationEngine`-based.
 - ✅ **BTK Native Provider Probe Round 4**: Experimentally re-enabled BTK `Declarative` just long enough to prove the gap is deeper than a missing top-level component toggle: the module immediately hits stale declarative-specific CMake, obsolete metatype usage, and fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`.
 - ✅ **BTK Native Provider Probe Round 3**: Repaired BTK's earlier MSVC build blockers, confirmed `scripts/build_btk_inplace.bat` now produces real framework outputs such as `CsCore2.1.lib`, and proved the next bobfilez-side blocker is now the absence of an exported `Declarative` / QML component in the current BTK package surface.
