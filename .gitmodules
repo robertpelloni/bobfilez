@@ -421,6 +421,9 @@
 [submodule "libs/btk"]
 	path = libs/btk
 	url = https://github.com/robertpelloni/btk.git
+[submodule "libs/bobui"]
+	path = libs/bobui
+	url = https://github.com/robertpelloni/bobui.git
 [submodule "libs/pandoc"]
 	path = libs/pandoc
 	url = https://github.com/jgm/pandoc
@@ -505,3 +508,6 @@
 [submodule "libs/bobgui"]
 	path = libs/bobgui
 	url = https://github.com/robertpelloni/bobgui
+[submodule "libs/JUCE"]
+	path = libs/JUCE
+	url = https://github.com/juce-framework/JUCE.git

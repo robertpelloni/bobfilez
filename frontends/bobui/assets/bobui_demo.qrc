@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/frontends/bobui">
+        <file>Main.qml</file>
+    </qresource>
+</RCC>

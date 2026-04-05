@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.46
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.47
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -96,7 +96,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.46)
+## Current Status (v6.0.47)
+
+- ✅ **Multi-Frontend Matrix**: Added demo targets for plain Qt6, BobUI, JUCE, BTK, and BobGUI to explicitly support the multi-framework requirement. Added a lightweight React Web UI alongside the classic `bobui_web` dashboard. Added `libs/JUCE` as a submodule and officially tracked `libs/bobui` and `libs/btk` in `.gitmodules`. Added explicit build scripts for the new frontend demos.
 
 - ✅ **BobUI Runtime Reality Check**: Refined the active BobUI direction so bobfilez now treats BobUI as the active Omni/UI layer while discovering Qt6 packages via `QT6_ROOT` / `QT_ROOT` / `QTDIR` / `CMAKE_PREFIX_PATH` instead of over-assuming the local BobUI tree is always a complete self-contained Qt6 QML provider.
 - ✅ **BobUI MSVC qtmochelpers Fix**: Patched `libs/bobui/src/corelib/kernel/qtmochelpers.h` so the in-place MSVC BobUI build gets past the old `qlocale.cpp` / `qtmochelpers.h` generic-lambda lookup failure; pushed the fix upstream and advanced the bobfilez gitlink to the merged BobUI `main` state.

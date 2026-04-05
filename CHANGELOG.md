@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.47] - 2026-04-05
+
+### Added — The "Multi-Frontend Matrix" Release
+
+#### 🧩 Multi-Frontend Scaffolding and Submodules
+- Explicitly verified and mapped all requested native UI lanes:
+  - **Qt**: Plain Qt6 Widgets demo (`fo_qt_demo`).
+  - **BobUI**: OmniUI-based QML integration demo (`fo_bobui_demo`).
+  - **JUCE**: Audio-oriented native UI (`fo_juce_demo`).
+  - **BTK**: CopperSpice fork widgets app (`fo_btk_demo`).
+  - **BobGUI**: GTK fork Meson-based app (`bobfilez-bobgui-demo`).
+  - **React Web UI**: Lightweight React 18 browser shell served alongside the existing web dashboard.
+- Added `libs/JUCE` as a tracked Git submodule.
+- Corrected the `.gitmodules` mapping to officially track `libs/bobui` and `libs/btk`.
+- Added explicit CMake configuration options for the native targets (`FO_BUILD_QT_DEMO`, `FO_BUILD_BOBUI_DEMO`, `FO_BUILD_JUCE_DEMO`, `FO_BUILD_BTK_DEMO`).
+
+#### 🛠️ Build Scripts for the New Matrix
+- Added `scripts/build_qt_gui.bat`
+- Added `scripts/build_juce_gui.bat`
+- Added `scripts/build_bobgui_gui.bat`
+
+#### 🌐 React Web UI Lane
+- Added a lightweight, no-build React frontend using ES modules and `unpkg` CDNs.
+- Exposed under `bobui_web/public/react/`.
+- Updated `bobui_web/server.js` to include an `/api/health` endpoint that checks backend CLI availability and provides the frontend lane status.
+- Added a launch button on the legacy `bobui_web` dashboard linking to the new React UI.
+
+### Version
+- Bumped to **6.0.47**.
+
 ## [6.0.46] - 2026-04-05
 
 ### Refined — The "BobUI Runtime Reality Check" Release

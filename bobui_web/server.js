@@ -7,9 +7,16 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const CLI = path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe');
+const CLI_CANDIDATES = [
+    path.resolve(__dirname, '..', 'build-msvc', 'cli', 'fo_cli.exe'),
+    path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe')
+];
+const CLI = CLI_CANDIDATES.find(fs.existsSync) || CLI_CANDIDATES[0];
 
 function runCli(args, timeout = 120000) {
+    if (!fs.existsSync(CLI)) {
+        return Promise.reject(new Error(`CLI not found. Looked for: ${CLI_CANDIDATES.join(', ')}`));
+    }
     return new Promise((resolve, reject) => {
         execFile(CLI, args, { maxBuffer: 50 * 1024 * 1024, timeout }, (err, stdout, stderr) => {
             if (err && err.killed) return reject(new Error('Command timed out'));
@@ -18,6 +25,15 @@ function runCli(args, timeout = 120000) {
         });
     });
 }
+
+app.get('/api/health', async (req, res) => {
+    res.json({
+        ok: true,
+        cli: CLI,
+        cliExists: fs.existsSync(CLI),
+        frontendLanes: ['classic-web', 'react-web', 'qt', 'bobui', 'juce', 'btk', 'bobgui']
+    });
+});
 
 // ── Scan ──
 app.post('/api/scan', async (req, res) => {
