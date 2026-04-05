@@ -19,6 +19,8 @@ add_executable(fo_omni
     src/NativeUiBootstrap.hpp
     src/NativeUiLaunchProfile.cpp
     src/NativeUiLaunchProfile.hpp
+    src/NativeUiProfileRegistry.cpp
+    src/NativeUiProfileRegistry.hpp
     src/NativeUiRuntime.cpp
     src/NativeUiRuntime.hpp
     src/NativeUiRuntimeBundle.cpp

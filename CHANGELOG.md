@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.39] - 2026-04-05
+
+### Refactored — The "Native UI Profile Registry" Release
+
+#### 🧩 Fifth Concrete Option C Refinement Landed in Code
+- Added a small lookup/helper layer for named launch profiles and runtime bundles:
+  - `gui/omni/src/NativeUiProfileRegistry.hpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+- Updated the active bootstrap so it no longer directly constructs the default profile factory result itself.
+- `gui/omni/src/NativeUiBootstrap.cpp` now asks the registry for:
+  - the default launch profile name
+  - the corresponding launch profile by name
+- This keeps bootstrap logic focused on orchestration rather than policy lookup as the number of named launch packages grows.
+
+#### 🧹 GUI Build Wiring Updated
+- Updated:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- Added the new profile-registry files to the GUI source lists so the selection seam is represented honestly in both native GUI targets.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_PROFILE_REGISTRY.md`** documenting:
+  - the new registry/helper surface
+  - the updated bootstrap flow
+  - why this improves Option C without changing runtime behavior
+  - the limitations that remain unchanged
+
+### Version
+- Bumped to **6.0.39**.
+
 ## [6.0.38] - 2026-04-05
 
 ### Validated — The "BTK Upstream Refresh" Release

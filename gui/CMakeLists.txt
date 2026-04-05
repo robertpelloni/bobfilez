@@ -16,6 +16,8 @@ set(GUI_SOURCES
     omni/src/NativeUiBootstrap.hpp
     omni/src/NativeUiLaunchProfile.cpp
     omni/src/NativeUiLaunchProfile.hpp
+    omni/src/NativeUiProfileRegistry.cpp
+    omni/src/NativeUiProfileRegistry.hpp
     omni/src/NativeUiRuntime.cpp
     omni/src/NativeUiRuntime.hpp
     omni/src/NativeUiRuntimeBundle.cpp

@@ -2,7 +2,7 @@
 
 #include <QGuiApplication>
 
-#include "NativeUiLaunchProfile.hpp"
+#include "NativeUiProfileRegistry.hpp"
 
 namespace fo::gui {
 
@@ -10,7 +10,7 @@ int run_omni_shell(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    const NativeUiLaunchProfile profile = create_default_omni_launch_profile();
+    const NativeUiLaunchProfile profile = create_launch_profile_by_name(default_launch_profile_name());
     if (!profile.is_valid()) {
         return -1;
     }
