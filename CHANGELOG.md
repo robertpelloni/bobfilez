@@ -1,5 +1,38 @@
 # Changelog
 
+## [6.0.34] - 2026-04-05
+
+### Refactored — The "Native UI Bootstrap Seam" Release
+
+#### 🧩 First Concrete Option C Execution Step Landed in Code
+- Added a provider-neutral bootstrap seam for the active native shell entrypoint:
+  - `gui/omni/src/NativeUiBootstrap.hpp`
+  - `gui/omni/src/NativeUiBootstrap.cpp`
+- Refactored `gui/omni/src/main.cpp` into a minimal launcher that now delegates to `fo::gui::run_omni_shell(...)` instead of directly hardcoding the active declarative runtime path.
+- Moved current runtime-specific responsibilities into the bootstrap layer, including:
+  - `QGuiApplication` creation
+  - active declarative-engine creation/loading
+  - QML type registration for `FileModel`, `TreemapModel`, and `NativeMarkdownView`
+  - root-object failure handling for `qrc:/main.qml`
+- Introduced a narrow internal runtime interface so future provider/runtime work can target a smaller seam instead of rewriting the top-level entrypoint again.
+
+#### 🧹 GUI Source List Alignment
+- Updated:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- Ensured the GUI source lists include the new bootstrap files.
+- Also aligned `gui/CMakeLists.txt` to include `TreemapModel.cpp/.h`, keeping the source list coherent with the shell's QML type registration path.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_BOOTSTRAP_SEAM.md`** documenting:
+  - the rationale for extracting the seam
+  - the exact behavior preserved
+  - what this refactor does and does not solve
+  - how it fits into Option C from the BTK framework decision matrix
+
+### Version
+- Bumped to **6.0.34**.
+
 ## [6.0.33] - 2026-04-05
 
 ### Documented — The "BTK Framework Decision Matrix" Release

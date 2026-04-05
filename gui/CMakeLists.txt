@@ -12,8 +12,12 @@ message(STATUS "fo_gui will use BTK-provided native framework packages when avai
 
 set(GUI_SOURCES
     omni/src/main.cpp
+    omni/src/NativeUiBootstrap.cpp
+    omni/src/NativeUiBootstrap.hpp
     omni/src/FileModel.cpp
     omni/src/FileModel.h
+    omni/src/TreemapModel.cpp
+    omni/src/TreemapModel.h
     omni/src/NativeMarkdownView.cpp
     omni/src/NativeMarkdownView.h
 )

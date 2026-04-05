@@ -15,6 +15,8 @@ message(STATUS "fo_omni will use BTK-provided native framework packages when ava
 
 add_executable(fo_omni
     src/main.cpp
+    src/NativeUiBootstrap.cpp
+    src/NativeUiBootstrap.hpp
     src/FileModel.cpp
     src/TreemapModel.cpp
     src/NativeMarkdownView.cpp
