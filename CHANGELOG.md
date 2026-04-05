@@ -1,5 +1,43 @@
 # Changelog
 
+## [6.0.35] - 2026-04-05
+
+### Refactored — The "Native UI Runtime Policy Extraction" Release
+
+#### 🧩 Second Concrete Option C Extraction Step Landed in Code
+- Continued reducing direct provider coupling in the active shell bootstrap by separating three concerns that had still been mixed inside `NativeUiBootstrap.cpp`:
+  - bootstrap orchestration
+  - declarative runtime construction/adapter selection
+  - QML type-registration policy
+- Added:
+  - `gui/omni/src/NativeUiRuntime.hpp`
+  - `gui/omni/src/NativeUiRuntime.cpp`
+  - `gui/omni/src/OmniQmlRegistration.hpp`
+  - `gui/omni/src/OmniQmlRegistration.cpp`
+- Refactored `gui/omni/src/NativeUiBootstrap.cpp` so it now primarily orchestrates:
+  - `QGuiApplication` creation
+  - invocation of registration policy
+  - default runtime creation via the runtime factory
+  - root-object failure handling
+  - loading `qrc:/main.qml`
+- This keeps the active runtime behavior the same while making runtime implementation and registration policy independently swappable later.
+
+#### 🧹 GUI Build Wiring Updated
+- Updated:
+  - `gui/CMakeLists.txt`
+  - `gui/omni/CMakeLists.txt`
+- Added the new runtime/registration files to the GUI source lists so the extraction is reflected honestly in both native GUI targets.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_RUNTIME_POLICY_EXTRACTION.md`** documenting:
+  - the remaining coupling after the first bootstrap seam
+  - the new responsibility split
+  - the behavior preserved
+  - what this extraction does and does not solve
+
+### Version
+- Bumped to **6.0.35**.
+
 ## [6.0.34] - 2026-04-05
 
 ### Refactored — The "Native UI Bootstrap Seam" Release

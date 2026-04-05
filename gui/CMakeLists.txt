@@ -14,6 +14,10 @@ set(GUI_SOURCES
     omni/src/main.cpp
     omni/src/NativeUiBootstrap.cpp
     omni/src/NativeUiBootstrap.hpp
+    omni/src/NativeUiRuntime.cpp
+    omni/src/NativeUiRuntime.hpp
+    omni/src/OmniQmlRegistration.cpp
+    omni/src/OmniQmlRegistration.hpp
     omni/src/FileModel.cpp
     omni/src/FileModel.h
     omni/src/TreemapModel.cpp
