@@ -41,6 +41,11 @@ if errorlevel 1 exit /b %errorlevel%
 cd /d "%~dp0.."
 
 echo [INFO] BTK_ROOT=%BTK_ROOT%
+if exist "%~dp0prepare_btk_buildtree_package.bat" (
+    call "%~dp0prepare_btk_buildtree_package.bat" "%BTK_ROOT%"
+    if errorlevel 1 exit /b %errorlevel%
+)
+
 echo [INFO] Configuring BTK-backed GUI build into %BUILD_DIR%...
 cmake -S . -B "%BUILD_DIR%" -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=ON -DFO_BUILD_OMNI=ON -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON -DBTK_ROOT=%BTK_ROOT%
 if errorlevel 1 exit /b %errorlevel%

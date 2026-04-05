@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-04 | **Commit:** fb277a1a | **Branch:** main | **Version:** 6.0.28
+**Generated:** 2026-04-04 | **Commit:** ef263891 | **Branch:** main | **Version:** 6.0.29
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.28)
+## Current Status (v6.0.29)
 
+- ✅ **BTK Native Provider Probe Round 2**: Added a dedicated BTK build-tree package-prep step, repaired import-prefix handling for the prepared BTK/CopperSpice export files, and confirmed the remaining blocker is now the absence of built BTK libraries (for example `CsCore2.1.lib`) after BTK's own build fails in `btkinputowner.*`.
 - ✅ **BTK Native Provider Probe**: Registered `libs/btk` as a real tracked submodule, confirmed BTK configures in place on this host, fixed the initial BTK package-hint ordering bug in `cmake/BTKFrameworkSetup.cmake`, and demonstrated that the current blocker is now BTK build/export readiness rather than legacy BobUI wiring.
 - ✅ **BTK Native Framework Switch**: Replaced the active BobUI/Qt-fork integration path with a BTK-oriented provider model, added `cmake/BTKFrameworkSetup.cmake`, renamed the native GUI scripts to `build_btk_*.bat`, removed the BobUI-specific `OmniQmlRegistration` bootstrap dependency, and replaced active BobUI QML imports in the photo panels.
 - ✅ **QtQuick.Controls Gamification Reduction**: Removed `QtQuick.Controls` usage from `GamificationPanel.qml`, replacing labels, the `ProgressBar`, the `GroupBox` section, and the stock `ToolTip` behavior with plain `QtQuick` primitives and local helper components, reducing the global controls-import footprint from 35 QML files to 34.
@@ -200,6 +201,26 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-04 (Session 44)
+**Author:** GPT
+
+**Scope:** v6.0.29 BTK Native Provider Probe Round 2
+
+**Delivered:**
+- ✅ Added `scripts/prepare_btk_buildtree_package.py` and `scripts/prepare_btk_buildtree_package.bat`.
+- ✅ Updated `scripts/build_btk_gui.bat` to prepare a consumer-facing BTK build-tree package surface before probing bobfilez's BTK-backed GUI configure.
+- ✅ Repaired the earlier import-prefix issue in the prepared BTK/CopperSpice export files so imported targets now point at `libs/btk/build-btk` instead of a broken relative prefix.
+- ✅ Re-ran the BTK-backed GUI probe and confirmed the next blocker is now the absence of built BTK libraries such as `CsCore2.1.lib`, which directly traces back to BTK's own compile failure in `btkinputowner.*`.
+- ✅ Added `docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND2.md` documenting the improved prep step and the newly narrowed blocker.
+- ✅ Re-ran headless validation so the versioned state remains current.
+
+**Next Steps:**
+1. Fix BTK's own `btkinputowner.*` MSVC build failure so BTK can produce `CsCore2.1.lib` / related binaries.
+2. Re-probe bobfilez GUI / Omni against that finished BTK build surface.
+3. Only after BTK is building successfully should deeper BTK-native GUI adoption work continue.
 
 ---
 

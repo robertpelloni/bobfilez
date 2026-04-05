@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.0.29] - 2026-04-04
+
+### Validated — The "BTK Native Provider Probe Round 2" Release
+
+#### 🧪 BTK Build-Tree Package Prep Improved
+- Added:
+  - `scripts/prepare_btk_buildtree_package.py`
+  - `scripts/prepare_btk_buildtree_package.bat`
+- Updated `scripts/build_btk_gui.bat` to prepare a consumable BTK build-tree package surface before probing bobfilez's BTK-backed GUI configure.
+
+#### 🔍 Sharper BTK Consumer Finding
+- The earlier missing-companion-file and bad-import-prefix issues were bypassed by preparing and patching the generated BTK/CopperSpice export files in `libs/btk/build-btk`.
+- After that improvement, the BTK-backed bobfilez GUI probe now fails on a more meaningful downstream condition:
+  - imported target `CopperSpice::CsCore` references `libs/btk/build-btk/lib/CsCore2.1.lib`
+  - that file does not exist yet
+- This confirms the remaining blocker is now the absence of successfully built BTK libraries, which traces back to BTK's own compile failure in `btkinputowner.*`.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND2.md`** documenting the refined package-prep step, the corrected import-prefix handling, and the new narrowed blocker.
+
+### Version
+- Bumped to **6.0.29**.
+
 ## [6.0.28] - 2026-04-04
 
 ### Validated — The "BTK Native Provider Probe" Release
