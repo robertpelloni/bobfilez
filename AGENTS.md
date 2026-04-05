@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.43
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.44
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.43)
+## Current Status (v6.0.44)
 
+- ✅ **Native UI Profile Listing**: Added a user-facing `--list-native-ui-profiles` command so the launch-profile architecture is discoverable without inspecting code, while preserving the default launch behavior when the flag is absent.
 - ✅ **Explorer-Only Native Launch Profile**: Added the second genuinely alternate named launch profile, `omni-explorer-only`, backed by its own focused root QML surface (`qrc:/ExplorerShell.qml`) hosting `ExplorerWindow` with a local `FileModel` and minimal shell shim.
 - ✅ **Dashboard-Only Native Launch Profile**: Added the first genuinely alternate named launch profile, `omni-dashboard-only`, backed by a different root QML surface (`qrc:/DashboardShell.qml`) instead of being a fake alias of the full shell root.
 - ✅ **Native UI Profile CLI Selection**: Implemented the seventh Option C refinement by adding a command-line selection seam for named launch profiles with explicit CLI > env > default precedence.

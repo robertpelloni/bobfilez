@@ -12,6 +12,8 @@ QString default_runtime_bundle_name();
 QString default_launch_profile_name();
 QString native_ui_profile_environment_variable();
 QString native_ui_profile_argument_prefix();
+QString native_ui_profile_list_argument();
+bool should_list_launch_profiles(int argc, char *argv[]);
 QString selected_launch_profile_name();
 QString selected_launch_profile_name(int argc, char *argv[]);
 

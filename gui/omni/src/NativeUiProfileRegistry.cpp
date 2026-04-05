@@ -25,6 +25,24 @@ QString native_ui_profile_argument_prefix()
     return QStringLiteral("--native-ui-profile=");
 }
 
+QString native_ui_profile_list_argument()
+{
+    return QStringLiteral("--list-native-ui-profiles");
+}
+
+bool should_list_launch_profiles(int argc, char *argv[])
+{
+    const QString list_argument = native_ui_profile_list_argument();
+
+    for (int i = 1; i < argc; ++i) {
+        if (QString::fromLocal8Bit(argv[i]) == list_argument) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 QString selected_launch_profile_name()
 {
     const QString configured_name = QProcessEnvironment::systemEnvironment().value(native_ui_profile_environment_variable()).trimmed();

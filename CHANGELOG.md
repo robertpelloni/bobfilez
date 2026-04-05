@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.44] - 2026-04-05
+
+### Added — The "Native UI Profile Listing" Release
+
+#### 🧩 Eighth Concrete Option C Refinement Added a User-Facing Discovery Affordance
+- Added a dedicated CLI flag to list available native launch profiles without starting the GUI runtime:
+  - `--list-native-ui-profiles`
+- Updated:
+  - `gui/omni/src/NativeUiProfileRegistry.hpp`
+  - `gui/omni/src/NativeUiProfileRegistry.cpp`
+  - `gui/omni/src/NativeUiBootstrap.cpp`
+- Added registry helpers for:
+  - `native_ui_profile_list_argument()`
+  - `should_list_launch_profiles(int argc, char *argv[])`
+- When invoked, the native entrypoint now:
+  - prints the available launch profile names
+  - marks the default profile
+  - prints the active selection precedence rule
+  - exits without attempting to launch the GUI runtime
+- This makes the launch-profile architecture externally discoverable rather than only visible in code/docs.
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/NATIVE_UI_PROFILE_LISTING.md`** documenting:
+  - the new CLI flag
+  - the listing behavior
+  - why it improves launch-profile usability
+  - the unchanged runtime behavior when the flag is absent
+
+### Version
+- Bumped to **6.0.44**.
+
 ## [6.0.43] - 2026-04-05
 
 ### Added — The "Explorer-Only Native Launch Profile" Release
