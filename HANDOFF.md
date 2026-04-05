@@ -1,73 +1,55 @@
-# HANDOFF.md — bobfilez Session 45
+# HANDOFF.md — bobfilez Session 46
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.30  
-**Focus:** BTK native provider probe round 3 — BTK MSVC build fixed, Declarative/QML capability now the blocker
+**Version:** 6.0.31  
+**Focus:** BTK native provider probe round 4 — experimental Declarative enablement confirms stale module and missing QtScript dependency
 
 ---
 
 ## What Was Done This Session
 
-### 1. Repaired BTK's Earlier MSVC Build Failures
-- Patched the active `libs/btk` submodule to remove the earlier BTK-side blockers that prevented a complete in-place build.
-- Replaced unsupported `Q_DECLARE_FLAGS(...)` usage with BTK-compatible `using ... = QFlags<...>;` aliases in:
-  - **`libs/btk/src/core/kernel/btkinputowner.h`**
-  - **`libs/btk/src/gui/widgets/btkfocusoverlay.h`**
-  - **`libs/btk/src/plugins/bearer/networkmanager/qnetworkmanagerservice.h`**
-- Normalized BTK/CopperSpice string and property API usage in:
-  - **`libs/btk/src/gui/kernel/btkfocusdiagnostics.cpp`**
+### 1. Probed BTK Declarative Enablement Directly
+- Verified again that bobfilez's active native entrypoint still depends on a real QML stack:
+  - **`gui/omni/src/main.cpp`** uses `QGuiApplication`, `QQmlApplicationEngine`, and `qmlRegisterType(...)`
+- Inspected the BTK source tree and confirmed:
+  - **`libs/btk/src/declarative/`** exists
+  - the top-level BTK component list still does **not** include `Declarative`
+- To determine whether that omission was superficial or structural, temporarily re-enabled `Declarative` in BTK's top-level component list as a probe.
+
+### 2. Confirmed the BTK Declarative Module is Stale Even Before Deep Compilation
+- The first declarative-enable configure attempt failed immediately on stale declarative-specific CMake usage:
+  - obsolete `target_add_definitions(...)`
+- Applied the smallest temporary modernization necessary to continue probing:
+  - switched to `target_compile_definitions(...)`
+  - fixed the incorrect `function_generate_resources("${DECLARATIVE_SOURCES}")` usage by modernizing it toward the current target-based module pattern
+- This was deliberately treated as an experiment only, not as a claimed production-ready upstream declarative revival.
+
+### 3. Reached the Deeper Compile-Time Boundary
+- After the minimal declarative CMake modernization, BTK configured successfully with `Declarative` enabled and began compiling declarative sources.
+- The experiment then failed on stronger evidence that the module is not currently viable in this BTK branch:
+  - obsolete declarative metatype usage requiring `CS_DECLARE_METATYPE(TYPE)` instead of `Q_DECLARE_METATYPE(TYPE)`
+  - fatal missing QtScript-era headers, especially:
+    - **`QtScript/qscriptvalue.h`**
+- This confirmed the blocker is broader than a missing top-level component toggle.
+
+### 4. Preserved a Buildable BTK Submodule State After the Experiment
+- While working against the newer upstream BTK tip, restored the normal BTK MSVC build by fixing a regressed property-name path in:
   - **`libs/btk/src/gui/kernel/qapplication_cs.cpp`**
-  - **`libs/btk/src/gui/widgets/btkfocusoverlay.cpp`**
+- Reverted the temporary declarative-enable experiment changes so the normal BTK component set remains buildable.
+- Re-ran **`scripts/build_btk_inplace.bat`** and confirmed the normal BTK module set returns to a successful MSVC build.
+- Pushed the corrected BTK commit to the existing dedicated branch:
+  - **`pi/msvc-focus-fixes-20260405`**
 
-### 2. Verified BTK Now Builds Successfully on This Host
-- Re-ran **`scripts/build_btk_inplace.bat`** after the BTK-side fixes.
-- Result:
-  - BTK now completes its in-place MSVC build successfully
-  - expected outputs now exist under `libs/btk/build-btk/lib` / `bin`, including:
-    - `CsCore2.1.lib`
-    - `CsGui2.1.lib`
-    - `CsNetwork2.1.lib`
-    - plugin/runtime artifacts such as `CsGuiWin2.1.dll`
-- This closes the earlier Round 2 blocker where bobfilez still failed only because BTK had not produced its own libraries yet.
-
-### 3. Re-Ran the BTK-Backed bobfilez GUI Probe
-- Executed **`scripts/build_btk_gui.bat`** again after the successful BTK build.
-- Result:
-  - bobfilez no longer fails on missing `CsCore2.1.lib`
-  - the active configure failure is now:
-    - missing BTK/CopperSpice component/target: **`Declarative`**
-- The failure now occurs during `fo_resolve_btk_target(Declarative ...)`, which is a much more honest consumer boundary than earlier package-layout or missing-binary failures.
-
-### 4. Confirmed the Missing Declarative/QML Capability is Structural
-- Inspected the BTK source tree and found:
-  - **`libs/btk/src/declarative/CMakeLists.txt`** exists and defines `CsDeclarative`
-- Inspected BTK's top-level **`CMakeLists.txt`** and confirmed:
-  - `CS_OPTIONAL_COMPONENTS` currently includes:
-    - `Gui Multimedia Network OpenGL Sql Svg Vulkan WebKit XmlPatterns`
-  - **`Declarative` is not included**
-- Therefore:
-  - the BTK top-level build never adds `src/declarative`
-  - no `CsDeclarative` / `CopperSpice::CsDeclarative` target is built or exported
-  - bobfilez's QML-based GUI cannot currently resolve the framework module it needs
-
-### 5. Improved bobfilez-Side Probe Diagnostics
-- Updated **`cmake/BTKFrameworkSetup.cmake`**.
-- `fo_resolve_btk_target(...)` now reports:
-  - which candidate targets were checked
-  - which BTK/CopperSpice imported targets are actually available
-  - a clearer hint when the missing component is `Declarative`
-- This makes future BTK probe failures much easier to interpret and avoids re-investigating already solved package-layout issues.
-
-### 6. Documented the Probe Round 3 Findings
-- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND3.md`**.
+### 5. Documented the Probe Round 4 Findings
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND4.md`**.
 - The document records:
-  - the BTK-side MSVC build fixes
-  - the successful BTK in-place build result
-  - the new missing-`Declarative` boundary
-  - the conclusion that the remaining issue is now framework capability, not missing library outputs
+  - the temporary declarative-enable experiment
+  - the stale declarative-specific CMake findings
+  - the deeper compile-time QtScript dependency gap
+  - the conclusion that BTK's current Declarative/QML path is structurally incomplete in this branch
 
-### 7. Release / Metadata Alignment
-- Reconciled release/docs metadata to **6.0.30**.
+### 6. Release / Metadata Alignment
+- Reconciled release/docs metadata to **6.0.31**.
 - Updated:
   - **`VERSION.md`**
   - **`core/include/fo/core/version.hpp`**
@@ -80,8 +62,8 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Full BTK-backed GUI / Omni build | 🟡 Still blocked | BTK now builds successfully and produces real framework binaries on this host, but the current BTK package surface still does not export `Declarative`, so bobfilez's QML-based native GUI cannot yet configure against it. |
-| BTK Declarative/QML support | 🟡 Unresolved upstream/provider issue | `src/declarative` exists in BTK, but the top-level BTK component list does not currently build/export it. The `src/declarative` module also appears to assume additional `QtScript` / `CsScript` style dependencies, so enabling it may require more than a one-line component-list change. |
+| Full BTK-backed GUI / Omni build | 🟡 Still blocked | BTK now builds successfully for its normal enabled module set, but bobfilez's QML-based GUI still cannot configure because `Declarative` is not exported by the active BTK package surface. |
+| BTK Declarative/QML support | 🔴 Deeper upstream/provider readiness gap confirmed | Round 4 proved the issue is broader than a missing component-list entry: when `Declarative` is experimentally re-enabled, the module immediately hits stale declarative-specific CMake integration, obsolete metatype declarations, and fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`. |
 | BTK native migration plan | 🟡 In progress | Active BobUI-specific provider/bootstrap assumptions remain removed from bobfilez, but the remaining blocker is now whether BTK can provide the QML/Declarative layer bobfilez still depends on. |
 | Dirty submodules/worktrees | 🟡 Pending | Existing unrelated dirty submodules remain intentionally unstaged. |
 
@@ -93,10 +75,9 @@
    - the old `btkinputowner.*` blocker is resolved
    - `CsCore2.1.lib` and related outputs now exist
 
-2. **Investigate BTK's missing Declarative component as the next real upstream task**
-   - determine whether `Declarative` was intentionally excluded from `CS_OPTIONAL_COMPONENTS`
-   - verify what is needed to build/export `CsDeclarative`
-   - inspect the apparent `CsScript` / QtScript-style dependency chain before assuming a trivial enablement
+2. **Treat BTK Declarative revival as a substantial upstream task, not a trivial toggle**
+   - the missing top-level component entry is only the first symptom
+   - the current `src/declarative` path also needs declarative-specific CMake modernization and a real QtScript/CsScript-era dependency story before it can honestly satisfy bobfilez's QML requirements
 
 3. **Keep the bobfilez BTK consumer path honest**
    - do not pretend BTK is a full QML-capable provider until `Declarative` actually exists in the built package surface

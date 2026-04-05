@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.30
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.31
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -94,8 +94,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.30)
+## Current Status (v6.0.31)
 
+- ✅ **BTK Native Provider Probe Round 4**: Experimentally re-enabled BTK `Declarative` just long enough to prove the gap is deeper than a missing top-level component toggle: the module immediately hits stale declarative-specific CMake, obsolete metatype usage, and fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`.
 - ✅ **BTK Native Provider Probe Round 3**: Repaired BTK's earlier MSVC build blockers, confirmed `scripts/build_btk_inplace.bat` now produces real framework outputs such as `CsCore2.1.lib`, and proved the next bobfilez-side blocker is now the absence of an exported `Declarative` / QML component in the current BTK package surface.
 - ✅ **BTK Native Provider Probe Round 2**: Added a dedicated BTK build-tree package-prep step, repaired import-prefix handling for the prepared BTK/CopperSpice export files, and confirmed the remaining blocker is now the absence of built BTK libraries (for example `CsCore2.1.lib`) after BTK's own build fails in `btkinputowner.*`.
 - ✅ **BTK Native Provider Probe**: Registered `libs/btk` as a real tracked submodule, confirmed BTK configures in place on this host, fixed the initial BTK package-hint ordering bug in `cmake/BTKFrameworkSetup.cmake`, and demonstrated that the current blocker is now BTK build/export readiness rather than legacy BobUI wiring.

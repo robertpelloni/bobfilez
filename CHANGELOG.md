@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.0.31] - 2026-04-05
+
+### Validated — The "BTK Native Provider Probe Round 4" Release
+
+#### 🧪 Experimental Declarative Enablement Proved the Gap is Deeper Than a Missing Component List Entry
+- Confirmed bobfilez's active native entrypoint still genuinely requires a QML stack (`QQmlApplicationEngine` in `gui/omni/src/main.cpp`), so the missing `Declarative` capability remains a hard blocker.
+- Temporarily re-enabled `Declarative` in BTK's top-level component list as an experiment to determine whether the module was merely omitted or actually stale/incomplete.
+- The experiment showed the current BTK line is not just missing a list entry:
+  - `src/declarative/CMakeLists.txt` immediately failed on stale build-system usage such as obsolete `target_add_definitions(...)`
+  - after minimal CMake modernization to keep probing, the build advanced into declarative compilation and then failed on deeper issues including:
+    - obsolete `Q_DECLARE_METATYPE(TYPE)` diagnostics requiring `CS_DECLARE_METATYPE(TYPE)`
+    - fatal missing QtScript-era headers such as `QtScript/qscriptvalue.h`
+- This confirms the current BTK `Declarative` / QML path is structurally incomplete in this branch and not yet an honest provider for bobfilez's active GUI architecture.
+
+#### 🔧 BTK Submodule Correctness Preserved While Probing
+- While testing against the newer upstream BTK tip, restored the normal BTK MSVC build by fixing a regressed property-name path in:
+  - `libs/btk/src/gui/kernel/qapplication_cs.cpp`
+- Re-verified that the normal BTK module set still builds successfully after reverting the temporary declarative-enablement experiment.
+- Updated the bobfilez gitlink to a pushed BTK branch commit carrying the corrected MSVC fix:
+  - branch: `pi/msvc-focus-fixes-20260405`
+
+#### 📘 Documentation
+- Added **`docs/ai/implementation/BTK_PROVIDER_PROBE_ROUND4.md`** documenting:
+  - the temporary declarative-enablement experiment
+  - the stale declarative CMake findings
+  - the deeper compile-time `QtScript` dependency gap
+  - the conclusion that the remaining blocker is broader framework readiness, not just a missing component toggle
+
+### Version
+- Bumped to **6.0.31**.
+
 ## [6.0.30] - 2026-04-05
 
 ### Validated — The "BTK Native Provider Probe Round 3" Release
