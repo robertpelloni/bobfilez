@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.57] - 2026-04-05
+
+### Expanded — The "BobGUI Lint Direct Parity" Release
+
+#### 🧹 BobGUI now supports lint in both direct and fallback modes
+- Extended `fo_c_api` with `fo_bobfilez_lint_json(...)` and `fo_bobfilez_lint_summary_text(...)` so lint is now a first-class direct C API workflow alongside scan, duplicates, statistics, hash, and metadata.
+- Updated `frontends/bobgui_app/main.c` to add a **Lint** action and wire it into the same preferred-direct / fallback-CLI behavior already established for the other BobGUI workflows.
+- This makes the BobGUI lane more practically complete without abandoning the resilient fallback model.
+
+#### ✅ Validation
+- Extended `tests/test_c_api.cpp` and `tests/c_api_smoke.c` to validate lint through the direct C API seam.
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **71 / 71 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_LINT_DIRECT_PARITY_2026_04_05.md` documenting the new direct lint seam and why it fits the broader frontend parity strategy.
+
+### Version
+- Bumped to **6.0.57**.
+
 ## [6.0.56] - 2026-04-05
 
 ### Refined — The "BobGUI Resilient Fallback" Release

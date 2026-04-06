@@ -1,48 +1,57 @@
-# HANDOFF.md — bobfilez Session 71
+# HANDOFF.md — bobfilez Session 72
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.56
-**Focus:** Refined the BobGUI direct/fallback architecture so backend fallback now happens per operation rather than only at startup/build-mode selection time.
+**Version:** 6.0.57
+**Focus:** Closed another practical BobGUI gap by adding lint to the direct `fo_c_api` seam and wiring the BobGUI app so lint now behaves like the rest of the major BobGUI workflows.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Made BobGUI backend fallback resilient at the operation level
+### 1. Added direct C API lint support
+Updated:
+- `core/include/fo/c_api/bobfilez_c_api.h`
+- `core/c_api/bobfilez_c_api.cpp`
+
+Added:
+- `fo_bobfilez_lint_json(...)`
+- `fo_bobfilez_lint_summary_text(...)`
+
+This means lint now participates in the same direct C ABI family as:
+- scan
+- duplicates
+- statistics
+- hash
+- metadata
+
+### 2. Wired lint into the BobGUI app
 Updated:
 - `frontends/bobgui_app/main.c`
 
-Previously, the BobGUI lane preferred direct `fo_c_api` mode and only used `fo_cli` when direct support was not present.
-
-That still left a brittle case:
-- direct mode compiled in
-- but specific operation unavailable or failing
-- while `fo_cli` was actually available and usable
-
-This session fixed that.
-
-The BobGUI app now:
-- prefers direct `fo_c_api`
-- if a direct operation is unsupported, falls back to `fo_cli`
-- if a direct operation fails, falls back to `fo_cli`
-- explicitly explains that fallback happened and why
-
-### 2. Added a shared CLI execution helper
-Added a local helper in `frontends/bobgui_app/main.c`:
-- `run_cli_request(...)`
-
-This consolidates the fallback behavior and keeps the operation-level retry path readable and consistent.
-
-### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_RESILIENT_FALLBACK_2026_04_05.md`
+- **Lint** button
+- direct mapping to `fo_bobfilez_lint_summary_text(...)`
+- continued use of the resilient per-operation fallback model
 
-This documents:
-- why startup-only backend preference was too brittle
-- why per-operation fallback is the stronger product model
-- what should be validated once the BobGUI/Meson toolchain is present on-host
+So the BobGUI lane can now serve lint through:
+- direct `fo_c_api` summary mode
+- `fo_cli` fallback mode
 
-### 4. Versioning/docs updated
+### 3. Extended the direct C API validation surface
+Updated:
+- `tests/test_c_api.cpp`
+- `tests/c_api_smoke.c`
+
+This now validates:
+- lint JSON output
+- lint summary output
+- continued C consumer behavior through the smoke executable
+
+### 4. Added implementation documentation
+Added:
+- `docs/ai/implementation/BOBGUI_LINT_DIRECT_PARITY_2026_04_05.md`
+
+### 5. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -57,30 +66,24 @@ Updated:
 ### Validation completed
 - `scripts/build_headless.bat` ✅
 - `ctest --test-dir build-msvc --output-on-failure` ✅
-- validation surface remains: **70 / 70 passed** ✅
+- validation surface now: **71 / 71 passed** ✅
+
+### Important product finding
+BobGUI is no longer missing one of the more obvious filesystem hygiene workflows while the web/CLI lanes already had it.
+
+That matters because the BobGUI lane now feels more like a genuinely useful frontend concept instead of a partial technology probe.
 
 ### Important architecture finding
-The BobGUI lane now behaves much more like a resilient product integration:
-- choose the best backend first
-- degrade gracefully when needed
-- explain fallback clearly
+The direct C API continues to scale well as a seam for BobGUI work:
+- JSON where machine-readable transport matters
+- summary text where direct UI display matters
+- fallback to CLI where resilience matters
 
-That is significantly stronger than an all-or-nothing interpretation of the direct C ABI path.
-
-### Host reality still unchanged
-The host still does not expose the BobGUI/Meson toolchain on PATH:
-- `meson`
-- `pkg-config`
-- `ninja`
-
-So the source-side resilience is now better, but full end-to-end BobGUI app validation remains an environment/tooling boundary.
+That remains a good intermediate architecture without prematurely freezing a large structured C ABI.
 
 ---
 
 ## Recommended Next Steps
-1. Once the BobGUI/Meson toolchain is available, validate the BobGUI app under three scenarios:
-   - direct mode success
-   - direct mode unsupported for an operation
-   - direct mode failure with CLI fallback
-2. Continue selecting the next highest-value practical gap in the multi-frontend matrix rather than leaving alternate lanes frozen.
-3. Keep preserving honest distinctions between primary lanes, fallback lanes, and research lanes.
+1. Continue reducing the next highest-value practical workflow gap across the frontend matrix.
+2. Keep validating through headless + root `ctest` whenever host-native GUI validation remains constrained.
+3. Preserve the BobGUI dual-backend model until the direct path has been validated end-to-end on a host with the proper Meson/BobGUI toolchain.

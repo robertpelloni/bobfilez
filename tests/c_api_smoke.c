@@ -33,5 +33,20 @@ int main(void)
     }
 
     fo_bobfilez_free_string(summary);
+
+    char *lint = fo_bobfilez_lint_summary_text(".");
+    if (lint == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_lint_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 5;
+    }
+
+    if (strstr(lint, "Lint Summary") == NULL) {
+        fprintf(stderr, "lint summary did not contain expected title\n");
+        fo_bobfilez_free_string(lint);
+        return 6;
+    }
+
+    fo_bobfilez_free_string(lint);
     return 0;
 }

@@ -256,6 +256,9 @@ find_direct_api_function (const gchar *operation)
     if (g_strcmp0 (operation, "metadata") == 0) {
         return fo_bobfilez_metadata_summary_text;
     }
+    if (g_strcmp0 (operation, "lint") == 0) {
+        return fo_bobfilez_lint_summary_text;
+    }
 
     return NULL;
 }
@@ -403,6 +406,7 @@ activate (BobguiApplication *app,
     BobguiWidget *stats_button;
     BobguiWidget *hash_button;
     BobguiWidget *metadata_button;
+    BobguiWidget *lint_button;
     BobguiWidget *status_label;
     BobguiWidget *scrolled;
     BobguiWidget *output_view;
@@ -418,7 +422,7 @@ activate (BobguiApplication *app,
     bobgui_widget_set_margin_end (root_box, 20);
 
     title = bobgui_label_new ("bobfilez BobGUI Demo");
-    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available and otherwise falls back to fo_cli, while keeping the UI responsive on background work.");
+    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available, falls back to fo_cli when needed, and exposes scan, duplicates, statistics, hash, metadata, and lint workflows without blocking the UI thread.");
 
     path_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     path_entry = bobgui_entry_new ();
@@ -433,12 +437,14 @@ activate (BobguiApplication *app,
     stats_button = bobgui_button_new_with_label ("Statistics");
     hash_button = bobgui_button_new_with_label ("Hash");
     metadata_button = bobgui_button_new_with_label ("Metadata");
+    lint_button = bobgui_button_new_with_label ("Lint");
 
     bobgui_box_append (BOBGUI_BOX (button_row), scan_button);
     bobgui_box_append (BOBGUI_BOX (button_row), dupes_button);
     bobgui_box_append (BOBGUI_BOX (button_row), stats_button);
     bobgui_box_append (BOBGUI_BOX (button_row), hash_button);
     bobgui_box_append (BOBGUI_BOX (button_row), metadata_button);
+    bobgui_box_append (BOBGUI_BOX (button_row), lint_button);
 
     status_label = bobgui_label_new ("Ready.");
     scrolled = bobgui_scrolled_window_new ();
@@ -508,6 +514,12 @@ activate (BobguiApplication *app,
                            "clicked",
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "metadata"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (lint_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "lint"),
                            (GClosureNotify) g_free,
                            0);
 

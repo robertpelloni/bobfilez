@@ -3,6 +3,7 @@
 #include "fo/core/engine.hpp"
 #include "fo/core/export.hpp"
 #include "fo/core/interfaces.hpp"
+#include "fo/core/lint_interface.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
 
@@ -496,6 +497,80 @@ std::string make_metadata_summary_text(const std::vector<fo::core::FileInfo>& fi
     return out.str();
 }
 
+std::string lint_type_name(fo::core::LintType type)
+{
+    switch (type) {
+        case fo::core::LintType::EmptyFile:
+            return "EmptyFile";
+        case fo::core::LintType::EmptyDirectory:
+            return "EmptyDirectory";
+        case fo::core::LintType::BrokenSymlink:
+            return "BrokenSymlink";
+        case fo::core::LintType::TemporaryFile:
+            return "TemporaryFile";
+    }
+
+    return "Unknown";
+}
+
+std::vector<fo::core::LintResult> run_lint(const std::filesystem::path& root)
+{
+    auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+    if (!linter) {
+        throw std::runtime_error("Linter provider 'std' not found.");
+    }
+
+    return linter->lint({ root });
+}
+
+std::string make_lint_json(const std::vector<fo::core::LintResult>& results)
+{
+    std::ostringstream out;
+    out << "[\n";
+    for (size_t i = 0; i < results.size(); ++i) {
+        out << "  {\"path\": \"" << fo::core::Exporter::json_escape(results[i].path.string())
+            << "\", \"type\": \"" << lint_type_name(results[i].type)
+            << "\", \"details\": \"" << fo::core::Exporter::json_escape(results[i].details) << "\"}";
+        if (i + 1 < results.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+    out << "]\n";
+    return out.str();
+}
+
+std::string make_lint_summary_text(const std::vector<fo::core::LintResult>& results)
+{
+    std::map<std::string, int> counts;
+    for (const auto& result : results) {
+        counts[lint_type_name(result.type)]++;
+    }
+
+    std::ostringstream out;
+    out << "Lint Summary\n"
+        << "============\n"
+        << "Issues Found: " << results.size() << "\n\n"
+        << "Issue Counts:\n";
+
+    for (const auto& [type_name, count] : counts) {
+        out << "- " << type_name << ": " << count << "\n";
+    }
+
+    out << "\nFirst Issues:\n";
+    const size_t limit = std::min<size_t>(results.size(), 20);
+    for (size_t i = 0; i < limit; ++i) {
+        out << "- [" << lint_type_name(results[i].type) << "] "
+            << results[i].path.string() << " — " << results[i].details << "\n";
+    }
+
+    if (results.empty()) {
+        out << "No lint issues were found.\n";
+    }
+
+    return out.str();
+}
+
 void ensure_providers_registered()
 {
     std::call_once(g_provider_registration_once, []() {
@@ -513,6 +588,25 @@ char* execute_json_request(const char* root_path, BuildJson&& build_json)
         const auto root = parse_root_path(root_path);
         const auto files = collect_files(root);
         return duplicate_c_string(build_json(files));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+template <typename BuildLint>
+char* execute_lint_request(const char* root_path, BuildLint&& build_lint)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        const auto results = run_lint(root);
+        return duplicate_c_string(build_lint(results));
     } catch (const std::exception& error) {
         set_last_error(error.what());
         return nullptr;
@@ -582,6 +676,13 @@ extern "C" char* fo_bobfilez_metadata_json(const char* root_path)
     });
 }
 
+extern "C" char* fo_bobfilez_lint_json(const char* root_path)
+{
+    return execute_lint_request(root_path, [](const auto& results) {
+        return make_lint_json(results);
+    });
+}
+
 extern "C" char* fo_bobfilez_scan_summary_text(const char* root_path)
 {
     return execute_json_request(root_path, [](const auto& files) {
@@ -632,6 +733,13 @@ extern "C" char* fo_bobfilez_metadata_summary_text(const char* root_path)
 {
     return execute_json_request(root_path, [](const auto& files) {
         return make_metadata_summary_text(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_lint_summary_text(const char* root_path)
+{
+    return execute_lint_request(root_path, [](const auto& results) {
+        return make_lint_summary_text(results);
     });
 }
 

@@ -134,6 +134,28 @@ TEST_F(CApiTest, SummaryTextContainsHumanReadableSections)
     EXPECT_NE(hash_text.find("summary_hash.txt"), std::string::npos);
 }
 
+TEST_F(CApiTest, LintJsonAndSummaryExposeDetectedIssues)
+{
+    auto empty_file = test_dir / "empty.txt";
+    std::ofstream(empty_file).close();
+    auto temp_file = test_dir / "cache.bak";
+    create_file(temp_file, "temporary");
+
+    char* json = fo_bobfilez_lint_json(test_dir.string().c_str());
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+    std::string json_text(json);
+    fo_bobfilez_free_string(json);
+    EXPECT_NE(json_text.find("EmptyFile"), std::string::npos);
+    EXPECT_NE(json_text.find("TemporaryFile"), std::string::npos);
+
+    char* summary = fo_bobfilez_lint_summary_text(test_dir.string().c_str());
+    ASSERT_NE(summary, nullptr) << fo_bobfilez_last_error();
+    std::string summary_text(summary);
+    fo_bobfilez_free_string(summary);
+    EXPECT_NE(summary_text.find("Lint Summary"), std::string::npos);
+    EXPECT_NE(summary_text.find("empty.txt"), std::string::npos);
+}
+
 TEST(CApiStandaloneTest, NullRootPathSetsError)
 {
     char* json = fo_bobfilez_scan_json(nullptr);
