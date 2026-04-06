@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.0.69] - 2026-04-06
+
+### Refined — The "BobGUI Operation Labels" Release
+
+#### 🏷️ BobGUI output now uses clearer operation names
+- Refined `frontends/bobgui_app/main.c` so BobGUI now maps internal operation keys to more human-facing labels across pending output, CLI-backed output headers, direct `fo_c_api` output headers, and related status phrasing.
+- Improved the BobGUI output surface by replacing remaining internal-feeling labels such as raw operation keys with clearer product-facing names like **Duplicate Analysis**, **Hash Inspection**, **History Listing**, and **Ignore Rule Add/Remove**.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_OPERATION_LABEL_POLISH_2026_04_06.md` documenting the human-facing operation-label refinement.
+
+### Version
+- Bumped to **6.0.69**.
+
 ## [6.0.68] - 2026-04-06
 
 ### Refined — The "BobGUI Field Persistence" Release

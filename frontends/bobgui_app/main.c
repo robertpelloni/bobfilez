@@ -193,6 +193,43 @@ operation_requires_ignore_reason (const gchar *operation)
 }
 
 static const gchar *
+operation_display_name (const gchar *operation)
+{
+    if (g_strcmp0 (operation, "scan") == 0) {
+        return "Scan";
+    }
+    if (g_strcmp0 (operation, "duplicates") == 0) {
+        return "Duplicate Analysis";
+    }
+    if (g_strcmp0 (operation, "stats") == 0) {
+        return "Statistics";
+    }
+    if (g_strcmp0 (operation, "hash") == 0) {
+        return "Hash Inspection";
+    }
+    if (g_strcmp0 (operation, "metadata") == 0) {
+        return "Metadata Summary";
+    }
+    if (g_strcmp0 (operation, "lint") == 0) {
+        return "Lint Summary";
+    }
+    if (g_strcmp0 (operation, "history") == 0) {
+        return "History Listing";
+    }
+    if (g_strcmp0 (operation, "ignore") == 0) {
+        return "Ignore Rule Listing";
+    }
+    if (g_strcmp0 (operation, "ignore-add") == 0) {
+        return "Ignore Rule Add";
+    }
+    if (g_strcmp0 (operation, "ignore-remove") == 0) {
+        return "Ignore Rule Remove";
+    }
+
+    return operation;
+}
+
+static const gchar *
 operation_target_label (const gchar *operation,
                         const gchar *target_path)
 {
@@ -315,7 +352,7 @@ make_pending_output_text (const gchar *operation,
 {
     GString *text = g_string_new ("Working...\n\n");
 
-    g_string_append_printf (text, "Operation: %s\n", operation);
+    g_string_append_printf (text, "Operation: %s\n", operation_display_name (operation));
     g_string_append_printf (text, "Target: %s\n", operation_target_label (operation, target_path));
 
     if (g_strcmp0 (operation, "ignore-add") == 0 && extra_text != NULL && extra_text[0] != '\0') {
@@ -381,7 +418,7 @@ build_cli_output_text (const gchar *operation,
 
     g_string_append_printf (text,
                             "Operation: %s\nBackend: fo_cli\nExit Status: %d\n\n",
-                            operation,
+                            operation_display_name (operation),
                             exit_status);
 
     if (stdout_text != NULL && stdout_text[0] != '\0') {
@@ -408,7 +445,7 @@ build_direct_output_text (const gchar *operation,
 
     g_string_append_printf (text,
                             "Operation: %s\nBackend: fo_c_api\nMode: summary\n\n",
-                            operation);
+                            operation_display_name (operation));
 
     if (summary_text != NULL && summary_text[0] != '\0') {
         g_string_append (text, summary_text);
@@ -444,14 +481,14 @@ run_cli_request (const AppState *state,
                        &stderr_text,
                        &exit_status,
                        &error)) {
-        *status_out = g_strdup_printf ("%s failed for %s", operation, operation_target_label (operation, target_path));
+        *status_out = g_strdup_printf ("%s failed for %s", operation_display_name (operation), operation_target_label (operation, target_path));
         *output_out = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
         if (succeeded_out != NULL) {
             *succeeded_out = FALSE;
         }
         g_clear_error (&error);
     } else {
-        *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation, operation_target_label (operation, target_path));
+        *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation_display_name (operation), operation_target_label (operation, target_path));
         *output_out = build_cli_output_text (operation, stdout_text, stderr_text, exit_status);
         if (succeeded_out != NULL) {
             *succeeded_out = (exit_status == 0);
@@ -543,7 +580,7 @@ run_command_thread (gpointer user_data)
                                  &result->output,
                                  &result->succeeded);
             } else {
-                result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
+                result->status = g_strdup_printf ("Unsupported operation %s", operation_display_name (request->operation));
                 result->output = g_strdup ("This direct C API build does not expose the requested operation.");
             }
         } else {
@@ -564,11 +601,11 @@ run_command_thread (gpointer user_data)
                                      &result->output,
                                      &result->succeeded);
                 } else {
-                    result->status = g_strdup_printf ("%s failed for %s", request->operation, operation_target_label (request->operation, request->target_path));
+                    result->status = g_strdup_printf ("%s failed for %s", operation_display_name (request->operation), operation_target_label (request->operation, request->target_path));
                     result->output = g_strdup (fo_bobfilez_last_error ());
                 }
             } else {
-                result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, operation_target_label (request->operation, request->target_path));
+                result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", operation_display_name (request->operation), operation_target_label (request->operation, request->target_path));
                 result->output = build_direct_output_text (request->operation, summary_text);
                 result->succeeded = TRUE;
                 fo_bobfilez_free_string (summary_text);
