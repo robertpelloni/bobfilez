@@ -1,50 +1,41 @@
-# HANDOFF.md — bobfilez Session 73
+# HANDOFF.md — bobfilez Session 74
 
-## Current Status (2026-04-05)
-**Version:** 6.0.58
-**Focus:** Expanded native lint parity across the Qt, BobUI, and JUCE demo lanes so another practical workflow gap in the frontend matrix is now smaller.
+## Current Status (2026-04-06)
+**Version:** 6.0.59
+**Focus:** Completed the remaining practical lint gaps in the current frontend matrix by extending both the BTK demo and the React/Express SPA.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added a Lint tab to the Qt demo
+### 1. Extended the BTK demo with lint support
 Updated:
-- `frontends/qt/src/main.cpp`
+- `frontends/btk/src/DemoWindow.hpp`
+- `frontends/btk/src/DemoWindow.cpp`
 
-The Qt demo now includes a real **Lint** tab that:
-- selects a directory
+Added a real **Lint** tab that:
+- accepts a directory path
 - invokes the registered `std` linter
-- renders issue counts plus sample issue details
-- reports cleanly when no issues are found
+- summarizes issue counts by lint type
+- shows sample issue details
+- preserves the same queued cross-thread result handoff style already used in the BTK lane
 
-### 2. Added lint support to the BobUI/QML demo
+### 2. Extended the React web UI with lint support
 Updated:
-- `frontends/bobui/src/QmlEngineWrapper.hpp`
-- `frontends/bobui/src/QmlEngineWrapper.cpp`
-- `frontends/bobui/assets/Main.qml`
+- `bobui_web/public/react/app.js`
 
 Added:
-- `runLint(...)`
-- `lintFinished(...)`
-- a full QML **Lint** tab
+- lint state handling
+- lint result normalization
+- a new **Lint** navigation tab
+- lint result rendering for path, type, and details
+- updated dashboard copy so the BTK and web lane blurbs better match their real capability surface
 
-This keeps the BobUI lane closer to the same practical workflow family already available through the CLI/web/BobGUI surfaces.
-
-### 3. Added lint support to the JUCE demo
-Updated:
-- `frontends/juce/src/main.cpp`
-
-Added a new **Lint** tab using the same JUCE-native async execution model already used elsewhere in that frontend:
-- directory chooser
-- background work via `juce::Thread::launch`
-- message-thread UI updates via `juce::MessageManager::callAsync`
-
-### 4. Added implementation documentation
+### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/FRONTEND_LINT_PARITY_2026_04_05.md`
+- `docs/ai/implementation/FRONTEND_LINT_MATRIX_COMPLETION_2026_04_06.md`
 
-### 5. Versioning/docs updated
+### 4. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -57,22 +48,30 @@ Updated:
 ## Validation / Findings
 
 ### Validation completed
+- `node --check bobui_web/server.js` ✅
+- `node --check bobui_web/public/react/app.js` ✅
 - `scripts/build_headless.bat` ✅
 - `ctest --test-dir build-msvc --output-on-failure` ✅
-- `scripts/build_juce_gui.bat` ✅
 - validation surface remains: **71 / 71 passed** ✅
 
 ### Important product finding
-Lint is another high-value, low-ceremony workflow that should not remain stranded only in CLI/web/BobGUI land if the multi-frontend story is meant to be credible.
+Lint is now one of the clearest workflow examples spanning the major user-facing lanes:
+- CLI
+- React web
+- Qt
+- BobUI
+- JUCE
+- BTK
+- BobGUI
 
-This session substantially reduces that gap in the native demo family.
+That makes it a strong reference pattern for future workflow-by-workflow parity work.
 
 ### Important host reality
-The host still lacks the ideal MSVC Qt runtime combination for full end-to-end validation of every Qt/BobUI runtime path, but the source-side parity work continues to improve materially.
+Full BTK end-to-end runtime validation still remains host-constrained, but the source-side parity story is materially stronger and better documented than before.
 
 ---
 
 ## Recommended Next Steps
-1. Continue selecting the next practical workflow gap in the frontend matrix rather than leaving alternate lanes permanently frozen.
-2. Keep validating JUCE whenever it is expanded, since it remains one of the easiest alternate native lanes to verify end-to-end on this host.
-3. Keep using headless + root `ctest` as the repo-wide truth baseline whenever framework-specific GUI validation remains constrained.
+1. Pick the next practical workflow gap using the same rule: start from an already-real backend seam, then close the lightest missing frontend lanes first.
+2. Continue validating the web lane with syntax checks and the repo-wide backend truth baseline with headless + root `ctest`.
+3. Revisit deeper BTK or Qt/BobUI runtime validation only when the host/toolchain boundary becomes more favorable.

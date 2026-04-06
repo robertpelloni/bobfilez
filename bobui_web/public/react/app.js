@@ -152,6 +152,20 @@ function normalizeMetadata(data) {
   });
 }
 
+function normalizeLintResults(data) {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map(function (row) {
+    return {
+      path: row.path || row.uri || '',
+      type: row.type || 'Unknown',
+      details: row.details || ''
+    };
+  });
+}
+
 function fetchJson(url, body) {
   return fetch(url, {
     method: 'POST',
@@ -235,6 +249,19 @@ function App() {
   var _React$useState22 = useState(false);
   var isReadingMetadata = _React$useState22[0];
   var setIsReadingMetadata = _React$useState22[1];
+
+  var _React$useState23 = useState('');
+  var lintPath = _React$useState23[0];
+  var setLintPath = _React$useState23[1];
+  var _React$useState24 = useState([]);
+  var lintResults = _React$useState24[0];
+  var setLintResults = _React$useState24[1];
+  var _React$useState25 = useState(null);
+  var lintError = _React$useState25[0];
+  var setLintError = _React$useState25[1];
+  var _React$useState26 = useState(false);
+  var isLinting = _React$useState26[0];
+  var setIsLinting = _React$useState26[1];
 
   useEffect(function () {
     fetch('/api/health')
@@ -389,14 +416,40 @@ function App() {
       });
   }
 
+  function handleLint(event) {
+    event.preventDefault();
+    if (!lintPath) {
+      return;
+    }
+
+    setIsLinting(true);
+    setLintError(null);
+    setLintResults([]);
+
+    fetchJson('/api/lint', { paths: [lintPath] })
+      .then(function (data) {
+        if (data.error) {
+          setLintError(data.error);
+          return;
+        }
+        setLintResults(normalizeLintResults(data));
+      })
+      .catch(function (error) {
+        setLintError(error.message);
+      })
+      .finally(function () {
+        setIsLinting(false);
+      });
+  }
+
   function renderDashboard() {
     return React.createElement('div', {
       style: { display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }
     }, [
       React.createElement(Card, { key: 'qt', title: 'Qt / BobUI' }, React.createElement('p', null, 'Modern native shell path using Qt6 with BobUI Omni wiring and dedicated demo frontends.')),
-      React.createElement(Card, { key: 'juce', title: 'JUCE' }, React.createElement('p', null, 'Native lane with scanner, duplicate, statistics, and hashing workflows driven directly from fo_core.')),
-      React.createElement(Card, { key: 'btk', title: 'BTK / CopperSpice' }, React.createElement('p', null, 'Research-native lane with a simplified widget demo and safer queued cross-thread result handoff.')),
-      React.createElement(Card, { key: 'web', title: 'React / Express' }, React.createElement('p', null, 'No-build SPA wired to fo_cli-backed JSON endpoints for scanning, duplicates, stats, hashing, and metadata.'))
+      React.createElement(Card, { key: 'juce', title: 'JUCE' }, React.createElement('p', null, 'Native lane with scanner, duplicate, statistics, metadata, and lint workflows driven directly from fo_core.')),
+      React.createElement(Card, { key: 'btk', title: 'BTK / CopperSpice' }, React.createElement('p', null, 'Research-native lane with a simplified widget demo and safer queued cross-thread result handoff across scan, duplicates, stats, hash, metadata, and lint.')),
+      React.createElement(Card, { key: 'web', title: 'React / Express' }, React.createElement('p', null, 'No-build SPA wired to fo_cli-backed JSON endpoints for scanning, duplicates, stats, hashing, metadata, and lint.'))
     ]);
   }
 
@@ -619,6 +672,46 @@ function App() {
     ]);
   }
 
+  function renderLint() {
+    return React.createElement(Card, { title: 'Filesystem Lint' }, [
+      React.createElement('form', { key: 'form', onSubmit: handleLint, style: { display: 'flex', gap: 12, marginBottom: 20 } }, [
+        React.createElement('input', {
+          key: 'input',
+          type: 'text',
+          value: lintPath,
+          onChange: function (event) { setLintPath(event.target.value); },
+          placeholder: 'Enter absolute directory path to lint',
+          style: textInputStyle()
+        }),
+        React.createElement('button', {
+          key: 'button',
+          type: 'submit',
+          disabled: isLinting,
+          style: primaryButtonStyle('#ef4444', isLinting)
+        }, isLinting ? 'Linting...' : 'Run Lint')
+      ]),
+      lintError && React.createElement('div', { key: 'error', style: { color: '#f87171' } }, lintError),
+      React.createElement('p', { key: 'count' }, 'Found ' + lintResults.length + ' lint issues.'),
+      lintResults.length > 0 && tableShell(
+        React.createElement('table', { style: { width: '100%', textAlign: 'left', borderCollapse: 'collapse' } }, [
+          React.createElement('thead', { key: 'head' }, React.createElement('tr', null, [
+            React.createElement('th', { key: 'path', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Path'),
+            React.createElement('th', { key: 'type', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Type'),
+            React.createElement('th', { key: 'details', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Details')
+          ])),
+          React.createElement('tbody', { key: 'body' }, lintResults.slice(0, 100).map(function (row, index) {
+            return React.createElement('tr', { key: index }, [
+              React.createElement('td', { key: 'path', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', wordBreak: 'break-all' } }, row.path),
+              React.createElement('td', { key: 'type', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', color: '#fca5a5', fontWeight: 'bold' } }, row.type),
+              React.createElement('td', { key: 'details', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b' } }, row.details)
+            ]);
+          }))
+        ])
+      ),
+      lintResults.length > 100 && React.createElement('p', { key: 'truncated', style: { color: '#94a3b8', fontSize: 13, marginTop: 8 } }, 'Showing first 100 lint issues...')
+    ]);
+  }
+
   var content = renderDashboard();
   if (activeTab === 'scanner') {
     content = renderScan();
@@ -630,6 +723,8 @@ function App() {
     content = renderHash();
   } else if (activeTab === 'metadata') {
     content = renderMetadata();
+  } else if (activeTab === 'lint') {
+    content = renderLint();
   }
 
   return React.createElement('div', {
@@ -652,7 +747,8 @@ function App() {
       React.createElement('button', { key: 'duplicates', onClick: function () { setActiveTab('duplicates'); }, style: buttonStyle(activeTab === 'duplicates') }, 'Duplicates'),
       React.createElement('button', { key: 'stats', onClick: function () { setActiveTab('stats'); }, style: buttonStyle(activeTab === 'stats') }, 'Statistics'),
       React.createElement('button', { key: 'hash', onClick: function () { setActiveTab('hash'); }, style: buttonStyle(activeTab === 'hash') }, 'Hasher'),
-      React.createElement('button', { key: 'metadata', onClick: function () { setActiveTab('metadata'); }, style: buttonStyle(activeTab === 'metadata') }, 'Metadata')
+      React.createElement('button', { key: 'metadata', onClick: function () { setActiveTab('metadata'); }, style: buttonStyle(activeTab === 'metadata') }, 'Metadata'),
+      React.createElement('button', { key: 'lint', onClick: function () { setActiveTab('lint'); }, style: buttonStyle(activeTab === 'lint') }, 'Lint')
     ]),
     content
   ]));

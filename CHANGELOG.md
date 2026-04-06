@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.0.59] - 2026-04-06
+
+### Expanded — The "Lint Matrix Completion" Release
+
+#### 🧹 BTK and React lint parity completed
+- Expanded `frontends/btk/src/DemoWindow.hpp/.cpp` so the BTK research-native demo now includes a real **Lint** tab backed by the registered `std` linter.
+- Expanded `bobui_web/public/react/app.js` so the React/Express SPA now surfaces the existing `/api/lint` capability through a dedicated **Lint** tab with path/type/details result rendering.
+- Updated the React dashboard copy so the BTK and web lane descriptions better reflect their real workflow surface.
+
+#### ✅ Validation
+- Re-ran `node --check bobui_web/server.js` successfully.
+- Re-ran `node --check bobui_web/public/react/app.js` successfully.
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **71 / 71 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/FRONTEND_LINT_MATRIX_COMPLETION_2026_04_06.md` documenting the final BTK + React lint parity pass.
+
+### Version
+- Bumped to **6.0.59**.
+
 ## [6.0.58] - 2026-04-05
 
 ### Expanded — The "Native Lint Parity" Release

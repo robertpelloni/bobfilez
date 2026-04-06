@@ -34,6 +34,10 @@ public:
     CS_SLOT_2(onMetadataClicked)
 
     CS_SLOT_1(Private)
+    void onLintClicked();
+    CS_SLOT_2(onLintClicked)
+
+    CS_SLOT_1(Private)
     void applyScanResult(const QString &result);
     CS_SLOT_2(applyScanResult)
 
@@ -53,12 +57,17 @@ public:
     void applyMetadataResult(const QString &result);
     CS_SLOT_2(applyMetadataResult)
 
+    CS_SLOT_1(Private)
+    void applyLintResult(const QString &result);
+    CS_SLOT_2(applyLintResult)
+
 private:
     void runScan(const QString &dir);
     void runDuplicates(const QString &dir);
     void runStats(const QString &dir);
     void runHash(const QString &filePath);
     void runMetadata(const QString &dir);
+    void runLint(const QString &dir);
 
     QTabWidget *tabs;
 
@@ -86,4 +95,9 @@ private:
     QLineEdit *metadataPathEdit;
     QPushButton *metadataBtn;
     QLabel *metadataResultLbl;
+
+    QWidget *lintTab;
+    QLineEdit *lintPathEdit;
+    QPushButton *lintBtn;
+    QLabel *lintResultLbl;
 };

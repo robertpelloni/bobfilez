@@ -2,6 +2,7 @@
 
 #include <fo/core/engine.hpp>
 #include <fo/core/interfaces.hpp>
+#include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
 
 #include <QMetaObject>
@@ -35,6 +36,22 @@ QString format_taken_timestamp(const fo::core::ImageMetadata &metadata)
     std::ostringstream stream;
     stream << std::put_time(&tmBuffer, "%Y-%m-%d %H:%M:%S");
     return QString::fromStdString(stream.str());
+}
+
+QString lint_type_name(fo::core::LintType type)
+{
+    switch (type) {
+        case fo::core::LintType::EmptyFile:
+            return QString::fromLatin1("EmptyFile");
+        case fo::core::LintType::EmptyDirectory:
+            return QString::fromLatin1("EmptyDirectory");
+        case fo::core::LintType::BrokenSymlink:
+            return QString::fromLatin1("BrokenSymlink");
+        case fo::core::LintType::TemporaryFile:
+            return QString::fromLatin1("TemporaryFile");
+    }
+
+    return QString::fromLatin1("Unknown");
 }
 
 QWidget *createTextTabRow(QLineEdit *&pathEdit,
@@ -116,11 +133,21 @@ DemoWindow::DemoWindow(QWidget *parent) : QWidget(parent)
     metadataResultLbl->setText(QString::fromLatin1("No metadata loaded yet."));
     connect(metadataBtn, SIGNAL(clicked()), this, SLOT(onMetadataClicked()));
 
+    lintTab = createTextTabRow(
+        lintPathEdit,
+        lintBtn,
+        lintResultLbl,
+        QString::fromLatin1("Enter absolute directory path for lint..."),
+        QString::fromLatin1("Run Lint"));
+    lintResultLbl->setText(QString::fromLatin1("No lint run yet."));
+    connect(lintBtn, SIGNAL(clicked()), this, SLOT(onLintClicked()));
+
     tabs->addTab(scannerTab, QString::fromLatin1("Scanner"));
     tabs->addTab(dupesTab, QString::fromLatin1("Duplicates"));
     tabs->addTab(statsTab, QString::fromLatin1("Statistics"));
     tabs->addTab(hashTab, QString::fromLatin1("Hasher"));
     tabs->addTab(metadataTab, QString::fromLatin1("Metadata"));
+    tabs->addTab(lintTab, QString::fromLatin1("Lint"));
 }
 
 void DemoWindow::onScanClicked()
@@ -166,6 +193,15 @@ void DemoWindow::onMetadataClicked()
         return;
     }
     runMetadata(path);
+}
+
+void DemoWindow::onLintClicked()
+{
+    const QString path = lintPathEdit->text();
+    if (path.isEmpty()) {
+        return;
+    }
+    runLint(path);
 }
 
 void DemoWindow::runScan(const QString &dir)
@@ -416,6 +452,53 @@ void DemoWindow::runMetadata(const QString &dir)
     }).detach();
 }
 
+void DemoWindow::runLint(const QString &dir)
+{
+    lintBtn->setEnabled(false);
+    lintResultLbl->setText(QString::fromLatin1("Linting: ") + dir + QString::fromLatin1(" ..."));
+
+    const std::string stdDir = dir.toStdString();
+    std::thread([this, stdDir]() {
+        QString resultStr;
+        try {
+            auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+            if (!linter) {
+                throw std::runtime_error("Linter 'std' not found");
+            }
+
+            std::vector<std::filesystem::path> roots = { std::filesystem::u8path(stdDir) };
+            const auto results = linter->lint(roots);
+
+            std::map<QString, int> counts;
+            for (const auto &result : results) {
+                counts[lint_type_name(result.type)]++;
+            }
+
+            resultStr = QString::fromLatin1("Lint for: %1\n\nIssue counts:\n").arg(dir);
+            for (const auto &[type_name, count] : counts) {
+                resultStr += QString::fromLatin1("  %1: %2\n").arg(type_name).arg(count);
+            }
+
+            if (results.empty()) {
+                resultStr += QString::fromLatin1("\nNo lint issues were found.\n");
+            } else {
+                resultStr += QString::fromLatin1("\nFirst issues:\n");
+                const size_t limit = std::min<size_t>(results.size(), 20);
+                for (size_t i = 0; i < limit; ++i) {
+                    resultStr += QString::fromLatin1("- [%1] %2 — %3\n")
+                        .arg(lint_type_name(results[i].type))
+                        .arg(QString::fromStdString(results[i].path.string()))
+                        .arg(QString::fromStdString(results[i].details));
+                }
+            }
+        } catch (const std::exception &error) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(error.what());
+        }
+
+        QMetaObject::invokeMethod(this, "applyLintResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
 void DemoWindow::applyScanResult(const QString &result)
 {
     scanResultLbl->setText(result);
@@ -444,4 +527,10 @@ void DemoWindow::applyMetadataResult(const QString &result)
 {
     metadataResultLbl->setText(result);
     metadataBtn->setEnabled(true);
+}
+
+void DemoWindow::applyLintResult(const QString &result)
+{
+    lintResultLbl->setText(result);
+    lintBtn->setEnabled(true);
 }
