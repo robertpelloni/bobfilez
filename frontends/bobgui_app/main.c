@@ -230,6 +230,19 @@ operation_display_name (const gchar *operation)
 }
 
 static const gchar *
+operation_target_heading (const gchar *operation)
+{
+    if (operation_requires_path (operation)) {
+        return "Path";
+    }
+    if (operation_uses_ignore_pattern (operation)) {
+        return "Ignore Pattern";
+    }
+
+    return "Request Scope";
+}
+
+static const gchar *
 operation_target_label (const gchar *operation,
                         const gchar *target_path)
 {
@@ -353,13 +366,15 @@ make_pending_output_text (const gchar *operation,
     GString *text = g_string_new ("Working...\n\n");
 
     g_string_append_printf (text, "Operation: %s\n", operation_display_name (operation));
-    g_string_append_printf (text, "Target: %s\n", operation_target_label (operation, target_path));
+    g_string_append (text, "Context\n-------\n");
+    g_string_append_printf (text, "%s: %s\n", operation_target_heading (operation), operation_target_label (operation, target_path));
 
     if (g_strcmp0 (operation, "ignore-add") == 0 && extra_text != NULL && extra_text[0] != '\0') {
         g_string_append_printf (text, "Reason: %s\n", extra_text);
     }
 
-    g_string_append (text, "\nThe request is running on a background thread so the UI stays responsive.\n");
+    g_string_append (text, "\nExecution\n---------\n");
+    g_string_append (text, "The request is running on a background thread so the UI stays responsive.\n");
     g_string_append (text, "When it completes, the output panel will keep the result so you can compare the next action against it.\n");
     return g_string_free (text, FALSE);
 }
@@ -420,6 +435,7 @@ build_cli_output_text (const gchar *operation,
                             "Operation: %s\nBackend: fo_cli\nExit Status: %d\n\n",
                             operation_display_name (operation),
                             exit_status);
+    g_string_append (text, "Result\n------\n");
 
     if (stdout_text != NULL && stdout_text[0] != '\0') {
         g_string_append (text, stdout_text);
@@ -446,6 +462,7 @@ build_direct_output_text (const gchar *operation,
     g_string_append_printf (text,
                             "Operation: %s\nBackend: fo_c_api\nMode: summary\n\n",
                             operation_display_name (operation));
+    g_string_append (text, "Result\n------\n");
 
     if (summary_text != NULL && summary_text[0] != '\0') {
         g_string_append (text, summary_text);

@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.70] - 2026-04-06
+
+### Refined — The "BobGUI Output Formatting" Release
+
+#### 🧱 BobGUI output structure is now easier to scan
+- Refined `frontends/bobgui_app/main.c` so pending BobGUI output now includes clearer structure around **Context** and **Execution** sections.
+- Added workflow-aware target headings such as **Path**, **Ignore Pattern**, and **Request Scope**.
+- Added a clearer **Result** heading to both CLI-backed and direct `fo_c_api` output rendering so the output panel is easier to skim regardless of backend path.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_OUTPUT_FORMATTING_POLISH_2026_04_06.md` documenting the output-structure refinement.
+
+### Version
+- Bumped to **6.0.70**.
+
 ## [6.0.69] - 2026-04-06
 
 ### Refined — The "BobGUI Operation Labels" Release
