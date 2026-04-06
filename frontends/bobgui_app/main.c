@@ -126,12 +126,14 @@ apply_command_result (gpointer user_data)
 {
     CommandResult *result = user_data;
 
-    if (result->succeeded && g_strcmp0 (result->operation, "ignore-add") == 0) {
-        bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
-        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), "Ignore rule added. Ready for another pattern.");
-    } else if (result->succeeded && g_strcmp0 (result->operation, "ignore-remove") == 0) {
-        bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
-        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), "Ignore rule removed. You can enter another pattern or list rules.");
+    if (result->succeeded) {
+        gchar *status_text = make_success_status_text (result->operation);
+        if (g_strcmp0 (result->operation, "ignore-add") == 0
+            || g_strcmp0 (result->operation, "ignore-remove") == 0) {
+            bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
+        }
+        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), status_text);
+        g_free (status_text);
     } else {
         bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), result->status);
     }
@@ -238,6 +240,57 @@ append_post_action_guidance (GString *text,
     }
 
     g_string_append (text, "Use the grouped action rows above to continue exploring this target or switch workflows.\n");
+}
+
+static gchar *
+make_idle_output_text (const AppState *state)
+{
+    GString *text = g_string_new ("");
+
+    g_string_append_printf (text, "Panel ready via: %s\n\n", active_backend_name (state));
+    g_string_append (text, "Filesystem Actions use the Path field.\n");
+    g_string_append (text, "Ignore management uses the Ignore Pattern/Reason fields.\n");
+    g_string_append (text, "Operational listings such as history and ignore snapshots are path-free.\n");
+    g_string_append (text, "Completed results stay in this panel until you run another action or clear the output.\n");
+
+    return g_string_free (text, FALSE);
+}
+
+static gchar *
+make_success_status_text (const gchar *operation)
+{
+    if (g_strcmp0 (operation, "scan") == 0) {
+        return g_strdup ("Scan complete. Ready for another filesystem action.");
+    }
+    if (g_strcmp0 (operation, "duplicates") == 0) {
+        return g_strdup ("Duplicate analysis complete. You can inspect another path or compare with stats.");
+    }
+    if (g_strcmp0 (operation, "stats") == 0) {
+        return g_strdup ("Statistics loaded. Compare them with scan or duplicate results if needed.");
+    }
+    if (g_strcmp0 (operation, "hash") == 0) {
+        return g_strdup ("Hash inspection complete. Ready for another file target.");
+    }
+    if (g_strcmp0 (operation, "metadata") == 0) {
+        return g_strdup ("Metadata summary loaded. You can reuse the same path for lint or hashing.");
+    }
+    if (g_strcmp0 (operation, "lint") == 0) {
+        return g_strdup ("Lint summary loaded. You can compare it with metadata or ignore rules next.");
+    }
+    if (g_strcmp0 (operation, "history") == 0) {
+        return g_strdup ("History loaded. Re-run after more file operations to inspect newer activity.");
+    }
+    if (g_strcmp0 (operation, "ignore") == 0) {
+        return g_strdup ("Ignore rules loaded. Add or remove a rule if you want to edit the list.");
+    }
+    if (g_strcmp0 (operation, "ignore-add") == 0) {
+        return g_strdup ("Ignore rule added. Ready for another pattern.");
+    }
+    if (g_strcmp0 (operation, "ignore-remove") == 0) {
+        return g_strdup ("Ignore rule removed. You can enter another pattern or list rules.");
+    }
+
+    return g_strdup ("Request completed.");
 }
 
 static gchar *
@@ -607,9 +660,10 @@ clear_output_button_clicked (BobguiWidget *widget,
 {
     AppState *state = user_data;
     (void) widget;
+    gchar *idle_text = make_idle_output_text (state);
     bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Output cleared.");
-    set_output_text (state,
-                     "Output cleared.\n\nUse the Path field for filesystem operations, or the Ignore Pattern/Reason fields for ignore management.");
+    set_output_text (state, idle_text);
+    g_free (idle_text);
 }
 
 static void
@@ -789,17 +843,22 @@ activate (BobguiApplication *app,
     state->cli_path = find_cli_path ();
 
     if (state->direct_c_api_available) {
+        gchar *idle_text = make_idle_output_text (state);
         gchar *initial = g_strdup_printf (
-            "Direct bobfilez backend detected: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore management, the Operational Listings row for history/ignore snapshots, and keep fo_cli as an optional fallback path if present: %s",
+            "Direct bobfilez backend detected: %s\n\n%s\nfo_cli fallback path (if needed): %s",
             active_backend_name (state),
+            idle_text,
             state->cli_path != NULL ? state->cli_path : "(not found)");
         set_output_text (state, initial);
         g_free (initial);
+        g_free (idle_text);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
     } else if (state->cli_path != NULL) {
-        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore add/remove, and the Operational Listings row for path-free history/ignore snapshots.", state->cli_path);
+        gchar *idle_text = make_idle_output_text (state);
+        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\n%s", state->cli_path, idle_text);
         set_output_text (state, initial);
         g_free (initial);
+        g_free (idle_text);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");
     } else {
         set_output_text (state, "No BobGUI backend was found yet. Build the app with fo_c_api support or provide fo_cli.exe via BOBFILEZ_CLI / standard repo-relative locations.");

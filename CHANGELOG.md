@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.67] - 2026-04-06
+
+### Refined — The "BobGUI General Success-State" Release
+
+#### 🎯 BobGUI success and idle messaging became more workflow-aware
+- Refined `frontends/bobgui_app/main.c` so successful BobGUI actions across the broader workflow family now use more contextual status text instead of mostly generic completion phrasing.
+- Added a reusable idle-output helper so startup guidance and cleared-output guidance now better explain backend mode, control-field responsibilities, and output-panel persistence behavior.
+- Preserved the existing direct `fo_c_api` preference and per-operation CLI fallback model while improving the user-facing operational clarity of the panel.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_GENERAL_SUCCESS_STATE_POLISH_2026_04_06.md` documenting the broader success/idle messaging refinement.
+
+### Version
+- Bumped to **6.0.67**.
+
 ## [6.0.66] - 2026-04-06
 
 ### Refined — The "BobGUI Ignore Success-State" Release

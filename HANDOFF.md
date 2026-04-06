@@ -1,40 +1,50 @@
-# HANDOFF.md — bobfilez Session 81
+# HANDOFF.md — bobfilez Session 82
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.66
-**Focus:** Continued the BobGUI ergonomics track with workflow-aware success-state refinement for ignore management.
+**Version:** 6.0.67
+**Focus:** Continued BobGUI workflow polish by broadening success-state clarity beyond ignore management and improving idle output guidance for the panel as a whole.
 
 ---
 
 ## What Was Done This Session
 
-### 1. BobGUI command completion now tracks success state
+### 1. Expanded workflow-aware success-state messaging across BobGUI
 Updated:
 - `frontends/bobgui_app/main.c`
 
-BobGUI command results now carry explicit success state rather than only rendered text.
+BobGUI now uses more contextual success status text across a broader set of workflows, including:
+- scan
+- duplicates
+- statistics
+- hash
+- metadata
+- lint
+- history
+- ignore listing
+- ignore add/remove
 
-That enables the UI layer to make small post-success refinements without changing the backend or widening the ABI.
+This reduces the amount of generic “completed” messaging in the operational panel.
 
-### 2. Successful ignore actions now leave the form in a cleaner state
-When these actions succeed:
-- **Add Ignore Rule**
-- **Remove Ignore Rule**
+### 2. Added shared idle output guidance
+Also updated:
+- `frontends/bobgui_app/main.c`
 
-BobGUI now clears the **Ignore Pattern** field automatically.
+Added a reusable idle-output helper so the output panel now more clearly explains:
+- which backend mode is active
+- which fields drive filesystem actions
+- which fields drive ignore management
+- which workflows are path-free
+- that completed results remain visible until replaced or cleared
 
-This makes the panel more comfortable for repeated ignore-rule editing because the user is not left sitting on the previous pattern unintentionally.
+This helper is now reused for:
+- startup guidance
+- cleared-output guidance
 
-### 3. Ignore-action status text is now more workflow-aware
-Instead of only generic completion text, BobGUI now uses more tailored status messages after successful ignore actions, for example:
-- "Ignore rule added. Ready for another pattern."
-- "Ignore rule removed. You can enter another pattern or list rules."
-
-### 4. Added implementation documentation
+### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_IGNORE_FIELD_SUCCESS_STATE_2026_04_06.md`
+- `docs/ai/implementation/BOBGUI_GENERAL_SUCCESS_STATE_POLISH_2026_04_06.md`
 
-### 5. Versioning/docs updated
+### 4. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -52,9 +62,9 @@ Updated:
 - validation surface remains: **73 / 73 passed** ✅
 
 ### Important product findings
-1. BobGUI is now far enough along that success-state behavior is a meaningful usability dimension, not merely polish noise.
-2. Small workflow-aware UI responses can improve repeated operations without requiring more backend work.
-3. This session preserved the same direct/fallback model and kept risk low while still making the panel feel more intentional.
+1. BobGUI now benefits from generalized success-state clarity, not just per-feature refinements.
+2. Shared idle-state guidance helps the lane feel more coherent because the output panel now behaves more like a stable operational context area.
+3. This session improved usability without changing backend seams or widening the C ABI further.
 
 ### Important host reality
 Full BobGUI end-to-end runtime validation remains constrained by missing Meson/pkg-config/ninja convenience tooling on this machine. The source-level and backend-level validation remain strong and honest.
@@ -62,6 +72,6 @@ Full BobGUI end-to-end runtime validation remains constrained by missing Meson/p
 ---
 
 ## Recommended Next Steps
-1. Continue BobGUI ergonomics if the goal is to make that lane feel more like a polished operational panel.
-2. If shifting back to capability work, return to the normal rule: real backend seam first, then low-cost frontend exposure.
-3. Keep using headless + root `ctest` as the repo-wide truth baseline.
+1. Continue BobGUI UX refinement if the goal is to make that lane feel increasingly product-like.
+2. If switching back to capability work, return to the normal rule: real backend seam first, then low-cost frontend exposure.
+3. Keep using headless + root `ctest` as the repo-wide validation truth baseline.
