@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.56] - 2026-04-05
+
+### Refined — The "BobGUI Resilient Fallback" Release
+
+#### 🔁 BobGUI now falls back per operation, not just per build mode
+- Updated `frontends/bobgui_app/main.c` so the BobGUI lane now automatically falls back to `fo_cli` when a direct `fo_c_api` operation is unavailable or fails, instead of treating the compiled-in direct path as all-or-nothing.
+- Added clearer output messaging so fallback mode explains why it happened before showing the CLI-backed result.
+- This makes the BobGUI lane substantially more robust in mixed or partially prepared environments.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_RESILIENT_FALLBACK_2026_04_05.md` documenting the per-operation fallback behavior and why it is a stronger product model than a brittle direct-only preference.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **70 / 70 tests passed**.
+
+### Version
+- Bumped to **6.0.56**.
+
 ## [6.0.55] - 2026-04-05
 
 ### Expanded — The "BTK Frontend Parity" Release

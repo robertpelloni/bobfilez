@@ -192,6 +192,51 @@ build_direct_output_text (const gchar *operation,
     return g_string_free (text, FALSE);
 }
 
+static void
+run_cli_request (const AppState *state,
+                 const gchar *operation,
+                 const gchar *target_path,
+                 const gchar *fallback_reason,
+                 gchar **status_out,
+                 gchar **output_out)
+{
+    GError *error = NULL;
+    gchar *stdout_text = NULL;
+    gchar *stderr_text = NULL;
+    gint exit_status = 0;
+    GStrv argv = build_cli_argv (state->cli_path, operation, target_path);
+
+    if (!g_spawn_sync (NULL,
+                       argv,
+                       NULL,
+                       G_SPAWN_DEFAULT,
+                       NULL,
+                       NULL,
+                       &stdout_text,
+                       &stderr_text,
+                       &exit_status,
+                       &error)) {
+        *status_out = g_strdup_printf ("%s failed for %s", operation, target_path);
+        *output_out = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
+        g_clear_error (&error);
+    } else {
+        *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation, target_path);
+        *output_out = build_cli_output_text (operation, stdout_text, stderr_text, exit_status);
+        if (fallback_reason != NULL && fallback_reason[0] != '\0') {
+            GString *prefixed = g_string_new ("Direct fo_c_api path was unavailable; using fo_cli fallback.\nReason: ");
+            g_string_append (prefixed, fallback_reason);
+            g_string_append (prefixed, "\n\n");
+            g_string_append (prefixed, *output_out != NULL ? *output_out : "");
+            g_free (*output_out);
+            *output_out = g_string_free (prefixed, FALSE);
+        }
+    }
+
+    g_strfreev (argv);
+    g_free (stdout_text);
+    g_free (stderr_text);
+}
+
 #ifdef BOBFILEZ_HAVE_C_API
 static BobfilezDirectApiFn
 find_direct_api_function (const gchar *operation)
@@ -228,13 +273,31 @@ run_command_thread (gpointer user_data)
 #ifdef BOBFILEZ_HAVE_C_API
         BobfilezDirectApiFn direct_api = find_direct_api_function (request->operation);
         if (direct_api == NULL) {
-            result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
-            result->output = g_strdup ("This direct C API build does not expose the requested operation.");
+            if (request->state->cli_path != NULL) {
+                run_cli_request (request->state,
+                                 request->operation,
+                                 request->target_path,
+                                 "Requested operation is not exposed by the direct fo_c_api build.",
+                                 &result->status,
+                                 &result->output);
+            } else {
+                result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
+                result->output = g_strdup ("This direct C API build does not expose the requested operation.");
+            }
         } else {
             char *summary_text = direct_api (request->target_path);
             if (summary_text == NULL) {
-                result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
-                result->output = g_strdup (fo_bobfilez_last_error ());
+                if (request->state->cli_path != NULL) {
+                    run_cli_request (request->state,
+                                     request->operation,
+                                     request->target_path,
+                                     fo_bobfilez_last_error (),
+                                     &result->status,
+                                     &result->output);
+                } else {
+                    result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
+                    result->output = g_strdup (fo_bobfilez_last_error ());
+                }
             } else {
                 result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, request->target_path);
                 result->output = build_direct_output_text (request->operation, summary_text);
@@ -242,37 +305,25 @@ run_command_thread (gpointer user_data)
             }
         }
 #else
-        result->status = g_strdup ("Direct C API requested but not compiled in.");
-        result->output = g_strdup ("BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.");
+        if (request->state->cli_path != NULL) {
+            run_cli_request (request->state,
+                             request->operation,
+                             request->target_path,
+                             "BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.",
+                             &result->status,
+                             &result->output);
+        } else {
+            result->status = g_strdup ("Direct C API requested but not compiled in.");
+            result->output = g_strdup ("BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.");
+        }
 #endif
     } else if (request->state->cli_path != NULL) {
-        GError *error = NULL;
-        gchar *stdout_text = NULL;
-        gchar *stderr_text = NULL;
-        gint exit_status = 0;
-        GStrv argv = build_cli_argv (request->state->cli_path, request->operation, request->target_path);
-
-        if (!g_spawn_sync (NULL,
-                           argv,
-                           NULL,
-                           G_SPAWN_DEFAULT,
-                           NULL,
-                           NULL,
-                           &stdout_text,
-                           &stderr_text,
-                           &exit_status,
-                           &error)) {
-            result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
-            result->output = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
-            g_clear_error (&error);
-        } else {
-            result->status = g_strdup_printf ("Completed %s via fo_cli for %s", request->operation, request->target_path);
-            result->output = build_cli_output_text (request->operation, stdout_text, stderr_text, exit_status);
-        }
-
-        g_strfreev (argv);
-        g_free (stdout_text);
-        g_free (stderr_text);
+        run_cli_request (request->state,
+                         request->operation,
+                         request->target_path,
+                         NULL,
+                         &result->status,
+                         &result->output);
     } else {
         result->status = g_strdup ("No backend available.");
         result->output = g_strdup ("Neither fo_c_api nor fo_cli is available for this BobGUI build.");

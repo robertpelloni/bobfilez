@@ -1,49 +1,48 @@
-# HANDOFF.md — bobfilez Session 70
+# HANDOFF.md — bobfilez Session 71
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.55
-**Focus:** Expanded the BTK/CopperSpice demo lane so it no longer stops at scanner/duplicates and instead participates more credibly in the broader native frontend matrix.
+**Version:** 6.0.56
+**Focus:** Refined the BobGUI direct/fallback architecture so backend fallback now happens per operation rather than only at startup/build-mode selection time.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Expanded the BTK demo surface
+### 1. Made BobGUI backend fallback resilient at the operation level
 Updated:
-- `frontends/btk/src/DemoWindow.hpp`
-- `frontends/btk/src/DemoWindow.cpp`
+- `frontends/bobgui_app/main.c`
 
-Before this session, the BTK lane exposed only:
-- Scanner
-- Duplicates
+Previously, the BobGUI lane preferred direct `fo_c_api` mode and only used `fo_cli` when direct support was not present.
 
-Now it exposes:
-- Scanner
-- Duplicates
-- Statistics
-- Hasher
-- Metadata
+That still left a brittle case:
+- direct mode compiled in
+- but specific operation unavailable or failing
+- while `fo_cli` was actually available and usable
 
-### 2. Reused the same core seams already proven in the other native lanes
-The BTK demo now uses:
-- `Registry<IFileScanner>` for scan/stat/metadata discovery
-- `Engine` for duplicate grouping
-- `Registry<IHasher>` for hashing
-- `Registry<IMetadataProvider>` for metadata reads
+This session fixed that.
 
-### 3. Preserved the background-work / queued-result pattern
-Even though BTK remains a research lane, the implementation still follows the same general execution model used in the other demos:
-- user enters/selects a path
-- background thread does the work
-- result is applied back to the UI through explicit queued slot delivery
+The BobGUI app now:
+- prefers direct `fo_c_api`
+- if a direct operation is unsupported, falls back to `fo_cli`
+- if a direct operation fails, falls back to `fo_cli`
+- explicitly explains that fallback happened and why
 
-That keeps the BTK lane internally consistent with the rest of the frontend work rather than leaving it as a permanently stunted side demo.
+### 2. Added a shared CLI execution helper
+Added a local helper in `frontends/bobgui_app/main.c`:
+- `run_cli_request(...)`
 
-### 4. Added implementation documentation
+This consolidates the fallback behavior and keeps the operation-level retry path readable and consistent.
+
+### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/BTK_FRONTEND_PARITY_EXPANSION_2026_04_05.md`
+- `docs/ai/implementation/BOBGUI_RESILIENT_FALLBACK_2026_04_05.md`
 
-### 5. Versioning/docs updated
+This documents:
+- why startup-only backend preference was too brittle
+- why per-operation fallback is the stronger product model
+- what should be validated once the BobGUI/Meson toolchain is present on-host
+
+### 4. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -58,20 +57,30 @@ Updated:
 ### Validation completed
 - `scripts/build_headless.bat` ✅
 - `ctest --test-dir build-msvc --output-on-failure` ✅
-- validation surface now: **70 / 70 passed** ✅
+- validation surface remains: **70 / 70 passed** ✅
 
 ### Important architecture finding
-BTK is still the research/native-experiment lane, but it is no longer as obviously underpowered relative to the other demo frontends.
+The BobGUI lane now behaves much more like a resilient product integration:
+- choose the best backend first
+- degrade gracefully when needed
+- explain fallback clearly
 
-That matters because a multi-frontend matrix is more believable when alternate lanes demonstrate practical workflow coverage instead of stopping at toy-only interactions.
+That is significantly stronger than an all-or-nothing interpretation of the direct C ABI path.
 
-### Important host reality
-This host still does not make full end-to-end BTK validation as straightforward as headless or JUCE validation.
-So this session primarily improved the source-side parity and preserved repo-wide validation health.
+### Host reality still unchanged
+The host still does not expose the BobGUI/Meson toolchain on PATH:
+- `meson`
+- `pkg-config`
+- `ninja`
+
+So the source-side resilience is now better, but full end-to-end BobGUI app validation remains an environment/tooling boundary.
 
 ---
 
 ## Recommended Next Steps
-1. Continue selecting the next practical workflow gap in the multi-frontend matrix rather than leaving any one alternate lane permanently frozen.
-2. Keep using headless + root `ctest` as the primary repo-wide validation baseline when host-native validation for a specific GUI framework remains constrained.
-3. Continue documenting which frontend lanes are primary, which are fallback, and which remain research so the architecture stays honest.
+1. Once the BobGUI/Meson toolchain is available, validate the BobGUI app under three scenarios:
+   - direct mode success
+   - direct mode unsupported for an operation
+   - direct mode failure with CLI fallback
+2. Continue selecting the next highest-value practical gap in the multi-frontend matrix rather than leaving alternate lanes frozen.
+3. Keep preserving honest distinctions between primary lanes, fallback lanes, and research lanes.
