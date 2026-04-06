@@ -1,11 +1,64 @@
 #include <gtest/gtest.h>
 
 #include "fo/c_api/bobfilez_c_api.h"
+#include "fo/core/engine.hpp"
+#include "fo/core/operation_repository.hpp"
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string>
+
+namespace {
+
+class ScopedEnvVar {
+public:
+    ScopedEnvVar(const char* name, const std::string& value) : name_(name)
+    {
+        const char* existing = std::getenv(name_);
+        if (existing != nullptr) {
+            old_value_ = existing;
+        }
+        had_old_value_ = existing != nullptr;
+        set(value);
+    }
+
+    ~ScopedEnvVar()
+    {
+        if (had_old_value_ && old_value_.has_value()) {
+            set(*old_value_);
+        } else {
+            clear();
+        }
+    }
+
+private:
+    void set(const std::string& value)
+    {
+#ifdef _WIN32
+        _putenv_s(name_, value.c_str());
+#else
+        setenv(name_, value.c_str(), 1);
+#endif
+    }
+
+    void clear()
+    {
+#ifdef _WIN32
+        _putenv_s(name_, "");
+#else
+        unsetenv(name_);
+#endif
+    }
+
+    const char* name_;
+    bool had_old_value_ = false;
+    std::optional<std::string> old_value_;
+};
+
+} // namespace
 
 class CApiTest : public ::testing::Test {
 protected:
@@ -154,6 +207,55 @@ TEST_F(CApiTest, LintJsonAndSummaryExposeDetectedIssues)
     fo_bobfilez_free_string(summary);
     EXPECT_NE(summary_text.find("Lint Summary"), std::string::npos);
     EXPECT_NE(summary_text.find("empty.txt"), std::string::npos);
+}
+
+TEST_F(CApiTest, HistoryAndIgnoreExposeDatabaseBackedState)
+{
+    const auto db_path = (base_dir / "c_api_state.db").string();
+    ScopedEnvVar db_override("BOBFILEZ_DB_PATH", db_path);
+
+    fo::core::EngineConfig config;
+    config.db_path = db_path;
+    fo::core::Engine engine(config);
+
+    engine.ignore_repository().add("thumbs.db", "Windows thumbnail cache");
+    engine.ignore_repository().add("*.tmp", "temporary files");
+
+    fo::core::OperationRepository op_repo(engine.database());
+    fo::core::OperationRecord record;
+    record.timestamp = std::chrono::system_clock::now();
+    record.type = fo::core::OperationType::Rename;
+    record.source_path = (test_dir / "before.txt").string();
+    record.dest_path = (test_dir / "after.txt").string();
+    op_repo.log_operation(record);
+
+    char* history_json = fo_bobfilez_history_json("");
+    ASSERT_NE(history_json, nullptr) << fo_bobfilez_last_error();
+    std::string history_json_text(history_json);
+    fo_bobfilez_free_string(history_json);
+    EXPECT_NE(history_json_text.find("\"type\": \"rename\""), std::string::npos);
+    EXPECT_NE(history_json_text.find("after.txt"), std::string::npos);
+
+    char* history_summary = fo_bobfilez_history_summary_text("");
+    ASSERT_NE(history_summary, nullptr) << fo_bobfilez_last_error();
+    std::string history_summary_text(history_summary);
+    fo_bobfilez_free_string(history_summary);
+    EXPECT_NE(history_summary_text.find("History Summary"), std::string::npos);
+    EXPECT_NE(history_summary_text.find("before.txt"), std::string::npos);
+
+    char* ignore_json = fo_bobfilez_ignore_json("");
+    ASSERT_NE(ignore_json, nullptr) << fo_bobfilez_last_error();
+    std::string ignore_json_text(ignore_json);
+    fo_bobfilez_free_string(ignore_json);
+    EXPECT_NE(ignore_json_text.find("thumbs.db"), std::string::npos);
+    EXPECT_NE(ignore_json_text.find("*.tmp"), std::string::npos);
+
+    char* ignore_summary = fo_bobfilez_ignore_summary_text("");
+    ASSERT_NE(ignore_summary, nullptr) << fo_bobfilez_last_error();
+    std::string ignore_summary_text(ignore_summary);
+    fo_bobfilez_free_string(ignore_summary);
+    EXPECT_NE(ignore_summary_text.find("Ignore Rules Summary"), std::string::npos);
+    EXPECT_NE(ignore_summary_text.find("Windows thumbnail cache"), std::string::npos);
 }
 
 TEST(CApiStandaloneTest, NullRootPathSetsError)

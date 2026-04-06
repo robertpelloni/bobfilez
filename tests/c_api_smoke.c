@@ -48,5 +48,34 @@ int main(void)
     }
 
     fo_bobfilez_free_string(lint);
+
+    char *history = fo_bobfilez_history_summary_text("");
+    if (history == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_history_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 7;
+    }
+
+    if (strstr(history, "History Summary") == NULL) {
+        fprintf(stderr, "history summary did not contain expected title\n");
+        fo_bobfilez_free_string(history);
+        return 8;
+    }
+    fo_bobfilez_free_string(history);
+
+    char *ignore = fo_bobfilez_ignore_summary_text("");
+    if (ignore == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_ignore_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 9;
+    }
+
+    if (strstr(ignore, "Ignore Rules Summary") == NULL) {
+        fprintf(stderr, "ignore summary did not contain expected title\n");
+        fo_bobfilez_free_string(ignore);
+        return 10;
+    }
+    fo_bobfilez_free_string(ignore);
+
     return 0;
 }

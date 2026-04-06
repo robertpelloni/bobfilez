@@ -1,5 +1,32 @@
 # Changelog
 
+## [6.0.61] - 2026-04-06
+
+### Expanded — The "BobGUI Direct History and Ignore" Release
+
+#### 🔌 Direct C API gained history and ignore support
+- Expanded `core/include/fo/c_api/bobfilez_c_api.h` and `core/c_api/bobfilez_c_api.cpp` with:
+  - `fo_bobfilez_history_json(...)`
+  - `fo_bobfilez_ignore_json(...)`
+  - `fo_bobfilez_history_summary_text(...)`
+  - `fo_bobfilez_ignore_summary_text(...)`
+- Added narrow database-path resolution for these database-backed workflows through `BOBFILEZ_DB_PATH`, falling back to `fo.db` when unset.
+
+#### 🖥️ BobGUI now prefers direct history / ignore too
+- Updated `frontends/bobgui_app/main.c` so BobGUI now maps **History** and **Ignore Rules** through the direct `fo_c_api` seam when available, while preserving the per-operation CLI fallback path.
+
+#### 🧪 Validation surface expanded
+- Updated `tests/test_c_api.cpp` with real history + ignore coverage against a temporary database path.
+- Updated `tests/c_api_smoke.c` so the C consumer smoke test also validates the new history + ignore summary helpers.
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **72 / 72 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_HISTORY_IGNORE_DIRECT_C_API_2026_04_06.md` documenting the direct-seam expansion and the environment-driven DB-path decision.
+
+### Version
+- Bumped to **6.0.61**.
+
 ## [6.0.60] - 2026-04-06
 
 ### Expanded — The "History and Ignore Frontend Parity" Release

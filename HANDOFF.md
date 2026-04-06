@@ -1,47 +1,63 @@
-# HANDOFF.md — bobfilez Session 75
+# HANDOFF.md — bobfilez Session 76
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.60
-**Focus:** Expanded lightweight operational frontend parity by surfacing history and ignore-rule workflows in both the React web UI and the BobGUI lane.
+**Version:** 6.0.61
+**Focus:** Extended the direct `fo_c_api` seam so BobGUI can now prefer native/direct handling for history and ignore-rule listing rather than routing those workflows only through CLI fallback.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added History and Ignore Rules to the React web UI
+### 1. Expanded the direct C API for history and ignore
 Updated:
-- `bobui_web/public/react/app.js`
+- `core/include/fo/c_api/bobfilez_c_api.h`
+- `core/c_api/bobfilez_c_api.cpp`
 
-Added:
-- a **History** tab backed by `GET /api/history`
-- an **Ignore Rules** tab backed by `GET /api/ignore`
-- ignore-rule add/remove actions via:
-  - `POST /api/ignore/add`
-  - `POST /api/ignore/remove`
-- result normalization for history and ignore-rule records
-- dashboard-copy updates so the React lane description better reflects its real capabilities
+Added JSON functions:
+- `fo_bobfilez_history_json(...)`
+- `fo_bobfilez_ignore_json(...)`
 
-### 2. Expanded BobGUI with path-free CLI operations
+Added summary-text functions:
+- `fo_bobfilez_history_summary_text(...)`
+- `fo_bobfilez_ignore_summary_text(...)`
+
+### 2. Added narrow DB-path resolution for database-backed C API workflows
+Because history and ignore rules are database-backed rather than path-backed, the C API now resolves its database path as:
+1. `BOBFILEZ_DB_PATH`, when set
+2. otherwise `fo.db`
+
+This keeps the ABI narrow while still making the new direct operations testable and practical.
+
+### 3. Updated BobGUI direct operation mapping
 Updated:
 - `frontends/bobgui_app/main.c`
 
+BobGUI now maps these operations through `fo_c_api` when available:
+- **History**
+- **Ignore Rules**
+
+The fallback contract remains unchanged:
+- prefer direct `fo_c_api`
+- fall back to `fo_cli` per operation when direct support is unavailable or fails
+
+### 4. Expanded real validation
+Updated:
+- `tests/test_c_api.cpp`
+- `tests/c_api_smoke.c`
+
+Added real coverage for:
+- history JSON
+- history summary text
+- ignore JSON
+- ignore summary text
+
+The C++ test uses a temporary DB via `BOBFILEZ_DB_PATH` so repo-local `fo.db` is not mutated for test setup.
+
+### 5. Added implementation documentation
 Added:
-- `operation_requires_path(...)`
-- path-free CLI request handling for non-path workflows
-- **History** button
-- **Ignore Rules** button
-- cleaner target labeling for path-free operations
+- `docs/ai/implementation/BOBGUI_HISTORY_IGNORE_DIRECT_C_API_2026_04_06.md`
 
-Important architectural detail:
-- these new BobGUI operations currently flow through the existing **per-operation CLI fallback** model
-- they are not yet exposed by the direct `fo_c_api`
-- this is an intentional, honest use of the BobGUI dual-backend architecture rather than pretending the direct ABI is already broader than it is
-
-### 3. Added implementation documentation
-Added:
-- `docs/ai/implementation/FRONTEND_HISTORY_IGNORE_PARITY_2026_04_06.md`
-
-### 4. Versioning/docs updated
+### 6. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -54,23 +70,21 @@ Updated:
 ## Validation / Findings
 
 ### Validation completed
-- `node --check bobui_web/server.js` ✅
-- `node --check bobui_web/public/react/app.js` ✅
 - `scripts/build_headless.bat` ✅
 - `ctest --test-dir build-msvc --output-on-failure` ✅
-- validation surface remains: **71 / 71 passed** ✅
+- validation surface is now: **72 / 72 passed** ✅
 
 ### Important product findings
-1. The frontend parity story is getting stronger not only for analysis workflows, but also for operational/maintenance workflows.
-2. BobGUI’s per-operation fallback model continues proving useful because it can surface CLI-real features before a dedicated direct C ABI seam exists.
-3. React is now evolving beyond a demo dashboard into a more credible operational control surface.
+1. The direct `fo_c_api` seam is continuing to scale workflow-by-workflow without requiring a prematurely frozen large C struct ABI.
+2. Database-backed workflows can still fit the narrow C ABI cleanly when configuration is handled through a small environmental override instead of a broad new configuration object.
+3. BobGUI’s dual-backend model remains valuable even as the direct seam expands, because it still provides graceful fallback rather than forcing direct support to be all-or-nothing.
 
 ### Important host reality
-Full end-to-end BobGUI runtime validation remains host-constrained because this machine still lacks the easy Meson/pkg-config/ninja path for that lane. Source-level and backend-level validation are strong; full host-run validation is still deferred.
+Full BobGUI end-to-end host validation remains constrained by missing Meson/pkg-config/ninja convenience tooling on this machine. Source-level and backend-level validation remain strong and honest.
 
 ---
 
 ## Recommended Next Steps
-1. Continue choosing parity targets that already have a real backend seam rather than inventing frontend-only features.
-2. Consider whether `history` and `ignore` now justify eventual direct `fo_c_api` expansion, or whether CLI fallback remains the better seam for those workflows.
-3. Continue using web syntax checks plus headless + root `ctest` as the honest baseline when host GUI tooling remains constrained.
+1. Reassess whether the next highest-value direct C API targets are still worth adding, or whether the current seam is now broad enough that the next best investment is UI validation / usability instead.
+2. Keep choosing direct-seam expansions only when the workflow is already real in CLI/core and the ABI can stay narrow.
+3. Continue using headless + root `ctest` as the repo-wide validation truth baseline.

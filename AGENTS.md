@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.60
+**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.61
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.60)
+## Current Status (v6.0.61)
 
+- ✅ **BobGUI Direct History + Ignore**: Extended the direct `fo_c_api` seam with history and ignore-rule JSON/summary helpers, allowing BobGUI to prefer direct native integration for those database-backed workflows too while preserving per-operation CLI fallback resilience.
 - ✅ **History + Ignore Frontend Parity**: Expanded the React/Express SPA with real **History** and **Ignore Rules** tabs plus add/remove ignore-rule management, and expanded BobGUI with path-free **History** / **Ignore Rules** operations routed honestly through its per-operation CLI fallback model.
 - ✅ **Lint Matrix Completion**: Expanded the remaining practical frontend gaps for lint by adding a real **Lint** tab to the BTK demo and exposing the existing `/api/lint` capability through the React/Express SPA, making lint one of the clearest cross-lane workflows in the current frontend matrix.
 - ✅ **Native Lint Parity**: Expanded the Qt, BobUI, and JUCE demo lanes so each now exposes a real **Lint** workflow backed by the registered `std` linter, reducing another clear practical feature gap between the web/CLI/BobGUI layers and the native demo matrix.

@@ -286,6 +286,12 @@ find_direct_api_function (const gchar *operation)
     if (g_strcmp0 (operation, "lint") == 0) {
         return fo_bobfilez_lint_summary_text;
     }
+    if (g_strcmp0 (operation, "history") == 0) {
+        return fo_bobfilez_history_summary_text;
+    }
+    if (g_strcmp0 (operation, "ignore") == 0) {
+        return fo_bobfilez_ignore_summary_text;
+    }
 
     return NULL;
 }

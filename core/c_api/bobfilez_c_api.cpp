@@ -4,6 +4,7 @@
 #include "fo/core/export.hpp"
 #include "fo/core/interfaces.hpp"
 #include "fo/core/lint_interface.hpp"
+#include "fo/core/operation_repository.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
 
@@ -56,6 +57,27 @@ std::filesystem::path parse_root_path(const char* root_path)
     }
 
     return std::filesystem::path(root_path);
+}
+
+std::string current_c_api_db_path()
+{
+#ifdef _WIN32
+    char* env_db_path = nullptr;
+    size_t length = 0;
+    if (_dupenv_s(&env_db_path, &length, "BOBFILEZ_DB_PATH") == 0 && env_db_path != nullptr && env_db_path[0] != '\0') {
+        std::string db_path(env_db_path);
+        std::free(env_db_path);
+        return db_path;
+    }
+    std::free(env_db_path);
+#else
+    const char* env_db_path = std::getenv("BOBFILEZ_DB_PATH");
+    if (env_db_path != nullptr && env_db_path[0] != '\0') {
+        return env_db_path;
+    }
+#endif
+
+    return "fo.db";
 }
 
 fo::core::FileInfo create_local_file_info(const std::filesystem::path& path)
@@ -571,6 +593,141 @@ std::string make_lint_summary_text(const std::vector<fo::core::LintResult>& resu
     return out.str();
 }
 
+std::string operation_type_name(fo::core::OperationType type)
+{
+    switch (type) {
+        case fo::core::OperationType::Move:
+            return "move";
+        case fo::core::OperationType::Copy:
+            return "copy";
+        case fo::core::OperationType::Rename:
+            return "rename";
+        case fo::core::OperationType::Delete:
+            return "delete";
+    }
+
+    return "unknown";
+}
+
+std::string format_operation_timestamp(std::chrono::system_clock::time_point timestamp)
+{
+    const auto raw_time = std::chrono::system_clock::to_time_t(timestamp);
+    std::tm tm_buffer;
+#ifdef _WIN32
+    localtime_s(&tm_buffer, &raw_time);
+#else
+    localtime_r(&raw_time, &tm_buffer);
+#endif
+    std::ostringstream out;
+    out << std::put_time(&tm_buffer, "%Y-%m-%dT%H:%M:%S");
+    return out.str();
+}
+
+std::string make_history_json(const std::vector<fo::core::OperationRecord>& operations)
+{
+    std::ostringstream out;
+    out << "[\n";
+    for (size_t i = 0; i < operations.size(); ++i) {
+        const auto& operation = operations[i];
+        out << "  {\"id\": " << operation.id
+            << ", \"type\": \"" << operation_type_name(operation.type)
+            << "\", \"source\": \"" << fo::core::Exporter::json_escape(operation.source_path)
+            << "\", \"dest\": \"" << fo::core::Exporter::json_escape(operation.dest_path)
+            << "\", \"timestamp\": \"" << format_operation_timestamp(operation.timestamp)
+            << "\", \"undone\": " << (operation.undone ? "true" : "false")
+            << "}";
+        if (i + 1 < operations.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+    out << "]\n";
+    return out.str();
+}
+
+std::string make_history_summary_text(const std::vector<fo::core::OperationRecord>& operations)
+{
+    std::map<std::string, int> counts;
+    for (const auto& operation : operations) {
+        counts[operation_type_name(operation.type)]++;
+    }
+
+    std::ostringstream out;
+    out << "History Summary\n"
+        << "===============\n"
+        << "Operations Loaded: " << operations.size() << "\n\n"
+        << "Operation Counts:\n";
+
+    for (const auto& [type_name, count] : counts) {
+        out << "- " << type_name << ": " << count << "\n";
+    }
+
+    out << "\nMost Recent Operations:\n";
+    if (operations.empty()) {
+        out << "No operation history.\n";
+        return out.str();
+    }
+
+    const size_t limit = std::min<size_t>(operations.size(), 20);
+    for (size_t i = 0; i < limit; ++i) {
+        const auto& operation = operations[i];
+        out << "- " << format_operation_timestamp(operation.timestamp)
+            << " [" << operation_type_name(operation.type) << "] "
+            << operation.source_path;
+        if (!operation.dest_path.empty()) {
+            out << " -> " << operation.dest_path;
+        }
+        if (operation.undone) {
+            out << " (undone)";
+        }
+        out << "\n";
+    }
+
+    return out.str();
+}
+
+std::string make_ignore_json(const std::vector<fo::core::IgnoreRule>& rules)
+{
+    std::ostringstream out;
+    out << "[\n";
+    for (size_t i = 0; i < rules.size(); ++i) {
+        out << "  {\"id\": " << rules[i].id
+            << ", \"pattern\": \"" << fo::core::Exporter::json_escape(rules[i].pattern)
+            << "\", \"reason\": \"" << fo::core::Exporter::json_escape(rules[i].reason)
+            << "\"}";
+        if (i + 1 < rules.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+    out << "]\n";
+    return out.str();
+}
+
+std::string make_ignore_summary_text(const std::vector<fo::core::IgnoreRule>& rules)
+{
+    std::ostringstream out;
+    out << "Ignore Rules Summary\n"
+        << "====================\n"
+        << "Rules Loaded: " << rules.size() << "\n\n"
+        << "Configured Rules:\n";
+
+    if (rules.empty()) {
+        out << "No ignore rules configured.\n";
+        return out.str();
+    }
+
+    for (const auto& rule : rules) {
+        out << "- " << rule.pattern;
+        if (!rule.reason.empty()) {
+            out << " (" << rule.reason << ")";
+        }
+        out << "\n";
+    }
+
+    return out.str();
+}
+
 void ensure_providers_registered()
 {
     std::call_once(g_provider_registration_once, []() {
@@ -607,6 +764,23 @@ char* execute_lint_request(const char* root_path, BuildLint&& build_lint)
         const auto root = parse_root_path(root_path);
         const auto results = run_lint(root);
         return duplicate_c_string(build_lint(results));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+template <typename BuildGlobal>
+char* execute_global_request(BuildGlobal&& build_global)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        return duplicate_c_string(build_global());
     } catch (const std::exception& error) {
         set_last_error(error.what());
         return nullptr;
@@ -683,6 +857,29 @@ extern "C" char* fo_bobfilez_lint_json(const char* root_path)
     });
 }
 
+extern "C" char* fo_bobfilez_history_json(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        fo::core::OperationRepository op_repo(engine.database());
+        return make_history_json(op_repo.get_all(50));
+    });
+}
+
+extern "C" char* fo_bobfilez_ignore_json(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        return make_ignore_json(engine.ignore_repository().get_all());
+    });
+}
+
 extern "C" char* fo_bobfilez_scan_summary_text(const char* root_path)
 {
     return execute_json_request(root_path, [](const auto& files) {
@@ -740,6 +937,29 @@ extern "C" char* fo_bobfilez_lint_summary_text(const char* root_path)
 {
     return execute_lint_request(root_path, [](const auto& results) {
         return make_lint_summary_text(results);
+    });
+}
+
+extern "C" char* fo_bobfilez_history_summary_text(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        fo::core::OperationRepository op_repo(engine.database());
+        return make_history_summary_text(op_repo.get_all(50));
+    });
+}
+
+extern "C" char* fo_bobfilez_ignore_summary_text(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        return make_ignore_summary_text(engine.ignore_repository().get_all());
     });
 }
 
