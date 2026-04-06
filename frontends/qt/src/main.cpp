@@ -19,8 +19,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <utility>
@@ -34,6 +37,24 @@ QString format_megabytes(std::uintmax_t bytes)
     return QString::number(megabytes, 'f', 2) + QStringLiteral(" MB");
 }
 
+QString format_taken_timestamp(const fo::core::ImageMetadata &metadata)
+{
+    if (!metadata.date.has_taken) {
+        return QStringLiteral("n/a");
+    }
+
+    const auto time = std::chrono::system_clock::to_time_t(metadata.date.taken);
+    std::tm tm_buffer;
+#ifdef _WIN32
+    localtime_s(&tm_buffer, &time);
+#else
+    localtime_r(&time, &tm_buffer);
+#endif
+    std::ostringstream timestamp;
+    timestamp << std::put_time(&tm_buffer, "%Y-%m-%d %H:%M:%S");
+    return QString::fromStdString(timestamp.str());
+}
+
 class DashboardTab final : public QWidget {
 public:
     explicit DashboardTab(QWidget *parent = nullptr) : QWidget(parent)
@@ -41,7 +62,7 @@ public:
         auto *layout = new QVBoxLayout(this);
         auto *title = new QLabel(QStringLiteral("bobfilez Qt GUI Demo"), this);
         auto *body = new QLabel(
-            QStringLiteral("This Qt Widgets frontend now exercises the same core scan, duplicate, statistics, and hashing workflows used by the JUCE and React lanes."),
+            QStringLiteral("This Qt Widgets frontend now exercises the same core scan, duplicate, statistics, hash, and metadata workflows used across the expanding multi-frontend matrix."),
             this);
         auto *version = new QLabel(QStringLiteral("Core version: ") + QString::fromUtf8(fo::core::FO_VERSION.data()), this);
 
@@ -402,6 +423,107 @@ private:
     QTextEdit *output_ = nullptr;
 };
 
+class MetadataTab final : public QWidget {
+public:
+    explicit MetadataTab(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        auto *layout = new QVBoxLayout(this);
+        auto *topLayout = new QHBoxLayout();
+
+        metadata_button_ = new QPushButton(QStringLiteral("Select Directory for Metadata..."), this);
+        status_label_ = new QLabel(QStringLiteral("No metadata loaded yet."), this);
+        output_ = new QTextEdit(this);
+
+        output_->setReadOnly(true);
+        topLayout->addWidget(metadata_button_);
+        topLayout->addWidget(status_label_, 1);
+        layout->addLayout(topLayout);
+        layout->addWidget(output_);
+
+        connect(metadata_button_, &QPushButton::clicked, this, [this]() {
+            const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("Select Directory"));
+            if (!directory.isEmpty()) {
+                run_metadata(directory.toStdString());
+            }
+        });
+    }
+
+private:
+    void run_metadata(const std::string &directory_path)
+    {
+        metadata_button_->setEnabled(false);
+        status_label_->setText(QStringLiteral("Reading metadata from: ") + QString::fromStdString(directory_path));
+        output_->clear();
+
+        std::thread([this, directory_path]() {
+            try {
+                auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+                if (!scanner) {
+                    throw std::runtime_error("Scanner 'std' not found.");
+                }
+
+                auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
+                if (!provider) {
+                    throw std::runtime_error("Metadata provider 'tinyexif' not found.");
+                }
+
+                const std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directory_path) };
+                const std::vector<std::string> exts;
+                const auto files = scanner->scan(roots, exts, false);
+
+                QString report;
+                report += QStringLiteral("Metadata for: ") + QString::fromStdString(directory_path) + QStringLiteral("\n\n");
+                int record_count = 0;
+
+                for (const auto &file : files) {
+                    if (file.is_dir) {
+                        continue;
+                    }
+
+                    fo::core::ImageMetadata metadata;
+                    if (!provider->read(std::filesystem::path(file.uri), metadata)) {
+                        continue;
+                    }
+
+                    ++record_count;
+                    report += QString::fromStdString(file.uri) + QStringLiteral("\n");
+                    report += QStringLiteral("  Taken: ") + format_taken_timestamp(metadata) + QStringLiteral("\n");
+                    if (metadata.has_gps) {
+                        report += QStringLiteral("  GPS: ") + QString::number(metadata.gps_lat, 'f', 6) + QStringLiteral(", ") + QString::number(metadata.gps_lon, 'f', 6) + QStringLiteral("\n");
+                    } else {
+                        report += QStringLiteral("  GPS: n/a\n");
+                    }
+                    report += QStringLiteral("\n");
+
+                    if (record_count >= 20) {
+                        break;
+                    }
+                }
+
+                if (record_count == 0) {
+                    report += QStringLiteral("No readable metadata records were found.\n");
+                }
+
+                QTimer::singleShot(0, this, [this, record_count, report = std::move(report)]() {
+                    status_label_->setText(QStringLiteral("Loaded %1 metadata records.").arg(record_count));
+                    output_->setPlainText(report);
+                    metadata_button_->setEnabled(true);
+                });
+            } catch (const std::exception &error) {
+                const QString message = QString::fromStdString(error.what());
+                QTimer::singleShot(0, this, [this, message]() {
+                    status_label_->setText(QStringLiteral("Error: ") + message);
+                    metadata_button_->setEnabled(true);
+                });
+            }
+        }).detach();
+    }
+
+    QPushButton *metadata_button_ = nullptr;
+    QLabel *status_label_ = nullptr;
+    QTextEdit *output_ = nullptr;
+};
+
 } // namespace
 
 int main(int argc, char *argv[])
@@ -418,6 +540,7 @@ int main(int argc, char *argv[])
     tabs->addTab(new DuplicatesTab(tabs), QStringLiteral("Duplicates"));
     tabs->addTab(new StatsTab(tabs), QStringLiteral("Statistics"));
     tabs->addTab(new HashTab(tabs), QStringLiteral("Hasher"));
+    tabs->addTab(new MetadataTab(tabs), QStringLiteral("Metadata"));
 
     window.setCentralWidget(tabs);
     window.show();

@@ -1,51 +1,59 @@
-# HANDOFF.md — bobfilez Session 68
+# HANDOFF.md — bobfilez Session 69
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.53
-**Focus:** Improved the BobGUI direct-mode user experience by moving from raw JSON dumps to structured summary text while preserving the direct/CLI dual-backend model.
+**Version:** 6.0.54
+**Focus:** Expanded native metadata parity across the Qt, BobUI, and JUCE demo lanes while preserving the stronger BobGUI direct/fallback architecture from the previous sessions.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added summary-text helpers to the direct C API
+### 1. Added a Metadata tab to the Qt demo
 Updated:
-- `core/include/fo/c_api/bobfilez_c_api.h`
-- `core/c_api/bobfilez_c_api.cpp`
+- `frontends/qt/src/main.cpp`
 
-The direct C ABI now exposes additional human-readable helpers for:
-- `fo_bobfilez_scan_summary_text(...)`
-- `fo_bobfilez_duplicates_summary_text(...)`
-- `fo_bobfilez_stats_summary_text(...)`
-- `fo_bobfilez_hash_summary_text(...)`
-- `fo_bobfilez_metadata_summary_text(...)`
+The Qt demo now includes a real **Metadata** tab that:
+- selects a directory
+- scans files through the registered `std` scanner
+- reads metadata through the registered `tinyexif` provider
+- renders human-readable Taken/GPS summaries
+- reports cleanly when no metadata records are available
 
-These complement the existing JSON-returning calls rather than replacing them.
+This means the Qt lane now exposes:
+- Dashboard
+- Scanner
+- Duplicates
+- Statistics
+- Hasher
+- Metadata
 
-### 2. BobGUI direct mode now uses summary output
+### 2. Added metadata support to the BobUI/QML demo
 Updated:
-- `frontends/bobgui_app/main.c`
+- `frontends/bobui/src/QmlEngineWrapper.hpp`
+- `frontends/bobui/src/QmlEngineWrapper.cpp`
+- `frontends/bobui/assets/Main.qml`
 
-The BobGUI app still prefers direct `fo_c_api` when available and still falls back to `fo_cli` otherwise.
+Added:
+- `runMetadata(...)`
+- `metadataFinished(...)`
+- a full **Metadata** tab in the QML surface
 
-But now the direct mode no longer dumps raw JSON into the text view. It instead renders summary-oriented output for the major workflows, which is a much more UI-friendly experience for the native BobGUI lane.
+This closes an obvious parity gap between the BobUI native lane and the more advanced web lane.
 
-### 3. Strengthened validation around the direct C surface
+### 3. Added metadata support to the JUCE demo
 Updated:
-- `tests/test_c_api.cpp`
-- `tests/c_api_smoke.c`
+- `frontends/juce/src/main.cpp`
 
-This now validates both:
-- raw JSON access
-- human-readable summary access
+Added a new **Metadata** tab using the same JUCE-native execution pattern already proven elsewhere in the file:
+- `juce::FileChooser`
+- background work through `juce::Thread::launch`
+- UI updates through `juce::MessageManager::callAsync`
 
-So the direct BobGUI-facing seam is now better covered, both in C++ tests and in the real C consumer smoke executable.
+### 4. Added documentation for the parity expansion
+Added:
+- `docs/ai/implementation/FRONTEND_METADATA_PARITY_2026_04_05.md`
 
-### 4. Revalidated the root-level test surface
-Validation completed:
-- `scripts/build_headless.bat` ✅
-- `ctest --test-dir build-msvc --output-on-failure` ✅
-- total validation surface: **69 / 69 passed** ✅
+This records the rationale for choosing metadata as the next practical cross-lane parity target and the current host/toolchain validation boundaries.
 
 ### 5. Versioning/docs updated
 Updated:
@@ -59,34 +67,24 @@ Updated:
 
 ## Validation / Findings
 
-### Important UI/product finding
-The BobGUI lane now has a noticeably better direct-mode experience:
-- direct mode = summary-oriented native output
-- fallback mode = raw CLI output
+### Validation completed
+- `scripts/build_headless.bat` ✅
+- `ctest --test-dir build-msvc --output-on-failure` ✅
+- `scripts/build_juce_gui.bat` ✅
 
-That distinction is actually useful:
-- the direct path now feels more app-like
-- the fallback path remains a truthful debugging/compatibility path
+### Important product finding
+Metadata was one of the most obvious remaining practical gaps between:
+- the richer web lane
+- and the native demo lanes
 
-### Important architecture finding
-Keeping both JSON and summary functions in the C API is the right balance right now:
-- JSON remains the best transport/debug surface
-- summary text is the better immediate BobGUI display surface
-- we still avoid prematurely freezing a large C struct ABI
+This session reduced that gap substantially.
 
-### Host reality still unchanged
-The host still lacks the BobGUI/Meson toolchain on PATH:
-- `meson`
-- `pkg-config`
-- `ninja`
-
-So full end-to-end BobGUI app validation on this machine remains blocked by environment/tooling, not by the source architecture.
+### Important host reality
+The host still lacks the clean MSVC Qt desktop runtime surface needed for straightforward full validation of every Qt/BobUI runtime path, but the source-side parity work is now materially stronger.
 
 ---
 
 ## Recommended Next Steps
-1. Once Meson/pkg-config/ninja are available, validate the BobGUI app in both modes:
-   - direct summary mode through `fo_c_api`
-   - CLI fallback mode
-2. If direct mode proves stable, consider adding a small amount of operation-specific formatting/styling within the BobGUI UI itself.
-3. Keep preserving clear framework identities across Qt / BobUI / JUCE / BTK / BobGUI / web rather than merging them into one muddy abstraction.
+1. Continue choosing the next best practical workflow that already exists in CLI/web form but is still missing from one or more native demo lanes.
+2. Keep validating JUCE whenever that lane is expanded because it remains one of the easiest native alternate lanes to verify end-to-end on this host.
+3. Once a compatible MSVC Qt runtime is available, validate the expanded Qt and BobUI metadata lanes directly.

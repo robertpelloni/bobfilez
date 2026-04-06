@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.54] - 2026-04-05
+
+### Expanded — The "Native Metadata Parity" Release
+
+#### 🧩 Qt, BobUI, and JUCE demos gained metadata workflows
+- Expanded `frontends/qt/src/main.cpp` so the Qt demo now includes a real **Metadata** tab backed by the registered `tinyexif` metadata provider and the existing `std` scanner path.
+- Expanded `frontends/bobui/src/QmlEngineWrapper.*` and `frontends/bobui/assets/Main.qml` so the BobUI/QML lane now exposes `runMetadata(...)`, `metadataFinished(...)`, and a full **Metadata** tab.
+- Expanded `frontends/juce/src/main.cpp` so the JUCE demo now also includes a native **Metadata** tab using the same background-thread/message-thread pattern already established for the rest of the JUCE workflows.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **69 / 69 tests passed**.
+- Re-ran `scripts/build_juce_gui.bat` successfully after the JUCE metadata expansion.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/FRONTEND_METADATA_PARITY_2026_04_05.md` documenting the new cross-lane metadata parity work.
+
+### Version
+- Bumped to **6.0.54**.
+
 ## [6.0.53] - 2026-04-05
 
 ### Expanded — The "BobGUI Summary Mode" Release
@@ -15,7 +35,7 @@
 - Re-ran headless validation and root-level `ctest` after the provider-registration and root-test-discovery improvements. Validation succeeded with **69 / 69 tests passed**.
 
 #### 📚 Documentation
-- Added `docs/ai/implementation/BOBGUI_DIRECT_C_API_WIRING_2026_04_05.md` and continued documenting the BobGUI direct-mode evolution in handoff/session tracking.
+- Added `docs/ai/implementation/BOBGUI_SUMMARY_MODE_2026_04_05.md` and continued documenting the BobGUI direct-mode evolution in handoff/session tracking.
 
 ### Version
 - Bumped to **6.0.53**.

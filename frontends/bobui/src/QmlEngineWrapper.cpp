@@ -10,8 +10,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -129,6 +132,67 @@ QString build_hash_report(const std::string &file_path)
 
     if (sha256_hasher) {
         report += QStringLiteral("SHA-256: ") + QString::fromStdString(sha256_hasher->fast64(path)) + QStringLiteral("\n");
+    }
+
+    return report;
+}
+
+QString format_taken_timestamp(const fo::core::ImageMetadata &metadata)
+{
+    if (!metadata.date.has_taken) {
+        return QStringLiteral("n/a");
+    }
+
+    const auto time = std::chrono::system_clock::to_time_t(metadata.date.taken);
+    std::tm tm_buffer;
+#ifdef _WIN32
+    localtime_s(&tm_buffer, &time);
+#else
+    localtime_r(&time, &tm_buffer);
+#endif
+    std::ostringstream timestamp;
+    timestamp << std::put_time(&tm_buffer, "%Y-%m-%d %H:%M:%S");
+    return QString::fromStdString(timestamp.str());
+}
+
+QString build_metadata_report(const std::string &directory_path, const std::vector<fo::core::FileInfo> &files, int &record_count)
+{
+    auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
+    if (!provider) {
+        throw std::runtime_error("Metadata provider 'tinyexif' not found.");
+    }
+
+    QString report;
+    report += QStringLiteral("Metadata for: ") + QString::fromStdString(directory_path) + QStringLiteral("\n\n");
+
+    record_count = 0;
+    for (const auto &file : files) {
+        if (file.is_dir) {
+            continue;
+        }
+
+        fo::core::ImageMetadata metadata;
+        if (!provider->read(std::filesystem::path(file.uri), metadata)) {
+            continue;
+        }
+
+        ++record_count;
+        report += QString::fromStdString(file.uri) + QStringLiteral("\n");
+        report += QStringLiteral("  Taken: ") + format_taken_timestamp(metadata) + QStringLiteral("\n");
+        if (metadata.has_gps) {
+            report += QStringLiteral("  GPS: ") + QString::number(metadata.gps_lat, 'f', 6) + QStringLiteral(", ") + QString::number(metadata.gps_lon, 'f', 6) + QStringLiteral("\n");
+        } else {
+            report += QStringLiteral("  GPS: n/a\n");
+        }
+        report += QStringLiteral("\n");
+
+        if (record_count >= 20) {
+            break;
+        }
+    }
+
+    if (record_count == 0) {
+        report += QStringLiteral("No readable metadata records were found.\n");
     }
 
     return report;
@@ -259,6 +323,36 @@ void QmlEngineWrapper::runHash(const QString &filePath)
             const QString message = QString::fromStdString(error.what());
             QMetaObject::invokeMethod(this, [this, message]() {
                 emit errorOccurred(QStringLiteral("hash"), message);
+            }, Qt::QueuedConnection);
+        }
+    }).detach();
+}
+
+void QmlEngineWrapper::runMetadata(const QString &directoryPath)
+{
+    const std::string path = directoryPath.toStdString();
+    std::thread([this, path]() {
+        try {
+            auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+            if (!scanner) {
+                throw std::runtime_error("Scanner 'std' not found.");
+            }
+
+            const std::vector<std::filesystem::path> roots = { std::filesystem::u8path(path) };
+            const std::vector<std::string> exts;
+            const auto files = scanner->scan(roots, exts, false);
+
+            int record_count = 0;
+            const QString report = build_metadata_report(path, files, record_count);
+            const QString stats = QStringLiteral("Loaded %1 metadata records.").arg(record_count);
+
+            QMetaObject::invokeMethod(this, [this, report, stats]() {
+                emit metadataFinished(report, stats);
+            }, Qt::QueuedConnection);
+        } catch (const std::exception &error) {
+            const QString message = QString::fromStdString(error.what());
+            QMetaObject::invokeMethod(this, [this, message]() {
+                emit errorOccurred(QStringLiteral("metadata"), message);
             }, Qt::QueuedConnection);
         }
     }).detach();

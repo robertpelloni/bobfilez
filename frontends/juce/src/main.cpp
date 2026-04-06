@@ -8,8 +8,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -27,7 +30,7 @@ public:
 
         body.setText(
             "This minimal JUCE frontend proves bobfilez can host a native JUCE shell alongside the Qt, BobUI, BTK, BobGUI, and web lanes.\n\n"
-            "Use the tabs above to invoke the native C++ fo_core engine functions.",
+            "Use the tabs above to invoke the native C++ fo_core engine functions, including metadata inspection.",
             juce::dontSendNotification);
         body.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(body);
@@ -440,6 +443,135 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
 };
 
+class MetadataTab final : public juce::Component
+{
+public:
+    MetadataTab()
+    {
+        metadataButton.setButtonText("Load Image Metadata...");
+        addAndMakeVisible(metadataButton);
+
+        resultsLabel.setText("No metadata loaded yet.", juce::dontSendNotification);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
+        addAndMakeVisible(resultsLabel);
+
+        metadataButton.onClick = [this]() {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a directory to inspect for metadata",
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*"
+            );
+
+            auto folderFlags = juce::FileBrowserComponent::canSelectDirectories |
+                               juce::FileBrowserComponent::openMode;
+
+            fileChooser->launchAsync(folderFlags, [this](const juce::FileChooser& fc) {
+                if (fc.getResult().exists()) {
+                    auto path = fc.getResult().getFullPathName().toStdString();
+                    runMetadata(path);
+                }
+            });
+        };
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        auto buttonArea = area.removeFromTop(40);
+        metadataButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
+    }
+
+private:
+    static juce::String formatTakenTimestamp(const fo::core::ImageMetadata& metadata)
+    {
+        if (!metadata.date.has_taken) {
+            return "n/a";
+        }
+
+        auto time = std::chrono::system_clock::to_time_t(metadata.date.taken);
+        std::tm tmBuffer;
+       #ifdef _WIN32
+        localtime_s(&tmBuffer, &time);
+       #else
+        localtime_r(&time, &tmBuffer);
+       #endif
+        std::ostringstream stream;
+        stream << std::put_time(&tmBuffer, "%Y-%m-%d %H:%M:%S");
+        return juce::String(stream.str());
+    }
+
+    void runMetadata(const std::string& directoryPath)
+    {
+        resultsLabel.setText("Reading metadata from: " + juce::String(directoryPath) + "\nThis may take a moment...", juce::dontSendNotification);
+
+        juce::Thread::launch([this, directoryPath]() {
+            try {
+                auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+                if (!scanner) throw std::runtime_error("Scanner provider 'std' not found.");
+
+                auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
+                if (!provider) throw std::runtime_error("Metadata provider 'tinyexif' not found.");
+
+                std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directoryPath) };
+                std::vector<std::string> exts;
+                auto files = scanner->scan(roots, exts, false);
+
+                juce::String resultText = "Metadata for: " + juce::String(directoryPath) + "\n\n";
+                int recordCount = 0;
+
+                for (const auto& file : files) {
+                    if (file.is_dir) {
+                        continue;
+                    }
+
+                    fo::core::ImageMetadata metadata;
+                    if (!provider->read(std::filesystem::path(file.uri), metadata)) {
+                        continue;
+                    }
+
+                    ++recordCount;
+                    resultText << juce::String(file.uri) << "\n";
+                    resultText << "  Taken: " << formatTakenTimestamp(metadata) << "\n";
+                    if (metadata.has_gps) {
+                        resultText << "  GPS: " << juce::String(metadata.gps_lat, 6) << ", " << juce::String(metadata.gps_lon, 6) << "\n";
+                    } else {
+                        resultText << "  GPS: n/a\n";
+                    }
+                    resultText << "\n";
+
+                    if (recordCount >= 20) {
+                        break;
+                    }
+                }
+
+                if (recordCount == 0) {
+                    resultText << "No readable metadata records were found.\n";
+                }
+
+                juce::MessageManager::callAsync([this, resultText]() {
+                    resultsLabel.setText(resultText, juce::dontSendNotification);
+                });
+            } catch (const std::exception& e) {
+                juce::String err = "Exception: " + juce::String(e.what());
+                juce::MessageManager::callAsync([this, err]() {
+                    resultsLabel.setText(err, juce::dontSendNotification);
+                });
+            }
+        });
+    }
+
+    juce::TextButton metadataButton;
+    juce::Label resultsLabel;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+};
+
 class MainComponent final : public juce::Component
 
 {
@@ -452,6 +584,7 @@ public:
         tabs.addTab("Duplicates", juce::Colours::transparentBlack, &duplicatesTab, false);
         tabs.addTab("Statistics", juce::Colours::transparentBlack, &statsTab, false);
         tabs.addTab("Hasher", juce::Colours::transparentBlack, &hashTab, false);
+        tabs.addTab("Metadata", juce::Colours::transparentBlack, &metadataTab, false);
         tabs.setTabBarDepth(40);
 
         setSize(900, 600);
@@ -469,6 +602,7 @@ private:
     DuplicatesTab duplicatesTab;
     StatsTab statsTab;
     HashTab hashTab;
+    MetadataTab metadataTab;
 };
 
 
