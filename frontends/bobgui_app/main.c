@@ -321,6 +321,26 @@ make_idle_output_text (const AppState *state)
 }
 
 static gchar *
+make_running_status_text (const gchar *operation)
+{
+    return g_strdup_printf ("Running %s...", operation_display_name (operation));
+}
+
+static gchar *
+make_ready_status_text (const AppState *state)
+{
+    if (state->direct_c_api_available) {
+        return g_strdup ("Ready via fo_c_api (direct mode preferred).");
+    }
+
+    if (state->cli_path != NULL) {
+        return g_strdup ("Ready via fo_cli (fallback mode active).");
+    }
+
+    return g_strdup ("Waiting for backend.");
+}
+
+static gchar *
 make_success_status_text (const AppState *state,
                           const gchar *operation)
 {
@@ -700,8 +720,10 @@ start_operation (AppState *state,
         gchar *pending_text = make_pending_output_text (operation,
                                                        (operation_requires_path (operation) || operation_uses_ignore_pattern (operation)) ? target_text : "",
                                                        operation_requires_ignore_reason (operation) ? ignore_reason : "");
-        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Running request...");
+        gchar *running_text = make_running_status_text (operation);
+        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), running_text);
         set_output_text (state, pending_text);
+        g_free (running_text);
         g_free (pending_text);
     }
 
@@ -730,8 +752,10 @@ clear_output_button_clicked (BobguiWidget *widget,
     AppState *state = user_data;
     (void) widget;
     gchar *idle_text = make_idle_output_text (state);
-    bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Output cleared.");
+    gchar *ready_text = make_ready_status_text (state);
+    bobgui_label_set_text (BOBGUI_LABEL (state->status_label), ready_text);
     set_output_text (state, idle_text);
+    g_free (ready_text);
     g_free (idle_text);
 }
 
@@ -742,9 +766,9 @@ reset_ignore_button_clicked (BobguiWidget *widget,
     IgnoreFieldResetContext *context = user_data;
     (void) widget;
     reset_ignore_fields (context->state, context->pattern, context->reason);
-    bobgui_label_set_text (BOBGUI_LABEL (context->state->status_label), "Ignore fields reset.");
+    bobgui_label_set_text (BOBGUI_LABEL (context->state->status_label), "Ignore fields reset to example values.");
     set_output_text (context->state,
-                     "Ignore fields were reset to their default example values.\n\nUse Ignore Add or Ignore Remove to apply a change, or Ignore Rules to refresh the current rule list.");
+                     "Ignore fields were reset to their default example values.\n\nField Roles\n-----------\nIgnore Pattern drives add/remove actions.\nReason is reused for repeated ignore-rule authoring.\n\nUse Add Ignore Rule or Remove Ignore Rule to apply a change, or List Ignore Rules to refresh the current rule list.");
 }
 
 static ButtonContext *
@@ -921,17 +945,29 @@ activate (BobguiApplication *app,
         set_output_text (state, initial);
         g_free (initial);
         g_free (idle_text);
-        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
+        {
+            gchar *ready_text = make_ready_status_text (state);
+            bobgui_label_set_text (BOBGUI_LABEL (status_label), ready_text);
+            g_free (ready_text);
+        }
     } else if (state->cli_path != NULL) {
         gchar *idle_text = make_idle_output_text (state);
         gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\n%s", state->cli_path, idle_text);
         set_output_text (state, initial);
         g_free (initial);
         g_free (idle_text);
-        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");
+        {
+            gchar *ready_text = make_ready_status_text (state);
+            bobgui_label_set_text (BOBGUI_LABEL (status_label), ready_text);
+            g_free (ready_text);
+        }
     } else {
         set_output_text (state, "No BobGUI backend was found yet. Build the app with fo_c_api support or provide fo_cli.exe via BOBFILEZ_CLI / standard repo-relative locations.");
-        bobgui_label_set_text (BOBGUI_LABEL (status_label), "Waiting for backend");
+        {
+            gchar *ready_text = make_ready_status_text (state);
+            bobgui_label_set_text (BOBGUI_LABEL (status_label), ready_text);
+            g_free (ready_text);
+        }
     }
 
     g_signal_connect_data (scan_button,

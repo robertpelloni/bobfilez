@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.70
+**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.71
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.70)
+## Current Status (v6.0.71)
 
+- ✅ **BobGUI Status + Field-Role Clarity**: Refined the BobGUI lane so ready/running status text now better reflects backend mode and active operation names, while the ignore-reset guidance now more explicitly explains the role of the ignore pattern and reason fields for repeated rule-management workflows.
 - ✅ **BobGUI Output Formatting Polish**: Refined the BobGUI lane so pending output now includes clearer context/execution structure, workflow-aware target headings, and more consistent result-section headings across both direct and CLI-backed output paths.
 - ✅ **BobGUI Operation Label Polish**: Refined the BobGUI lane so pending output, CLI/direct result headers, and related status phrasing now use clearer human-facing operation names instead of exposing raw internal operation keys.
 - ✅ **BobGUI Field Persistence Polish**: Refined the BobGUI lane so idle output now shows the panel's current working values and success messages better acknowledge retained path/reason state, helping repeated workflows feel more deliberate.

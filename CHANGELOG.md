@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.71] - 2026-04-06
+
+### Refined — The "BobGUI Status and Field-Role Clarity" Release
+
+#### 🧭 BobGUI status text and field-role guidance became clearer
+- Refined `frontends/bobgui_app/main.c` so BobGUI now uses stronger ready/running status text aligned with the current backend mode and the active operation label.
+- Improved the reset-ignore guidance so the output panel now explicitly explains the role of the ignore pattern and reason fields after a reset.
+- Continued polishing the BobGUI control surface without widening the C ABI or changing the underlying direct/fallback execution model.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_STATUS_AND_FIELD_ROLE_CLARITY_2026_04_06.md` documenting the latest BobGUI status/field-role refinement.
+
+### Version
+- Bumped to **6.0.71**.
+
 ## [6.0.70] - 2026-04-06
 
 ### Refined — The "BobGUI Output Formatting" Release
