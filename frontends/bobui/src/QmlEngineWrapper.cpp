@@ -2,6 +2,7 @@
 
 #include <fo/core/engine.hpp>
 #include <fo/core/interfaces.hpp>
+#include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
 
 #include <QMetaObject>
@@ -198,6 +199,52 @@ QString build_metadata_report(const std::string &directory_path, const std::vect
     return report;
 }
 
+QString lint_type_name(fo::core::LintType type)
+{
+    switch (type) {
+        case fo::core::LintType::EmptyFile:
+            return QStringLiteral("EmptyFile");
+        case fo::core::LintType::EmptyDirectory:
+            return QStringLiteral("EmptyDirectory");
+        case fo::core::LintType::BrokenSymlink:
+            return QStringLiteral("BrokenSymlink");
+        case fo::core::LintType::TemporaryFile:
+            return QStringLiteral("TemporaryFile");
+    }
+
+    return QStringLiteral("Unknown");
+}
+
+QString build_lint_report(const std::string &directory_path, const std::vector<fo::core::LintResult> &results)
+{
+    std::map<QString, int> counts;
+    for (const auto &result : results) {
+        counts[lint_type_name(result.type)]++;
+    }
+
+    QString report;
+    report += QStringLiteral("Lint for: ") + QString::fromStdString(directory_path) + QStringLiteral("\n\n");
+    report += QStringLiteral("Issue counts:\n");
+    for (const auto &[type_name, count] : counts) {
+        report += QStringLiteral("  ") + type_name + QStringLiteral(": ") + QString::number(count) + QStringLiteral("\n");
+    }
+
+    if (results.empty()) {
+        report += QStringLiteral("\nNo lint issues were found.\n");
+        return report;
+    }
+
+    report += QStringLiteral("\nFirst issues:\n");
+    const int limit = std::min<int>(static_cast<int>(results.size()), 20);
+    for (int index = 0; index < limit; ++index) {
+        report += QStringLiteral("- [") + lint_type_name(results[index].type) + QStringLiteral("] ")
+            + QString::fromStdString(results[index].path.string()) + QStringLiteral(" — ")
+            + QString::fromStdString(results[index].details) + QStringLiteral("\n");
+    }
+
+    return report;
+}
+
 } // namespace
 
 QmlEngineWrapper::QmlEngineWrapper(QObject *parent) : QObject(parent) {}
@@ -353,6 +400,33 @@ void QmlEngineWrapper::runMetadata(const QString &directoryPath)
             const QString message = QString::fromStdString(error.what());
             QMetaObject::invokeMethod(this, [this, message]() {
                 emit errorOccurred(QStringLiteral("metadata"), message);
+            }, Qt::QueuedConnection);
+        }
+    }).detach();
+}
+
+void QmlEngineWrapper::runLint(const QString &directoryPath)
+{
+    const std::string path = directoryPath.toStdString();
+    std::thread([this, path]() {
+        try {
+            auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+            if (!linter) {
+                throw std::runtime_error("Linter provider 'std' not found.");
+            }
+
+            const std::vector<std::filesystem::path> roots = { std::filesystem::u8path(path) };
+            const auto results = linter->lint(roots);
+            const QString report = build_lint_report(path, results);
+            const QString stats = QStringLiteral("Found %1 lint issues.").arg(results.size());
+
+            QMetaObject::invokeMethod(this, [this, report, stats]() {
+                emit lintFinished(report, stats);
+            }, Qt::QueuedConnection);
+        } catch (const std::exception &error) {
+            const QString message = QString::fromStdString(error.what());
+            QMetaObject::invokeMethod(this, [this, message]() {
+                emit errorOccurred(QStringLiteral("lint"), message);
             }, Qt::QueuedConnection);
         }
     }).detach();

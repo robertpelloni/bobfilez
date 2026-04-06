@@ -15,6 +15,7 @@ signals:
     void statsFinished(const QString &report, const QString &stats);
     void hashFinished(const QString &report, const QString &stats);
     void metadataFinished(const QString &report, const QString &stats);
+    void lintFinished(const QString &report, const QString &stats);
     void errorOccurred(const QString &scope, const QString &errorMsg);
 
 public slots:
@@ -23,4 +24,5 @@ public slots:
     void runStats(const QString &directoryPath);
     void runHash(const QString &filePath);
     void runMetadata(const QString &directoryPath);
+    void runLint(const QString &directoryPath);
 };

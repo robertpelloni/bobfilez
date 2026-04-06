@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.57
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.58
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.57)
+## Current Status (v6.0.58)
 
+- ✅ **Native Lint Parity**: Expanded the Qt, BobUI, and JUCE demo lanes so each now exposes a real **Lint** workflow backed by the registered `std` linter, reducing another clear practical feature gap between the web/CLI/BobGUI layers and the native demo matrix.
 - ✅ **BobGUI Lint Direct Parity**: Extended the direct `fo_c_api` seam and `frontends/bobgui_app` so lint now participates in the same preferred-direct / fallback-CLI BobGUI model as scan, duplicates, statistics, hash, and metadata.
 - ✅ **BobGUI Resilient Fallback**: Refined `frontends/bobgui_app` so the BobGUI lane now falls back to `fo_cli` per operation when a direct `fo_c_api` action is unavailable or fails, instead of treating direct mode as brittle all-or-nothing behavior.
 - ✅ **BTK Frontend Parity Expansion**: Expanded the `frontends/btk` demo so the BTK/CopperSpice lane now exposes **Statistics**, **Hasher**, and **Metadata** in addition to **Scanner** and **Duplicates**, reducing one of the clearest remaining practical capability gaps inside the native demo matrix.

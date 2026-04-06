@@ -14,6 +14,7 @@
 
 #include <fo/core/engine.hpp>
 #include <fo/core/interfaces.hpp>
+#include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
 #include <fo/core/version.hpp>
 
@@ -55,6 +56,22 @@ QString format_taken_timestamp(const fo::core::ImageMetadata &metadata)
     return QString::fromStdString(timestamp.str());
 }
 
+QString lint_type_name(fo::core::LintType type)
+{
+    switch (type) {
+        case fo::core::LintType::EmptyFile:
+            return QStringLiteral("EmptyFile");
+        case fo::core::LintType::EmptyDirectory:
+            return QStringLiteral("EmptyDirectory");
+        case fo::core::LintType::BrokenSymlink:
+            return QStringLiteral("BrokenSymlink");
+        case fo::core::LintType::TemporaryFile:
+            return QStringLiteral("TemporaryFile");
+    }
+
+    return QStringLiteral("Unknown");
+}
+
 class DashboardTab final : public QWidget {
 public:
     explicit DashboardTab(QWidget *parent = nullptr) : QWidget(parent)
@@ -62,7 +79,7 @@ public:
         auto *layout = new QVBoxLayout(this);
         auto *title = new QLabel(QStringLiteral("bobfilez Qt GUI Demo"), this);
         auto *body = new QLabel(
-            QStringLiteral("This Qt Widgets frontend now exercises the same core scan, duplicate, statistics, hash, and metadata workflows used across the expanding multi-frontend matrix."),
+            QStringLiteral("This Qt Widgets frontend now exercises the same core scan, duplicate, statistics, hash, metadata, and lint workflows used across the expanding multi-frontend matrix."),
             this);
         auto *version = new QLabel(QStringLiteral("Core version: ") + QString::fromUtf8(fo::core::FO_VERSION.data()), this);
 
@@ -524,6 +541,92 @@ private:
     QTextEdit *output_ = nullptr;
 };
 
+class LintTab final : public QWidget {
+public:
+    explicit LintTab(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        auto *layout = new QVBoxLayout(this);
+        auto *topLayout = new QHBoxLayout();
+
+        lint_button_ = new QPushButton(QStringLiteral("Select Directory for Lint..."), this);
+        status_label_ = new QLabel(QStringLiteral("No lint run yet."), this);
+        output_ = new QTextEdit(this);
+
+        output_->setReadOnly(true);
+        topLayout->addWidget(lint_button_);
+        topLayout->addWidget(status_label_, 1);
+        layout->addLayout(topLayout);
+        layout->addWidget(output_);
+
+        connect(lint_button_, &QPushButton::clicked, this, [this]() {
+            const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("Select Directory"));
+            if (!directory.isEmpty()) {
+                run_lint(directory.toStdString());
+            }
+        });
+    }
+
+private:
+    void run_lint(const std::string &directory_path)
+    {
+        lint_button_->setEnabled(false);
+        status_label_->setText(QStringLiteral("Linting: ") + QString::fromStdString(directory_path));
+        output_->clear();
+
+        std::thread([this, directory_path]() {
+            try {
+                auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+                if (!linter) {
+                    throw std::runtime_error("Linter 'std' not found.");
+                }
+
+                const std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directory_path) };
+                const auto results = linter->lint(roots);
+
+                std::map<QString, int> counts;
+                for (const auto &result : results) {
+                    counts[lint_type_name(result.type)]++;
+                }
+
+                QString report;
+                report += QStringLiteral("Lint for: ") + QString::fromStdString(directory_path) + QStringLiteral("\n\n");
+                report += QStringLiteral("Issue counts:\n");
+                for (const auto &[type_name, count] : counts) {
+                    report += QStringLiteral("  ") + type_name + QStringLiteral(": ") + QString::number(count) + QStringLiteral("\n");
+                }
+
+                if (results.empty()) {
+                    report += QStringLiteral("\nNo lint issues were found.\n");
+                } else {
+                    report += QStringLiteral("\nFirst issues:\n");
+                    const int limit = std::min<int>(static_cast<int>(results.size()), 20);
+                    for (int index = 0; index < limit; ++index) {
+                        report += QStringLiteral("- [") + lint_type_name(results[index].type) + QStringLiteral("] ")
+                            + QString::fromStdString(results[index].path.string()) + QStringLiteral(" — ")
+                            + QString::fromStdString(results[index].details) + QStringLiteral("\n");
+                    }
+                }
+
+                QTimer::singleShot(0, this, [this, report = std::move(report), issue_count = results.size()]() {
+                    status_label_->setText(QStringLiteral("Found %1 lint issues.").arg(issue_count));
+                    output_->setPlainText(report);
+                    lint_button_->setEnabled(true);
+                });
+            } catch (const std::exception &error) {
+                const QString message = QString::fromStdString(error.what());
+                QTimer::singleShot(0, this, [this, message]() {
+                    status_label_->setText(QStringLiteral("Error: ") + message);
+                    lint_button_->setEnabled(true);
+                });
+            }
+        }).detach();
+    }
+
+    QPushButton *lint_button_ = nullptr;
+    QLabel *status_label_ = nullptr;
+    QTextEdit *output_ = nullptr;
+};
+
 } // namespace
 
 int main(int argc, char *argv[])
@@ -541,6 +644,7 @@ int main(int argc, char *argv[])
     tabs->addTab(new StatsTab(tabs), QStringLiteral("Statistics"));
     tabs->addTab(new HashTab(tabs), QStringLiteral("Hasher"));
     tabs->addTab(new MetadataTab(tabs), QStringLiteral("Metadata"));
+    tabs->addTab(new LintTab(tabs), QStringLiteral("Lint"));
 
     window.setCentralWidget(tabs);
     window.show();

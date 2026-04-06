@@ -2,6 +2,7 @@
 
 #include <fo/core/version.hpp>
 #include <fo/core/interfaces.hpp>
+#include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
 
 #include <fo/core/engine.hpp>
@@ -30,7 +31,7 @@ public:
 
         body.setText(
             "This minimal JUCE frontend proves bobfilez can host a native JUCE shell alongside the Qt, BobUI, BTK, BobGUI, and web lanes.\n\n"
-            "Use the tabs above to invoke the native C++ fo_core engine functions, including metadata inspection.",
+            "Use the tabs above to invoke the native C++ fo_core engine functions, including metadata inspection and lint analysis.",
             juce::dontSendNotification);
         body.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(body);
@@ -572,6 +573,119 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
 };
 
+class LintTab final : public juce::Component
+{
+public:
+    LintTab()
+    {
+        lintButton.setButtonText("Run Directory Lint...");
+        addAndMakeVisible(lintButton);
+
+        resultsLabel.setText("No lint run yet.", juce::dontSendNotification);
+        resultsLabel.setJustificationType(juce::Justification::centredTop);
+        addAndMakeVisible(resultsLabel);
+
+        lintButton.onClick = [this]() {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a directory to lint",
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*"
+            );
+
+            auto folderFlags = juce::FileBrowserComponent::canSelectDirectories |
+                               juce::FileBrowserComponent::openMode;
+
+            fileChooser->launchAsync(folderFlags, [this](const juce::FileChooser& fc) {
+                if (fc.getResult().exists()) {
+                    auto path = fc.getResult().getFullPathName().toStdString();
+                    runLint(path);
+                }
+            });
+        };
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xff10151d));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds().reduced(40);
+        auto buttonArea = area.removeFromTop(40);
+        lintButton.setBounds(buttonArea.withSizeKeepingCentre(240, 40));
+        area.removeFromTop(20);
+        resultsLabel.setBounds(area);
+    }
+
+private:
+    static juce::String lintTypeName(fo::core::LintType type)
+    {
+        switch (type) {
+            case fo::core::LintType::EmptyFile:
+                return "EmptyFile";
+            case fo::core::LintType::EmptyDirectory:
+                return "EmptyDirectory";
+            case fo::core::LintType::BrokenSymlink:
+                return "BrokenSymlink";
+            case fo::core::LintType::TemporaryFile:
+                return "TemporaryFile";
+        }
+
+        return "Unknown";
+    }
+
+    void runLint(const std::string& directoryPath)
+    {
+        resultsLabel.setText("Linting: " + juce::String(directoryPath) + "\nThis may take a moment...", juce::dontSendNotification);
+
+        juce::Thread::launch([this, directoryPath]() {
+            try {
+                auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+                if (!linter) throw std::runtime_error("Linter provider 'std' not found.");
+
+                std::vector<std::filesystem::path> roots = { std::filesystem::u8path(directoryPath) };
+                auto results = linter->lint(roots);
+
+                std::map<juce::String, int> counts;
+                for (const auto& result : results) {
+                    counts[lintTypeName(result.type)]++;
+                }
+
+                juce::String resultText = "Lint for: " + juce::String(directoryPath) + "\n\nIssue counts:\n";
+                for (const auto& [typeName, count] : counts) {
+                    resultText << "  " << typeName << ": " << juce::String(count) << "\n";
+                }
+
+                if (results.empty()) {
+                    resultText << "\nNo lint issues were found.\n";
+                } else {
+                    resultText << "\nFirst issues:\n";
+                    size_t limit = std::min<size_t>(results.size(), 20);
+                    for (size_t i = 0; i < limit; ++i) {
+                        resultText << "- [" << lintTypeName(results[i].type) << "] "
+                                   << juce::String(results[i].path.string()) << " — "
+                                   << juce::String(results[i].details) << "\n";
+                    }
+                }
+
+                juce::MessageManager::callAsync([this, resultText]() {
+                    resultsLabel.setText(resultText, juce::dontSendNotification);
+                });
+            } catch (const std::exception& e) {
+                juce::String err = "Exception: " + juce::String(e.what());
+                juce::MessageManager::callAsync([this, err]() {
+                    resultsLabel.setText(err, juce::dontSendNotification);
+                });
+            }
+        });
+    }
+
+    juce::TextButton lintButton;
+    juce::Label resultsLabel;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+};
+
 class MainComponent final : public juce::Component
 
 {
@@ -585,6 +699,7 @@ public:
         tabs.addTab("Statistics", juce::Colours::transparentBlack, &statsTab, false);
         tabs.addTab("Hasher", juce::Colours::transparentBlack, &hashTab, false);
         tabs.addTab("Metadata", juce::Colours::transparentBlack, &metadataTab, false);
+        tabs.addTab("Lint", juce::Colours::transparentBlack, &lintTab, false);
         tabs.setTabBarDepth(40);
 
         setSize(900, 600);
@@ -603,6 +718,7 @@ private:
     StatsTab statsTab;
     HashTab hashTab;
     MetadataTab metadataTab;
+    LintTab lintTab;
 };
 
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.58] - 2026-04-05
+
+### Expanded — The "Native Lint Parity" Release
+
+#### 🧹 Qt, BobUI, and JUCE demos gained lint workflows
+- Expanded `frontends/qt/src/main.cpp` so the Qt demo now includes a real **Lint** tab backed by the registered `std` linter.
+- Expanded `frontends/bobui/src/QmlEngineWrapper.*` and `frontends/bobui/assets/Main.qml` so the BobUI/QML lane now exposes `runLint(...)`, `lintFinished(...)`, and a full **Lint** tab.
+- Expanded `frontends/juce/src/main.cpp` so the JUCE demo now includes a native **Lint** tab using the same background-thread / message-thread pattern used throughout the rest of the JUCE workflow family.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **71 / 71 tests passed**.
+- Re-ran `scripts/build_juce_gui.bat` successfully after the JUCE lint expansion.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/FRONTEND_LINT_PARITY_2026_04_05.md` documenting the new native lint parity work.
+
+### Version
+- Bumped to **6.0.58**.
+
 ## [6.0.57] - 2026-04-05
 
 ### Expanded — The "BobGUI Lint Direct Parity" Release

@@ -21,6 +21,7 @@ Window {
         TabButton { text: "Statistics" }
         TabButton { text: "Hasher" }
         TabButton { text: "Metadata" }
+        TabButton { text: "Lint" }
     }
 
     StackLayout {
@@ -48,7 +49,7 @@ Window {
                 }
 
                 Text {
-                    text: "This BobUI/QML lane now exposes direct fo_core scan, duplicate, statistics, hash, and metadata workflows through a dedicated QObject bridge."
+                    text: "This BobUI/QML lane now exposes direct fo_core scan, duplicate, statistics, hash, metadata, and lint workflows through a dedicated QObject bridge."
                     color: "#c8d1dc"
                     font.pixelSize: 18
                     wrapMode: Text.WordWrap
@@ -363,6 +364,61 @@ Window {
                 }
             }
         }
+
+        Rectangle {
+            color: "#10151d"
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 16
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    TextField {
+                        id: lintPathInput
+                        Layout.fillWidth: true
+                        placeholderText: "Enter absolute directory path for lint..."
+                    }
+
+                    Button {
+                        text: "Run Lint"
+                        onClicked: {
+                            lintStatus.text = "Linting..."
+                            lintOutput.text = ""
+                            foEngine.runLint(lintPathInput.text)
+                        }
+                    }
+                }
+
+                Text {
+                    id: lintStatus
+                    color: "#c8d1dc"
+                    text: "No lint run yet."
+                }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+
+                    TextArea {
+                        id: lintOutput
+                        readOnly: true
+                        color: "#e2e8f0"
+                        wrapMode: TextArea.Wrap
+                        selectionColor: "#1d4ed8"
+                        background: Rectangle {
+                            color: "#0f172a"
+                            radius: 8
+                            border.color: "#1e293b"
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Connections {
@@ -399,6 +455,11 @@ Window {
             metadataOutput.text = report
         }
 
+        function onLintFinished(report, stats) {
+            lintStatus.text = stats
+            lintOutput.text = report
+        }
+
         function onErrorOccurred(scope, errorMsg) {
             var message = "Error: " + errorMsg
             if (scope === "scan") {
@@ -411,6 +472,8 @@ Window {
                 hashStatus.text = message
             } else if (scope === "metadata") {
                 metadataStatus.text = message
+            } else if (scope === "lint") {
+                lintStatus.text = message
             }
         }
     }
