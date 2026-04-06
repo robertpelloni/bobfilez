@@ -1,5 +1,32 @@
 # Changelog
 
+## [6.0.60] - 2026-04-06
+
+### Expanded — The "History and Ignore Frontend Parity" Release
+
+#### 🧭 React history + ignore workflows
+- Expanded `bobui_web/public/react/app.js` so the React/Express SPA now includes dedicated **History** and **Ignore Rules** tabs.
+- Added history loading via `GET /api/history` and ignore-rule loading via `GET /api/ignore`.
+- Added ignore-rule add/remove actions via `POST /api/ignore/add` and `POST /api/ignore/remove`.
+- Updated dashboard copy so the React lane description better reflects its real operational workflow surface.
+
+#### 🖥️ BobGUI path-free CLI operations
+- Expanded `frontends/bobgui_app/main.c` so BobGUI now exposes **History** and **Ignore Rules** buttons.
+- Added path-free CLI request handling for operations that do not require a filesystem path.
+- Preserved the preferred-direct / per-operation-fallback model honestly: history and ignore listing currently route through `fo_cli` because they are not yet exposed by the direct `fo_c_api` seam.
+
+#### ✅ Validation
+- Re-ran `node --check bobui_web/server.js` successfully.
+- Re-ran `node --check bobui_web/public/react/app.js` successfully.
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **71 / 71 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/FRONTEND_HISTORY_IGNORE_PARITY_2026_04_06.md` documenting the React + BobGUI parity expansion and the host-validation boundary.
+
+### Version
+- Bumped to **6.0.60**.
+
 ## [6.0.59] - 2026-04-06
 
 ### Expanded — The "Lint Matrix Completion" Release

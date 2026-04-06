@@ -4,6 +4,6 @@
 
 namespace fo::core {
 
-constexpr std::string_view FO_VERSION = "6.0.59";
+constexpr std::string_view FO_VERSION = "6.0.60";
 
 } // namespace fo::core

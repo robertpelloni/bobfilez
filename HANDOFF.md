@@ -1,39 +1,45 @@
-# HANDOFF.md — bobfilez Session 74
+# HANDOFF.md — bobfilez Session 75
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.59
-**Focus:** Completed the remaining practical lint gaps in the current frontend matrix by extending both the BTK demo and the React/Express SPA.
+**Version:** 6.0.60
+**Focus:** Expanded lightweight operational frontend parity by surfacing history and ignore-rule workflows in both the React web UI and the BobGUI lane.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Extended the BTK demo with lint support
-Updated:
-- `frontends/btk/src/DemoWindow.hpp`
-- `frontends/btk/src/DemoWindow.cpp`
-
-Added a real **Lint** tab that:
-- accepts a directory path
-- invokes the registered `std` linter
-- summarizes issue counts by lint type
-- shows sample issue details
-- preserves the same queued cross-thread result handoff style already used in the BTK lane
-
-### 2. Extended the React web UI with lint support
+### 1. Added History and Ignore Rules to the React web UI
 Updated:
 - `bobui_web/public/react/app.js`
 
 Added:
-- lint state handling
-- lint result normalization
-- a new **Lint** navigation tab
-- lint result rendering for path, type, and details
-- updated dashboard copy so the BTK and web lane blurbs better match their real capability surface
+- a **History** tab backed by `GET /api/history`
+- an **Ignore Rules** tab backed by `GET /api/ignore`
+- ignore-rule add/remove actions via:
+  - `POST /api/ignore/add`
+  - `POST /api/ignore/remove`
+- result normalization for history and ignore-rule records
+- dashboard-copy updates so the React lane description better reflects its real capabilities
+
+### 2. Expanded BobGUI with path-free CLI operations
+Updated:
+- `frontends/bobgui_app/main.c`
+
+Added:
+- `operation_requires_path(...)`
+- path-free CLI request handling for non-path workflows
+- **History** button
+- **Ignore Rules** button
+- cleaner target labeling for path-free operations
+
+Important architectural detail:
+- these new BobGUI operations currently flow through the existing **per-operation CLI fallback** model
+- they are not yet exposed by the direct `fo_c_api`
+- this is an intentional, honest use of the BobGUI dual-backend architecture rather than pretending the direct ABI is already broader than it is
 
 ### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/FRONTEND_LINT_MATRIX_COMPLETION_2026_04_06.md`
+- `docs/ai/implementation/FRONTEND_HISTORY_IGNORE_PARITY_2026_04_06.md`
 
 ### 4. Versioning/docs updated
 Updated:
@@ -54,24 +60,17 @@ Updated:
 - `ctest --test-dir build-msvc --output-on-failure` ✅
 - validation surface remains: **71 / 71 passed** ✅
 
-### Important product finding
-Lint is now one of the clearest workflow examples spanning the major user-facing lanes:
-- CLI
-- React web
-- Qt
-- BobUI
-- JUCE
-- BTK
-- BobGUI
-
-That makes it a strong reference pattern for future workflow-by-workflow parity work.
+### Important product findings
+1. The frontend parity story is getting stronger not only for analysis workflows, but also for operational/maintenance workflows.
+2. BobGUI’s per-operation fallback model continues proving useful because it can surface CLI-real features before a dedicated direct C ABI seam exists.
+3. React is now evolving beyond a demo dashboard into a more credible operational control surface.
 
 ### Important host reality
-Full BTK end-to-end runtime validation still remains host-constrained, but the source-side parity story is materially stronger and better documented than before.
+Full end-to-end BobGUI runtime validation remains host-constrained because this machine still lacks the easy Meson/pkg-config/ninja path for that lane. Source-level and backend-level validation are strong; full host-run validation is still deferred.
 
 ---
 
 ## Recommended Next Steps
-1. Pick the next practical workflow gap using the same rule: start from an already-real backend seam, then close the lightest missing frontend lanes first.
-2. Continue validating the web lane with syntax checks and the repo-wide backend truth baseline with headless + root `ctest`.
-3. Revisit deeper BTK or Qt/BobUI runtime validation only when the host/toolchain boundary becomes more favorable.
+1. Continue choosing parity targets that already have a real backend seam rather than inventing frontend-only features.
+2. Consider whether `history` and `ignore` now justify eventual direct `fo_c_api` expansion, or whether CLI fallback remains the better seam for those workflows.
+3. Continue using web syntax checks plus headless + root `ctest` as the honest baseline when host GUI tooling remains constrained.

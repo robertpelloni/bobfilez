@@ -166,12 +166,49 @@ function normalizeLintResults(data) {
   });
 }
 
+function normalizeHistory(data) {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map(function (row) {
+    return {
+      id: row.id || 0,
+      type: row.type || 'unknown',
+      source: row.source || '',
+      dest: row.dest || '',
+      timestamp: row.timestamp || '',
+      undone: Boolean(row.undone)
+    };
+  });
+}
+
+function normalizeIgnoreRules(data) {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map(function (row) {
+    return {
+      id: row.id || 0,
+      pattern: row.pattern || '',
+      reason: row.reason || ''
+    };
+  });
+}
+
 function fetchJson(url, body) {
   return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   }).then(function (response) {
+    return response.json();
+  });
+}
+
+function fetchGetJson(url) {
+  return fetch(url).then(function (response) {
     return response.json();
   });
 }
@@ -262,6 +299,35 @@ function App() {
   var _React$useState26 = useState(false);
   var isLinting = _React$useState26[0];
   var setIsLinting = _React$useState26[1];
+
+  var _React$useState27 = useState([]);
+  var historyResults = _React$useState27[0];
+  var setHistoryResults = _React$useState27[1];
+  var _React$useState28 = useState(null);
+  var historyError = _React$useState28[0];
+  var setHistoryError = _React$useState28[1];
+  var _React$useState29 = useState(false);
+  var isLoadingHistory = _React$useState29[0];
+  var setIsLoadingHistory = _React$useState29[1];
+
+  var _React$useState30 = useState([]);
+  var ignoreRules = _React$useState30[0];
+  var setIgnoreRules = _React$useState30[1];
+  var _React$useState31 = useState(null);
+  var ignoreError = _React$useState31[0];
+  var setIgnoreError = _React$useState31[1];
+  var _React$useState32 = useState(false);
+  var isLoadingIgnore = _React$useState32[0];
+  var setIsLoadingIgnore = _React$useState32[1];
+  var _React$useState33 = useState('');
+  var ignorePattern = _React$useState33[0];
+  var setIgnorePattern = _React$useState33[1];
+  var _React$useState34 = useState('');
+  var ignoreReason = _React$useState34[0];
+  var setIgnoreReason = _React$useState34[1];
+  var _React$useState35 = useState(false);
+  var isSavingIgnore = _React$useState35[0];
+  var setIsSavingIgnore = _React$useState35[1];
 
   useEffect(function () {
     fetch('/api/health')
@@ -442,6 +508,105 @@ function App() {
       });
   }
 
+  function loadHistory() {
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+
+    fetchGetJson('/api/history')
+      .then(function (data) {
+        if (data.error) {
+          setHistoryError(data.error);
+          return;
+        }
+        setHistoryResults(normalizeHistory(data));
+      })
+      .catch(function (error) {
+        setHistoryError(error.message);
+      })
+      .finally(function () {
+        setIsLoadingHistory(false);
+      });
+  }
+
+  function loadIgnoreRules() {
+    setIsLoadingIgnore(true);
+    setIgnoreError(null);
+
+    fetchGetJson('/api/ignore')
+      .then(function (data) {
+        if (data.error) {
+          setIgnoreError(data.error);
+          return;
+        }
+        setIgnoreRules(normalizeIgnoreRules(data));
+      })
+      .catch(function (error) {
+        setIgnoreError(error.message);
+      })
+      .finally(function () {
+        setIsLoadingIgnore(false);
+      });
+  }
+
+  function handleIgnoreAdd(event) {
+    event.preventDefault();
+    if (!ignorePattern) {
+      return;
+    }
+
+    setIsSavingIgnore(true);
+    setIgnoreError(null);
+
+    fetchJson('/api/ignore/add', { pattern: ignorePattern, reason: ignoreReason })
+      .then(function (data) {
+        if (data.error) {
+          setIgnoreError(data.error);
+          return;
+        }
+        setIgnorePattern('');
+        setIgnoreReason('');
+        loadIgnoreRules();
+      })
+      .catch(function (error) {
+        setIgnoreError(error.message);
+      })
+      .finally(function () {
+        setIsSavingIgnore(false);
+      });
+  }
+
+  function handleIgnoreRemove(pattern) {
+    setIsSavingIgnore(true);
+    setIgnoreError(null);
+
+    fetchJson('/api/ignore/remove', { pattern: pattern })
+      .then(function (data) {
+        if (data.error) {
+          setIgnoreError(data.error);
+          return;
+        }
+        loadIgnoreRules();
+      })
+      .catch(function (error) {
+        setIgnoreError(error.message);
+      })
+      .finally(function () {
+        setIsSavingIgnore(false);
+      });
+  }
+
+  useEffect(function () {
+    if (activeTab === 'history' && historyResults.length === 0 && !isLoadingHistory && !historyError) {
+      loadHistory();
+    }
+  }, [activeTab, historyResults.length, isLoadingHistory, historyError]);
+
+  useEffect(function () {
+    if (activeTab === 'ignore' && ignoreRules.length === 0 && !isLoadingIgnore && !ignoreError) {
+      loadIgnoreRules();
+    }
+  }, [activeTab, ignoreRules.length, isLoadingIgnore, ignoreError]);
+
   function renderDashboard() {
     return React.createElement('div', {
       style: { display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }
@@ -449,7 +614,7 @@ function App() {
       React.createElement(Card, { key: 'qt', title: 'Qt / BobUI' }, React.createElement('p', null, 'Modern native shell path using Qt6 with BobUI Omni wiring and dedicated demo frontends.')),
       React.createElement(Card, { key: 'juce', title: 'JUCE' }, React.createElement('p', null, 'Native lane with scanner, duplicate, statistics, metadata, and lint workflows driven directly from fo_core.')),
       React.createElement(Card, { key: 'btk', title: 'BTK / CopperSpice' }, React.createElement('p', null, 'Research-native lane with a simplified widget demo and safer queued cross-thread result handoff across scan, duplicates, stats, hash, metadata, and lint.')),
-      React.createElement(Card, { key: 'web', title: 'React / Express' }, React.createElement('p', null, 'No-build SPA wired to fo_cli-backed JSON endpoints for scanning, duplicates, stats, hashing, metadata, and lint.'))
+      React.createElement(Card, { key: 'web', title: 'React / Express' }, React.createElement('p', null, 'No-build SPA wired to fo_cli-backed JSON endpoints for scanning, duplicates, stats, hashing, metadata, lint, history, and ignore-rule management.'))
     ]);
   }
 
@@ -712,6 +877,103 @@ function App() {
     ]);
   }
 
+  function renderHistory() {
+    return React.createElement(Card, { title: 'Operation History' }, [
+      React.createElement('div', { key: 'actions', style: { display: 'flex', gap: 12, marginBottom: 20 } }, [
+        React.createElement('button', {
+          key: 'button',
+          type: 'button',
+          disabled: isLoadingHistory,
+          onClick: loadHistory,
+          style: primaryButtonStyle('#6366f1', isLoadingHistory)
+        }, isLoadingHistory ? 'Loading...' : 'Refresh History')
+      ]),
+      historyError && React.createElement('div', { key: 'error', style: { color: '#f87171' } }, historyError),
+      React.createElement('p', { key: 'count' }, 'Loaded ' + historyResults.length + ' operations.'),
+      historyResults.length > 0 && tableShell(
+        React.createElement('table', { style: { width: '100%', textAlign: 'left', borderCollapse: 'collapse' } }, [
+          React.createElement('thead', { key: 'head' }, React.createElement('tr', null, [
+            React.createElement('th', { key: 'time', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Timestamp'),
+            React.createElement('th', { key: 'type', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Type'),
+            React.createElement('th', { key: 'source', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Source'),
+            React.createElement('th', { key: 'dest', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Destination')
+          ])),
+          React.createElement('tbody', { key: 'body' }, historyResults.slice(0, 100).map(function (row, index) {
+            return React.createElement('tr', { key: row.id || index }, [
+              React.createElement('td', { key: 'time', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b' } }, row.timestamp + (row.undone ? ' (undone)' : '')),
+              React.createElement('td', { key: 'type', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', textTransform: 'uppercase', color: '#a5b4fc' } }, row.type),
+              React.createElement('td', { key: 'source', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', wordBreak: 'break-all' } }, row.source),
+              React.createElement('td', { key: 'dest', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', wordBreak: 'break-all' } }, row.dest || '—')
+            ]);
+          }))
+        ])
+      )
+    ]);
+  }
+
+  function renderIgnoreRules() {
+    return React.createElement(Card, { title: 'Ignore Rules' }, [
+      React.createElement('form', { key: 'form', onSubmit: handleIgnoreAdd, style: { display: 'grid', gap: 12, gridTemplateColumns: '2fr 2fr auto', marginBottom: 20 } }, [
+        React.createElement('input', {
+          key: 'pattern',
+          type: 'text',
+          value: ignorePattern,
+          onChange: function (event) { setIgnorePattern(event.target.value); },
+          placeholder: 'Pattern (e.g. thumbs.db)',
+          style: textInputStyle()
+        }),
+        React.createElement('input', {
+          key: 'reason',
+          type: 'text',
+          value: ignoreReason,
+          onChange: function (event) { setIgnoreReason(event.target.value); },
+          placeholder: 'Reason (optional)',
+          style: textInputStyle()
+        }),
+        React.createElement('button', {
+          key: 'add',
+          type: 'submit',
+          disabled: isSavingIgnore,
+          style: primaryButtonStyle('#14b8a6', isSavingIgnore)
+        }, isSavingIgnore ? 'Saving...' : 'Add Rule')
+      ]),
+      React.createElement('div', { key: 'toolbar', style: { display: 'flex', gap: 12, marginBottom: 20 } }, [
+        React.createElement('button', {
+          key: 'refresh',
+          type: 'button',
+          disabled: isLoadingIgnore,
+          onClick: loadIgnoreRules,
+          style: primaryButtonStyle('#0ea5e9', isLoadingIgnore)
+        }, isLoadingIgnore ? 'Refreshing...' : 'Refresh Rules')
+      ]),
+      ignoreError && React.createElement('div', { key: 'error', style: { color: '#f87171' } }, ignoreError),
+      React.createElement('p', { key: 'count' }, 'Loaded ' + ignoreRules.length + ' ignore rules.'),
+      ignoreRules.length > 0 && tableShell(
+        React.createElement('table', { style: { width: '100%', textAlign: 'left', borderCollapse: 'collapse' } }, [
+          React.createElement('thead', { key: 'head' }, React.createElement('tr', null, [
+            React.createElement('th', { key: 'pattern', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Pattern'),
+            React.createElement('th', { key: 'reason', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Reason'),
+            React.createElement('th', { key: 'action', style: { padding: 12, borderBottom: '1px solid #1e293b' } }, 'Action')
+          ])),
+          React.createElement('tbody', { key: 'body' }, ignoreRules.map(function (row, index) {
+            return React.createElement('tr', { key: row.id || index }, [
+              React.createElement('td', { key: 'pattern', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b', fontFamily: 'monospace' } }, row.pattern),
+              React.createElement('td', { key: 'reason', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b' } }, row.reason || '—'),
+              React.createElement('td', { key: 'action', style: { padding: '8px 12px', borderBottom: '1px solid #1e293b' } },
+                React.createElement('button', {
+                  type: 'button',
+                  disabled: isSavingIgnore,
+                  onClick: function () { handleIgnoreRemove(row.pattern); },
+                  style: primaryButtonStyle('#f97316', isSavingIgnore)
+                }, isSavingIgnore ? 'Working...' : 'Remove')
+              )
+            ]);
+          }))
+        ])
+      )
+    ]);
+  }
+
   var content = renderDashboard();
   if (activeTab === 'scanner') {
     content = renderScan();
@@ -725,6 +987,10 @@ function App() {
     content = renderMetadata();
   } else if (activeTab === 'lint') {
     content = renderLint();
+  } else if (activeTab === 'history') {
+    content = renderHistory();
+  } else if (activeTab === 'ignore') {
+    content = renderIgnoreRules();
   }
 
   return React.createElement('div', {
@@ -748,7 +1014,9 @@ function App() {
       React.createElement('button', { key: 'stats', onClick: function () { setActiveTab('stats'); }, style: buttonStyle(activeTab === 'stats') }, 'Statistics'),
       React.createElement('button', { key: 'hash', onClick: function () { setActiveTab('hash'); }, style: buttonStyle(activeTab === 'hash') }, 'Hasher'),
       React.createElement('button', { key: 'metadata', onClick: function () { setActiveTab('metadata'); }, style: buttonStyle(activeTab === 'metadata') }, 'Metadata'),
-      React.createElement('button', { key: 'lint', onClick: function () { setActiveTab('lint'); }, style: buttonStyle(activeTab === 'lint') }, 'Lint')
+      React.createElement('button', { key: 'lint', onClick: function () { setActiveTab('lint'); }, style: buttonStyle(activeTab === 'lint') }, 'Lint'),
+      React.createElement('button', { key: 'history', onClick: function () { setActiveTab('history'); }, style: buttonStyle(activeTab === 'history') }, 'History'),
+      React.createElement('button', { key: 'ignore', onClick: function () { setActiveTab('ignore'); }, style: buttonStyle(activeTab === 'ignore') }, 'Ignore Rules')
     ]),
     content
   ]));

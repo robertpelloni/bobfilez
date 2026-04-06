@@ -124,6 +124,24 @@ apply_command_result (gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+static gboolean
+operation_requires_path (const gchar *operation)
+{
+    return g_strcmp0 (operation, "history") != 0
+        && g_strcmp0 (operation, "ignore") != 0;
+}
+
+static const gchar *
+operation_target_label (const gchar *operation,
+                        const gchar *target_path)
+{
+    if (operation_requires_path (operation)) {
+        return target_path;
+    }
+
+    return "(path-free request)";
+}
+
 static GStrv
 build_cli_argv (const gchar *cli_path,
                 const gchar *operation,
@@ -132,16 +150,25 @@ build_cli_argv (const gchar *cli_path,
     GPtrArray *args = g_ptr_array_new_with_free_func (g_free);
 
     g_ptr_array_add (args, g_strdup (cli_path));
-    g_ptr_array_add (args, g_strdup (operation));
-    g_ptr_array_add (args, g_strdup ("--format=json"));
 
-    if (g_strcmp0 (operation, "duplicates") == 0) {
-        g_ptr_array_add (args, g_strdup ("--mode=fast"));
-    } else if (g_strcmp0 (operation, "hash") == 0) {
-        g_ptr_array_add (args, g_strdup ("--threads=4"));
+    if (g_strcmp0 (operation, "ignore") == 0) {
+        g_ptr_array_add (args, g_strdup ("ignore"));
+        g_ptr_array_add (args, g_strdup ("--format=json"));
+    } else {
+        g_ptr_array_add (args, g_strdup (operation));
+        g_ptr_array_add (args, g_strdup ("--format=json"));
+
+        if (g_strcmp0 (operation, "duplicates") == 0) {
+            g_ptr_array_add (args, g_strdup ("--mode=fast"));
+        } else if (g_strcmp0 (operation, "hash") == 0) {
+            g_ptr_array_add (args, g_strdup ("--threads=4"));
+        }
     }
 
-    g_ptr_array_add (args, g_strdup (target_path));
+    if (operation_requires_path (operation)) {
+        g_ptr_array_add (args, g_strdup (target_path));
+    }
+
     g_ptr_array_add (args, NULL);
 
     return (GStrv) g_ptr_array_free (args, FALSE);
@@ -216,11 +243,11 @@ run_cli_request (const AppState *state,
                        &stderr_text,
                        &exit_status,
                        &error)) {
-        *status_out = g_strdup_printf ("%s failed for %s", operation, target_path);
+        *status_out = g_strdup_printf ("%s failed for %s", operation, operation_target_label (operation, target_path));
         *output_out = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
         g_clear_error (&error);
     } else {
-        *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation, target_path);
+        *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation, operation_target_label (operation, target_path));
         *output_out = build_cli_output_text (operation, stdout_text, stderr_text, exit_status);
         if (fallback_reason != NULL && fallback_reason[0] != '\0') {
             GString *prefixed = g_string_new ("Direct fo_c_api path was unavailable; using fo_cli fallback.\nReason: ");
@@ -298,11 +325,11 @@ run_command_thread (gpointer user_data)
                                      &result->status,
                                      &result->output);
                 } else {
-                    result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
+                    result->status = g_strdup_printf ("%s failed for %s", request->operation, operation_target_label (request->operation, request->target_path));
                     result->output = g_strdup (fo_bobfilez_last_error ());
                 }
             } else {
-                result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, request->target_path);
+                result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, operation_target_label (request->operation, request->target_path));
                 result->output = build_direct_output_text (request->operation, summary_text);
                 fo_bobfilez_free_string (summary_text);
             }
@@ -354,7 +381,7 @@ start_operation (AppState *state,
         return;
     }
 
-    if (target_path == NULL || target_path[0] == '\0') {
+    if (operation_requires_path (operation) && (target_path == NULL || target_path[0] == '\0')) {
         bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Enter a filesystem path before running an action.");
         return;
     }
@@ -365,7 +392,7 @@ start_operation (AppState *state,
     request = g_new0 (CommandRequest, 1);
     request->state = state;
     request->operation = g_strdup (operation);
-    request->target_path = g_strdup (target_path);
+    request->target_path = g_strdup (operation_requires_path (operation) ? target_path : "");
 
     thread = g_thread_new ("bobfilez-bobgui-worker", run_command_thread, request);
     g_thread_unref (thread);
@@ -407,6 +434,8 @@ activate (BobguiApplication *app,
     BobguiWidget *hash_button;
     BobguiWidget *metadata_button;
     BobguiWidget *lint_button;
+    BobguiWidget *history_button;
+    BobguiWidget *ignore_button;
     BobguiWidget *status_label;
     BobguiWidget *scrolled;
     BobguiWidget *output_view;
@@ -422,7 +451,7 @@ activate (BobguiApplication *app,
     bobgui_widget_set_margin_end (root_box, 20);
 
     title = bobgui_label_new ("bobfilez BobGUI Demo");
-    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available, falls back to fo_cli when needed, and exposes scan, duplicates, statistics, hash, metadata, and lint workflows without blocking the UI thread.");
+    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available, falls back to fo_cli when needed, and exposes scan, duplicates, statistics, hash, metadata, lint, history, and ignore-rule workflows without blocking the UI thread.");
 
     path_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     path_entry = bobgui_entry_new ();
@@ -438,6 +467,8 @@ activate (BobguiApplication *app,
     hash_button = bobgui_button_new_with_label ("Hash");
     metadata_button = bobgui_button_new_with_label ("Metadata");
     lint_button = bobgui_button_new_with_label ("Lint");
+    history_button = bobgui_button_new_with_label ("History");
+    ignore_button = bobgui_button_new_with_label ("Ignore Rules");
 
     bobgui_box_append (BOBGUI_BOX (button_row), scan_button);
     bobgui_box_append (BOBGUI_BOX (button_row), dupes_button);
@@ -445,6 +476,8 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (button_row), hash_button);
     bobgui_box_append (BOBGUI_BOX (button_row), metadata_button);
     bobgui_box_append (BOBGUI_BOX (button_row), lint_button);
+    bobgui_box_append (BOBGUI_BOX (button_row), history_button);
+    bobgui_box_append (BOBGUI_BOX (button_row), ignore_button);
 
     status_label = bobgui_label_new ("Ready.");
     scrolled = bobgui_scrolled_window_new ();
@@ -477,7 +510,7 @@ activate (BobguiApplication *app,
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
     } else if (state->cli_path != NULL) {
-        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nEnter a path and click an action button.", state->cli_path);
+        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nEnter a path for filesystem actions, or use History / Ignore Rules for path-free operations.", state->cli_path);
         set_output_text (state, initial);
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");
@@ -520,6 +553,18 @@ activate (BobguiApplication *app,
                            "clicked",
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "lint"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (history_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "history"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (ignore_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "ignore"),
                            (GClosureNotify) g_free,
                            0);
 
