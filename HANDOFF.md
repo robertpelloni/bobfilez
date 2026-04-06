@@ -1,39 +1,34 @@
-# HANDOFF.md — bobfilez Session 79
+# HANDOFF.md — bobfilez Session 80
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.64
-**Focus:** Continued BobGUI ergonomics work by making the broader operational control surface easier to parse visually and semantically.
+**Version:** 6.0.65
+**Focus:** Continued the BobGUI ergonomics track by improving the output panel’s post-action guidance rather than adding more raw backend surface.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Grouped BobGUI actions by operational intent
+### 1. Added contextual post-action guidance to BobGUI output
 Updated:
 - `frontends/bobgui_app/main.c`
 
-The BobGUI lane now separates controls into clearer sections:
-- **Filesystem Actions**
-- **Operational Listings and Ignore Actions**
-- **Utility Actions**
+Both direct and CLI-backed BobGUI result output now append a small **next helpful action** section.
 
-This reduces the visual density of the previous flat action strip.
+This guidance changes by workflow. Examples:
+- ignore add/remove suggests listing ignore rules to verify state
+- history suggests rerunning after future file operations
+- path-based workflows suggest changing the Path field when inspecting another target
 
-### 2. Made BobGUI button labels more explicit
-Updated several labels so they better describe the actual behavior, including:
-- `History` → `List History`
-- `Ignore Rules` → `List Ignore Rules`
-- `Ignore Add` → `Add Ignore Rule`
-- `Ignore Remove` → `Remove Ignore Rule`
+### 2. Improved pending-state messaging again
+The in-progress output now explicitly tells the user that completed results remain visible in the output panel for comparison against the next action.
 
-### 3. Kept startup guidance aligned with the refined UI structure
-Updated the initial BobGUI guidance text so it now references the grouped control surface more honestly.
+This is small, but it improves the sense that BobGUI is an operational workbench rather than a disposable popup.
 
-### 4. Added implementation documentation
+### 3. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_ACTION_GROUPING_POLISH_2026_04_06.md`
+- `docs/ai/implementation/BOBGUI_POST_ACTION_GUIDANCE_2026_04_06.md`
 
-### 5. Versioning/docs updated
+### 4. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -51,9 +46,9 @@ Updated:
 - validation surface remains: **73 / 73 passed** ✅
 
 ### Important product findings
-1. BobGUI has enough breadth now that visual organization is itself a product feature.
-2. Clearer grouping and clearer naming can improve usability without any new backend expansion.
-3. This session was a good example of choosing the next highest-leverage improvement rather than blindly adding more raw capability.
+1. The next highest-value improvements for BobGUI are increasingly about helping users maintain flow, not just exposing more operations.
+2. Contextual output guidance is useful because BobGUI now spans enough workflows that users benefit from explicit momentum cues.
+3. This session improved usability without changing the direct/fallback architecture or widening the C ABI further.
 
 ### Important host reality
 Full BobGUI end-to-end runtime validation remains constrained by missing Meson/pkg-config/ninja convenience tooling on this machine. The source-level and backend-level validation remain strong and honest.
@@ -61,6 +56,6 @@ Full BobGUI end-to-end runtime validation remains constrained by missing Meson/p
 ---
 
 ## Recommended Next Steps
-1. Continue BobGUI ergonomics if that lane remains a near-term product focus.
-2. Consider lightweight post-action UX improvements next, rather than immediate new backend surface.
-3. Keep using headless + root `ctest` as the repo-wide validation truth baseline.
+1. Continue BobGUI ergonomics if the goal is to make that lane feel more like a polished operational panel.
+2. If shifting back to capability work, use the same rule as before: only expand where the backend seam is already real and the UI cost is low.
+3. Keep using headless + root `ctest` as the repo-wide truth baseline.

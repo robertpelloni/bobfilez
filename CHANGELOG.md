@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.65] - 2026-04-06
+
+### Refined — The "BobGUI Post-Action Guidance" Release
+
+#### 🧠 BobGUI output now suggests next steps
+- Refined `frontends/bobgui_app/main.c` so both direct and CLI-backed BobGUI results now append a contextual **next helpful action** section to the output panel.
+- Improved the in-progress messaging so it now explicitly explains that completed results stay visible for comparison against the next action.
+- Kept the BobGUI direct/fallback architecture unchanged while improving the operational clarity of the output surface.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_POST_ACTION_GUIDANCE_2026_04_06.md` documenting the contextual output-guidance refinement.
+
+### Version
+- Bumped to **6.0.65**.
+
 ## [6.0.64] - 2026-04-06
 
 ### Refined — The "BobGUI Action Grouping Polish" Release

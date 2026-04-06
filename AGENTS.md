@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.64
+**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.65
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.64)
+## Current Status (v6.0.65)
 
+- ✅ **BobGUI Post-Action Guidance**: Refined the BobGUI output surface so completed actions now include contextual next-step guidance and richer in-progress messaging, helping the user maintain momentum across the now-broader operational workflow set.
 - ✅ **BobGUI Action Grouping Polish**: Refined the BobGUI lane by grouping controls into clearer sections for filesystem actions, operational listings/ignore actions, and utilities, while also making several button labels more explicit and aligned with the actual workflow behavior.
 - ✅ **BobGUI Usability Polish**: Refined the BobGUI control surface with richer in-progress output, clearer initial guidance, and small operational helpers such as **Reset Ignore Fields** and **Clear Output**, making the now-broader BobGUI workflow surface easier to operate.
 - ✅ **BobGUI Direct Ignore Actions**: Extended the direct `fo_c_api` seam with ignore add/remove JSON/summary helpers and upgraded BobGUI with dedicated ignore pattern/reason inputs plus add/remove buttons, making ignore management actionable in direct mode instead of read-only.

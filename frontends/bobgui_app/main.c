@@ -189,6 +189,45 @@ operation_target_label (const gchar *operation,
     return "(path-free request)";
 }
 
+static void
+append_post_action_guidance (GString *text,
+                             const gchar *operation)
+{
+    g_string_append (text, "\n--- next helpful action ---\n");
+
+    if (g_strcmp0 (operation, "ignore-add") == 0) {
+        g_string_append (text, "Use 'List Ignore Rules' to confirm the new rule, or 'Reset Ignore Fields' to restore the example values.\n");
+        return;
+    }
+
+    if (g_strcmp0 (operation, "ignore-remove") == 0) {
+        g_string_append (text, "Use 'List Ignore Rules' to confirm the removal, or enter a different pattern to continue editing the rule set.\n");
+        return;
+    }
+
+    if (g_strcmp0 (operation, "history") == 0) {
+        g_string_append (text, "Re-run 'List History' after file operations if you want to inspect the latest recorded activity.\n");
+        return;
+    }
+
+    if (g_strcmp0 (operation, "ignore") == 0) {
+        g_string_append (text, "Use 'Add Ignore Rule' or 'Remove Ignore Rule' to modify the rule set directly from this panel.\n");
+        return;
+    }
+
+    if (g_strcmp0 (operation, "scan") == 0 || g_strcmp0 (operation, "duplicates") == 0 || g_strcmp0 (operation, "stats") == 0) {
+        g_string_append (text, "Adjust the Path field and rerun the action if you want to inspect a different directory.\n");
+        return;
+    }
+
+    if (g_strcmp0 (operation, "hash") == 0 || g_strcmp0 (operation, "metadata") == 0 || g_strcmp0 (operation, "lint") == 0) {
+        g_string_append (text, "Keep the current target if you want to compare another operation against the same path.\n");
+        return;
+    }
+
+    g_string_append (text, "Use the grouped action rows above to continue exploring this target or switch workflows.\n");
+}
+
 static gchar *
 make_pending_output_text (const gchar *operation,
                           const gchar *target_path,
@@ -204,6 +243,7 @@ make_pending_output_text (const gchar *operation,
     }
 
     g_string_append (text, "\nThe request is running on a background thread so the UI stays responsive.\n");
+    g_string_append (text, "When it completes, the output panel will keep the result so you can compare the next action against it.\n");
     return g_string_free (text, FALSE);
 }
 
@@ -276,6 +316,7 @@ build_cli_output_text (const gchar *operation,
         g_string_append (text, stderr_text);
     }
 
+    append_post_action_guidance (text, operation);
     return g_string_free (text, FALSE);
 }
 
@@ -293,6 +334,7 @@ build_direct_output_text (const gchar *operation,
         g_string_append (text, summary_text);
     }
 
+    append_post_action_guidance (text, operation);
     return g_string_free (text, FALSE);
 }
 
