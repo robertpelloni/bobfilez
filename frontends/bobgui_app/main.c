@@ -127,7 +127,7 @@ apply_command_result (gpointer user_data)
     CommandResult *result = user_data;
 
     if (result->succeeded) {
-        gchar *status_text = make_success_status_text (result->operation);
+        gchar *status_text = make_success_status_text (result->state, result->operation);
         if (g_strcmp0 (result->operation, "ignore-add") == 0
             || g_strcmp0 (result->operation, "ignore-remove") == 0) {
             bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
@@ -242,6 +242,17 @@ append_post_action_guidance (GString *text,
     g_string_append (text, "Use the grouped action rows above to continue exploring this target or switch workflows.\n");
 }
 
+static const gchar *
+editable_value_or_empty (BobguiWidget *widget)
+{
+    const gchar *text = bobgui_editable_get_text (BOBGUI_EDITABLE (widget));
+    if (text == NULL || text[0] == '\0') {
+        return "(empty)";
+    }
+
+    return text;
+}
+
 static gchar *
 make_idle_output_text (const AppState *state)
 {
@@ -251,31 +262,35 @@ make_idle_output_text (const AppState *state)
     g_string_append (text, "Filesystem Actions use the Path field.\n");
     g_string_append (text, "Ignore management uses the Ignore Pattern/Reason fields.\n");
     g_string_append (text, "Operational listings such as history and ignore snapshots are path-free.\n");
-    g_string_append (text, "Completed results stay in this panel until you run another action or clear the output.\n");
+    g_string_append (text, "Completed results stay in this panel until you run another action or clear the output.\n\n");
+    g_string_append_printf (text, "Current Path: %s\n", editable_value_or_empty (state->path_entry));
+    g_string_append_printf (text, "Current Ignore Pattern: %s\n", editable_value_or_empty (state->ignore_pattern_entry));
+    g_string_append_printf (text, "Current Ignore Reason: %s\n", editable_value_or_empty (state->ignore_reason_entry));
 
     return g_string_free (text, FALSE);
 }
 
 static gchar *
-make_success_status_text (const gchar *operation)
+make_success_status_text (const AppState *state,
+                          const gchar *operation)
 {
     if (g_strcmp0 (operation, "scan") == 0) {
-        return g_strdup ("Scan complete. Ready for another filesystem action.");
+        return g_strdup_printf ("Scan complete. Path retained: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "duplicates") == 0) {
-        return g_strdup ("Duplicate analysis complete. You can inspect another path or compare with stats.");
+        return g_strdup_printf ("Duplicate analysis complete. Path retained for follow-up actions: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "stats") == 0) {
-        return g_strdup ("Statistics loaded. Compare them with scan or duplicate results if needed.");
+        return g_strdup_printf ("Statistics loaded. Current path is still ready: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "hash") == 0) {
-        return g_strdup ("Hash inspection complete. Ready for another file target.");
+        return g_strdup_printf ("Hash inspection complete. Current file target retained: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "metadata") == 0) {
-        return g_strdup ("Metadata summary loaded. You can reuse the same path for lint or hashing.");
+        return g_strdup_printf ("Metadata summary loaded. Current path retained for related checks: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "lint") == 0) {
-        return g_strdup ("Lint summary loaded. You can compare it with metadata or ignore rules next.");
+        return g_strdup_printf ("Lint summary loaded. Current path retained: %s", editable_value_or_empty (state->path_entry));
     }
     if (g_strcmp0 (operation, "history") == 0) {
         return g_strdup ("History loaded. Re-run after more file operations to inspect newer activity.");
@@ -284,10 +299,10 @@ make_success_status_text (const gchar *operation)
         return g_strdup ("Ignore rules loaded. Add or remove a rule if you want to edit the list.");
     }
     if (g_strcmp0 (operation, "ignore-add") == 0) {
-        return g_strdup ("Ignore rule added. Ready for another pattern.");
+        return g_strdup_printf ("Ignore rule added. Reason retained: %s", editable_value_or_empty (state->ignore_reason_entry));
     }
     if (g_strcmp0 (operation, "ignore-remove") == 0) {
-        return g_strdup ("Ignore rule removed. You can enter another pattern or list rules.");
+        return g_strdup ("Ignore rule removed. Enter another pattern or list rules to confirm the change.");
     }
 
     return g_strdup ("Request completed.");

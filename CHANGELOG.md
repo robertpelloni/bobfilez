@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.68] - 2026-04-06
+
+### Refined — The "BobGUI Field Persistence" Release
+
+#### 🧾 BobGUI idle and success output now reflect retained working values
+- Refined `frontends/bobgui_app/main.c` so BobGUI's shared idle-output state now includes the current path, ignore pattern, and ignore reason.
+- Expanded workflow-aware success messaging so path-based operations now more clearly acknowledge that the current path remains available for follow-up actions.
+- Improved ignore-add success messaging so it better reflects that the reason field remains available for repeated ignore-rule authoring.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_FIELD_PERSISTENCE_POLISH_2026_04_06.md` documenting the field-retention and idle-state refinement.
+
+### Version
+- Bumped to **6.0.68**.
+
 ## [6.0.67] - 2026-04-06
 
 ### Refined — The "BobGUI General Success-State" Release
