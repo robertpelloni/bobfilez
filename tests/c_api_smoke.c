@@ -17,7 +17,21 @@ int main(void)
         fo_bobfilez_free_string(json);
         return 2;
     }
-
     fo_bobfilez_free_string(json);
+
+    char *summary = fo_bobfilez_scan_summary_text(".");
+    if (summary == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_scan_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 3;
+    }
+
+    if (strstr(summary, "Scan Summary") == NULL) {
+        fprintf(stderr, "scan summary did not contain expected title\n");
+        fo_bobfilez_free_string(summary);
+        return 4;
+    }
+
+    fo_bobfilez_free_string(summary);
     return 0;
 }

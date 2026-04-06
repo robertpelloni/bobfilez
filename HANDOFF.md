@@ -1,59 +1,53 @@
-# HANDOFF.md — bobfilez Session 67
+# HANDOFF.md — bobfilez Session 68
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.52
-**Focus:** Wired the BobGUI app to prefer the direct `fo_c_api` seam when available, retained CLI fallback, and expanded validation to include a real C consumer plus root-level `ctest` discoverability.
+**Version:** 6.0.53
+**Focus:** Improved the BobGUI direct-mode user experience by moving from raw JSON dumps to structured summary text while preserving the direct/CLI dual-backend model.
 
 ---
 
 ## What Was Done This Session
 
-### 1. BobGUI app now supports both direct and fallback backends cleanly
+### 1. Added summary-text helpers to the direct C API
+Updated:
+- `core/include/fo/c_api/bobfilez_c_api.h`
+- `core/c_api/bobfilez_c_api.cpp`
+
+The direct C ABI now exposes additional human-readable helpers for:
+- `fo_bobfilez_scan_summary_text(...)`
+- `fo_bobfilez_duplicates_summary_text(...)`
+- `fo_bobfilez_stats_summary_text(...)`
+- `fo_bobfilez_hash_summary_text(...)`
+- `fo_bobfilez_metadata_summary_text(...)`
+
+These complement the existing JSON-returning calls rather than replacing them.
+
+### 2. BobGUI direct mode now uses summary output
 Updated:
 - `frontends/bobgui_app/main.c`
 
-The BobGUI lane now has an explicit two-tier backend strategy:
-1. **Preferred:** direct `fo_c_api`
-2. **Fallback:** `fo_cli`
+The BobGUI app still prefers direct `fo_c_api` when available and still falls back to `fo_cli` otherwise.
 
-This keeps the frontend practical today while allowing it to move toward true direct native integration without losing the already-working CLI path.
+But now the direct mode no longer dumps raw JSON into the text view. It instead renders summary-oriented output for the major workflows, which is a much more UI-friendly experience for the native BobGUI lane.
 
-### 2. Added Meson-side direct C API discovery
+### 3. Strengthened validation around the direct C surface
 Updated:
-- `frontends/bobgui_app/meson.build`
-- added `frontends/bobgui_app/meson_options.txt`
-
-The BobGUI app now tries to discover `fo_c_api` from common repo-relative build output locations and defines `BOBFILEZ_HAVE_C_API=1` when direct support is available.
-
-That means the BobGUI lane can now be built in either mode without maintaining separate app sources.
-
-### 3. Added a true C consumer smoke test
-Added:
+- `tests/test_c_api.cpp`
 - `tests/c_api_smoke.c`
 
-Updated:
-- `tests/CMakeLists.txt`
+This now validates both:
+- raw JSON access
+- human-readable summary access
 
-This is important because it validates that `fo_c_api` is not only callable from C++ test code but also linkable and usable by a real C-compiled consumer.
+So the direct BobGUI-facing seam is now better covered, both in C++ tests and in the real C consumer smoke executable.
 
-### 4. Fixed root-level test discoverability
-Updated:
-- `CMakeLists.txt`
-- `tests/CMakeLists.txt`
+### 4. Revalidated the root-level test surface
+Validation completed:
+- `scripts/build_headless.bat` ✅
+- `ctest --test-dir build-msvc --output-on-failure` ✅
+- total validation surface: **69 / 69 passed** ✅
 
-Added root `enable_testing()` so `ctest --test-dir build-msvc --output-on-failure` now correctly discovers and executes the full validation surface instead of silently reporting no tests at the root build directory.
-
-### 5. Added implementation documentation
-Added:
-- `docs/ai/implementation/BOBGUI_DIRECT_C_API_WIRING_2026_04_05.md`
-
-This documents:
-- the preferred direct BobGUI backend strategy
-- why CLI fallback is still worth keeping
-- why the C smoke test matters
-- the remaining host-side BobGUI/Meson boundary
-
-### 6. Versioning/docs updated
+### 5. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -65,34 +59,34 @@ Updated:
 
 ## Validation / Findings
 
-### Validation completed
-- `scripts/build_headless.bat` ✅
-- `ctest --test-dir build-msvc --output-on-failure` ✅
-- total validation surface now: **69 / 69 passed** ✅
+### Important UI/product finding
+The BobGUI lane now has a noticeably better direct-mode experience:
+- direct mode = summary-oriented native output
+- fallback mode = raw CLI output
+
+That distinction is actually useful:
+- the direct path now feels more app-like
+- the fallback path remains a truthful debugging/compatibility path
 
 ### Important architecture finding
-The BobGUI lane is now materially stronger because it has:
-- a live CLI bridge path
-- a live direct C ABI path
-- explicit preference ordering
-- a real C consumer smoke validation path
+Keeping both JSON and summary functions in the C API is the right balance right now:
+- JSON remains the best transport/debug surface
+- summary text is the better immediate BobGUI display surface
+- we still avoid prematurely freezing a large C struct ABI
 
-This is the first time the BobGUI lane has a genuinely credible progression from placeholder → bridge → direct integration.
-
-### Remaining host reality
-The host still does not expose the BobGUI/Meson toolchain on PATH:
+### Host reality still unchanged
+The host still lacks the BobGUI/Meson toolchain on PATH:
 - `meson`
 - `pkg-config`
 - `ninja`
 
-So end-to-end BobGUI app validation on this machine is still blocked by environment/tooling, not by the architecture direction.
+So full end-to-end BobGUI app validation on this machine remains blocked by environment/tooling, not by the source architecture.
 
 ---
 
 ## Recommended Next Steps
 1. Once Meson/pkg-config/ninja are available, validate the BobGUI app in both modes:
-   - direct `fo_c_api`
-   - CLI fallback
-2. Keep the fallback path until the direct path is fully trusted.
-3. Continue expanding the strongest frontend lanes while preserving clear framework boundaries.
-4. Consider whether a future structured C result ABI is worth introducing, or whether JSON remains the correct long-term C boundary for this project.
+   - direct summary mode through `fo_c_api`
+   - CLI fallback mode
+2. If direct mode proves stable, consider adding a small amount of operation-specific formatting/styling within the BobGUI UI itself.
+3. Keep preserving clear framework identities across Qt / BobUI / JUCE / BTK / BobGUI / web rather than merging them into one muddy abstraction.

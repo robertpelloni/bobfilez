@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.52
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.53
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.52)
+## Current Status (v6.0.53)
 
+- ✅ **BobGUI Summary Mode**: Extended the direct `fo_c_api` seam with human-readable summary helpers and updated `frontends/bobgui_app` so BobGUI direct mode now renders structured summary output instead of raw JSON while keeping the `fo_cli` fallback path intact.
 - ✅ **BobGUI Direct Wiring + C Consumer Validation**: Updated `frontends/bobgui_app` so the BobGUI lane now prefers direct `fo_c_api` integration when available and otherwise falls back to `fo_cli`. Added Meson-side direct C API discovery, a real C consumer smoke test (`tests/c_api_smoke.c`), and root-level `enable_testing()` so `ctest --test-dir build-msvc` now correctly exercises the full validation surface.
 - ✅ **BobGUI C API Shim**: Added a small native C ABI library target, `fo_c_api`, exposing JSON-returning wrappers for scan, duplicates, statistics, hash, and metadata workflows plus explicit string-lifetime helpers and error reporting. This creates the first honest direct-integration seam for future BobGUI/native-C consumers without forcing them through the full C++ API surface.
 - ✅ **BobGUI CLI Bridge Expansion**: Reworked `frontends/bobgui_app/main.c` from a static placeholder into a functional BobGUI-native control surface with a path entry, action buttons, status messaging, a scrollable output view, and asynchronous CLI-backed actions for scan, duplicates, statistics, hash, and metadata.

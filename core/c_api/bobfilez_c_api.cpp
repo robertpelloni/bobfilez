@@ -298,6 +298,204 @@ std::string make_metadata_json(const std::vector<fo::core::FileInfo>& files)
     return out.str();
 }
 
+std::string format_taken_timestamp(const fo::core::ImageMetadata& metadata)
+{
+    if (!metadata.date.has_taken) {
+        return "n/a";
+    }
+
+    const auto time = std::chrono::system_clock::to_time_t(metadata.date.taken);
+    std::tm tm_buffer;
+#ifdef _WIN32
+    localtime_s(&tm_buffer, &time);
+#else
+    localtime_r(&time, &tm_buffer);
+#endif
+    std::ostringstream timestamp;
+    timestamp << std::put_time(&tm_buffer, "%Y-%m-%d %H:%M:%S");
+    return timestamp.str();
+}
+
+std::string make_scan_summary_text(const std::vector<fo::core::FileInfo>& files)
+{
+    std::uintmax_t total_size = 0;
+    int directory_count = 0;
+    int file_count = 0;
+    std::vector<const fo::core::FileInfo*> sample_files;
+
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            ++directory_count;
+            continue;
+        }
+        ++file_count;
+        total_size += file.size;
+        if (sample_files.size() < 20) {
+            sample_files.push_back(&file);
+        }
+    }
+
+    std::ostringstream out;
+    out << "Scan Summary\n"
+        << "============\n"
+        << "Files: " << file_count << "\n"
+        << "Directories: " << directory_count << "\n"
+        << "Total Size: " << fo::core::Exporter::format_size(total_size) << "\n\n"
+        << "First files:\n";
+
+    for (const auto* file : sample_files) {
+        out << "- " << file->uri << " (" << fo::core::Exporter::format_size(file->size) << ")\n";
+    }
+
+    return out.str();
+}
+
+std::string make_duplicates_summary_text(const std::vector<fo::core::DuplicateGroup>& groups)
+{
+    size_t duplicate_files = 0;
+    for (const auto& group : groups) {
+        duplicate_files += group.files.size();
+    }
+
+    std::ostringstream out;
+    out << "Duplicate Summary\n"
+        << "=================\n"
+        << "Groups: " << groups.size() << "\n"
+        << "Files in Groups: " << duplicate_files << "\n\n";
+
+    const size_t limit = std::min<size_t>(groups.size(), 10);
+    for (size_t i = 0; i < limit; ++i) {
+        const auto& group = groups[i];
+        out << "Group " << (i + 1) << ": "
+            << group.files.size() << " files, size " << fo::core::Exporter::format_size(group.size)
+            << ", fast64=" << group.fast64 << "\n";
+        for (const auto& file : group.files) {
+            out << "  - " << file.uri << "\n";
+        }
+        out << "\n";
+    }
+
+    return out.str();
+}
+
+std::string make_stats_summary_text(const std::vector<fo::core::FileInfo>& files)
+{
+    std::uintmax_t total_size = 0;
+    int directory_count = 0;
+    int file_count = 0;
+    std::map<std::string, int> extension_counts;
+
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            ++directory_count;
+            continue;
+        }
+
+        ++file_count;
+        total_size += file.size;
+
+        const auto dot = file.uri.find_last_of('.');
+        const auto slash = file.uri.find_last_of("/\\");
+        std::string extension = (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+            ? file.uri.substr(dot)
+            : "(none)";
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
+            return static_cast<char>(std::tolower(ch));
+        });
+        extension_counts[extension]++;
+    }
+
+    std::vector<std::pair<std::string, int>> sorted_extensions(extension_counts.begin(), extension_counts.end());
+    std::sort(sorted_extensions.begin(), sorted_extensions.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.second > rhs.second;
+    });
+
+    std::ostringstream out;
+    out << "Statistics Summary\n"
+        << "==================\n"
+        << "Files: " << file_count << "\n"
+        << "Directories: " << directory_count << "\n"
+        << "Total Size: " << fo::core::Exporter::format_size(total_size) << "\n\n"
+        << "Top Extensions:\n";
+
+    const size_t limit = std::min<size_t>(sorted_extensions.size(), 10);
+    for (size_t i = 0; i < limit; ++i) {
+        out << "- " << sorted_extensions[i].first << ": " << sorted_extensions[i].second << " files\n";
+    }
+
+    return out.str();
+}
+
+std::string make_hash_summary_text(const std::vector<fo::core::FileInfo>& files)
+{
+    auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+    if (!hasher) {
+        throw std::runtime_error("Hasher provider 'fast64' not found.");
+    }
+
+    std::ostringstream out;
+    out << "Hash Summary\n"
+        << "============\n";
+
+    size_t shown = 0;
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            continue;
+        }
+
+        out << file.uri << "\n"
+            << "  fast64: " << hasher->fast64(std::filesystem::path(file.uri)) << "\n";
+        if (++shown >= 20) {
+            break;
+        }
+    }
+
+    return out.str();
+}
+
+std::string make_metadata_summary_text(const std::vector<fo::core::FileInfo>& files)
+{
+    auto provider = fo::core::Registry<fo::core::IMetadataProvider>::instance().create("tinyexif");
+    if (!provider) {
+        throw std::runtime_error("Metadata provider 'tinyexif' not found.");
+    }
+
+    std::ostringstream out;
+    out << "Metadata Summary\n"
+        << "================\n";
+
+    size_t shown = 0;
+    for (const auto& file : files) {
+        if (file.is_dir) {
+            continue;
+        }
+
+        fo::core::ImageMetadata metadata;
+        if (!provider->read(std::filesystem::path(file.uri), metadata)) {
+            continue;
+        }
+
+        out << file.uri << "\n"
+            << "  taken: " << format_taken_timestamp(metadata) << "\n";
+        if (metadata.has_gps) {
+            out << "  gps: " << metadata.gps_lat << ", " << metadata.gps_lon << "\n";
+        } else {
+            out << "  gps: n/a\n";
+        }
+
+        out << "\n";
+        if (++shown >= 20) {
+            break;
+        }
+    }
+
+    if (shown == 0) {
+        out << "No metadata records were read.\n";
+    }
+
+    return out.str();
+}
+
 void ensure_providers_registered()
 {
     std::call_once(g_provider_registration_once, []() {
@@ -381,6 +579,59 @@ extern "C" char* fo_bobfilez_metadata_json(const char* root_path)
 {
     return execute_json_request(root_path, [](const auto& files) {
         return make_metadata_json(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_scan_summary_text(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_scan_summary_text(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_duplicates_summary_text(const char* root_path)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        fo::core::EngineConfig config;
+        config.db_path = ":memory:";
+        config.scanner = "std";
+        config.hasher = "fast64";
+        fo::core::Engine engine(config);
+
+        const auto files = collect_files(root);
+        const auto groups = engine.find_duplicates(files);
+        return duplicate_c_string(make_duplicates_summary_text(groups));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" char* fo_bobfilez_stats_summary_text(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_stats_summary_text(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_hash_summary_text(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_hash_summary_text(files);
+    });
+}
+
+extern "C" char* fo_bobfilez_metadata_summary_text(const char* root_path)
+{
+    return execute_json_request(root_path, [](const auto& files) {
+        return make_metadata_summary_text(files);
     });
 }
 

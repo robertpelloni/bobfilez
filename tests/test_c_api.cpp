@@ -99,6 +99,41 @@ TEST_F(CApiTest, HashJsonSupportsSingleFileInput)
     EXPECT_NE(text.find("\"hash\""), std::string::npos);
 }
 
+TEST_F(CApiTest, SummaryTextContainsHumanReadableSections)
+{
+    create_file(test_dir / "summary_a.txt", "same");
+    create_file(test_dir / "summary_b.txt", "same");
+
+    char* scan_summary = fo_bobfilez_scan_summary_text(test_dir.string().c_str());
+    ASSERT_NE(scan_summary, nullptr) << fo_bobfilez_last_error();
+    std::string scan_text(scan_summary);
+    fo_bobfilez_free_string(scan_summary);
+    EXPECT_NE(scan_text.find("Scan Summary"), std::string::npos);
+    EXPECT_NE(scan_text.find("summary_a.txt"), std::string::npos);
+
+    char* duplicate_summary = fo_bobfilez_duplicates_summary_text(test_dir.string().c_str());
+    ASSERT_NE(duplicate_summary, nullptr) << fo_bobfilez_last_error();
+    std::string duplicate_text(duplicate_summary);
+    fo_bobfilez_free_string(duplicate_summary);
+    EXPECT_NE(duplicate_text.find("Duplicate Summary"), std::string::npos);
+    EXPECT_NE(duplicate_text.find("summary_b.txt"), std::string::npos);
+
+    char* stats_summary = fo_bobfilez_stats_summary_text(test_dir.string().c_str());
+    ASSERT_NE(stats_summary, nullptr) << fo_bobfilez_last_error();
+    std::string stats_text(stats_summary);
+    fo_bobfilez_free_string(stats_summary);
+    EXPECT_NE(stats_text.find("Statistics Summary"), std::string::npos);
+
+    auto file_path = test_dir / "summary_hash.txt";
+    create_file(file_path, "hash me please");
+    char* hash_summary = fo_bobfilez_hash_summary_text(file_path.string().c_str());
+    ASSERT_NE(hash_summary, nullptr) << fo_bobfilez_last_error();
+    std::string hash_text(hash_summary);
+    fo_bobfilez_free_string(hash_summary);
+    EXPECT_NE(hash_text.find("Hash Summary"), std::string::npos);
+    EXPECT_NE(hash_text.find("summary_hash.txt"), std::string::npos);
+}
+
 TEST(CApiStandaloneTest, NullRootPathSetsError)
 {
     char* json = fo_bobfilez_scan_json(nullptr);

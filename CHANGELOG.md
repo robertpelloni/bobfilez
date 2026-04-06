@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.53] - 2026-04-05
+
+### Expanded — The "BobGUI Summary Mode" Release
+
+#### 🪟 BobGUI direct mode now renders structured summaries instead of raw JSON
+- Extended `fo_c_api` with human-readable summary helpers for scan, duplicates, statistics, hash, and metadata workflows.
+- Updated `frontends/bobgui_app/main.c` so direct `fo_c_api` mode now uses these summary-oriented functions while preserving the existing `fo_cli` fallback behavior.
+- This makes the BobGUI direct path feel much more like a native UI integration rather than a raw transport dump.
+
+#### 🧪 Direct C API surface validated more honestly
+- Extended `tests/test_c_api.cpp` to validate the new summary helpers.
+- Extended `tests/c_api_smoke.c` so the real C consumer now checks both JSON and summary-text paths.
+- Re-ran headless validation and root-level `ctest` after the provider-registration and root-test-discovery improvements. Validation succeeded with **69 / 69 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_DIRECT_C_API_WIRING_2026_04_05.md` and continued documenting the BobGUI direct-mode evolution in handoff/session tracking.
+
+### Version
+- Bumped to **6.0.53**.
+
 ## [6.0.52] - 2026-04-05
 
 ### Expanded — The "BobGUI Direct Wiring + C Test Surface" Release

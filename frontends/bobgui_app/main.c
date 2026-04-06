@@ -177,16 +177,16 @@ build_cli_output_text (const gchar *operation,
 
 static gchar *
 build_direct_output_text (const gchar *operation,
-                          const gchar *json_text)
+                          const gchar *summary_text)
 {
     GString *text = g_string_new ("");
 
     g_string_append_printf (text,
-                            "Operation: %s\nBackend: fo_c_api\n\n",
+                            "Operation: %s\nBackend: fo_c_api\nMode: summary\n\n",
                             operation);
 
-    if (json_text != NULL && json_text[0] != '\0') {
-        g_string_append (text, json_text);
+    if (summary_text != NULL && summary_text[0] != '\0') {
+        g_string_append (text, summary_text);
     }
 
     return g_string_free (text, FALSE);
@@ -197,19 +197,19 @@ static BobfilezDirectApiFn
 find_direct_api_function (const gchar *operation)
 {
     if (g_strcmp0 (operation, "scan") == 0) {
-        return fo_bobfilez_scan_json;
+        return fo_bobfilez_scan_summary_text;
     }
     if (g_strcmp0 (operation, "duplicates") == 0) {
-        return fo_bobfilez_duplicates_json;
+        return fo_bobfilez_duplicates_summary_text;
     }
     if (g_strcmp0 (operation, "stats") == 0) {
-        return fo_bobfilez_stats_json;
+        return fo_bobfilez_stats_summary_text;
     }
     if (g_strcmp0 (operation, "hash") == 0) {
-        return fo_bobfilez_hash_json;
+        return fo_bobfilez_hash_summary_text;
     }
     if (g_strcmp0 (operation, "metadata") == 0) {
-        return fo_bobfilez_metadata_json;
+        return fo_bobfilez_metadata_summary_text;
     }
 
     return NULL;
@@ -231,14 +231,14 @@ run_command_thread (gpointer user_data)
             result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
             result->output = g_strdup ("This direct C API build does not expose the requested operation.");
         } else {
-            char *json_text = direct_api (request->target_path);
-            if (json_text == NULL) {
+            char *summary_text = direct_api (request->target_path);
+            if (summary_text == NULL) {
                 result->status = g_strdup_printf ("%s failed for %s", request->operation, request->target_path);
                 result->output = g_strdup (fo_bobfilez_last_error ());
             } else {
                 result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, request->target_path);
-                result->output = build_direct_output_text (request->operation, json_text);
-                fo_bobfilez_free_string (json_text);
+                result->output = build_direct_output_text (request->operation, summary_text);
+                fo_bobfilez_free_string (summary_text);
             }
         }
 #else
