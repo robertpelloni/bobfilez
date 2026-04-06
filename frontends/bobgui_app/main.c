@@ -21,6 +21,12 @@ typedef struct {
 
 typedef struct {
     AppState *state;
+    gchar *pattern;
+    gchar *reason;
+} IgnoreFieldResetContext;
+
+typedef struct {
+    AppState *state;
     gchar *operation;
     gchar *target_path;
     gchar *extra_text;
@@ -128,6 +134,29 @@ apply_command_result (gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+static const gchar *
+default_ignore_pattern (void)
+{
+    return "thumbs.db";
+}
+
+static const gchar *
+default_ignore_reason (void)
+{
+    return "Windows thumbnail cache";
+}
+
+static void
+reset_ignore_fields (AppState *state,
+                     const gchar *pattern,
+                     const gchar *reason)
+{
+    bobgui_editable_set_text (BOBGUI_EDITABLE (state->ignore_pattern_entry),
+                              pattern != NULL ? pattern : default_ignore_pattern ());
+    bobgui_editable_set_text (BOBGUI_EDITABLE (state->ignore_reason_entry),
+                              reason != NULL ? reason : default_ignore_reason ());
+}
+
 static gboolean
 operation_uses_ignore_pattern (const gchar *operation)
 {
@@ -158,6 +187,24 @@ operation_target_label (const gchar *operation,
     }
 
     return "(path-free request)";
+}
+
+static gchar *
+make_pending_output_text (const gchar *operation,
+                          const gchar *target_path,
+                          const gchar *extra_text)
+{
+    GString *text = g_string_new ("Working...\n\n");
+
+    g_string_append_printf (text, "Operation: %s\n", operation);
+    g_string_append_printf (text, "Target: %s\n", operation_target_label (operation, target_path));
+
+    if (g_strcmp0 (operation, "ignore-add") == 0 && extra_text != NULL && extra_text[0] != '\0') {
+        g_string_append_printf (text, "Reason: %s\n", extra_text);
+    }
+
+    g_string_append (text, "\nThe request is running on a background thread so the UI stays responsive.\n");
+    return g_string_free (text, FALSE);
 }
 
 static GStrv
@@ -460,8 +507,14 @@ start_operation (AppState *state,
         /* Empty reason is allowed, so no validation failure here. */
     }
 
-    bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Running request...");
-    set_output_text (state, "Working...\n");
+    {
+        gchar *pending_text = make_pending_output_text (operation,
+                                                       (operation_requires_path (operation) || operation_uses_ignore_pattern (operation)) ? target_text : "",
+                                                       operation_requires_ignore_reason (operation) ? ignore_reason : "");
+        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Running request...");
+        set_output_text (state, pending_text);
+        g_free (pending_text);
+    }
 
     request = g_new0 (CommandRequest, 1);
     request->state = state;
@@ -481,6 +534,29 @@ action_button_clicked (BobguiWidget *widget,
     start_operation (context->state, context->operation);
 }
 
+static void
+clear_output_button_clicked (BobguiWidget *widget,
+                             gpointer user_data)
+{
+    AppState *state = user_data;
+    (void) widget;
+    bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Output cleared.");
+    set_output_text (state,
+                     "Output cleared.\n\nUse the Path field for filesystem operations, or the Ignore Pattern/Reason fields for ignore management.");
+}
+
+static void
+reset_ignore_button_clicked (BobguiWidget *widget,
+                             gpointer user_data)
+{
+    IgnoreFieldResetContext *context = user_data;
+    (void) widget;
+    reset_ignore_fields (context->state, context->pattern, context->reason);
+    bobgui_label_set_text (BOBGUI_LABEL (context->state->status_label), "Ignore fields reset.");
+    set_output_text (context->state,
+                     "Ignore fields were reset to their default example values.\n\nUse Ignore Add or Ignore Remove to apply a change, or Ignore Rules to refresh the current rule list.");
+}
+
 static ButtonContext *
 create_button_context (AppState *state,
                        const gchar *operation)
@@ -489,6 +565,30 @@ create_button_context (AppState *state,
     context->state = state;
     context->operation = operation;
     return context;
+}
+
+static IgnoreFieldResetContext *
+create_ignore_reset_context (AppState *state,
+                             const gchar *pattern,
+                             const gchar *reason)
+{
+    IgnoreFieldResetContext *context = g_new0 (IgnoreFieldResetContext, 1);
+    context->state = state;
+    context->pattern = g_strdup (pattern);
+    context->reason = g_strdup (reason);
+    return context;
+}
+
+static void
+free_ignore_reset_context (IgnoreFieldResetContext *context)
+{
+    if (context == NULL) {
+        return;
+    }
+
+    g_free (context->pattern);
+    g_free (context->reason);
+    g_free (context);
 }
 
 static void
@@ -506,6 +606,7 @@ activate (BobguiApplication *app,
     BobguiWidget *ignore_pattern_entry;
     BobguiWidget *ignore_reason_entry;
     BobguiWidget *button_row;
+    BobguiWidget *utility_row;
     BobguiWidget *scan_button;
     BobguiWidget *dupes_button;
     BobguiWidget *stats_button;
@@ -516,6 +617,8 @@ activate (BobguiApplication *app,
     BobguiWidget *ignore_button;
     BobguiWidget *ignore_add_button;
     BobguiWidget *ignore_remove_button;
+    BobguiWidget *reset_ignore_button;
+    BobguiWidget *clear_output_button;
     BobguiWidget *status_label;
     BobguiWidget *scrolled;
     BobguiWidget *output_view;
@@ -543,16 +646,17 @@ activate (BobguiApplication *app,
     ignore_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     ignore_pattern_entry = bobgui_entry_new ();
     bobgui_widget_set_hexpand (ignore_pattern_entry, TRUE);
-    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_pattern_entry), "thumbs.db");
+    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_pattern_entry), default_ignore_pattern ());
     ignore_reason_entry = bobgui_entry_new ();
     bobgui_widget_set_hexpand (ignore_reason_entry, TRUE);
-    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_reason_entry), "Windows thumbnail cache");
+    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_reason_entry), default_ignore_reason ());
     bobgui_box_append (BOBGUI_BOX (ignore_row), bobgui_label_new ("Ignore Pattern:"));
     bobgui_box_append (BOBGUI_BOX (ignore_row), ignore_pattern_entry);
     bobgui_box_append (BOBGUI_BOX (ignore_row), bobgui_label_new ("Reason:"));
     bobgui_box_append (BOBGUI_BOX (ignore_row), ignore_reason_entry);
 
     button_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
+    utility_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     scan_button = bobgui_button_new_with_label ("Scan");
     dupes_button = bobgui_button_new_with_label ("Duplicates");
     stats_button = bobgui_button_new_with_label ("Statistics");
@@ -563,6 +667,8 @@ activate (BobguiApplication *app,
     ignore_button = bobgui_button_new_with_label ("Ignore Rules");
     ignore_add_button = bobgui_button_new_with_label ("Ignore Add");
     ignore_remove_button = bobgui_button_new_with_label ("Ignore Remove");
+    reset_ignore_button = bobgui_button_new_with_label ("Reset Ignore Fields");
+    clear_output_button = bobgui_button_new_with_label ("Clear Output");
 
     bobgui_box_append (BOBGUI_BOX (button_row), scan_button);
     bobgui_box_append (BOBGUI_BOX (button_row), dupes_button);
@@ -574,6 +680,8 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (button_row), ignore_button);
     bobgui_box_append (BOBGUI_BOX (button_row), ignore_add_button);
     bobgui_box_append (BOBGUI_BOX (button_row), ignore_remove_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), reset_ignore_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), clear_output_button);
 
     status_label = bobgui_label_new ("Ready.");
     scrolled = bobgui_scrolled_window_new ();
@@ -586,6 +694,7 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (root_box), path_row);
     bobgui_box_append (BOBGUI_BOX (root_box), ignore_row);
     bobgui_box_append (BOBGUI_BOX (root_box), button_row);
+    bobgui_box_append (BOBGUI_BOX (root_box), utility_row);
     bobgui_box_append (BOBGUI_BOX (root_box), status_label);
     bobgui_box_append (BOBGUI_BOX (root_box), scrolled);
 
@@ -677,6 +786,18 @@ activate (BobguiApplication *app,
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "ignore-remove"),
                            (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (reset_ignore_button,
+                           "clicked",
+                           G_CALLBACK (reset_ignore_button_clicked),
+                           create_ignore_reset_context (state, default_ignore_pattern (), default_ignore_reason ()),
+                           (GClosureNotify) free_ignore_reset_context,
+                           0);
+    g_signal_connect_data (clear_output_button,
+                           "clicked",
+                           G_CALLBACK (clear_output_button_clicked),
+                           state,
+                           NULL,
                            0);
 
     g_object_set_data_full (G_OBJECT (window), "bobfilez-state", state, (GDestroyNotify) free_app_state);

@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.63] - 2026-04-06
+
+### Refined — The "BobGUI Usability Polish" Release
+
+#### 🎛️ BobGUI control-surface refinement
+- Refined `frontends/bobgui_app/main.c` so BobGUI now shows richer in-progress output describing the active operation, target, and ignore reason where relevant.
+- Added a **Reset Ignore Fields** button so the ignore-management inputs can be restored to known-good example values quickly.
+- Added a **Clear Output** button so the operational output panel can be cleared without disturbing the rest of the current UI state.
+- Improved the startup guidance text so the BobGUI lane more clearly explains which controls are intended for path-based actions, ignore-management actions, and path-free listing actions.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_USABILITY_POLISH_2026_04_06.md` documenting the control-surface refinement and the continuing host-validation boundary for BobGUI.
+
+### Version
+- Bumped to **6.0.63**.
+
 ## [6.0.62] - 2026-04-06
 
 ### Expanded — The "BobGUI Direct Ignore Actions" Release
