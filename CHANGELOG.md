@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.66] - 2026-04-06
+
+### Refined — The "BobGUI Ignore Success-State" Release
+
+#### ✅ BobGUI ignore actions now leave the UI in a cleaner next-step state
+- Refined `frontends/bobgui_app/main.c` so BobGUI now tracks command success state explicitly in its UI completion flow.
+- Successful **Add Ignore Rule** and **Remove Ignore Rule** actions now clear the ignore-pattern field automatically.
+- Successful ignore actions now use more workflow-aware status text such as readiness for the next pattern or suggestion to list rules.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_IGNORE_FIELD_SUCCESS_STATE_2026_04_06.md` documenting the ignore-action success-state refinement.
+
+### Version
+- Bumped to **6.0.66**.
+
 ## [6.0.65] - 2026-04-06
 
 ### Refined — The "BobGUI Post-Action Guidance" Release

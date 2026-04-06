@@ -1,34 +1,40 @@
-# HANDOFF.md — bobfilez Session 80
+# HANDOFF.md — bobfilez Session 81
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.65
-**Focus:** Continued the BobGUI ergonomics track by improving the output panel’s post-action guidance rather than adding more raw backend surface.
+**Version:** 6.0.66
+**Focus:** Continued the BobGUI ergonomics track with workflow-aware success-state refinement for ignore management.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added contextual post-action guidance to BobGUI output
+### 1. BobGUI command completion now tracks success state
 Updated:
 - `frontends/bobgui_app/main.c`
 
-Both direct and CLI-backed BobGUI result output now append a small **next helpful action** section.
+BobGUI command results now carry explicit success state rather than only rendered text.
 
-This guidance changes by workflow. Examples:
-- ignore add/remove suggests listing ignore rules to verify state
-- history suggests rerunning after future file operations
-- path-based workflows suggest changing the Path field when inspecting another target
+That enables the UI layer to make small post-success refinements without changing the backend or widening the ABI.
 
-### 2. Improved pending-state messaging again
-The in-progress output now explicitly tells the user that completed results remain visible in the output panel for comparison against the next action.
+### 2. Successful ignore actions now leave the form in a cleaner state
+When these actions succeed:
+- **Add Ignore Rule**
+- **Remove Ignore Rule**
 
-This is small, but it improves the sense that BobGUI is an operational workbench rather than a disposable popup.
+BobGUI now clears the **Ignore Pattern** field automatically.
 
-### 3. Added implementation documentation
+This makes the panel more comfortable for repeated ignore-rule editing because the user is not left sitting on the previous pattern unintentionally.
+
+### 3. Ignore-action status text is now more workflow-aware
+Instead of only generic completion text, BobGUI now uses more tailored status messages after successful ignore actions, for example:
+- "Ignore rule added. Ready for another pattern."
+- "Ignore rule removed. You can enter another pattern or list rules."
+
+### 4. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_POST_ACTION_GUIDANCE_2026_04_06.md`
+- `docs/ai/implementation/BOBGUI_IGNORE_FIELD_SUCCESS_STATE_2026_04_06.md`
 
-### 4. Versioning/docs updated
+### 5. Versioning/docs updated
 Updated:
 - `VERSION.md`
 - `core/include/fo/core/version.hpp`
@@ -46,9 +52,9 @@ Updated:
 - validation surface remains: **73 / 73 passed** ✅
 
 ### Important product findings
-1. The next highest-value improvements for BobGUI are increasingly about helping users maintain flow, not just exposing more operations.
-2. Contextual output guidance is useful because BobGUI now spans enough workflows that users benefit from explicit momentum cues.
-3. This session improved usability without changing the direct/fallback architecture or widening the C ABI further.
+1. BobGUI is now far enough along that success-state behavior is a meaningful usability dimension, not merely polish noise.
+2. Small workflow-aware UI responses can improve repeated operations without requiring more backend work.
+3. This session preserved the same direct/fallback model and kept risk low while still making the panel feel more intentional.
 
 ### Important host reality
 Full BobGUI end-to-end runtime validation remains constrained by missing Meson/pkg-config/ninja convenience tooling on this machine. The source-level and backend-level validation remain strong and honest.
@@ -57,5 +63,5 @@ Full BobGUI end-to-end runtime validation remains constrained by missing Meson/p
 
 ## Recommended Next Steps
 1. Continue BobGUI ergonomics if the goal is to make that lane feel more like a polished operational panel.
-2. If shifting back to capability work, use the same rule as before: only expand where the backend seam is already real and the UI cost is low.
+2. If shifting back to capability work, return to the normal rule: real backend seam first, then low-cost frontend exposure.
 3. Keep using headless + root `ctest` as the repo-wide truth baseline.

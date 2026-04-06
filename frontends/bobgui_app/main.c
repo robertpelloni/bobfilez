@@ -34,8 +34,10 @@ typedef struct {
 
 typedef struct {
     AppState *state;
+    gchar *operation;
     gchar *status;
     gchar *output;
+    gboolean succeeded;
 } CommandResult;
 
 typedef struct {
@@ -124,9 +126,19 @@ apply_command_result (gpointer user_data)
 {
     CommandResult *result = user_data;
 
-    bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), result->status);
+    if (result->succeeded && g_strcmp0 (result->operation, "ignore-add") == 0) {
+        bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
+        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), "Ignore rule added. Ready for another pattern.");
+    } else if (result->succeeded && g_strcmp0 (result->operation, "ignore-remove") == 0) {
+        bobgui_editable_set_text (BOBGUI_EDITABLE (result->state->ignore_pattern_entry), "");
+        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), "Ignore rule removed. You can enter another pattern or list rules.");
+    } else {
+        bobgui_label_set_text (BOBGUI_LABEL (result->state->status_label), result->status);
+    }
+
     set_output_text (result->state, result->output);
 
+    g_free (result->operation);
     g_free (result->status);
     g_free (result->output);
     g_free (result);
@@ -345,7 +357,8 @@ run_cli_request (const AppState *state,
                  const gchar *extra_text,
                  const gchar *fallback_reason,
                  gchar **status_out,
-                 gchar **output_out)
+                 gchar **output_out,
+                 gboolean *succeeded_out)
 {
     GError *error = NULL;
     gchar *stdout_text = NULL;
@@ -365,10 +378,16 @@ run_cli_request (const AppState *state,
                        &error)) {
         *status_out = g_strdup_printf ("%s failed for %s", operation, operation_target_label (operation, target_path));
         *output_out = g_strdup (error != NULL ? error->message : "Unknown subprocess failure.");
+        if (succeeded_out != NULL) {
+            *succeeded_out = FALSE;
+        }
         g_clear_error (&error);
     } else {
         *status_out = g_strdup_printf ("Completed %s via fo_cli for %s", operation, operation_target_label (operation, target_path));
         *output_out = build_cli_output_text (operation, stdout_text, stderr_text, exit_status);
+        if (succeeded_out != NULL) {
+            *succeeded_out = (exit_status == 0);
+        }
         if (fallback_reason != NULL && fallback_reason[0] != '\0') {
             GString *prefixed = g_string_new ("Direct fo_c_api path was unavailable; using fo_cli fallback.\nReason: ");
             g_string_append (prefixed, fallback_reason);
@@ -437,6 +456,7 @@ run_command_thread (gpointer user_data)
     CommandResult *result = g_new0 (CommandResult, 1);
 
     result->state = request->state;
+    result->operation = g_strdup (request->operation);
 
     if (request->state->direct_c_api_available) {
 #ifdef BOBFILEZ_HAVE_C_API
@@ -452,7 +472,8 @@ run_command_thread (gpointer user_data)
                                  request->extra_text,
                                  "Requested operation is not exposed by the direct fo_c_api build.",
                                  &result->status,
-                                 &result->output);
+                                 &result->output,
+                                 &result->succeeded);
             } else {
                 result->status = g_strdup_printf ("Unsupported operation %s", request->operation);
                 result->output = g_strdup ("This direct C API build does not expose the requested operation.");
@@ -472,7 +493,8 @@ run_command_thread (gpointer user_data)
                                      request->extra_text,
                                      fo_bobfilez_last_error (),
                                      &result->status,
-                                     &result->output);
+                                     &result->output,
+                                     &result->succeeded);
                 } else {
                     result->status = g_strdup_printf ("%s failed for %s", request->operation, operation_target_label (request->operation, request->target_path));
                     result->output = g_strdup (fo_bobfilez_last_error ());
@@ -480,6 +502,7 @@ run_command_thread (gpointer user_data)
             } else {
                 result->status = g_strdup_printf ("Completed %s via fo_c_api for %s", request->operation, operation_target_label (request->operation, request->target_path));
                 result->output = build_direct_output_text (request->operation, summary_text);
+                result->succeeded = TRUE;
                 fo_bobfilez_free_string (summary_text);
             }
         }
@@ -491,7 +514,8 @@ run_command_thread (gpointer user_data)
                              request->extra_text,
                              "BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.",
                              &result->status,
-                             &result->output);
+                             &result->output,
+                             &result->succeeded);
         } else {
             result->status = g_strdup ("Direct C API requested but not compiled in.");
             result->output = g_strdup ("BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.");
@@ -504,7 +528,8 @@ run_command_thread (gpointer user_data)
                          request->extra_text,
                          NULL,
                          &result->status,
-                         &result->output);
+                         &result->output,
+                         &result->succeeded);
     } else {
         result->status = g_strdup ("No backend available.");
         result->output = g_strdup ("Neither fo_c_api nor fo_cli is available for this BobGUI build.");
