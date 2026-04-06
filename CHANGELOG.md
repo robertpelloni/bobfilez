@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.0.72] - 2026-04-06
+
+### Refined — The "BobGUI General Consistency and Field Awareness" Release
+
+#### 🔧 BobGUI idle and success state polished for consistency
+- Refined `frontends/bobgui_app/main.c` so BobGUI now uses clearer, formally structured headings for idle output (Panel Mode, Field Roles, Current Working Values).
+- Updated "Ready" and "Running" status labels to follow a consistent `State · Mode/Operation` visual pattern.
+- Success messages for path-based operations now explicitly acknowledge that the current path has been retained for follow-up actions.
+- The ignore-reset flow now produces a more instructional output block explaining field roles and next steps.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_CONSISTENCY_AND_FIELD_AWARENESS_2026_04_06.md` documenting the BobGUI general consistency refinements.
+
+### Version
+- Bumped to **6.0.72**.
+
 ## [6.0.71] - 2026-04-06
 
 ### Refined — The "BobGUI Status and Field-Role Clarity" Release

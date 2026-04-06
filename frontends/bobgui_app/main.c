@@ -308,14 +308,38 @@ make_idle_output_text (const AppState *state)
 {
     GString *text = g_string_new ("");
 
-    g_string_append_printf (text, "Panel ready via: %s\n\n", active_backend_name (state));
-    g_string_append (text, "Filesystem Actions use the Path field.\n");
-    g_string_append (text, "Ignore management uses the Ignore Pattern/Reason fields.\n");
+    g_string_append (text, "Panel Mode\n----------\n");
+    g_string_append_printf (text, "Backend: %s\n\n", active_backend_name (state));
+
+    g_string_append (text, "Field Roles\n-----------\n");
+    g_string_append (text, "Path drives filesystem actions such as scan, duplicates, statistics, hash, metadata, and lint.\n");
+    g_string_append (text, "Ignore Pattern and Reason drive ignore-rule authoring and removal workflows.\n");
     g_string_append (text, "Operational listings such as history and ignore snapshots are path-free.\n");
     g_string_append (text, "Completed results stay in this panel until you run another action or clear the output.\n\n");
-    g_string_append_printf (text, "Current Path: %s\n", editable_value_or_empty (state->path_entry));
-    g_string_append_printf (text, "Current Ignore Pattern: %s\n", editable_value_or_empty (state->ignore_pattern_entry));
-    g_string_append_printf (text, "Current Ignore Reason: %s\n", editable_value_or_empty (state->ignore_reason_entry));
+
+    g_string_append (text, "Current Working Values\n----------------------\n");
+    g_string_append_printf (text, "Path: %s\n", editable_value_or_empty (state->path_entry));
+    g_string_append_printf (text, "Ignore Pattern: %s\n", editable_value_or_empty (state->ignore_pattern_entry));
+    g_string_append_printf (text, "Ignore Reason: %s\n", editable_value_or_empty (state->ignore_reason_entry));
+
+    return g_string_free (text, FALSE);
+}
+
+static gchar *
+make_ignore_reset_output_text (const AppState *state)
+{
+    GString *text = g_string_new ("Ignore fields were reset to their default example values.\n\n");
+
+    g_string_append (text, "Field Roles\n-----------\n");
+    g_string_append (text, "Ignore Pattern controls which rule add/remove actions will target.\n");
+    g_string_append (text, "Reason is retained for repeated ignore-rule authoring and can be reused across similar rules.\n\n");
+
+    g_string_append (text, "Current Ignore Values\n---------------------\n");
+    g_string_append_printf (text, "Ignore Pattern: %s\n", editable_value_or_empty (state->ignore_pattern_entry));
+    g_string_append_printf (text, "Ignore Reason: %s\n\n", editable_value_or_empty (state->ignore_reason_entry));
+
+    g_string_append (text, "Next Helpful Action\n-------------------\n");
+    g_string_append (text, "Use Add Ignore Rule or Remove Ignore Rule to apply a change, or List Ignore Rules to refresh the current rule list.\n");
 
     return g_string_free (text, FALSE);
 }
@@ -323,21 +347,21 @@ make_idle_output_text (const AppState *state)
 static gchar *
 make_running_status_text (const gchar *operation)
 {
-    return g_strdup_printf ("Running %s...", operation_display_name (operation));
+    return g_strdup_printf ("Running · %s", operation_display_name (operation));
 }
 
 static gchar *
 make_ready_status_text (const AppState *state)
 {
     if (state->direct_c_api_available) {
-        return g_strdup ("Ready via fo_c_api (direct mode preferred).");
+        return g_strdup ("Ready · Direct Mode (fo_c_api preferred)");
     }
 
     if (state->cli_path != NULL) {
-        return g_strdup ("Ready via fo_cli (fallback mode active).");
+        return g_strdup ("Ready · Fallback Mode (fo_cli active)");
     }
 
-    return g_strdup ("Waiting for backend.");
+    return g_strdup ("Waiting · No backend detected");
 }
 
 static gchar *
@@ -765,10 +789,13 @@ reset_ignore_button_clicked (BobguiWidget *widget,
 {
     IgnoreFieldResetContext *context = user_data;
     (void) widget;
+    gchar *reset_text;
+
     reset_ignore_fields (context->state, context->pattern, context->reason);
-    bobgui_label_set_text (BOBGUI_LABEL (context->state->status_label), "Ignore fields reset to example values.");
-    set_output_text (context->state,
-                     "Ignore fields were reset to their default example values.\n\nField Roles\n-----------\nIgnore Pattern drives add/remove actions.\nReason is reused for repeated ignore-rule authoring.\n\nUse Add Ignore Rule or Remove Ignore Rule to apply a change, or List Ignore Rules to refresh the current rule list.");
+    reset_text = make_ignore_reset_output_text (context->state);
+    bobgui_label_set_text (BOBGUI_LABEL (context->state->status_label), "Ready · Ignore fields reset to example values");
+    set_output_text (context->state, reset_text);
+    g_free (reset_text);
 }
 
 static ButtonContext *
