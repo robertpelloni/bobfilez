@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.0.64] - 2026-04-06
+
+### Refined — The "BobGUI Action Grouping Polish" Release
+
+#### 🧭 BobGUI action grouping and naming clarity
+- Refined `frontends/bobgui_app/main.c` so BobGUI now groups controls into clearer sections:
+  - **Filesystem Actions**
+  - **Operational Listings and Ignore Actions**
+  - **Utility Actions**
+- Renamed several BobGUI buttons to be more explicit, including **List History**, **List Ignore Rules**, **Add Ignore Rule**, and **Remove Ignore Rule**.
+- Updated startup guidance so the user-facing explanation now aligns with the clearer grouped control surface.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_ACTION_GROUPING_POLISH_2026_04_06.md` documenting the UI grouping refinement and why BobGUI ergonomics remain a high-value next-wave investment.
+
+### Version
+- Bumped to **6.0.64**.
+
 ## [6.0.63] - 2026-04-06
 
 ### Refined — The "BobGUI Usability Polish" Release

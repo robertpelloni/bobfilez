@@ -605,7 +605,11 @@ activate (BobguiApplication *app,
     BobguiWidget *ignore_row;
     BobguiWidget *ignore_pattern_entry;
     BobguiWidget *ignore_reason_entry;
-    BobguiWidget *button_row;
+    BobguiWidget *filesystem_label;
+    BobguiWidget *filesystem_row;
+    BobguiWidget *operations_label;
+    BobguiWidget *operations_row;
+    BobguiWidget *utility_label;
     BobguiWidget *utility_row;
     BobguiWidget *scan_button;
     BobguiWidget *dupes_button;
@@ -655,7 +659,11 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (ignore_row), bobgui_label_new ("Reason:"));
     bobgui_box_append (BOBGUI_BOX (ignore_row), ignore_reason_entry);
 
-    button_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
+    filesystem_label = bobgui_label_new ("Filesystem Actions");
+    filesystem_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
+    operations_label = bobgui_label_new ("Operational Listings and Ignore Actions");
+    operations_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
+    utility_label = bobgui_label_new ("Utility Actions");
     utility_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     scan_button = bobgui_button_new_with_label ("Scan");
     dupes_button = bobgui_button_new_with_label ("Duplicates");
@@ -663,23 +671,23 @@ activate (BobguiApplication *app,
     hash_button = bobgui_button_new_with_label ("Hash");
     metadata_button = bobgui_button_new_with_label ("Metadata");
     lint_button = bobgui_button_new_with_label ("Lint");
-    history_button = bobgui_button_new_with_label ("History");
-    ignore_button = bobgui_button_new_with_label ("Ignore Rules");
-    ignore_add_button = bobgui_button_new_with_label ("Ignore Add");
-    ignore_remove_button = bobgui_button_new_with_label ("Ignore Remove");
+    history_button = bobgui_button_new_with_label ("List History");
+    ignore_button = bobgui_button_new_with_label ("List Ignore Rules");
+    ignore_add_button = bobgui_button_new_with_label ("Add Ignore Rule");
+    ignore_remove_button = bobgui_button_new_with_label ("Remove Ignore Rule");
     reset_ignore_button = bobgui_button_new_with_label ("Reset Ignore Fields");
     clear_output_button = bobgui_button_new_with_label ("Clear Output");
 
-    bobgui_box_append (BOBGUI_BOX (button_row), scan_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), dupes_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), stats_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), hash_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), metadata_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), lint_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), history_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), ignore_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), ignore_add_button);
-    bobgui_box_append (BOBGUI_BOX (button_row), ignore_remove_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), scan_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), dupes_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), stats_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), hash_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), metadata_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), lint_button);
+    bobgui_box_append (BOBGUI_BOX (operations_row), history_button);
+    bobgui_box_append (BOBGUI_BOX (operations_row), ignore_button);
+    bobgui_box_append (BOBGUI_BOX (operations_row), ignore_add_button);
+    bobgui_box_append (BOBGUI_BOX (operations_row), ignore_remove_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), reset_ignore_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), clear_output_button);
 
@@ -693,7 +701,11 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (root_box), subtitle);
     bobgui_box_append (BOBGUI_BOX (root_box), path_row);
     bobgui_box_append (BOBGUI_BOX (root_box), ignore_row);
-    bobgui_box_append (BOBGUI_BOX (root_box), button_row);
+    bobgui_box_append (BOBGUI_BOX (root_box), filesystem_label);
+    bobgui_box_append (BOBGUI_BOX (root_box), filesystem_row);
+    bobgui_box_append (BOBGUI_BOX (root_box), operations_label);
+    bobgui_box_append (BOBGUI_BOX (root_box), operations_row);
+    bobgui_box_append (BOBGUI_BOX (root_box), utility_label);
     bobgui_box_append (BOBGUI_BOX (root_box), utility_row);
     bobgui_box_append (BOBGUI_BOX (root_box), status_label);
     bobgui_box_append (BOBGUI_BOX (root_box), scrolled);
@@ -711,14 +723,14 @@ activate (BobguiApplication *app,
 
     if (state->direct_c_api_available) {
         gchar *initial = g_strdup_printf (
-            "Direct bobfilez backend detected: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore management, and keep fo_cli as an optional fallback path if present: %s",
+            "Direct bobfilez backend detected: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore management, the Operational Listings row for history/ignore snapshots, and keep fo_cli as an optional fallback path if present: %s",
             active_backend_name (state),
             state->cli_path != NULL ? state->cli_path : "(not found)");
         set_output_text (state, initial);
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
     } else if (state->cli_path != NULL) {
-        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore add/remove, or History / Ignore Rules for path-free listing operations.", state->cli_path);
+        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore add/remove, and the Operational Listings row for path-free history/ignore snapshots.", state->cli_path);
         set_output_text (state, initial);
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");

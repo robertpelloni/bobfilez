@@ -1,44 +1,37 @@
-# HANDOFF.md — bobfilez Session 78
+# HANDOFF.md — bobfilez Session 79
 
 ## Current Status (2026-04-06)
-**Version:** 6.0.63
-**Focus:** Shifted from raw BobGUI backend reach to control-surface ergonomics, refining the BobGUI operational panel now that it supports a wider workflow family.
+**Version:** 6.0.64
+**Focus:** Continued BobGUI ergonomics work by making the broader operational control surface easier to parse visually and semantically.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Improved BobGUI in-progress feedback
+### 1. Grouped BobGUI actions by operational intent
 Updated:
 - `frontends/bobgui_app/main.c`
 
-Added a small pending-output helper so BobGUI now shows a richer pre-result message when an action is launched.
+The BobGUI lane now separates controls into clearer sections:
+- **Filesystem Actions**
+- **Operational Listings and Ignore Actions**
+- **Utility Actions**
 
-The output now includes:
-- operation name
-- effective target
-- ignore reason when relevant
-- a clear note that the request is executing on a background thread so the UI stays responsive
+This reduces the visual density of the previous flat action strip.
 
-### 2. Added small operational helper actions
-Updated:
-- `frontends/bobgui_app/main.c`
+### 2. Made BobGUI button labels more explicit
+Updated several labels so they better describe the actual behavior, including:
+- `History` → `List History`
+- `Ignore Rules` → `List Ignore Rules`
+- `Ignore Add` → `Add Ignore Rule`
+- `Ignore Remove` → `Remove Ignore Rule`
 
-Added:
-- **Reset Ignore Fields** button
-- **Clear Output** button
-
-These are simple usability improvements, but they matter more now that BobGUI is becoming a broader operational surface rather than a narrow demo shell.
-
-### 3. Improved BobGUI startup guidance
-Refined the initial output text so users are told more clearly how the control surface is divided between:
-- path-based filesystem actions
-- ignore-management actions
-- path-free listing actions
+### 3. Kept startup guidance aligned with the refined UI structure
+Updated the initial BobGUI guidance text so it now references the grouped control surface more honestly.
 
 ### 4. Added implementation documentation
 Added:
-- `docs/ai/implementation/BOBGUI_USABILITY_POLISH_2026_04_06.md`
+- `docs/ai/implementation/BOBGUI_ACTION_GROUPING_POLISH_2026_04_06.md`
 
 ### 5. Versioning/docs updated
 Updated:
@@ -58,12 +51,9 @@ Updated:
 - validation surface remains: **73 / 73 passed** ✅
 
 ### Important product findings
-1. BobGUI has reached the point where small usability improvements now create meaningful product value because the lane already has a much broader operational surface.
-2. The right progression has held up well:
-   - first expand backend reach
-   - then expose workflows in UI
-   - then improve ergonomics once the surface becomes rich enough to justify it
-3. This session did not need wider ABI expansion to make the BobGUI lane better; control-surface polish was the higher-leverage move.
+1. BobGUI has enough breadth now that visual organization is itself a product feature.
+2. Clearer grouping and clearer naming can improve usability without any new backend expansion.
+3. This session was a good example of choosing the next highest-leverage improvement rather than blindly adding more raw capability.
 
 ### Important host reality
 Full BobGUI end-to-end runtime validation remains constrained by missing Meson/pkg-config/ninja convenience tooling on this machine. The source-level and backend-level validation remain strong and honest.
@@ -71,6 +61,6 @@ Full BobGUI end-to-end runtime validation remains constrained by missing Meson/p
 ---
 
 ## Recommended Next Steps
-1. Continue BobGUI ergonomics if the goal is to make that lane feel more product-like rather than merely more feature-complete.
-2. Otherwise, return to the usual parity rule and pick the next backend-real workflow gap with the lowest frontend integration cost.
+1. Continue BobGUI ergonomics if that lane remains a near-term product focus.
+2. Consider lightweight post-action UX improvements next, rather than immediate new backend surface.
 3. Keep using headless + root `ctest` as the repo-wide validation truth baseline.
