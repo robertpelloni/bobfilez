@@ -59,6 +59,24 @@ std::filesystem::path parse_root_path(const char* root_path)
     return std::filesystem::path(root_path);
 }
 
+std::string parse_ignore_pattern(const char* pattern)
+{
+    if (pattern == nullptr || pattern[0] == '\0') {
+        throw std::invalid_argument("A non-empty ignore pattern is required.");
+    }
+
+    return pattern;
+}
+
+std::string parse_optional_text(const char* value)
+{
+    if (value == nullptr) {
+        return {};
+    }
+
+    return value;
+}
+
 std::string current_c_api_db_path()
 {
 #ifdef _WIN32
@@ -728,6 +746,49 @@ std::string make_ignore_summary_text(const std::vector<fo::core::IgnoreRule>& ru
     return out.str();
 }
 
+std::string make_ignore_action_json(const char* action,
+                                    const std::string& pattern,
+                                    const std::string& reason)
+{
+    std::ostringstream out;
+    out << "{\n"
+        << "  \"action\": \"" << action << "\",\n"
+        << "  \"pattern\": \"" << fo::core::Exporter::json_escape(pattern) << "\",\n"
+        << "  \"reason\": \"" << fo::core::Exporter::json_escape(reason) << "\"\n"
+        << "}\n";
+    return out.str();
+}
+
+std::string make_ignore_add_summary_text(const std::string& pattern,
+                                         const std::string& reason,
+                                         const std::vector<fo::core::IgnoreRule>& rules)
+{
+    std::ostringstream out;
+    out << "Ignore Rule Added\n"
+        << "=================\n"
+        << "Pattern: " << pattern << "\n";
+
+    if (!reason.empty()) {
+        out << "Reason: " << reason << "\n";
+    }
+
+    out << "Total Rules: " << rules.size() << "\n\n"
+        << make_ignore_summary_text(rules);
+    return out.str();
+}
+
+std::string make_ignore_remove_summary_text(const std::string& pattern,
+                                            const std::vector<fo::core::IgnoreRule>& rules)
+{
+    std::ostringstream out;
+    out << "Ignore Rule Removed\n"
+        << "===================\n"
+        << "Pattern: " << pattern << "\n"
+        << "Remaining Rules: " << rules.size() << "\n\n"
+        << make_ignore_summary_text(rules);
+    return out.str();
+}
+
 void ensure_providers_registered()
 {
     std::call_once(g_provider_registration_once, []() {
@@ -781,6 +842,27 @@ char* execute_global_request(BuildGlobal&& build_global)
     try {
         ensure_providers_registered();
         return duplicate_c_string(build_global());
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+template <typename BuildIgnore>
+char* execute_ignore_action_request(const char* pattern,
+                                    const char* reason,
+                                    BuildIgnore&& build_ignore)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const std::string parsed_pattern = parse_ignore_pattern(pattern);
+        const std::string parsed_reason = parse_optional_text(reason);
+        return duplicate_c_string(build_ignore(parsed_pattern, parsed_reason));
     } catch (const std::exception& error) {
         set_last_error(error.what());
         return nullptr;
@@ -880,6 +962,28 @@ extern "C" char* fo_bobfilez_ignore_json(const char* reserved)
     });
 }
 
+extern "C" char* fo_bobfilez_ignore_add_json(const char* pattern, const char* reason)
+{
+    return execute_ignore_action_request(pattern, reason, [](const auto& parsed_pattern, const auto& parsed_reason) {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        engine.ignore_repository().add(parsed_pattern, parsed_reason);
+        return make_ignore_action_json("add", parsed_pattern, parsed_reason);
+    });
+}
+
+extern "C" char* fo_bobfilez_ignore_remove_json(const char* pattern)
+{
+    return execute_ignore_action_request(pattern, nullptr, [](const auto& parsed_pattern, const auto&) {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        engine.ignore_repository().remove(parsed_pattern);
+        return make_ignore_action_json("remove", parsed_pattern, "");
+    });
+}
+
 extern "C" char* fo_bobfilez_scan_summary_text(const char* root_path)
 {
     return execute_json_request(root_path, [](const auto& files) {
@@ -960,6 +1064,28 @@ extern "C" char* fo_bobfilez_ignore_summary_text(const char* reserved)
         config.db_path = current_c_api_db_path();
         fo::core::Engine engine(config);
         return make_ignore_summary_text(engine.ignore_repository().get_all());
+    });
+}
+
+extern "C" char* fo_bobfilez_ignore_add_summary_text(const char* pattern, const char* reason)
+{
+    return execute_ignore_action_request(pattern, reason, [](const auto& parsed_pattern, const auto& parsed_reason) {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        engine.ignore_repository().add(parsed_pattern, parsed_reason);
+        return make_ignore_add_summary_text(parsed_pattern, parsed_reason, engine.ignore_repository().get_all());
+    });
+}
+
+extern "C" char* fo_bobfilez_ignore_remove_summary_text(const char* pattern)
+{
+    return execute_ignore_action_request(pattern, nullptr, [](const auto& parsed_pattern, const auto&) {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        engine.ignore_repository().remove(parsed_pattern);
+        return make_ignore_remove_summary_text(parsed_pattern, engine.ignore_repository().get_all());
     });
 }
 

@@ -11,6 +11,8 @@
 typedef struct {
     BobguiWidget *window;
     BobguiWidget *path_entry;
+    BobguiWidget *ignore_pattern_entry;
+    BobguiWidget *ignore_reason_entry;
     BobguiWidget *status_label;
     BobguiWidget *output_view;
     gchar *cli_path;
@@ -21,6 +23,7 @@ typedef struct {
     AppState *state;
     gchar *operation;
     gchar *target_path;
+    gchar *extra_text;
 } CommandRequest;
 
 typedef struct {
@@ -36,6 +39,7 @@ typedef struct {
 
 #ifdef BOBFILEZ_HAVE_C_API
 typedef char *(*BobfilezDirectApiFn) (const char *root_path);
+typedef char *(*BobfilezDirectApiTwoArgFn) (const char *first_value, const char *second_value);
 #endif
 
 static gboolean
@@ -125,17 +129,31 @@ apply_command_result (gpointer user_data)
 }
 
 static gboolean
+operation_uses_ignore_pattern (const gchar *operation)
+{
+    return g_strcmp0 (operation, "ignore-add") == 0
+        || g_strcmp0 (operation, "ignore-remove") == 0;
+}
+
+static gboolean
 operation_requires_path (const gchar *operation)
 {
     return g_strcmp0 (operation, "history") != 0
-        && g_strcmp0 (operation, "ignore") != 0;
+        && g_strcmp0 (operation, "ignore") != 0
+        && !operation_uses_ignore_pattern (operation);
+}
+
+static gboolean
+operation_requires_ignore_reason (const gchar *operation)
+{
+    return g_strcmp0 (operation, "ignore-add") == 0;
 }
 
 static const gchar *
 operation_target_label (const gchar *operation,
                         const gchar *target_path)
 {
-    if (operation_requires_path (operation)) {
+    if (operation_requires_path (operation) || operation_uses_ignore_pattern (operation)) {
         return target_path;
     }
 
@@ -145,7 +163,8 @@ operation_target_label (const gchar *operation,
 static GStrv
 build_cli_argv (const gchar *cli_path,
                 const gchar *operation,
-                const gchar *target_path)
+                const gchar *target_path,
+                const gchar *extra_text)
 {
     GPtrArray *args = g_ptr_array_new_with_free_func (g_free);
 
@@ -154,6 +173,17 @@ build_cli_argv (const gchar *cli_path,
     if (g_strcmp0 (operation, "ignore") == 0) {
         g_ptr_array_add (args, g_strdup ("ignore"));
         g_ptr_array_add (args, g_strdup ("--format=json"));
+    } else if (g_strcmp0 (operation, "ignore-add") == 0) {
+        g_ptr_array_add (args, g_strdup ("ignore"));
+        g_ptr_array_add (args, g_strdup ("add"));
+        g_ptr_array_add (args, g_strdup (target_path));
+        if (extra_text != NULL && extra_text[0] != '\0') {
+            g_ptr_array_add (args, g_strdup (extra_text));
+        }
+    } else if (g_strcmp0 (operation, "ignore-remove") == 0) {
+        g_ptr_array_add (args, g_strdup ("ignore"));
+        g_ptr_array_add (args, g_strdup ("remove"));
+        g_ptr_array_add (args, g_strdup (target_path));
     } else {
         g_ptr_array_add (args, g_strdup (operation));
         g_ptr_array_add (args, g_strdup ("--format=json"));
@@ -223,6 +253,7 @@ static void
 run_cli_request (const AppState *state,
                  const gchar *operation,
                  const gchar *target_path,
+                 const gchar *extra_text,
                  const gchar *fallback_reason,
                  gchar **status_out,
                  gchar **output_out)
@@ -231,7 +262,7 @@ run_cli_request (const AppState *state,
     gchar *stdout_text = NULL;
     gchar *stderr_text = NULL;
     gint exit_status = 0;
-    GStrv argv = build_cli_argv (state->cli_path, operation, target_path);
+    GStrv argv = build_cli_argv (state->cli_path, operation, target_path, extra_text);
 
     if (!g_spawn_sync (NULL,
                        argv,
@@ -292,6 +323,19 @@ find_direct_api_function (const gchar *operation)
     if (g_strcmp0 (operation, "ignore") == 0) {
         return fo_bobfilez_ignore_summary_text;
     }
+    if (g_strcmp0 (operation, "ignore-remove") == 0) {
+        return fo_bobfilez_ignore_remove_summary_text;
+    }
+
+    return NULL;
+}
+
+static BobfilezDirectApiTwoArgFn
+find_direct_two_arg_api_function (const gchar *operation)
+{
+    if (g_strcmp0 (operation, "ignore-add") == 0) {
+        return fo_bobfilez_ignore_add_summary_text;
+    }
 
     return NULL;
 }
@@ -308,11 +352,15 @@ run_command_thread (gpointer user_data)
     if (request->state->direct_c_api_available) {
 #ifdef BOBFILEZ_HAVE_C_API
         BobfilezDirectApiFn direct_api = find_direct_api_function (request->operation);
-        if (direct_api == NULL) {
+        BobfilezDirectApiTwoArgFn direct_two_arg_api = find_direct_two_arg_api_function (request->operation);
+        char *summary_text = NULL;
+
+        if (direct_api == NULL && direct_two_arg_api == NULL) {
             if (request->state->cli_path != NULL) {
                 run_cli_request (request->state,
                                  request->operation,
                                  request->target_path,
+                                 request->extra_text,
                                  "Requested operation is not exposed by the direct fo_c_api build.",
                                  &result->status,
                                  &result->output);
@@ -321,12 +369,18 @@ run_command_thread (gpointer user_data)
                 result->output = g_strdup ("This direct C API build does not expose the requested operation.");
             }
         } else {
-            char *summary_text = direct_api (request->target_path);
+            if (direct_two_arg_api != NULL) {
+                summary_text = direct_two_arg_api (request->target_path, request->extra_text);
+            } else {
+                summary_text = direct_api (request->target_path);
+            }
+
             if (summary_text == NULL) {
                 if (request->state->cli_path != NULL) {
                     run_cli_request (request->state,
                                      request->operation,
                                      request->target_path,
+                                     request->extra_text,
                                      fo_bobfilez_last_error (),
                                      &result->status,
                                      &result->output);
@@ -345,6 +399,7 @@ run_command_thread (gpointer user_data)
             run_cli_request (request->state,
                              request->operation,
                              request->target_path,
+                             request->extra_text,
                              "BOBFILEZ_HAVE_C_API was not enabled for this BobGUI build.",
                              &result->status,
                              &result->output);
@@ -357,6 +412,7 @@ run_command_thread (gpointer user_data)
         run_cli_request (request->state,
                          request->operation,
                          request->target_path,
+                         request->extra_text,
                          NULL,
                          &result->status,
                          &result->output);
@@ -367,6 +423,7 @@ run_command_thread (gpointer user_data)
 
     g_free (request->operation);
     g_free (request->target_path);
+    g_free (request->extra_text);
     g_free (request);
 
     g_idle_add (apply_command_result, result);
@@ -377,7 +434,10 @@ static void
 start_operation (AppState *state,
                  const gchar *operation)
 {
-    const gchar *target_path = bobgui_editable_get_text (BOBGUI_EDITABLE (state->path_entry));
+    const gchar *path_text = bobgui_editable_get_text (BOBGUI_EDITABLE (state->path_entry));
+    const gchar *ignore_pattern = bobgui_editable_get_text (BOBGUI_EDITABLE (state->ignore_pattern_entry));
+    const gchar *ignore_reason = bobgui_editable_get_text (BOBGUI_EDITABLE (state->ignore_reason_entry));
+    const gchar *target_text = operation_uses_ignore_pattern (operation) ? ignore_pattern : path_text;
     CommandRequest *request;
     GThread *thread;
 
@@ -387,9 +447,17 @@ start_operation (AppState *state,
         return;
     }
 
-    if (operation_requires_path (operation) && (target_path == NULL || target_path[0] == '\0')) {
-        bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Enter a filesystem path before running an action.");
+    if ((operation_requires_path (operation) || operation_uses_ignore_pattern (operation))
+        && (target_text == NULL || target_text[0] == '\0')) {
+        bobgui_label_set_text (BOBGUI_LABEL (state->status_label),
+                               operation_uses_ignore_pattern (operation)
+                                   ? "Enter an ignore pattern before running this action."
+                                   : "Enter a filesystem path before running an action.");
         return;
+    }
+
+    if (operation_requires_ignore_reason (operation) && ignore_reason != NULL && ignore_reason[0] == '\0') {
+        /* Empty reason is allowed, so no validation failure here. */
     }
 
     bobgui_label_set_text (BOBGUI_LABEL (state->status_label), "Running request...");
@@ -398,7 +466,8 @@ start_operation (AppState *state,
     request = g_new0 (CommandRequest, 1);
     request->state = state;
     request->operation = g_strdup (operation);
-    request->target_path = g_strdup (operation_requires_path (operation) ? target_path : "");
+    request->target_path = g_strdup ((operation_requires_path (operation) || operation_uses_ignore_pattern (operation)) ? target_text : "");
+    request->extra_text = g_strdup (operation_requires_ignore_reason (operation) ? ignore_reason : "");
 
     thread = g_thread_new ("bobfilez-bobgui-worker", run_command_thread, request);
     g_thread_unref (thread);
@@ -433,6 +502,9 @@ activate (BobguiApplication *app,
     BobguiWidget *subtitle;
     BobguiWidget *path_row;
     BobguiWidget *path_entry;
+    BobguiWidget *ignore_row;
+    BobguiWidget *ignore_pattern_entry;
+    BobguiWidget *ignore_reason_entry;
     BobguiWidget *button_row;
     BobguiWidget *scan_button;
     BobguiWidget *dupes_button;
@@ -442,6 +514,8 @@ activate (BobguiApplication *app,
     BobguiWidget *lint_button;
     BobguiWidget *history_button;
     BobguiWidget *ignore_button;
+    BobguiWidget *ignore_add_button;
+    BobguiWidget *ignore_remove_button;
     BobguiWidget *status_label;
     BobguiWidget *scrolled;
     BobguiWidget *output_view;
@@ -457,7 +531,7 @@ activate (BobguiApplication *app,
     bobgui_widget_set_margin_end (root_box, 20);
 
     title = bobgui_label_new ("bobfilez BobGUI Demo");
-    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available, falls back to fo_cli when needed, and exposes scan, duplicates, statistics, hash, metadata, lint, history, and ignore-rule workflows without blocking the UI thread.");
+    subtitle = bobgui_label_new ("This BobGUI lane now prefers direct fo_c_api integration when available, falls back to fo_cli when needed, and exposes scan, duplicates, statistics, hash, metadata, lint, history, and ignore-rule workflows—including add/remove actions—without blocking the UI thread.");
 
     path_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     path_entry = bobgui_entry_new ();
@@ -465,6 +539,18 @@ activate (BobguiApplication *app,
     bobgui_editable_set_text (BOBGUI_EDITABLE (path_entry), ".");
     bobgui_box_append (BOBGUI_BOX (path_row), bobgui_label_new ("Path:"));
     bobgui_box_append (BOBGUI_BOX (path_row), path_entry);
+
+    ignore_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
+    ignore_pattern_entry = bobgui_entry_new ();
+    bobgui_widget_set_hexpand (ignore_pattern_entry, TRUE);
+    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_pattern_entry), "thumbs.db");
+    ignore_reason_entry = bobgui_entry_new ();
+    bobgui_widget_set_hexpand (ignore_reason_entry, TRUE);
+    bobgui_editable_set_text (BOBGUI_EDITABLE (ignore_reason_entry), "Windows thumbnail cache");
+    bobgui_box_append (BOBGUI_BOX (ignore_row), bobgui_label_new ("Ignore Pattern:"));
+    bobgui_box_append (BOBGUI_BOX (ignore_row), ignore_pattern_entry);
+    bobgui_box_append (BOBGUI_BOX (ignore_row), bobgui_label_new ("Reason:"));
+    bobgui_box_append (BOBGUI_BOX (ignore_row), ignore_reason_entry);
 
     button_row = bobgui_box_new (BOBGUI_ORIENTATION_HORIZONTAL, 8);
     scan_button = bobgui_button_new_with_label ("Scan");
@@ -475,6 +561,8 @@ activate (BobguiApplication *app,
     lint_button = bobgui_button_new_with_label ("Lint");
     history_button = bobgui_button_new_with_label ("History");
     ignore_button = bobgui_button_new_with_label ("Ignore Rules");
+    ignore_add_button = bobgui_button_new_with_label ("Ignore Add");
+    ignore_remove_button = bobgui_button_new_with_label ("Ignore Remove");
 
     bobgui_box_append (BOBGUI_BOX (button_row), scan_button);
     bobgui_box_append (BOBGUI_BOX (button_row), dupes_button);
@@ -484,6 +572,8 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (button_row), lint_button);
     bobgui_box_append (BOBGUI_BOX (button_row), history_button);
     bobgui_box_append (BOBGUI_BOX (button_row), ignore_button);
+    bobgui_box_append (BOBGUI_BOX (button_row), ignore_add_button);
+    bobgui_box_append (BOBGUI_BOX (button_row), ignore_remove_button);
 
     status_label = bobgui_label_new ("Ready.");
     scrolled = bobgui_scrolled_window_new ();
@@ -494,6 +584,7 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (root_box), title);
     bobgui_box_append (BOBGUI_BOX (root_box), subtitle);
     bobgui_box_append (BOBGUI_BOX (root_box), path_row);
+    bobgui_box_append (BOBGUI_BOX (root_box), ignore_row);
     bobgui_box_append (BOBGUI_BOX (root_box), button_row);
     bobgui_box_append (BOBGUI_BOX (root_box), status_label);
     bobgui_box_append (BOBGUI_BOX (root_box), scrolled);
@@ -502,6 +593,8 @@ activate (BobguiApplication *app,
 
     state->window = window;
     state->path_entry = path_entry;
+    state->ignore_pattern_entry = ignore_pattern_entry;
+    state->ignore_reason_entry = ignore_reason_entry;
     state->status_label = status_label;
     state->output_view = output_view;
     state->direct_c_api_available = app_has_direct_c_api ();
@@ -509,14 +602,14 @@ activate (BobguiApplication *app,
 
     if (state->direct_c_api_available) {
         gchar *initial = g_strdup_printf (
-            "Direct bobfilez backend detected: %s\n\nThis BobGUI build prefers the direct C ABI seam and keeps fo_cli as an optional fallback path if present: %s",
+            "Direct bobfilez backend detected: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore management, and keep fo_cli as an optional fallback path if present: %s",
             active_backend_name (state),
             state->cli_path != NULL ? state->cli_path : "(not found)");
         set_output_text (state, initial);
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_c_api");
     } else if (state->cli_path != NULL) {
-        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nEnter a path for filesystem actions, or use History / Ignore Rules for path-free operations.", state->cli_path);
+        gchar *initial = g_strdup_printf ("CLI fallback detected at: %s\n\nUse the Path field for filesystem actions, the Ignore Pattern/Reason fields for ignore add/remove, or History / Ignore Rules for path-free listing operations.", state->cli_path);
         set_output_text (state, initial);
         g_free (initial);
         bobgui_label_set_text (BOBGUI_LABEL (status_label), "Ready via fo_cli");
@@ -571,6 +664,18 @@ activate (BobguiApplication *app,
                            "clicked",
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "ignore"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (ignore_add_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "ignore-add"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (ignore_remove_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "ignore-remove"),
                            (GClosureNotify) g_free,
                            0);
 

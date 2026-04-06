@@ -1,5 +1,33 @@
 # Changelog
 
+## [6.0.62] - 2026-04-06
+
+### Expanded — The "BobGUI Direct Ignore Actions" Release
+
+#### 🧩 Direct C API gained ignore add/remove actions
+- Expanded `core/include/fo/c_api/bobfilez_c_api.h` and `core/c_api/bobfilez_c_api.cpp` with:
+  - `fo_bobfilez_ignore_add_json(...)`
+  - `fo_bobfilez_ignore_remove_json(...)`
+  - `fo_bobfilez_ignore_add_summary_text(...)`
+  - `fo_bobfilez_ignore_remove_summary_text(...)`
+- Kept the narrow DB-path model for these database-backed actions via `BOBFILEZ_DB_PATH` with fallback to `fo.db`.
+
+#### 🖥️ BobGUI ignore management became actionable
+- Updated `frontends/bobgui_app/main.c` so BobGUI now includes dedicated **Ignore Pattern** and **Reason** inputs.
+- Added **Ignore Add** and **Ignore Remove** buttons.
+- Preserved the preferred-direct / per-operation-fallback model, so BobGUI now prefers direct C API handling for ignore add/remove when available.
+
+#### 🧪 Validation surface expanded again
+- Updated `tests/test_c_api.cpp` and `tests/c_api_smoke.c` with real ignore add/remove validation.
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **73 / 73 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BOBGUI_IGNORE_ACTIONS_DIRECT_C_API_2026_04_06.md` documenting the new direct ignore-action seam and the BobGUI UI refinement.
+
+### Version
+- Bumped to **6.0.62**.
+
 ## [6.0.61] - 2026-04-06
 
 ### Expanded — The "BobGUI Direct History and Ignore" Release

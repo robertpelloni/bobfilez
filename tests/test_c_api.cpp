@@ -258,6 +258,47 @@ TEST_F(CApiTest, HistoryAndIgnoreExposeDatabaseBackedState)
     EXPECT_NE(ignore_summary_text.find("Windows thumbnail cache"), std::string::npos);
 }
 
+TEST_F(CApiTest, IgnoreAddAndRemoveActionsUpdateDatabaseBackedState)
+{
+    const auto db_path = (base_dir / "c_api_ignore_actions.db").string();
+    ScopedEnvVar db_override("BOBFILEZ_DB_PATH", db_path);
+
+    char* add_json = fo_bobfilez_ignore_add_json("desktop.ini", "Windows metadata file");
+    ASSERT_NE(add_json, nullptr) << fo_bobfilez_last_error();
+    std::string add_json_text(add_json);
+    fo_bobfilez_free_string(add_json);
+    EXPECT_NE(add_json_text.find("\"action\": \"add\""), std::string::npos);
+    EXPECT_NE(add_json_text.find("desktop.ini"), std::string::npos);
+
+    char* add_summary = fo_bobfilez_ignore_add_summary_text("*.cache", "cache files");
+    ASSERT_NE(add_summary, nullptr) << fo_bobfilez_last_error();
+    std::string add_summary_text(add_summary);
+    fo_bobfilez_free_string(add_summary);
+    EXPECT_NE(add_summary_text.find("Ignore Rule Added"), std::string::npos);
+    EXPECT_NE(add_summary_text.find("*.cache"), std::string::npos);
+
+    char* ignore_json = fo_bobfilez_ignore_json("");
+    ASSERT_NE(ignore_json, nullptr) << fo_bobfilez_last_error();
+    std::string ignore_json_text(ignore_json);
+    fo_bobfilez_free_string(ignore_json);
+    EXPECT_NE(ignore_json_text.find("desktop.ini"), std::string::npos);
+    EXPECT_NE(ignore_json_text.find("*.cache"), std::string::npos);
+
+    char* remove_summary = fo_bobfilez_ignore_remove_summary_text("desktop.ini");
+    ASSERT_NE(remove_summary, nullptr) << fo_bobfilez_last_error();
+    std::string remove_summary_text(remove_summary);
+    fo_bobfilez_free_string(remove_summary);
+    EXPECT_NE(remove_summary_text.find("Ignore Rule Removed"), std::string::npos);
+    EXPECT_NE(remove_summary_text.find("desktop.ini"), std::string::npos);
+
+    char* after_remove_json = fo_bobfilez_ignore_json("");
+    ASSERT_NE(after_remove_json, nullptr) << fo_bobfilez_last_error();
+    std::string after_remove_json_text(after_remove_json);
+    fo_bobfilez_free_string(after_remove_json);
+    EXPECT_EQ(after_remove_json_text.find("desktop.ini"), std::string::npos);
+    EXPECT_NE(after_remove_json_text.find("*.cache"), std::string::npos);
+}
+
 TEST(CApiStandaloneTest, NullRootPathSetsError)
 {
     char* json = fo_bobfilez_scan_json(nullptr);

@@ -1,10 +1,16 @@
 #include "fo/c_api/bobfilez_c_api.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int main(void)
 {
+#ifdef _WIN32
+    _putenv_s("BOBFILEZ_DB_PATH", "fo_c_api_smoke.db");
+#else
+    setenv("BOBFILEZ_DB_PATH", "fo_c_api_smoke.db", 1);
+#endif
     char *json = fo_bobfilez_scan_json(".");
     if (json == NULL) {
         const char *error = fo_bobfilez_last_error();
@@ -63,19 +69,48 @@ int main(void)
     }
     fo_bobfilez_free_string(history);
 
+    char *ignore_add = fo_bobfilez_ignore_add_summary_text("fo_c_api_smoke.tmp", "smoke test ignore rule");
+    if (ignore_add == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_ignore_add_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 9;
+    }
+
+    if (strstr(ignore_add, "Ignore Rule Added") == NULL) {
+        fprintf(stderr, "ignore add summary did not contain expected title\n");
+        fo_bobfilez_free_string(ignore_add);
+        return 10;
+    }
+    fo_bobfilez_free_string(ignore_add);
+
     char *ignore = fo_bobfilez_ignore_summary_text("");
     if (ignore == NULL) {
         const char *error = fo_bobfilez_last_error();
         fprintf(stderr, "fo_bobfilez_ignore_summary_text failed: %s\n", error != NULL ? error : "(no error)");
-        return 9;
+        return 11;
     }
 
     if (strstr(ignore, "Ignore Rules Summary") == NULL) {
         fprintf(stderr, "ignore summary did not contain expected title\n");
         fo_bobfilez_free_string(ignore);
-        return 10;
+        return 12;
     }
     fo_bobfilez_free_string(ignore);
 
+    char *ignore_remove = fo_bobfilez_ignore_remove_summary_text("fo_c_api_smoke.tmp");
+    if (ignore_remove == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_ignore_remove_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 13;
+    }
+
+    if (strstr(ignore_remove, "Ignore Rule Removed") == NULL) {
+        fprintf(stderr, "ignore remove summary did not contain expected title\n");
+        fo_bobfilez_free_string(ignore_remove);
+        return 14;
+    }
+    fo_bobfilez_free_string(ignore_remove);
+
+    remove("fo_c_api_smoke.db");
     return 0;
 }

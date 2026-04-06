@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.61
+**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.62
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.61)
+## Current Status (v6.0.62)
 
+- ✅ **BobGUI Direct Ignore Actions**: Extended the direct `fo_c_api` seam with ignore add/remove JSON/summary helpers and upgraded BobGUI with dedicated ignore pattern/reason inputs plus add/remove buttons, making ignore management actionable in direct mode instead of read-only.
 - ✅ **BobGUI Direct History + Ignore**: Extended the direct `fo_c_api` seam with history and ignore-rule JSON/summary helpers, allowing BobGUI to prefer direct native integration for those database-backed workflows too while preserving per-operation CLI fallback resilience.
 - ✅ **History + Ignore Frontend Parity**: Expanded the React/Express SPA with real **History** and **Ignore Rules** tabs plus add/remove ignore-rule management, and expanded BobGUI with path-free **History** / **Ignore Rules** operations routed honestly through its per-operation CLI fallback model.
 - ✅ **Lint Matrix Completion**: Expanded the remaining practical frontend gaps for lint by adding a real **Lint** tab to the BTK demo and exposing the existing `/api/lint` capability through the React/Express SPA, making lint one of the clearest cross-lane workflows in the current frontend matrix.
