@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.55] - 2026-04-05
+
+### Expanded — The "BTK Frontend Parity" Release
+
+#### 🧪 BTK demo moved closer to the rest of the native matrix
+- Expanded `frontends/btk/src/DemoWindow.hpp/.cpp` so the BTK/CopperSpice demo now includes **Statistics**, **Hasher**, and **Metadata** tabs in addition to its earlier **Scanner** and **Duplicates** support.
+- The BTK lane now drives the same practical backend seams used elsewhere: `IFileScanner`, `Engine`, `IHasher`, and `IMetadataProvider`.
+- This keeps BTK credible as a research/native-experiment lane without pretending it is the active Omni runtime direction.
+
+#### ✅ Validation
+- Re-ran `scripts/build_headless.bat` successfully.
+- Re-ran `ctest --test-dir build-msvc --output-on-failure` successfully: **70 / 70 tests passed**.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/BTK_FRONTEND_PARITY_EXPANSION_2026_04_05.md` documenting the BTK-side parity work and the still-limited host validation reality for that lane.
+
+### Version
+- Bumped to **6.0.55**.
+
 ## [6.0.54] - 2026-04-05
 
 ### Expanded — The "Native Metadata Parity" Release

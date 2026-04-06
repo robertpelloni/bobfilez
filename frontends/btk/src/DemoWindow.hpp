@@ -22,6 +22,18 @@ public:
     CS_SLOT_2(onDuplicatesClicked)
 
     CS_SLOT_1(Private)
+    void onStatsClicked();
+    CS_SLOT_2(onStatsClicked)
+
+    CS_SLOT_1(Private)
+    void onHashClicked();
+    CS_SLOT_2(onHashClicked)
+
+    CS_SLOT_1(Private)
+    void onMetadataClicked();
+    CS_SLOT_2(onMetadataClicked)
+
+    CS_SLOT_1(Private)
     void applyScanResult(const QString &result);
     CS_SLOT_2(applyScanResult)
 
@@ -29,21 +41,49 @@ public:
     void applyDuplicatesResult(const QString &result);
     CS_SLOT_2(applyDuplicatesResult)
 
+    CS_SLOT_1(Private)
+    void applyStatsResult(const QString &result);
+    CS_SLOT_2(applyStatsResult)
+
+    CS_SLOT_1(Private)
+    void applyHashResult(const QString &result);
+    CS_SLOT_2(applyHashResult)
+
+    CS_SLOT_1(Private)
+    void applyMetadataResult(const QString &result);
+    CS_SLOT_2(applyMetadataResult)
+
 private:
     void runScan(const QString &dir);
     void runDuplicates(const QString &dir);
+    void runStats(const QString &dir);
+    void runHash(const QString &filePath);
+    void runMetadata(const QString &dir);
 
     QTabWidget *tabs;
 
-    // Scanner Tab
     QWidget *scannerTab;
     QLineEdit *scanPathEdit;
     QPushButton *scanBtn;
     QLabel *scanResultLbl;
 
-    // Duplicates Tab
     QWidget *dupesTab;
     QLineEdit *dupesPathEdit;
     QPushButton *dupesBtn;
     QLabel *dupesResultLbl;
+
+    QWidget *statsTab;
+    QLineEdit *statsPathEdit;
+    QPushButton *statsBtn;
+    QLabel *statsResultLbl;
+
+    QWidget *hashTab;
+    QLineEdit *hashPathEdit;
+    QPushButton *hashBtn;
+    QLabel *hashResultLbl;
+
+    QWidget *metadataTab;
+    QLineEdit *metadataPathEdit;
+    QPushButton *metadataBtn;
+    QLabel *metadataResultLbl;
 };

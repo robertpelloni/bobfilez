@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.54
+**Generated:** 2026-04-05 | **Commit:** pending | **Branch:** main | **Version:** 6.0.55
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,8 +99,9 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.54)
+## Current Status (v6.0.55)
 
+- ✅ **BTK Frontend Parity Expansion**: Expanded the `frontends/btk` demo so the BTK/CopperSpice lane now exposes **Statistics**, **Hasher**, and **Metadata** in addition to **Scanner** and **Duplicates**, reducing one of the clearest remaining practical capability gaps inside the native demo matrix.
 - ✅ **Native Metadata Parity**: Expanded the Qt, BobUI, and JUCE demo lanes so each now exposes a real **Metadata** workflow backed by the registered metadata provider, reducing one of the clearest remaining practical feature gaps between the web lane and the native demo matrix.
 - ✅ **BobGUI Summary Mode**: Extended the direct `fo_c_api` seam with human-readable summary helpers and updated `frontends/bobgui_app` so BobGUI direct mode now renders structured summary output instead of raw JSON while keeping the `fo_cli` fallback path intact.
 - ✅ **BobGUI Direct Wiring + C Consumer Validation**: Updated `frontends/bobgui_app` so the BobGUI lane now prefers direct `fo_c_api` integration when available and otherwise falls back to `fo_cli`. Added Meson-side direct C API discovery, a real C consumer smoke test (`tests/c_api_smoke.c`), and root-level `enable_testing()` so `ctest --test-dir build-msvc` now correctly exercises the full validation surface.

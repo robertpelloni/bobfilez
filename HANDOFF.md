@@ -1,59 +1,47 @@
-# HANDOFF.md — bobfilez Session 69
+# HANDOFF.md — bobfilez Session 70
 
 ## Current Status (2026-04-05)
-**Version:** 6.0.54
-**Focus:** Expanded native metadata parity across the Qt, BobUI, and JUCE demo lanes while preserving the stronger BobGUI direct/fallback architecture from the previous sessions.
+**Version:** 6.0.55
+**Focus:** Expanded the BTK/CopperSpice demo lane so it no longer stops at scanner/duplicates and instead participates more credibly in the broader native frontend matrix.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Added a Metadata tab to the Qt demo
+### 1. Expanded the BTK demo surface
 Updated:
-- `frontends/qt/src/main.cpp`
+- `frontends/btk/src/DemoWindow.hpp`
+- `frontends/btk/src/DemoWindow.cpp`
 
-The Qt demo now includes a real **Metadata** tab that:
-- selects a directory
-- scans files through the registered `std` scanner
-- reads metadata through the registered `tinyexif` provider
-- renders human-readable Taken/GPS summaries
-- reports cleanly when no metadata records are available
+Before this session, the BTK lane exposed only:
+- Scanner
+- Duplicates
 
-This means the Qt lane now exposes:
-- Dashboard
+Now it exposes:
 - Scanner
 - Duplicates
 - Statistics
 - Hasher
 - Metadata
 
-### 2. Added metadata support to the BobUI/QML demo
-Updated:
-- `frontends/bobui/src/QmlEngineWrapper.hpp`
-- `frontends/bobui/src/QmlEngineWrapper.cpp`
-- `frontends/bobui/assets/Main.qml`
+### 2. Reused the same core seams already proven in the other native lanes
+The BTK demo now uses:
+- `Registry<IFileScanner>` for scan/stat/metadata discovery
+- `Engine` for duplicate grouping
+- `Registry<IHasher>` for hashing
+- `Registry<IMetadataProvider>` for metadata reads
 
+### 3. Preserved the background-work / queued-result pattern
+Even though BTK remains a research lane, the implementation still follows the same general execution model used in the other demos:
+- user enters/selects a path
+- background thread does the work
+- result is applied back to the UI through explicit queued slot delivery
+
+That keeps the BTK lane internally consistent with the rest of the frontend work rather than leaving it as a permanently stunted side demo.
+
+### 4. Added implementation documentation
 Added:
-- `runMetadata(...)`
-- `metadataFinished(...)`
-- a full **Metadata** tab in the QML surface
-
-This closes an obvious parity gap between the BobUI native lane and the more advanced web lane.
-
-### 3. Added metadata support to the JUCE demo
-Updated:
-- `frontends/juce/src/main.cpp`
-
-Added a new **Metadata** tab using the same JUCE-native execution pattern already proven elsewhere in the file:
-- `juce::FileChooser`
-- background work through `juce::Thread::launch`
-- UI updates through `juce::MessageManager::callAsync`
-
-### 4. Added documentation for the parity expansion
-Added:
-- `docs/ai/implementation/FRONTEND_METADATA_PARITY_2026_04_05.md`
-
-This records the rationale for choosing metadata as the next practical cross-lane parity target and the current host/toolchain validation boundaries.
+- `docs/ai/implementation/BTK_FRONTEND_PARITY_EXPANSION_2026_04_05.md`
 
 ### 5. Versioning/docs updated
 Updated:
@@ -70,21 +58,20 @@ Updated:
 ### Validation completed
 - `scripts/build_headless.bat` ✅
 - `ctest --test-dir build-msvc --output-on-failure` ✅
-- `scripts/build_juce_gui.bat` ✅
+- validation surface now: **70 / 70 passed** ✅
 
-### Important product finding
-Metadata was one of the most obvious remaining practical gaps between:
-- the richer web lane
-- and the native demo lanes
+### Important architecture finding
+BTK is still the research/native-experiment lane, but it is no longer as obviously underpowered relative to the other demo frontends.
 
-This session reduced that gap substantially.
+That matters because a multi-frontend matrix is more believable when alternate lanes demonstrate practical workflow coverage instead of stopping at toy-only interactions.
 
 ### Important host reality
-The host still lacks the clean MSVC Qt desktop runtime surface needed for straightforward full validation of every Qt/BobUI runtime path, but the source-side parity work is now materially stronger.
+This host still does not make full end-to-end BTK validation as straightforward as headless or JUCE validation.
+So this session primarily improved the source-side parity and preserved repo-wide validation health.
 
 ---
 
 ## Recommended Next Steps
-1. Continue choosing the next best practical workflow that already exists in CLI/web form but is still missing from one or more native demo lanes.
-2. Keep validating JUCE whenever that lane is expanded because it remains one of the easiest native alternate lanes to verify end-to-end on this host.
-3. Once a compatible MSVC Qt runtime is available, validate the expanded Qt and BobUI metadata lanes directly.
+1. Continue selecting the next practical workflow gap in the multi-frontend matrix rather than leaving any one alternate lane permanently frozen.
+2. Keep using headless + root `ctest` as the primary repo-wide validation baseline when host-native validation for a specific GUI framework remains constrained.
+3. Continue documenting which frontend lanes are primary, which are fallback, and which remain research so the architecture stays honest.
