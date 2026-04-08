@@ -480,3 +480,47 @@ TEST_F(CApiTest, ExportJsonReportsStatistics)
     EXPECT_NE(text.find("\"stats\""), std::string::npos);
     EXPECT_NE(text.find("total_files"), std::string::npos);
 }
+
+TEST_F(CApiTest, ExportCsvContainsHeaders)
+{
+    create_file(test_dir / "csv_a.txt", "csv content");
+    create_file(test_dir / "csv_b.txt", "csv content");
+
+    char* csv = fo_bobfilez_export_csv(test_dir.string().c_str());
+    ASSERT_NE(csv, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(csv);
+    fo_bobfilez_free_string(csv);
+
+    // CSV should have file data
+    EXPECT_NE(text.find("csv_a.txt"), std::string::npos);
+    EXPECT_NE(text.find("csv_b.txt"), std::string::npos);
+}
+
+TEST_F(CApiTest, ExportHtmlContainsDocument)
+{
+    create_file(test_dir / "html_a.txt", "html content");
+
+    char* html = fo_bobfilez_export_html(test_dir.string().c_str());
+    ASSERT_NE(html, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(html);
+    fo_bobfilez_free_string(html);
+
+    // HTML should contain the filename
+    EXPECT_NE(text.find("html_a.txt"), std::string::npos);
+}
+
+TEST_F(CApiTest, ExportCsvEmptyDirectory)
+{
+    char* csv = fo_bobfilez_export_csv(test_dir.string().c_str());
+    ASSERT_NE(csv, nullptr) << fo_bobfilez_last_error();
+    fo_bobfilez_free_string(csv);
+}
+
+TEST_F(CApiTest, ExportHtmlEmptyDirectory)
+{
+    char* html = fo_bobfilez_export_html(test_dir.string().c_str());
+    ASSERT_NE(html, nullptr) << fo_bobfilez_last_error();
+    fo_bobfilez_free_string(html);
+}

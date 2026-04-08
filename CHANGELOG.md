@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.95] - 2026-04-08
+
+### Added — The "C API Export CSV/HTML" Release
+- **C API**: Added  and  alongside existing .
+- **C API 4 tests**: ExportCsvContainsHeaders, ExportHtmlContainsDocument, ExportCsvEmptyDirectory, ExportHtmlEmptyDirectory.
+- Test count: 425 → **429 (428 passed, 1 skipped)**.
+
 ## [6.0.94] - 2026-04-08
 
 ### Added — The "Cloud + Metadata + Neural" Release
