@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.87] - 2026-04-08
+
+### Added — The "ConversionEngine + ClipSearch + ShadowDedup" Release
+- **ConversionEngine 9 tests**: register/find converter, possible outputs, all input extensions, single file convert, missing file failure, unsupported format failure, batch convert, batch with progress callback, global singleton.
+- **ClipSearchEngine 6 tests**: registration infrastructure, is_ready without models, embedding cosine similarity (identical/orthogonal/partial/empty/zero vectors).
+- **ShadowDedupWorker 1 test**: construction + interval setting.
+- Fixed MSVC static registration for ClipSearchEngine and DocumentEmbedder — added register_clip_search_engine() and register_document_embedder() with ifdef guard stub for non-ONNX builds.
+- Test count: 243 → **260 (259 passed, 1 skipped)**.
+
 ## [6.0.86] - 2026-04-08
 
 ### Added — The "Nexus + Vault + AutoCleanup" Release

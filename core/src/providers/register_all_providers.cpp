@@ -12,6 +12,8 @@ namespace fo::core {
     void register_self_healing_engine();
     void register_hierarchy_engine();
     void register_nexus();
+    void register_clip_search_engine();
+    void register_document_embedder();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -43,6 +45,8 @@ namespace fo::core {
         register_self_healing_engine();
         register_hierarchy_engine();
         register_nexus();
+        register_clip_search_engine();
+        register_document_embedder();
         
         register_extended_providers();
     }

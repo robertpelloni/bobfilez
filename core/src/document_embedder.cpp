@@ -32,11 +32,13 @@ public:
     bool is_ready() const override { return is_ready_; }
 };
 
-static auto reg = []() {
-    Registry<IDocumentEmbedder>::instance().add("onnx_bert", []() {
+static bool reg_doc_embed = []() {
+    Registry<IDocumentEmbedder>::instance().add("default", []() {
         return std::make_unique<OnnxDocumentEmbedder>();
     });
     return true;
 }();
+
+void register_document_embedder() { (void)reg_doc_embed; }
 
 } // namespace fo::core

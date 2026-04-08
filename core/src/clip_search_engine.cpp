@@ -235,13 +235,22 @@ public:
     }
 };
 
-static auto reg = []() {
-    Registry<IClipSearchEngine>::instance().add("onnx_clip", []() {
+static bool reg_clip = []() {
+    Registry<IClipSearchEngine>::instance().add("default", []() {
         return std::make_unique<OnnxClipSearchEngine>();
     });
     return true;
 }();
 
+void register_clip_search_engine() { (void)reg_clip; }
+
 } // namespace fo::core
 
 #endif // FO_HAVE_ONNXRUNTIME
+
+// Always provide the registration function even without ONNX
+#if !defined(FO_HAVE_ONNXRUNTIME) || !defined(FO_HAVE_OPENCV)
+namespace fo::core {
+void register_clip_search_engine() { /* No ONNX/OpenCV - clip search unavailable */ }
+} // namespace fo::core
+#endif
