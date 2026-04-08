@@ -46,11 +46,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_vfs = []() {
     Registry<IVirtualFileSystem>::instance().add("default", []() {
         return std::make_unique<VirtualFileSystemImpl>();
     });
     return true;
 }();
+
+void register_virtual_fs() { (void)reg_vfs; }
 
 } // namespace fo::core

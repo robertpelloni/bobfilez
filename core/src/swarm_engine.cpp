@@ -46,11 +46,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_swarm = []() {
     Registry<ISwarmEngine>::instance().add("default", []() {
         return std::make_unique<SwarmEngineImpl>();
     });
     return true;
 }();
+
+void register_swarm_engine() { (void)reg_swarm; }
 
 } // namespace fo::core

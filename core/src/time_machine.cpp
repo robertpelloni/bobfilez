@@ -60,11 +60,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_tm = []() {
     Registry<ITimeMachine>::instance().add("default", []() {
         return std::make_unique<TimeMachineImpl>();
     });
     return true;
 }();
+
+void register_time_machine() { (void)reg_tm; }
 
 } // namespace fo::core

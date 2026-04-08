@@ -45,11 +45,13 @@ public:
     void learn_from_user(const std::filesystem::path&, const std::string&) override {}
 };
 
-static auto reg = []() {
+static bool reg_sem = []() {
     Registry<ISemanticTaggingEngine>::instance().add("default", []() {
         return std::make_unique<SemanticTaggingEngineImpl>();
     });
     return true;
 }();
+
+void register_semantic_tagging() { (void)reg_sem; }
 
 } // namespace fo::core

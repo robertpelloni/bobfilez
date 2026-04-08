@@ -14,6 +14,10 @@ namespace fo::core {
     void register_nexus();
     void register_clip_search_engine();
     void register_document_embedder();
+    void register_virtual_fs();
+    void register_time_machine();
+    void register_semantic_tagging();
+    void register_swarm_engine();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -47,6 +51,10 @@ namespace fo::core {
         register_nexus();
         register_clip_search_engine();
         register_document_embedder();
+        register_virtual_fs();
+        register_time_machine();
+        register_semantic_tagging();
+        register_swarm_engine();
         
         register_extended_providers();
     }

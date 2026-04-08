@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.90] - 2026-04-08
+
+### Added — The "PII Sentinel + Omni Infrastructure" Release
+- **PIISentinel 13 tests**: SSN/AWS key/private key/email detection, false positive rejection, file scanning, nonexistent file handling, empty input, SSN/CC masking, multiple SSN detection.
+- **VirtualFS 2 tests**: struct defaults, registry creates default engine, create folder.
+- **TimeMachine 2 tests**: FileRevision construction, registry creates default engine.
+- **SemanticTagging 2 tests**: SemanticTag defaults, registry creates default engine.
+- **SwarmEngine 2 tests**: SwarmNode construction, registry creates default engine.
+- Fixed MSVC static registration for VirtualFS, TimeMachine, SemanticTagging, SwarmEngine — added register_*() functions.
+- Test count: 348 → **369 (368 passed, 1 skipped)**.
+
 ## [6.0.89] - 2026-04-08
 
 ### Added — The "Engine + Thumbnail + ADS Cache" Release
