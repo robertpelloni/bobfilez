@@ -14,6 +14,7 @@ add_executable(fo_tests
     test_search_engine.cpp
     test_file_watcher.cpp
     test_batch_rename.cpp
+    test_audit_logger.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)

@@ -6,6 +6,7 @@ namespace fo::core {
     void register_hasher_dhash();
     void register_linter_std();
     void register_file_watcher_native();
+    void register_audit_logger();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -31,6 +32,7 @@ namespace fo::core {
         register_metadata_tinyexif();
         register_linter_std();
         register_file_watcher_native();
+        register_audit_logger();
         
         register_extended_providers();
     }

@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.0.79] - 2026-04-08
+
+### Added — The "Real AuditLogger + Tamper Detection" Release
+
+#### 🔐 AuditLogger rewritten as real SQLite-backed implementation
+- **Chain hashing**: Each entry includes a SHA-256 hash of (prev_hash | id | timestamp | operation | src | dst | size | checksum), forming an immutable chain.
+- **Genesis entry**: The first entry chains from "GENESIS".
+- **Tamper detection**: `verify_ledger()` walks the chain and verifies every hash matches.
+- **Standalone mode**: The `default` factory creates its own in-memory DB with the audit_ledger schema.
+- **Full CRUD**: `log()`, `get_history(limit)`, and `verify_ledger()` all work end-to-end.
+
+#### 🧪 11 new AuditLogger tests (142 → 153)
+- Registration, single entry, multiple entries, history limit
+- Ledger integrity (single, multiple, empty)
+- Entry hash verification (SHA-256, 64 hex chars)
+- Timestamp validation
+- Direct DatabaseManager construction with migrations
+
+#### 🔧 Infrastructure
+- Added `register_audit_logger()` to `register_all_providers()`.
+- Included `sqlite3.h` in audit_logger.cpp for direct SQLite access.
+
+### Version
+- Bumped to **6.0.79**.
+
 ## [6.0.78] - 2026-04-08
 
 ### Added — The "Batch Rename Test Suite" Release
