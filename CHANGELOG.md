@@ -1,5 +1,48 @@
 # Changelog
 
+## [6.0.78] - 2026-04-08
+
+### Added — The "Batch Rename Test Suite" Release
+
+#### 🧪 29 new BatchRenameEngine tests (113 → 142)
+
+**ReplaceRule (5 tests)**
+- Simple replace, case-insensitive replace, first-only replace
+- Regex replace, regex capture groups ($1/$2)
+
+**InsertRule (3 tests)**
+- Insert at start, end, and arbitrary index
+
+**DeleteRule (2 tests)**
+- Delete from start, delete from middle
+
+**TrimRule (2 tests)**
+- Trim both ends, trim start only
+
+**CaseRule (4 tests)**
+- Upper, lower, title case, snake_case conversion
+
+**NumberRule (2 tests)**
+- Sequential numbering at end, at start with custom step
+
+**SanitizeRule (2 tests)**
+- Illegal char replacement, collapse multiple separators
+
+**TruncateRule (2 tests)**
+- Basic truncation, truncation with ellipsis
+
+**TransliterateRule (1 test)**
+- ASCII passthrough
+
+**ExtensionRule (1 test)**
+- Extension change (lowercase)
+
+**BatchRenameEngine (5 tests)**
+- Chained rule application, preview, execute on disk, dry-run, rule descriptions
+
+### Version
+- Bumped to **6.0.78**.
+
 ## [6.0.77] - 2026-04-08
 
 ### Added — The "FileWatcher Testing + CLI Discoverability" Release
