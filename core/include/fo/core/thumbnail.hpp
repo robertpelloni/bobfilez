@@ -31,8 +31,7 @@ public:
         int max_width = DEFAULT_WIDTH,
         int max_height = DEFAULT_HEIGHT);
 
-private:
-    // Base64 encoding helper
+    // Base64 encoding helper (public for testability)
     static std::string base64_encode(const std::vector<unsigned char>& data);
 };
 

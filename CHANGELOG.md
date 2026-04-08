@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.89] - 2026-04-08
+
+### Added — The "Engine + Thumbnail + ADS Cache" Release
+- **Engine Integration 20 tests**: full scan→duplicate pipeline — empty dir, single file, multiple files, extension filter, nested dirs, ignore rules, find duplicates (identical/unique/multiple groups), session tracking, file repository updates, rescan detects new files, search engine accessor, database access, ADS cache config, subdirectory tree, multiple roots, duplicate group size.
+- **ThumbnailGenerator 11 tests**: is_image_file (jpeg/png/other/case-insensitive/non-image), generate_base64/generate_to_file for non-image and nonexistent files, base64 encoding (empty/hello/ABC/single/two/binary).
+- **ADSCache 6 tests**: is_supported, get_hash nonexistent, set+get round-trip, wrong type returns nullopt, clear removes cache, multiple hash types.
+- Made ThumbnailGenerator::base64_encode public for testability.
+- Test count: 308 → **348 (347 passed, 1 skipped)**.
+
 ## [6.0.88] - 2026-04-08
 
 ### Added — The "HexEditor + MarkdownViewer" Release

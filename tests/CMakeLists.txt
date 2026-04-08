@@ -25,6 +25,8 @@ add_executable(fo_tests
     test_conversion_clip_dedup.cpp
     test_hex_editor.cpp
     test_markdown_viewer.cpp
+    test_thumbnail_ads.cpp
+    test_engine_integration.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
