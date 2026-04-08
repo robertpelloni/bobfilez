@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.0.73] - 2026-04-08
+
+### Added — The "C API Organize + Count + SearchEngine Integration" Release
+
+#### 🔌 C API expanded with organize dry-run and count helpers
+- Added `fo_bobfilez_organize_dry_run_json()` and `fo_bobfilez_organize_dry_run_summary_text()` to the C API, exposing safe organization previews through the `fo_c_api` seam.
+- Added `fo_bobfilez_count_json()` and `fo_bobfilez_count_summary_text()` to the C API, exposing combined file/duplicate counting with wasted-space calculation.
+- Both new operations include null-safety, error reporting, and structured JSON output matching the established C API patterns.
+
+#### 🔍 SearchEngine integrated into Engine class
+- Added `SearchEngine` as a managed member of `Engine`, accessible via `engine.search_engine()`.
+- Required moving `Engine` constructor and destructor out-of-line into `engine.cpp` to satisfy MSVC 2019's incomplete-type deleter requirements.
+- Required moving `SearchEngine` constructor and destructor out-of-line into `search_engine.cpp` for the same reason.
+
+#### 🧪 21 new tests (74 → 95)
+- Added `tests/test_search_engine.cpp` with 15 comprehensive SearchEngine tests covering literal, wildcard, and regex filename search, content search, extension/size filters, max results, recursive traversal, invert match, and engine integration.
+- Added 5 C API tests for organize dry-run (JSON + summary + validation) and count (JSON + summary).
+- Updated `tests/c_api_smoke.c` to exercise the organize and count C API functions.
+
+#### 📚 Documentation
+- Added `docs/ai/implementation/C_API_ORGANIZE_COUNT_SEARCH_2026_04_08.md` documenting the C API expansion and SearchEngine integration.
+
+### Version
+- Bumped to **6.0.73**.
+
 ## [6.0.72] - 2026-04-06
 
 ### Refined — The "BobGUI General Consistency and Field Awareness" Release

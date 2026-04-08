@@ -11,6 +11,8 @@
 
 namespace fo::core {
 
+class SearchEngine;
+
 struct EngineConfig {
     std::string scanner = "std";
     std::string hasher = "fast64";
@@ -24,18 +26,8 @@ struct EngineConfig {
 
 class Engine {
 public:
-    explicit Engine(EngineConfig cfg = {})
-        : cfg_(std::move(cfg))
-        , scanner_(Registry<IFileScanner>::instance().create(cfg_.scanner))
-        , hasher_(Registry<IHasher>::instance().create(cfg_.hasher))
-        , file_repo_(db_manager_)
-        , duplicate_repo_(db_manager_)
-        , ignore_repo_(db_manager_)
-        , session_repo_(db_manager_)
-    {
-        db_manager_.open(cfg_.db_path);
-        db_manager_.migrate();
-    }
+    explicit Engine(EngineConfig cfg = {});
+    ~Engine();
 
     std::vector<FileInfo> scan(const std::vector<std::filesystem::path>& roots,
                                const std::vector<std::string>& include_exts,
@@ -52,6 +44,8 @@ public:
     DatabaseManager& database() { return db_manager_; }
 
     bool use_ads_cache() const { return cfg_.use_ads_cache; }
+
+    SearchEngine& search_engine();
 
 private:
     // local implementation of duplicate finder from dupe_size_fast.cpp
@@ -72,6 +66,7 @@ private:
     DuplicateRepository duplicate_repo_;
     IgnoreRepository ignore_repo_;
     ScanSessionRepository session_repo_;
+    SearchEngine* search_engine_ = nullptr;
 };
 
 } // namespace fo::core

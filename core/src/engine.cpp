@@ -1,10 +1,29 @@
 #include "fo/core/engine.hpp"
 #include "fo/core/ads_cache.hpp"
+#include "fo/core/search_interface.hpp"
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
 
 namespace fo::core {
+
+Engine::Engine(EngineConfig cfg)
+    : cfg_(std::move(cfg))
+    , scanner_(Registry<IFileScanner>::instance().create(cfg_.scanner))
+    , hasher_(Registry<IHasher>::instance().create(cfg_.hasher))
+    , file_repo_(db_manager_)
+    , duplicate_repo_(db_manager_)
+    , ignore_repo_(db_manager_)
+    , session_repo_(db_manager_)
+    , search_engine_(new SearchEngine())
+{
+    db_manager_.open(cfg_.db_path);
+    db_manager_.migrate();
+}
+
+Engine::~Engine() { delete search_engine_; }
+
+SearchEngine& Engine::search_engine() { return *search_engine_; }
 
 std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roots,
                                    const std::vector<std::string>& include_exts,

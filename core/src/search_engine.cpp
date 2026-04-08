@@ -265,6 +265,9 @@ std::vector<SearchResult> SearchEngine::search(const SearchOptions& opts, Search
     return impl_->all_results_;
 }
 
+SearchEngine::SearchEngine() = default;
+SearchEngine::~SearchEngine() = default;
+
 void SearchEngine::cancel() {
     if (impl_) impl_->cancelled_ = true;
 }

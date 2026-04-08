@@ -111,6 +111,66 @@ int main(void)
     }
     fo_bobfilez_free_string(ignore_remove);
 
+    char *search = fo_bobfilez_search_summary_text(".", "test");
+    if (search == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_search_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 15;
+    }
+
+    if (strstr(search, "Search Results") == NULL) {
+        fprintf(stderr, "search summary did not contain expected title\n");
+        fo_bobfilez_free_string(search);
+        return 16;
+    }
+    fo_bobfilez_free_string(search);
+
+    char *undo = fo_bobfilez_undo_summary_text("");
+    if (undo == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_undo_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 17;
+    }
+
+    // It might say "Nothing to undo" or "Undo Successful"
+    if (strstr(undo, "undo") == NULL && strstr(undo, "Undo") == NULL) {
+        fprintf(stderr, "undo summary did not contain expected text\n");
+        fo_bobfilez_free_string(undo);
+        return 18;
+    }
+    fo_bobfilez_free_string(undo);
+
     remove("fo_c_api_smoke.db");
+
+    /* Smoke-test organize dry-run */
+    char *organize = fo_bobfilez_organize_dry_run_summary_text(".", "sorted/{name}.{ext}");
+    if (organize == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_organize_dry_run_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 19;
+    }
+
+    if (strstr(organize, "Organize Preview") == NULL) {
+        fprintf(stderr, "organize summary did not contain expected title\n");
+        fo_bobfilez_free_string(organize);
+        return 20;
+    }
+    fo_bobfilez_free_string(organize);
+
+    /* Smoke-test count */
+    char *count = fo_bobfilez_count_summary_text(".");
+    if (count == NULL) {
+        const char *error = fo_bobfilez_last_error();
+        fprintf(stderr, "fo_bobfilez_count_summary_text failed: %s\n", error != NULL ? error : "(no error)");
+        return 21;
+    }
+
+    if (strstr(count, "Count Summary") == NULL) {
+        fprintf(stderr, "count summary did not contain expected title\n");
+        fo_bobfilez_free_string(count);
+        return 22;
+    }
+    fo_bobfilez_free_string(count);
+
     return 0;
 }

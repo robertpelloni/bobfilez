@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Generated:** 2026-04-06 | **Commit:** pending | **Branch:** main | **Version:** 6.0.72
+**Generated:** 2026-04-08 | **Commit:** pending | **Branch:** main | **Version:** 6.0.73
 
 > Full guidelines: [docs/UNIVERSAL_LLM_INSTRUCTIONS.md](docs/UNIVERSAL_LLM_INSTRUCTIONS.md)
 
@@ -99,7 +99,12 @@ git submodule status                         # Check status
 python scripts/generate_dashboard.py         # Update dashboard
 ```
 
-## Current Status (v6.0.72)
+## Current Status (v6.0.73)
+
+- ✅ **C API Organize Dry-Run**: Extended the direct `fo_c_api` seam with organize dry-run JSON and summary helpers, enabling native consumers to preview file organization moves safely through the C ABI.
+- ✅ **C API Count Helpers**: Extended the direct `fo_c_api` seam with count JSON and summary helpers that combine file counting with duplicate detection and wasted-space calculation.
+- ✅ **SearchEngine Integration**: Added `SearchEngine` as an accessible member of the `Engine` class via `engine.search_engine()`, requiring out-of-line constructor/destructor management for MSVC 2019 compatibility.
+- ✅ **21 New Tests (74 → 95)**: Added 15 comprehensive SearchEngine tests and 5 new C API tests, all passing.
 
 - ✅ **BobGUI General Consistency and Field Awareness**: Refined the BobGUI lane to use explicitly structured idle output (Panel Mode, Field Roles, Current Working Values), standardized "Ready" and "Running" status label patterns, and provided more specific success messaging that acknowledges retained field state.
 - ✅ **BobGUI Status + Field-Role Clarity**: Refined the BobGUI lane so ready/running status text now better reflects backend mode and active operation names, while the ignore-reset guidance now more explicitly explains the role of the ignore pattern and reason fields for repeated rule-management workflows.
@@ -255,6 +260,31 @@ python scripts/generate_dashboard.py         # Update dashboard
 ## Handoff Protocol
 
 Update this section when finishing a session:
+
+---
+
+### Update: 2026-04-08 (Session 45)
+**Author:** Claude
+
+**Scope:** v6.0.73 C API Organize + Count + SearchEngine Integration
+
+**Delivered:**
+- ✅ Added `fo_bobfilez_organize_dry_run_json/summary_text()` to the C API for safe organization previews.
+- ✅ Added `fo_bobfilez_count_json/summary_text()` to the C API for combined file/duplicate counting with wasted-space calculation.
+- ✅ Integrated `SearchEngine` into `Engine` class via `engine.search_engine()` accessor.
+- ✅ Moved Engine and SearchEngine constructors/destructors out-of-line for MSVC 2019 compatibility.
+- ✅ Added `tests/test_search_engine.cpp` with 15 comprehensive SearchEngine tests.
+- ✅ Added 5 new C API tests for organize and count operations.
+- ✅ Updated C API smoke test to exercise organize and count.
+- ✅ Test count: 74 → **95 all passing**.
+- ✅ Added `docs/ai/implementation/C_API_ORGANIZE_COUNT_SEARCH_2026_04_08.md`.
+- ✅ Bumped to v6.0.73.
+
+**Next Steps:**
+1. Wire SearchEngine into CLI `search` command for proper `SearchOptions`-driven search.
+2. Add C API for export (JSON/CSV/HTML).
+3. Expand linter rules (BrokenSymlink, LargeLogFiles, DuplicateNames).
+4. Wire organize dry-run and count into BobGUI panel.
 
 ---
 

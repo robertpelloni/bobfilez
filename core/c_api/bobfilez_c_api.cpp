@@ -7,6 +7,7 @@
 #include "fo/core/operation_repository.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
+#include "fo/core/rule_engine.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -872,6 +873,27 @@ char* execute_ignore_action_request(const char* pattern,
     }
 }
 
+template <typename BuildSearch>
+char* execute_search_request(const char* root_path, const char* query, BuildSearch&& build_search)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        if (query == nullptr || query[0] == '\0') {
+            throw std::invalid_argument("A non-empty search query is required.");
+        }
+        return duplicate_c_string(build_search(root, query));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
 } // namespace
 
 extern "C" const char* fo_bobfilez_last_error(void)
@@ -939,6 +961,33 @@ extern "C" char* fo_bobfilez_lint_json(const char* root_path)
     });
 }
 
+extern "C" char* fo_bobfilez_search_json(const char* root_path, const char* query)
+{
+    return execute_search_request(root_path, query, [](const auto& root, const char* q) {
+        std::ostringstream out;
+        out << "[\n";
+        bool first = true;
+        std::error_code ec;
+        std::string query_lower = q;
+        std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
+
+        for (auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
+            if (!entry.is_regular_file()) continue;
+            auto fname = entry.path().filename().string();
+            std::string fname_lower = fname;
+            std::transform(fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
+
+            if (fname_lower.find(query_lower) != std::string::npos) {
+                if (!first) out << ",\n";
+                first = false;
+                out << "  {\"path\": \"" << fo::core::Exporter::json_escape(entry.path().string()) << "\"}";
+            }
+        }
+        out << "\n]\n";
+        return out.str();
+    });
+}
+
 extern "C" char* fo_bobfilez_history_json(const char* reserved)
 {
     (void) reserved;
@@ -948,6 +997,30 @@ extern "C" char* fo_bobfilez_history_json(const char* reserved)
         fo::core::Engine engine(config);
         fo::core::OperationRepository op_repo(engine.database());
         return make_history_json(op_repo.get_all(50));
+    });
+}
+
+extern "C" char* fo_bobfilez_undo_json(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        fo::core::OperationRepository op_repo(engine.database());
+        auto undone = op_repo.undo_last();
+        
+        std::ostringstream out;
+        if (undone) {
+            out << "{\"success\": true"
+                << ", \"type\": \"" << operation_type_name(undone->type) << "\""
+                << ", \"source\": \"" << fo::core::Exporter::json_escape(undone->source_path) << "\""
+                << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone->dest_path) << "\""
+                << "}";
+        } else {
+            out << "{\"success\": false, \"message\": \"No operations to undo\"}";
+        }
+        return out.str();
     });
 }
 
@@ -1044,6 +1117,38 @@ extern "C" char* fo_bobfilez_lint_summary_text(const char* root_path)
     });
 }
 
+extern "C" char* fo_bobfilez_search_summary_text(const char* root_path, const char* query)
+{
+    return execute_search_request(root_path, query, [](const auto& root, const char* q) {
+        std::ostringstream out;
+        out << "Search Results for '" << q << "' in " << root.string() << "\n"
+            << "========================================================\n";
+        int count = 0;
+        std::error_code ec;
+        std::string query_lower = q;
+        std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
+
+        for (auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
+            if (!entry.is_regular_file()) continue;
+            auto fname = entry.path().filename().string();
+            std::string fname_lower = fname;
+            std::transform(fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
+
+            if (fname_lower.find(query_lower) != std::string::npos) {
+                out << "- " << entry.path().string() << "\n";
+                count++;
+                if (count >= 100) {
+                    out << "... and more results truncated.\n";
+                    break;
+                }
+            }
+        }
+        if (count == 0) out << "No files found matching the query.\n";
+        else out << "\nTotal: " << count << " file(s) found.\n";
+        return out.str();
+    });
+}
+
 extern "C" char* fo_bobfilez_history_summary_text(const char* reserved)
 {
     (void) reserved;
@@ -1053,6 +1158,29 @@ extern "C" char* fo_bobfilez_history_summary_text(const char* reserved)
         fo::core::Engine engine(config);
         fo::core::OperationRepository op_repo(engine.database());
         return make_history_summary_text(op_repo.get_all(50));
+    });
+}
+
+extern "C" char* fo_bobfilez_undo_summary_text(const char* reserved)
+{
+    (void) reserved;
+    return execute_global_request([]() {
+        fo::core::EngineConfig config;
+        config.db_path = current_c_api_db_path();
+        fo::core::Engine engine(config);
+        fo::core::OperationRepository op_repo(engine.database());
+        auto undone = op_repo.undo_last();
+
+        std::ostringstream out;
+        if (undone) {
+            out << "Undo Successful\n"
+                << "===============\n"
+                << "Action: " << operation_type_name(undone->type) << "\n"
+                << "Reverted: " << undone->dest_path << " -> " << undone->source_path << "\n";
+        } else {
+            out << "Nothing to undo.\n";
+        }
+        return out.str();
     });
 }
 
@@ -1087,6 +1215,251 @@ extern "C" char* fo_bobfilez_ignore_remove_summary_text(const char* pattern)
         engine.ignore_repository().remove(parsed_pattern);
         return make_ignore_remove_summary_text(parsed_pattern, engine.ignore_repository().get_all());
     });
+}
+
+// ── Organize dry-run helpers ────────────────────────────────────────────
+
+namespace {
+
+std::string make_organize_dry_run_json(const std::vector<fo::core::FileInfo>& files,
+                                       const std::string& destination_template)
+{
+    fo::core::RuleEngine rule_engine;
+    rule_engine.add_rule({"c_api_rule", "", destination_template});
+
+    std::ostringstream out;
+    out << "{\n"
+        << "  \"dry_run\": true,\n"
+        << "  \"template\": \"" << fo::core::Exporter::json_escape(destination_template) << "\",\n"
+        << "  \"total_files\": " << files.size() << ",\n"
+        << "  \"moves\": [\n";
+
+    bool first = true;
+    size_t move_count = 0;
+    for (const auto& file : files) {
+        if (file.is_dir) continue;
+
+        auto new_path_opt = rule_engine.apply_rules(file, {});
+        if (new_path_opt && new_path_opt->string() != file.uri) {
+            if (!first) out << ",\n";
+            first = false;
+            out << "    {\"source\": \"" << fo::core::Exporter::json_escape(file.uri)
+                << "\", \"dest\": \"" << fo::core::Exporter::json_escape(new_path_opt->string())
+                << "\"}";
+            move_count++;
+        }
+    }
+
+    out << "\n  ],\n"
+        << "  \"move_count\": " << move_count << "\n"
+        << "}\n";
+    return out.str();
+}
+
+std::string make_organize_dry_run_summary_text(const std::vector<fo::core::FileInfo>& files,
+                                               const std::string& destination_template)
+{
+    fo::core::RuleEngine rule_engine;
+    rule_engine.add_rule({"c_api_rule", "", destination_template});
+
+    std::ostringstream out;
+    out << "Organize Preview (Dry Run)\n"
+        << "==========================\n"
+        << "Template: " << destination_template << "\n"
+        << "Files scanned: " << files.size() << "\n\n";
+
+    size_t move_count = 0;
+    const size_t display_limit = 20;
+    for (const auto& file : files) {
+        if (file.is_dir) continue;
+
+        auto new_path_opt = rule_engine.apply_rules(file, {});
+        if (new_path_opt && new_path_opt->string() != file.uri) {
+            if (move_count < display_limit) {
+                out << "  " << file.uri << "\n"
+                    << "    -> " << new_path_opt->string() << "\n";
+            }
+            move_count++;
+        }
+    }
+
+    out << "\nTotal moves planned: " << move_count;
+    if (move_count > display_limit) {
+        out << " (showing first " << display_limit << ")";
+    }
+    out << "\n";
+
+    return out.str();
+}
+
+std::string make_count_json(const std::vector<fo::core::FileInfo>& files,
+                            const std::vector<fo::core::DuplicateGroup>& groups)
+{
+    int file_count = 0;
+    int dir_count = 0;
+    std::uintmax_t total_size = 0;
+
+    for (const auto& f : files) {
+        if (f.is_dir) {
+            ++dir_count;
+        } else {
+            ++file_count;
+            total_size += f.size;
+        }
+    }
+
+    size_t duplicate_files = 0;
+    std::uintmax_t wasted_size = 0;
+    for (const auto& g : groups) {
+        if (g.files.size() > 1) {
+            duplicate_files += g.files.size() - 1;
+            wasted_size += g.size * (g.files.size() - 1);
+        }
+    }
+
+    std::ostringstream out;
+    out << "{\n"
+        << "  \"files\": " << file_count << ",\n"
+        << "  \"directories\": " << dir_count << ",\n"
+        << "  \"total_size\": " << total_size << ",\n"
+        << "  \"total_size_human\": \"" << fo::core::Exporter::format_size(total_size) << "\",\n"
+        << "  \"duplicate_groups\": " << groups.size() << ",\n"
+        << "  \"duplicate_files\": " << duplicate_files << ",\n"
+        << "  \"wasted_size\": " << wasted_size << ",\n"
+        << "  \"wasted_size_human\": \"" << fo::core::Exporter::format_size(wasted_size) << "\"\n"
+        << "}\n";
+    return out.str();
+}
+
+std::string make_count_summary_text(const std::vector<fo::core::FileInfo>& files,
+                                    const std::vector<fo::core::DuplicateGroup>& groups)
+{
+    int file_count = 0;
+    int dir_count = 0;
+    std::uintmax_t total_size = 0;
+
+    for (const auto& f : files) {
+        if (f.is_dir) {
+            ++dir_count;
+        } else {
+            ++file_count;
+            total_size += f.size;
+        }
+    }
+
+    size_t duplicate_files = 0;
+    std::uintmax_t wasted_size = 0;
+    for (const auto& g : groups) {
+        if (g.files.size() > 1) {
+            duplicate_files += g.files.size() - 1;
+            wasted_size += g.size * (g.files.size() - 1);
+        }
+    }
+
+    std::ostringstream out;
+    out << "Count Summary\n"
+        << "=============\n"
+        << "Files: " << file_count << "\n"
+        << "Directories: " << dir_count << "\n"
+        << "Total Size: " << fo::core::Exporter::format_size(total_size) << "\n"
+        << "Duplicate Groups: " << groups.size() << "\n"
+        << "Duplicate Files: " << duplicate_files << "\n"
+        << "Wasted Space: " << fo::core::Exporter::format_size(wasted_size) << "\n";
+    return out.str();
+}
+
+} // namespace
+
+extern "C" char* fo_bobfilez_organize_dry_run_json(const char* root_path, const char* destination_template)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        if (destination_template == nullptr || destination_template[0] == '\0') {
+            throw std::invalid_argument("A non-empty destination template is required for organize.");
+        }
+        const auto files = collect_files(root);
+        return duplicate_c_string(make_organize_dry_run_json(files, destination_template));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" char* fo_bobfilez_organize_dry_run_summary_text(const char* root_path, const char* destination_template)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        if (destination_template == nullptr || destination_template[0] == '\0') {
+            throw std::invalid_argument("A non-empty destination template is required for organize.");
+        }
+        const auto files = collect_files(root);
+        return duplicate_c_string(make_organize_dry_run_summary_text(files, destination_template));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" char* fo_bobfilez_count_json(const char* root_path)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        fo::core::EngineConfig config;
+        config.db_path = ":memory:";
+        config.scanner = "std";
+        config.hasher = "fast64";
+        fo::core::Engine engine(config);
+
+        const auto files = collect_files(root);
+        const auto groups = engine.find_duplicates(files);
+        return duplicate_c_string(make_count_json(files, groups));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" char* fo_bobfilez_count_summary_text(const char* root_path)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        fo::core::EngineConfig config;
+        config.db_path = ":memory:";
+        config.scanner = "std";
+        config.hasher = "fast64";
+        fo::core::Engine engine(config);
+
+        const auto files = collect_files(root);
+        const auto groups = engine.find_duplicates(files);
+        return duplicate_c_string(make_count_summary_text(files, groups));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
 }
 
 extern "C" void fo_bobfilez_free_string(char* value)

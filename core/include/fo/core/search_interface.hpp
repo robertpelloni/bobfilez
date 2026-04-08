@@ -191,6 +191,11 @@ public:
     void cancel();
     bool is_running() const;
 
+    ~SearchEngine();
+    SearchEngine();
+    SearchEngine(const SearchEngine&) = delete;
+    SearchEngine& operator=(const SearchEngine&) = delete;
+
     /// Find-and-replace in file contents for a list of result files.
     std::vector<ReplaceResult> replace_in_files(
         const std::vector<SearchResult>& files,

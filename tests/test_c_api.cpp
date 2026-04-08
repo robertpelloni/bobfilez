@@ -299,9 +299,147 @@ TEST_F(CApiTest, IgnoreAddAndRemoveActionsUpdateDatabaseBackedState)
     EXPECT_NE(after_remove_json_text.find("*.cache"), std::string::npos);
 }
 
+TEST_F(CApiTest, SearchExposesResults)
+{
+    create_file(test_dir / "target_search.txt", "hello");
+    create_file(test_dir / "other.log", "world");
+
+    char* json = fo_bobfilez_search_json(test_dir.string().c_str(), "target_search");
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+    std::string json_text(json);
+    fo_bobfilez_free_string(json);
+    EXPECT_NE(json_text.find("target_search.txt"), std::string::npos);
+    EXPECT_EQ(json_text.find("other.log"), std::string::npos);
+
+    char* summary = fo_bobfilez_search_summary_text(test_dir.string().c_str(), "target_search");
+    ASSERT_NE(summary, nullptr) << fo_bobfilez_last_error();
+    std::string summary_text(summary);
+    fo_bobfilez_free_string(summary);
+    EXPECT_NE(summary_text.find("Search Results for 'target_search'"), std::string::npos);
+    EXPECT_NE(summary_text.find("target_search.txt"), std::string::npos);
+}
+
+TEST_F(CApiTest, UndoExposesDatabaseBackedState)
+{
+    const auto db_path = (base_dir / "c_api_undo.db").string();
+    ScopedEnvVar db_override("BOBFILEZ_DB_PATH", db_path);
+
+    fo::core::EngineConfig config;
+    config.db_path = db_path;
+    fo::core::Engine engine(config);
+
+    fo::core::OperationRepository op_repo(engine.database());
+    fo::core::OperationRecord record;
+    record.timestamp = std::chrono::system_clock::now();
+    record.type = fo::core::OperationType::Rename;
+    record.source_path = (test_dir / "before.txt").string();
+    record.dest_path = (test_dir / "after.txt").string();
+    
+    // Create the "after.txt" file so the filesystem undo action actually succeeds
+    create_file(test_dir / "after.txt", "content");
+    
+    op_repo.log_operation(record);
+
+    char* undo_json = fo_bobfilez_undo_json("");
+    ASSERT_NE(undo_json, nullptr) << fo_bobfilez_last_error();
+    std::string undo_json_text(undo_json);
+    fo_bobfilez_free_string(undo_json);
+    EXPECT_NE(undo_json_text.find("\"success\": true"), std::string::npos);
+    EXPECT_NE(undo_json_text.find("rename"), std::string::npos);
+
+    char* empty_undo_json = fo_bobfilez_undo_json("");
+    ASSERT_NE(empty_undo_json, nullptr) << fo_bobfilez_last_error();
+    std::string empty_undo_json_text(empty_undo_json);
+    fo_bobfilez_free_string(empty_undo_json);
+    EXPECT_NE(empty_undo_json_text.find("\"success\": false"), std::string::npos);
+}
+
 TEST(CApiStandaloneTest, NullRootPathSetsError)
 {
     char* json = fo_bobfilez_scan_json(nullptr);
     EXPECT_EQ(json, nullptr);
     EXPECT_NE(std::string(fo_bobfilez_last_error()).find("non-empty root path"), std::string::npos);
+}
+
+// ── Organize Dry-Run Tests ────────────────────────────────────────────────
+
+TEST_F(CApiTest, OrganizeDryRunJsonProducesMovePlan)
+{
+    create_file(test_dir / "photo_01.jpg", "image1");
+    create_file(test_dir / "photo_02.jpg", "image2");
+    create_file(test_dir / "document.txt", "text");
+
+    std::string tmpl = (test_dir / "organized" / "{name}.{ext}").string();
+    char* json = fo_bobfilez_organize_dry_run_json(test_dir.string().c_str(), tmpl.c_str());
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(json);
+    fo_bobfilez_free_string(json);
+
+    EXPECT_NE(text.find("\"dry_run\": true"), std::string::npos);
+    EXPECT_NE(text.find("\"moves\""), std::string::npos);
+    EXPECT_NE(text.find("photo_01"), std::string::npos);
+    EXPECT_NE(text.find("\"move_count\""), std::string::npos);
+}
+
+TEST_F(CApiTest, OrganizeDryRunSummaryTextContainsPlannedMoves)
+{
+    create_file(test_dir / "file_a.txt", "content a");
+    create_file(test_dir / "file_b.txt", "content b");
+
+    std::string tmpl = (test_dir / "sorted" / "{name}.{ext}").string();
+    char* summary = fo_bobfilez_organize_dry_run_summary_text(test_dir.string().c_str(), tmpl.c_str());
+    ASSERT_NE(summary, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(summary);
+    fo_bobfilez_free_string(summary);
+
+    EXPECT_NE(text.find("Organize Preview (Dry Run)"), std::string::npos);
+    EXPECT_NE(text.find("file_a.txt"), std::string::npos);
+    EXPECT_NE(text.find("Total moves planned"), std::string::npos);
+}
+
+TEST_F(CApiTest, OrganizeDryRunRejectsEmptyTemplate)
+{
+    create_file(test_dir / "file.txt", "x");
+
+    char* json = fo_bobfilez_organize_dry_run_json(test_dir.string().c_str(), "");
+    EXPECT_EQ(json, nullptr);
+    EXPECT_NE(std::string(fo_bobfilez_last_error()).find("non-empty destination template"), std::string::npos);
+}
+
+// ── Count Tests ──────────────────────────────────────────────────────────
+
+TEST_F(CApiTest, CountJsonReportsFilesAndDuplicates)
+{
+    create_file(test_dir / "alpha.txt", "same");
+    create_file(test_dir / "beta.txt", "same");
+    create_file(test_dir / "gamma.txt", "unique");
+
+    char* json = fo_bobfilez_count_json(test_dir.string().c_str());
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(json);
+    fo_bobfilez_free_string(json);
+
+    EXPECT_NE(text.find("\"files\": 3"), std::string::npos);
+    EXPECT_NE(text.find("\"duplicate_groups\""), std::string::npos);
+    EXPECT_NE(text.find("\"wasted_size\""), std::string::npos);
+}
+
+TEST_F(CApiTest, CountSummaryTextIsHumanReadable)
+{
+    create_file(test_dir / "one.txt", "aaa");
+    create_file(test_dir / "two.txt", "aaa");
+
+    char* summary = fo_bobfilez_count_summary_text(test_dir.string().c_str());
+    ASSERT_NE(summary, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(summary);
+    fo_bobfilez_free_string(summary);
+
+    EXPECT_NE(text.find("Count Summary"), std::string::npos);
+    EXPECT_NE(text.find("Files:"), std::string::npos);
+    EXPECT_NE(text.find("Duplicate Groups:"), std::string::npos);
+    EXPECT_NE(text.find("Wasted Space:"), std::string::npos);
 }
