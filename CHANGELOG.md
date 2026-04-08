@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.92] - 2026-04-08
+
+### Added — The "Omni Matrix + Remote Storage" Release
+- **Omni Subsystem 20 tests**: All 15 Omni engines verified as constructible via Registry (OmniGraph, OmniMount, OmniOracle, OmniAudio, OmniClerk, OmniCluster, OmniCrypt, OmniFlow, OmniGit, OmniPeek, OmniSec, OmniShare, OmniTerminal, OmniVerse, OmniVision). OmniGraph tested with node upsert, edge creation, and neighbor query.
+- **RemoteStorageManager 6 tests**: add/retrieve connection, remove connection, remove nonexistent safety, multiple connections, get provider for nonexistent, RemoteConnection construction.
+- Test count: 369 → **395 (394 passed, 1 skipped)**.
+
 ## [6.0.91] - 2026-04-08
 
 ### Fixed — The "Mass MSVC Registration Fix" Release

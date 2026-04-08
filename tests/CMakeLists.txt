@@ -28,6 +28,7 @@ add_executable(fo_tests
     test_thumbnail_ads.cpp
     test_engine_integration.cpp
     test_pii_virtualfs_time.cpp
+    test_omni_remote.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
