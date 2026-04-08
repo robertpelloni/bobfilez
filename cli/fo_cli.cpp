@@ -223,6 +223,11 @@ int main(int argc, char** argv) {
         for (const auto& n : phash.names()) std::cout << n << " ";
         std::cout << "\n";
 
+        auto& linters = fo::core::Registry<fo::core::ILinter>::instance();
+        std::cout << "  Linters: ";
+        for (const auto& n : linters.names()) std::cout << n << " ";
+        std::cout << "\n";
+
         return 0;
     }
     if (command == "--list-scanners") {

@@ -12,6 +12,7 @@ add_executable(fo_tests
     test_linter.cpp
     test_c_api.cpp
     test_search_engine.cpp
+    test_file_watcher.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)

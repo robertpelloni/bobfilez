@@ -1,5 +1,35 @@
 # Changelog
 
+## [6.0.77] - 2026-04-08
+
+### Added — The "FileWatcher Testing + CLI Discoverability" Release
+
+#### 🧪 7 new FileWatcher tests (106 → 113)
+- `NativeWatcherIsRegistered` — verifies native file watcher registration.
+- `StartAndStop` — clean lifecycle start → stop.
+- `DetectsNewFile` — creates file, verifies Created event fires.
+- `DetectsFileModification` — modifies file, verifies Modified event.
+- `EventsProcessedCounter` — batch creates, checks counter > 0.
+- `IgnoresHiddenFiles` — dot-files filtered when `ignore_hidden=true`.
+- `ExtensionFilter` — only .txt files pass when `include_extensions={"txt"}`.
+
+#### 🔧 Provider registration fix
+- Added `register_file_watcher_native()` to `register_all_providers()`.
+- The native file watcher was registered via static initializer but MSVC
+  linker was stripping it. Now explicitly force-referenced.
+
+#### 🔍 CLI discoverability
+- Added `--list-linters` command to list registered filesystem linters.
+- Added linters to `--modules` output.
+- Added `lint_interface.hpp` include to CLI.
+
+#### 📊 Benchmarks (SearchEngine + Linter)
+- 4 SearchEngine benchmarks: literal, wildcard, regex, content search.
+- 1 Linter benchmark: std linter across 115 files.
+
+### Version
+- Bumped to **6.0.77**.
+
 ## [6.0.76] - 2026-04-08
 
 ### Added — The "CLI Discoverability + Benchmarks" Release

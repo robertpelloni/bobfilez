@@ -378,11 +378,13 @@ public:
 };
 
 // Register in the provider registry
-static auto reg = []() {
+static bool reg_file_watcher = []() {
     Registry<IFileWatcher>::instance().add("native", []() {
         return std::make_unique<NativeFileWatcher>();
     });
     return true;
 }();
+
+void register_file_watcher_native() { (void)reg_file_watcher; }
 
 } // namespace fo::core
