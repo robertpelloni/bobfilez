@@ -9,6 +9,7 @@
 #include "fo/core/rule_engine.hpp"
 #include "fo/core/export.hpp"
 #include "fo/core/search_interface.hpp"
+#include "fo/core/lint_interface.hpp"
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
 #include <iostream>
@@ -142,7 +143,8 @@ static void print_usage() {
               << "  --list-ocr          List available OCR providers\n"
               << "  --list-classifiers  List available classifiers\n"
               << "  --list-phash        List available perceptual hash algorithms\n"
-              << "  --modules           List all registered modules/providers\n"
+              << "  --list-linters     List available filesystem linters\n"
+              << "  --modules          List all registered modules/providers\n"
               << "  --download-models   Download default AI models\n";
 }
 
@@ -279,6 +281,13 @@ int main(int argc, char** argv) {
         std::cout << "\n";
         return 0;
     }
+    if (command == "--list-linters") {
+        auto& reg = fo::core::Registry<fo::core::ILinter>::instance();
+        std::cout << "Available linters:";
+        for (auto& n : reg.names()) std::cout << " " << n;
+        std::cout << "\n";
+        return 0;
+    }
 
     std::vector<std::filesystem::path> roots;
     std::vector<std::string> exts;
@@ -347,6 +356,13 @@ int main(int argc, char** argv) {
         else if (a == "--list-phash") {
             auto& reg = fo::core::Registry<fo::core::IPerceptualHasher>::instance();
             std::cout << "Available perceptual hash algorithms:";
+            for (auto& n : reg.names()) std::cout << " " << n;
+            std::cout << "\n";
+            return 0;
+        }
+        else if (a == "--list-linters") {
+            auto& reg = fo::core::Registry<fo::core::ILinter>::instance();
+            std::cout << "Available linters:";
             for (auto& n : reg.names()) std::cout << " " << n;
             std::cout << "\n";
             return 0;

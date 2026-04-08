@@ -1,5 +1,31 @@
 # Changelog
 
+## [6.0.76] - 2026-04-08
+
+### Added — The "CLI Discoverability + Benchmarks" Release
+
+#### 🔧 CLI discoverability
+- Added `--list-linters` command to list registered filesystem linters.
+- Added lint_interface.hpp include to CLI.
+- Help text updated with `--list-linters` entry.
+
+#### 📊 SearchEngine + Linter benchmarks
+- `SearchFixture/LiteralFilename` — literal filename search across 200 files.
+- `SearchFixture/WildcardFilename` — wildcard pattern matching.
+- `SearchFixture/RegexFilename` — regex pattern matching.
+- `SearchFixture/ContentLiteral` — content search (file I/O bound).
+- `BM_Linter_Std` — linter scan across 115 files with mixed types.
+
+#### 📈 Benchmark results (this host, 32-core 3.4GHz)
+- Literal search: ~1.2ms / 200 files
+- Wildcard search: ~1.6ms / 200 files
+- Regex search: ~1.7ms / 200 files
+- Content search: ~24ms / 200 files (I/O bound)
+- Linter scan: ~22ms / 115 files
+
+### Version
+- Bumped to **6.0.76**.
+
 ## [6.0.75] - 2026-04-08
 
 ### Added — The "Linter Expansion + Integration Pipeline" Release

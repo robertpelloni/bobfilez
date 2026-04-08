@@ -117,4 +117,129 @@ static void BM_Hasher_Blake3(benchmark::State& state) {
 }
 BENCHMARK(BM_Hasher_Blake3);
 
+// ── SearchEngine Benchmarks ──────────────────────────────────────────
+
+#include "fo/core/search_interface.hpp"
+
+class SearchFixture : public benchmark::Fixture {
+public:
+    fs::path test_dir;
+
+    void SetUp(const ::benchmark::State&) override {
+        fo::core::register_all_providers();
+
+        test_dir = fs::temp_directory_path() / "fo_bench_search";
+        if (fs::exists(test_dir)) fs::remove_all(test_dir);
+        fs::create_directories(test_dir);
+
+        // Create 200 files across 10 subdirs
+        for (int d = 0; d < 10; ++d) {
+            fs::path sub = test_dir / ("dir_" + std::to_string(d));
+            fs::create_directories(sub);
+            for (int i = 0; i < 20; ++i) {
+                std::ofstream(sub / ("file_" + std::to_string(i) + ".txt"))
+                    << "benchmark content line " << i << "\nneedle in haystack\nmore data";
+            }
+        }
+    }
+
+    void TearDown(const ::benchmark::State&) override {
+        fs::remove_all(test_dir);
+    }
+};
+
+BENCHMARK_DEFINE_F(SearchFixture, LiteralFilename)(benchmark::State& state) {
+    fo::core::SearchEngine engine;
+    fo::core::SearchOptions opts;
+    opts.search_roots = {test_dir};
+    opts.query = "file_5";
+    opts.match_mode = fo::core::SearchOptions::MatchMode::Literal;
+
+    for (auto _ : state) {
+        auto results = engine.search(opts);
+        benchmark::DoNotOptimize(results);
+    }
+}
+BENCHMARK_REGISTER_F(SearchFixture, LiteralFilename);
+
+BENCHMARK_DEFINE_F(SearchFixture, WildcardFilename)(benchmark::State& state) {
+    fo::core::SearchEngine engine;
+    fo::core::SearchOptions opts;
+    opts.search_roots = {test_dir};
+    opts.query = "file_*.txt";
+    opts.match_mode = fo::core::SearchOptions::MatchMode::Wildcard;
+
+    for (auto _ : state) {
+        auto results = engine.search(opts);
+        benchmark::DoNotOptimize(results);
+    }
+}
+BENCHMARK_REGISTER_F(SearchFixture, WildcardFilename);
+
+BENCHMARK_DEFINE_F(SearchFixture, RegexFilename)(benchmark::State& state) {
+    fo::core::SearchEngine engine;
+    fo::core::SearchOptions opts;
+    opts.search_roots = {test_dir};
+    opts.query = R"(file_\d+\.txt)";
+    opts.match_mode = fo::core::SearchOptions::MatchMode::Regex;
+
+    for (auto _ : state) {
+        auto results = engine.search(opts);
+        benchmark::DoNotOptimize(results);
+    }
+}
+BENCHMARK_REGISTER_F(SearchFixture, RegexFilename);
+
+BENCHMARK_DEFINE_F(SearchFixture, ContentLiteral)(benchmark::State& state) {
+    fo::core::SearchEngine engine;
+    fo::core::SearchOptions opts;
+    opts.search_roots = {test_dir};
+    opts.query = ""; // match all filenames
+    opts.search_content = true;
+    opts.content_query = "needle";
+    opts.content_match_mode = fo::core::SearchOptions::MatchMode::Literal;
+
+    for (auto _ : state) {
+        auto results = engine.search(opts);
+        benchmark::DoNotOptimize(results);
+    }
+}
+BENCHMARK_REGISTER_F(SearchFixture, ContentLiteral);
+
+// ── Linter Benchmark ──────────────────────────────────────────────────
+
+#include "fo/core/lint_interface.hpp"
+
+static void BM_Linter_Std(benchmark::State& state) {
+    fo::core::register_all_providers();
+
+    fs::path test_dir = fs::temp_directory_path() / "fo_bench_linter";
+    if (fs::exists(test_dir)) fs::remove_all(test_dir);
+    fs::create_directories(test_dir);
+
+    // Create a mix of files
+    for (int i = 0; i < 100; ++i) {
+        std::ofstream(test_dir / ("file_" + std::to_string(i) + ".txt")) << "data";
+    }
+    for (int i = 0; i < 10; ++i) {
+        std::ofstream(test_dir / ("temp_" + std::to_string(i) + ".bak")) << "temp";
+    }
+    for (int i = 0; i < 5; ++i) {
+        std::ofstream(test_dir / ("empty_" + std::to_string(i) + ".txt")); // empty
+    }
+    auto empty_dir = test_dir / "empty_sub";
+    fs::create_directories(empty_dir);
+
+    auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
+    if (!linter) { state.SkipWithError("std linter not found"); return; }
+
+    for (auto _ : state) {
+        auto results = linter->lint({test_dir});
+        benchmark::DoNotOptimize(results);
+    }
+
+    fs::remove_all(test_dir);
+}
+BENCHMARK(BM_Linter_Std);
+
 BENCHMARK_MAIN();
