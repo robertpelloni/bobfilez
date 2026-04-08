@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.0.80] - 2026-04-08
+
+### Added — The "Repository Test Suite" Release
+
+#### 🧪 11 new repository tests (153 → 164)
+
+**IgnoreRepository (7 tests)**
+- Add and retrieve all patterns
+- Remove a pattern, remove non-existent (noop)
+- Is-ignored with regex patterns (`.tmp`, `.bak`, `Thumbs.db`)
+- Empty repository returns nothing
+- Duplicate pattern silently ignored (UNIQUE constraint)
+
+**DuplicateRepository (4 tests)**
+- Create group with primary file, get all groups
+- Get members of a group
+- Empty groups on fresh DB
+- Clear all removes everything
+
+### Version
+- Bumped to **6.0.80**.
+
 ## [6.0.79] - 2026-04-08
 
 ### Added — The "Real AuditLogger + Tamper Detection" Release
