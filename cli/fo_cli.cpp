@@ -8,6 +8,7 @@
 #include "fo/core/classification_interface.hpp"
 #include "fo/core/rule_engine.hpp"
 #include "fo/core/export.hpp"
+#include "fo/core/search_interface.hpp"
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
 #include <iostream>
@@ -98,6 +99,14 @@ static void print_usage() {
               << "  search       Search files by name, content, or AI (semantic search)\n"
               << "  rename-batch Batch rename files using rule chains\n"
               << "  watch        Real-time directory watcher (Shadow Sorter)\n"
+              << "\nSearch Options:\n"
+              << "  --content          Search inside file contents\n"
+              << "  --regex            Use regex matching\n"
+              << "  --wildcard         Use wildcard matching (* and ?)\n"
+              << "  --case-sensitive   Case-sensitive matching\n"
+              << "  --whole-word       Match whole words only\n"
+              << "  --invert           Invert match (return non-matching files)\n"
+              << "  --max-results=<N>  Limit number of results\n"
               << "\nOptions:\n"
               << "  --scanner=<name>    Select scanner (e.g., std, win32, s3, gdrive)\n"
               << "  --hasher=<name>     Select hasher (e.g., fast64, blake3)\n"
@@ -394,6 +403,11 @@ int main(int argc, char** argv) {
             verbose = true;
         } else if (a == "--count") {
             count_only = true;
+        } else if (a == "--content" || a == "--regex" || a == "--wildcard"
+                   || a == "--case-sensitive" || a == "--whole-word" || a == "--invert") {
+            // Parsed by the search command handler below; accept silently here.
+        } else if (a.rfind("--max-results=", 0) == 0) {
+            // Parsed by the search command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -1613,80 +1627,119 @@ int main(int argc, char** argv) {
 
         } else if (command == "search") {
             // ─── Search Command ──────────────────────────────────────────────
+            // Routed through SearchEngine with proper SearchOptions.
             // Usage: fo_cli search <query> [paths...] [--content] [--regex] [--case-sensitive]
+            //        [--wildcard] [--whole-word] [--invert] [--max-results=<N>]
+            //        [--ext=<.txt,.log>] [--min-size=<N>] [--max-size=<N>]
+            //        [--no-recursive]
             if (args.size() < 2) {
-                std::cerr << "Usage: fo search <query> [path...] [--content] [--regex] [--case-sensitive]\n";
+                std::cerr << "Usage: fo search <query> [path...] [--content] [--regex] [--case-sensitive]\n"
+                             "              [--wildcard] [--whole-word] [--invert] [--max-results=<N>]\n"
+                             "              [--ext=<.txt,.log>] [--min-size=<N>] [--max-size=<N>]\n"
+                             "              [--no-recursive]\n";
                 return 1;
             }
 
             std::string query = args[1];
             bool search_content = false;
             bool use_regex = false;
+            bool use_wildcard = false;
             bool case_sensitive = false;
+            bool whole_word = false;
+            bool invert_match = false;
+            int max_results = 0;
 
             std::vector<std::string> search_paths;
             for (size_t i = 2; i < args.size(); ++i) {
                 auto& a = args[i];
                 if (a == "--content") search_content = true;
                 else if (a == "--regex") use_regex = true;
+                else if (a == "--wildcard") use_wildcard = true;
                 else if (a == "--case-sensitive") case_sensitive = true;
+                else if (a == "--whole-word") whole_word = true;
+                else if (a == "--invert") invert_match = true;
+                else if (a.rfind("--max-results=", 0) == 0) max_results = std::stoi(a.substr(14));
                 else if (a[0] != '-') search_paths.push_back(a);
             }
             if (search_paths.empty()) search_paths.push_back(".");
 
-            int match_count = 0;
-            for (auto& sp : search_paths) {
-                std::error_code ec;
-                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
-                    if (!entry.is_regular_file()) continue;
+            fo::core::SearchOptions opts;
+            opts.query = query;
+            opts.case_sensitive = case_sensitive;
+            opts.whole_word = whole_word;
+            opts.invert_match = invert_match;
+            opts.max_results = max_results;
+            opts.recursive = !no_recursive;
 
-                    auto fname = entry.path().filename().string();
-                    bool name_match = false;
+            if (use_regex) {
+                opts.match_mode = fo::core::SearchOptions::MatchMode::Regex;
+            } else if (use_wildcard) {
+                opts.match_mode = fo::core::SearchOptions::MatchMode::Wildcard;
+            } else {
+                opts.match_mode = fo::core::SearchOptions::MatchMode::Literal;
+            }
 
-                    if (use_regex) {
-                        try {
-                            auto flags = std::regex::ECMAScript;
-                            if (!case_sensitive) flags |= std::regex::icase;
-                            std::regex pat(query, flags);
-                            name_match = std::regex_search(fname, pat);
-                        } catch (...) { name_match = false; }
-                    } else {
-                        std::string q = query, f = fname;
-                        if (!case_sensitive) {
-                            std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-                            std::transform(f.begin(), f.end(), f.begin(), ::tolower);
-                        }
-                        name_match = f.find(q) != std::string::npos;
-                    }
-
-                    bool content_match = false;
-                    if (search_content && !name_match) {
-                        std::ifstream ifs(entry.path(), std::ios::binary);
-                        if (ifs) {
-                            std::string line;
-                            while (std::getline(ifs, line)) {
-                                std::string l = line, q = query;
-                                if (!case_sensitive) {
-                                    std::transform(l.begin(), l.end(), l.begin(), ::tolower);
-                                    std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-                                }
-                                if (l.find(q) != std::string::npos) {
-                                    content_match = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (name_match || content_match) {
-                        std::cout << entry.path().string();
-                        if (content_match && !name_match) std::cout << "  (content match)";
-                        std::cout << "\n";
-                        match_count++;
-                    }
+            // Extension filter
+            if (!exts.empty()) {
+                for (const auto& e : exts) {
+                    std::string clean = e;
+                    if (!clean.empty() && clean[0] == '.') clean = clean.substr(1);
+                    opts.include_extensions.push_back(clean);
                 }
             }
-            std::cerr << "\n" << match_count << " file(s) found\n";
+
+            // Size filter
+            if (min_size > 0 || max_size < std::numeric_limits<std::uintmax_t>::max()) {
+                opts.size_filter.enabled = true;
+                opts.size_filter.min_bytes = min_size;
+                opts.size_filter.max_bytes = max_size;
+            }
+
+            // Content search
+            if (search_content) {
+                opts.search_content = true;
+                opts.content_query = query;
+                opts.content_match_mode = opts.match_mode;
+                opts.content_case_sensitive = case_sensitive;
+                opts.content_whole_word = whole_word;
+                // When content search is active, match all filenames so content
+                // matching drives the results (filename acts as an additional
+                // filter only if the user didn't explicitly set --content).
+                opts.query = "";
+            }
+
+            // Search roots
+            for (const auto& sp : search_paths) {
+                opts.search_roots.emplace_back(sp);
+            }
+
+            auto results = engine.search_engine().search(opts);
+
+            if (format == "json") {
+                std::cout << "[\n";
+                for (size_t i = 0; i < results.size(); ++i) {
+                    const auto& r = results[i];
+                    std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(r.path.string())
+                              << "\", \"size\": " << r.size;
+                    if (r.match_count > 0) {
+                        std::cout << ", \"content_matches\": " << r.match_count;
+                    }
+                    std::cout << "}";
+                    if (i + 1 < results.size()) std::cout << ",";
+                    std::cout << "\n";
+                }
+                std::cout << "]\n";
+            } else {
+                for (const auto& r : results) {
+                    std::cout << r.path.string();
+                    if (r.match_count > 0) {
+                        std::cout << "  (" << r.match_count << " content match" << (r.match_count > 1 ? "es" : "") << ")";
+                    }
+                    std::cout << "\n";
+                }
+            }
+            if (verbose) std::cerr << "\n" << results.size() << " file(s) found\n";
+            else std::cerr << "\n" << results.size() << " file(s) found\n";
 
         } else if (command == "rename-batch") {
             // ─── Batch Rename Command ────────────────────────────────────────

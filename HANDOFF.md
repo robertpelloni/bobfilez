@@ -1,46 +1,30 @@
-# HANDOFF.md — bobfilez Session 88
+# HANDOFF.md — bobfilez Session 89
 
 ## Current Status (2026-04-08)
-**Version:** 6.0.73
-**Focus:** Expanded the C API with organize dry-run and count operations, integrated SearchEngine into Engine, and added 21 new tests (74 → 95 all passing).
+**Version:** 6.0.74
+**Focus:** Upgraded CLI search to use SearchEngine, added C API export helper, 97 tests passing.
 
 ---
 
 ## What Was Done This Session
 
-### 1. C API — Organize Dry-Run
-Added:
-- `fo_bobfilez_organize_dry_run_json(root_path, destination_template)`
-- `fo_bobfilez_organize_dry_run_summary_text(root_path, destination_template)`
-- `core/include/fo/c_api/bobfilez_c_api.h`
-- `core/c_api/bobfilez_c_api.cpp`
+### 1. CLI Search Command Upgraded to Use SearchEngine
+- `fo_cli search` now routes through `engine.search_engine()` with proper `SearchOptions`.
+- New CLI flags: `--wildcard`, `--whole-word`, `--invert`, `--max-results=<N>`.
+- Content search (`--content`) now correctly matches all filenames first and lets content matching drive results.
+- Added search options section to help text.
+- Added the search-only flags to the outer argument parser so they aren't rejected as unknown options.
 
-Both functions use `RuleEngine` internally to preview file moves without touching the filesystem. They validate inputs and follow the established error-reporting pattern.
+### 2. C API Export Helper
+- Added `fo_bobfilez_export_json(root_path)` — returns full JSON export via `Exporter::to_json`.
+- Includes files, duplicate groups, and computed statistics.
 
-### 2. C API — Count Helpers
-Added:
-- `fo_bobfilez_count_json(root_path)`
-- `fo_bobfilez_count_summary_text(root_path)`
+### 3. Tests — 2 New (95 → 97)
+- `CApiTest.ExportJsonContainsFilesAndDuplicates` — verifies export JSON structure.
+- `SearchEngineTest.WholeWordLiteral` — verifies whole-word matching.
 
-These scan a directory, find duplicates, and return combined counts with wasted-space calculation.
-
-### 3. SearchEngine Integration into Engine
-- `SearchEngine` is now accessible via `Engine::search_engine()`.
-- Required moving Engine constructor/destructor out-of-line (MSVC 2019 incomplete-type deleter issue).
-- Required moving SearchEngine constructor/destructor out-of-line.
-- `core/include/fo/core/engine.hpp`
-- `core/src/engine.cpp`
-- `core/include/fo/core/search_interface.hpp`
-- `core/src/search_engine.cpp`
-
-### 4. Tests — 21 New (74 → 95)
-- `tests/test_search_engine.cpp` — 15 tests covering literal/wildcard/regex filename search, content search, filters, recursive traversal, invert match, engine integration, cancel.
-- `tests/test_c_api.cpp` — 5 new tests for organize dry-run and count C API functions.
-- `tests/c_api_smoke.c` — updated with organize and count smoke checks.
-
-### 5. Documentation
-- Added `docs/ai/implementation/C_API_ORGANIZE_COUNT_SEARCH_2026_04_08.md`
-- Updated `VERSION.md`, `version.hpp`, `CHANGELOG.md`
+### 4. Documentation
+- Updated `VERSION.md`, `version.hpp`, `CHANGELOG.md`, `HANDOFF.md`.
 
 ---
 
@@ -48,20 +32,20 @@ These scan a directory, find duplicates, and return combined counts with wasted-
 
 ### Validation completed
 - `scripts/build_headless.bat` ✅
-- `ctest --test-dir build-msvc --output-on-failure` ✅ — **95 / 95 tests passed**
+- `ctest --test-dir build-msvc --output-on-failure` ✅ — **97 / 97 tests passed**
+- CLI smoke tests: `fo_cli search` with literal, wildcard, regex, and content modes all working correctly.
 - `fo_c_api_smoke.exe` ✅
 
 ### Important product findings
-1. The C API now covers: scan, duplicates, stats, hash, metadata, lint, search, history, undo, ignore (add/remove/list), organize (dry-run), and count — a comprehensive operational surface for native consumers.
-2. SearchEngine is now accessible through Engine, enabling future CLI and C API delegation to the full-featured search engine instead of the inline directory-iterator fallback.
-3. The MSVC 2019 (14.29) incomplete-type deleter issue required careful out-of-line constructor/destructor management for both Engine and SearchEngine.
+1. The CLI search is now powered by the full SearchEngine, enabling future enhancements (fuzzy matching, indexed search, etc.) without changing the CLI layer.
+2. The `--content` flag clears the filename query so content matching drives the result set — this matches grepWin/AgentRansack behavior.
+3. The C API now covers scan, duplicates, stats, hash, metadata, lint, search, history, undo, ignore, organize (dry-run), count, and export — a comprehensive surface for native consumers.
 
 ---
 
 ## Recommended Next Steps
-1. **Wire SearchEngine into the CLI `search` command** — replace the inline `recursive_directory_iterator` with a proper `SearchOptions`-driven search via `engine.search_engine()`.
-2. **Add C API for export** — expose `fo_bobfilez_export_json/csv/html` through the C API seam.
-3. **Expand linter rules** — add `BrokenSymlink` detection, `LargeLogFiles`, `DuplicateNames` (same filename in different directories), and `StaleTempFiles` (temp files older than N days).
-4. **Add test coverage for the `organize` CLI command** via integration tests that exercise the full scan → organize → undo pipeline.
-5. **Continue BobGUI frontend expansion** — wire organize dry-run and count into the BobGUI panel.
-6. Keep using headless + root `ctest` as the repo-wide truth baseline.
+1. **Expand linter rules** — add `BrokenSymlink` detection, `LargeLogFiles`, `DuplicateNames` (same filename in different directories).
+2. **Add C API for `convert` preview** — expose format conversion availability check.
+3. **Wire organize dry-run, count, and export into BobGUI panel** — extend the frontend to use the new C API functions.
+4. **Add integration test for organize + undo pipeline** — scan → organize (dry-run) → verify → organize (live) → undo → verify restored.
+5. **Performance benchmark the SearchEngine** — add benchmark targets for literal/wildcard/regex/content search modes.

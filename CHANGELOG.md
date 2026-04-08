@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.0.74] - 2026-04-08
+
+### Added — The "CLI SearchEngine + C API Export" Release
+
+#### 🔍 CLI search command upgraded to use SearchEngine
+- The `search` command now routes through `engine.search_engine()` with full `SearchOptions` instead of an inline `recursive_directory_iterator`.
+- Added support for: `--wildcard`, `--whole-word`, `--invert`, `--max-results=<N>`, `--ext=<exts>`, `--min-size`, `--max-size`, `--no-recursive`.
+- Content search now works correctly by matching all filenames when `--content` is active and letting content matching drive results.
+- JSON output format for search results now includes `content_matches` count.
+- Help text updated with new search options section.
+
+#### 📤 C API export helper
+- Added `fo_bobfilez_export_json(root_path)` to the C API, returning a full JSON export (files + duplicates + statistics) via `Exporter::to_json`.
+
+#### 🧪 2 new tests (95 → 97)
+- Added `CApiTest.ExportJsonContainsFilesAndDuplicates` test.
+- Added `SearchEngineTest.WholeWordLiteral` test.
+
+### Version
+- Bumped to **6.0.74**.
+
 ## [6.0.73] - 2026-04-08
 
 ### Added — The "C API Organize + Count + SearchEngine Integration" Release

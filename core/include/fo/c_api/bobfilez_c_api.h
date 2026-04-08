@@ -42,6 +42,9 @@ char* fo_bobfilez_organize_dry_run_summary_text(const char* root_path, const cha
 char* fo_bobfilez_count_json(const char* root_path);
 char* fo_bobfilez_count_summary_text(const char* root_path);
 
+// ── Export ───────────────────────────────────────────────────────────
+char* fo_bobfilez_export_json(const char* root_path);
+
 void fo_bobfilez_free_string(char* value);
 
 #ifdef __cplusplus

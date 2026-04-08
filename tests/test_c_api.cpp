@@ -443,3 +443,23 @@ TEST_F(CApiTest, CountSummaryTextIsHumanReadable)
     EXPECT_NE(text.find("Duplicate Groups:"), std::string::npos);
     EXPECT_NE(text.find("Wasted Space:"), std::string::npos);
 }
+
+// ── Export Tests ─────────────────────────────────────────────────────────
+
+TEST_F(CApiTest, ExportJsonContainsFilesAndDuplicates)
+{
+    create_file(test_dir / "export_a.txt", "content");
+    create_file(test_dir / "export_b.txt", "content");
+    create_file(test_dir / "export_c.log", "other");
+
+    char* json = fo_bobfilez_export_json(test_dir.string().c_str());
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(json);
+    fo_bobfilez_free_string(json);
+
+    EXPECT_NE(text.find("export_a.txt"), std::string::npos);
+    EXPECT_NE(text.find("export_b.txt"), std::string::npos);
+    EXPECT_NE(text.find("\"files\""), std::string::npos);
+    EXPECT_NE(text.find("\"duplicate_groups\""), std::string::npos);
+}

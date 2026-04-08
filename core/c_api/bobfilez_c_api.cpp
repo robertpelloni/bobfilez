@@ -1462,6 +1462,46 @@ extern "C" char* fo_bobfilez_count_summary_text(const char* root_path)
     }
 }
 
+// ── Export helper ───────────────────────────────────────────────────
+
+namespace {
+
+std::string make_export_json(const std::vector<fo::core::FileInfo>& files,
+                            const std::vector<fo::core::DuplicateGroup>& groups)
+{
+    auto stats = fo::core::Exporter::compute_stats(files, groups);
+    std::ostringstream out;
+    fo::core::Exporter::to_json(out, files, groups, stats);
+    return out.str();
+}
+
+} // namespace
+
+extern "C" char* fo_bobfilez_export_json(const char* root_path)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        const auto root = parse_root_path(root_path);
+        fo::core::EngineConfig config;
+        config.db_path = ":memory:";
+        config.scanner = "std";
+        config.hasher = "fast64";
+        fo::core::Engine engine(config);
+
+        const auto files = collect_files(root);
+        const auto groups = engine.find_duplicates(files);
+        return duplicate_c_string(make_export_json(files, groups));
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
 extern "C" void fo_bobfilez_free_string(char* value)
 {
     std::free(value);
