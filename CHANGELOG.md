@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.83] - 2026-04-08
+
+### 🎉 **200 TEST MILESTONE**
+
+Added `CApiTest.ExportJsonReportsStatistics` — the 200th test — verifying that
+`fo_bobfilez_export_json()` returns a JSON payload with stats section containing
+file counts and total_files.
+
+### Version
+- Bumped to **6.0.83**.
+
 ## [6.0.82] - 2026-04-08
 
 ### Added — The "Session Healing Hierarchy" Release

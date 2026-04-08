@@ -463,3 +463,20 @@ TEST_F(CApiTest, ExportJsonContainsFilesAndDuplicates)
     EXPECT_NE(text.find("\"files\""), std::string::npos);
     EXPECT_NE(text.find("\"duplicate_groups\""), std::string::npos);
 }
+
+TEST_F(CApiTest, ExportJsonReportsStatistics)
+{
+    create_file(test_dir / "stat_a.txt", "hello");
+    create_file(test_dir / "stat_b.txt", "hello"); // duplicate
+    create_file(test_dir / "stat_c.pdf", "binary pdf content");
+
+    char* json = fo_bobfilez_export_json(test_dir.string().c_str());
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(json);
+    fo_bobfilez_free_string(json);
+
+    // Should contain stats section with file counts
+    EXPECT_NE(text.find("\"stats\""), std::string::npos);
+    EXPECT_NE(text.find("total_files"), std::string::npos);
+}
