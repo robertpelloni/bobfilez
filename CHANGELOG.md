@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.88] - 2026-04-08
+
+### Added — The "HexEditor + MarkdownViewer" Release
+- **HexEditor 28 tests**: DataInterpretation (null/empty/single-byte/uint16/uint32/uint64/float32/float64/hex/binary/GUID/non-printable/unix-timestamp), HexBuffer (open+size, read bytes, read page, out-of-bounds, past-end, write+readback, read-only fail, undo/redo, interpret, empty file, can-undo/redo empty, multiple patches, overlapping patches).
+- **MarkdownViewer 20 tests**: empty string, plain text, headings, bold/italic, code block, link, image, unordered/ordered list, blockquote, word count, reading time, set options, render file, file not found, export HTML, generate template, table, horizontal rule, parse AST.
+- Fixed EnhancedCopyTest flaky segfault — increased TearDown sleep for detached thread cleanup.
+- Test count: 260 → **308 (307 passed, 1 skipped)**.
+
 ## [6.0.87] - 2026-04-08
 
 ### Added — The "ConversionEngine + ClipSearch + ShadowDedup" Release

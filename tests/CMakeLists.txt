@@ -23,6 +23,8 @@ add_executable(fo_tests
     test_vault_manager.cpp
     test_nexus_cleanup.cpp
     test_conversion_clip_dedup.cpp
+    test_hex_editor.cpp
+    test_markdown_viewer.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)

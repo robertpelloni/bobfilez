@@ -33,8 +33,11 @@ protected:
     }
 
     void TearDown() override {
-        // Give detached threads time to finish before cleanup
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // Give detached threads time to finish before cleanup.
+        // EnhancedCopyEngine spawns std::thread(...).detach() in enqueue().
+        // The thread may still be running when the test ends, so we need
+        // enough time for it to complete before temp files are removed.
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (std::filesystem::exists(test_dir)) {
             std::filesystem::remove_all(test_dir);
         }
@@ -129,6 +132,9 @@ TEST_F(EnhancedCopyTest, CancelAllDoesNotCrash) {
     std::string job_id = engine->enqueue({src_dir / "cancel.txt"}, dst_dir, opts);
     EXPECT_NO_THROW(engine->cancel_all());
     (void)job_id;
+
+    // Wait for detached worker thread to finish
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
 }
 
 TEST_F(EnhancedCopyTest, ClearFinishedDoesNotCrash) {
