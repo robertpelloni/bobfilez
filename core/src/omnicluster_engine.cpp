@@ -66,11 +66,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnicluster_engine_guard = []() {
     Registry<IOmniClusterEngine>::instance().add("default", []() {
         return std::make_unique<OmniClusterImpl>();
     });
     return true;
 }();
+
+void register_omnicluster_engine() { (void)register_omnicluster_engine_guard; }
 
 } // namespace fo::core

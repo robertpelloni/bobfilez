@@ -77,11 +77,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnisec_engine_guard = []() {
     Registry<IOmniSecEngine>::instance().add("default", []() {
         return std::make_unique<OmniSecEngineImpl>();
     });
     return true;
 }();
+
+void register_omnisec_engine() { (void)register_omnisec_engine_guard; }
 
 } // namespace fo::core

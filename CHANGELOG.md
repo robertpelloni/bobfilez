@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.91] - 2026-04-08
+
+### Fixed — The "Mass MSVC Registration Fix" Release
+- Fixed MSVC static registration for 17 additional providers that were silently stripped by the linker.
+- Added explicit register_*() functions for: OmniGraph, OmniMount, OmniOracle, OmniAudio, OmniClerk, OmniCluster, OmniCrypt, OmniFlow, OmniGit, OmniPeek, OmniSec, OmniShare, OmniTerminal, OmniVerse, OmniVision, NeuralBridge, PerceptualOpenCV.
+- Fixed perceptual_opencv.cpp brace structure for non-OpenCV builds.
+- **Total MSVC registration fixes: 28 providers** across all sessions.
+- All 369 tests passing (1 skipped).
+
 ## [6.0.90] - 2026-04-08
 
 ### Added — The "PII Sentinel + Omni Infrastructure" Release

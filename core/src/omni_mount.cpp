@@ -90,11 +90,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omni_mount_guard = []() {
     Registry<IOmniMount>::instance().add("default", []() {
         return std::make_unique<OmniMountImpl>();
     });
     return true;
 }();
+
+void register_omni_mount() { (void)register_omni_mount_guard; }
 
 } // namespace fo::core

@@ -52,11 +52,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omniterminal_engine_guard = []() {
     Registry<IOmniTerminalEngine>::instance().add("default", []() {
         return std::make_unique<OmniTerminalImpl>();
     });
     return true;
 }();
+
+void register_omniterminal_engine() { (void)register_omniterminal_engine_guard; }
 
 } // namespace fo::core

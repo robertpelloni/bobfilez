@@ -72,11 +72,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnivision_engine_guard = []() {
     Registry<IOmniVisionEngine>::instance().add("default", []() {
         return std::make_unique<OmniVisionEngineImpl>();
     });
     return true;
 }();
+
+void register_omnivision_engine() { (void)register_omnivision_engine_guard; }
 
 } // namespace fo::core

@@ -46,11 +46,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnishare_engine_guard = []() {
     Registry<IOmniShareEngine>::instance().add("default", []() {
         return std::make_unique<OmniShareImpl>();
     });
     return true;
 }();
+
+void register_omnishare_engine() { (void)register_omnishare_engine_guard; }
 
 } // namespace fo::core

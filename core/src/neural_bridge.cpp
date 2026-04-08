@@ -46,11 +46,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_neural_bridge = []() {
     Registry<INeuralBridge>::instance().add("default", []() {
         return std::make_unique<NeuralBridgeImpl>();
     });
     return true;
 }();
+
+void register_neural_bridge() { (void)reg_neural_bridge; }
 
 } // namespace fo::core

@@ -88,11 +88,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omniverse_engine_guard = []() {
     Registry<IOmniVerseEngine>::instance().add("default", []() {
         return std::make_unique<OmniVerseEngineImpl>();
     });
     return true;
 }();
+
+void register_omniverse_engine() { (void)register_omniverse_engine_guard; }
 
 } // namespace fo::core

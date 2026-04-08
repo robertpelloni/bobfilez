@@ -74,11 +74,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnipeek_engine_guard = []() {
     Registry<IOmniPeekEngine>::instance().add("default", []() {
         return std::make_unique<OmniPeekEngineImpl>();
     });
     return true;
 }();
+
+void register_omnipeek_engine() { (void)register_omnipeek_engine_guard; }
 
 } // namespace fo::core

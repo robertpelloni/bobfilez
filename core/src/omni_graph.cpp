@@ -67,11 +67,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omni_graph_guard = []() {
     Registry<IOmniGraph>::instance().add("default", []() {
         return std::make_unique<OmniGraphImpl>();
     });
     return true;
 }();
+
+void register_omni_graph() { (void)register_omni_graph_guard; }
 
 } // namespace fo::core

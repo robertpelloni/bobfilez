@@ -63,11 +63,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omniaudio_engine_guard = []() {
     Registry<IOmniAudioEngine>::instance().add("default", []() {
         return std::make_unique<OmniAudioEngineImpl>();
     });
     return true;
 }();
+
+void register_omniaudio_engine() { (void)register_omniaudio_engine_guard; }
 
 } // namespace fo::core

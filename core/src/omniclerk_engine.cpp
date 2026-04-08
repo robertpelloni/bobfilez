@@ -79,11 +79,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omniclerk_engine_guard = []() {
     Registry<IOmniClerkEngine>::instance().add("default", []() {
         return std::make_unique<OmniClerkImpl>();
     });
     return true;
 }();
+
+void register_omniclerk_engine() { (void)register_omniclerk_engine_guard; }
 
 } // namespace fo::core

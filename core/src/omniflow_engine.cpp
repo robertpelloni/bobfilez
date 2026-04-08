@@ -75,11 +75,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omniflow_engine_guard = []() {
     Registry<IOmniFlowEngine>::instance().add("default", []() {
         return std::make_unique<OmniFlowEngineImpl>();
     });
     return true;
 }();
+
+void register_omniflow_engine() { (void)register_omniflow_engine_guard; }
 
 } // namespace fo::core

@@ -173,3 +173,15 @@ namespace {
 #endif // FO_HAVE_OPENCV
 
 } // namespace fo::core
+
+// Always provide the registration function
+#ifdef FO_HAVE_OPENCV
+namespace fo::core {
+static bool reg_perceptual_opencv_guard = true;
+void register_perceptual_opencv() { (void)reg_perceptual_opencv_guard; }
+} // namespace fo::core
+#else
+namespace fo::core {
+void register_perceptual_opencv() {}
+} // namespace fo::core
+#endif

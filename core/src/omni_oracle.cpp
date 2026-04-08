@@ -65,11 +65,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omni_oracle_guard = []() {
     Registry<IOmniOracle>::instance().add("default", []() {
         return std::make_unique<OmniOracleImpl>();
     });
     return true;
 }();
+
+void register_omni_oracle() { (void)register_omni_oracle_guard; }
 
 } // namespace fo::core

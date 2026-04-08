@@ -18,6 +18,23 @@ namespace fo::core {
     void register_time_machine();
     void register_semantic_tagging();
     void register_swarm_engine();
+    void register_neural_bridge();
+    void register_perceptual_opencv();
+    void register_omni_graph();
+    void register_omni_mount();
+    void register_omni_oracle();
+    void register_omniaudio_engine();
+    void register_omniclerk_engine();
+    void register_omnicluster_engine();
+    void register_omnicrypt_engine();
+    void register_omniflow_engine();
+    void register_omnigit_engine();
+    void register_omnipeek_engine();
+    void register_omnisec_engine();
+    void register_omnishare_engine();
+    void register_omniterminal_engine();
+    void register_omniverse_engine();
+    void register_omnivision_engine();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -55,6 +72,25 @@ namespace fo::core {
         register_time_machine();
         register_semantic_tagging();
         register_swarm_engine();
+        register_neural_bridge();
+        register_perceptual_opencv();
+
+        // Omni subsystem registrations
+        register_omni_graph();
+        register_omni_mount();
+        register_omni_oracle();
+        register_omniaudio_engine();
+        register_omniclerk_engine();
+        register_omnicluster_engine();
+        register_omnicrypt_engine();
+        register_omniflow_engine();
+        register_omnigit_engine();
+        register_omnipeek_engine();
+        register_omnisec_engine();
+        register_omnishare_engine();
+        register_omniterminal_engine();
+        register_omniverse_engine();
+        register_omnivision_engine();
         
         register_extended_providers();
     }

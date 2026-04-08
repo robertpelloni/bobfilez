@@ -96,11 +96,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnigit_engine_guard = []() {
     Registry<IOmniGitEngine>::instance().add("default", []() {
         return std::make_unique<OmniGitEngineImpl>();
     });
     return true;
 }();
+
+void register_omnigit_engine() { (void)register_omnigit_engine_guard; }
 
 } // namespace fo::core

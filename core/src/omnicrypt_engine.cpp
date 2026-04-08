@@ -82,11 +82,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool register_omnicrypt_engine_guard = []() {
     Registry<IOmniCryptEngine>::instance().add("default", []() {
         return std::make_unique<OmniCryptEngineImpl>();
     });
     return true;
 }();
+
+void register_omnicrypt_engine() { (void)register_omnicrypt_engine_guard; }
 
 } // namespace fo::core
