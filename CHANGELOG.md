@@ -1,5 +1,31 @@
 # Changelog
 
+## [6.0.82] - 2026-04-08
+
+### Added — The "Session Healing Hierarchy" Release
+
+#### 📋 5 ScanSessionRepository tests
+- Start session returns positive ID
+- End session updates status and scanned count
+- Multiple sessions with different statuses
+- Session duration tracking
+
+#### 🩹 5 SelfHealingEngine tests
+- Registration, start/stop scrub, heal file
+- Empty reports initially, schedule configuration
+
+#### 🗂️ 7 HierarchyEngine tests
+- Registration, propose hierarchy returns valid tree
+- Groups by year, groups by extension
+- Empty input handling, apply hierarchy, granularity setting
+
+#### 🔧 Provider registration fixes
+- Added `register_self_healing_engine()` and `register_hierarchy_engine()`.
+- Fixed MSVC static-init stripping for both components.
+
+### Version
+- Bumped to **6.0.82**.
+
 ## [6.0.81] - 2026-04-08
 
 ### Added — The "TreemapEngine + DataPruner Tests" Release

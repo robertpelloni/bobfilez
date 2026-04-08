@@ -9,6 +9,8 @@ namespace fo::core {
     void register_audit_logger();
     void register_treemap_engine();
     void register_data_pruner();
+    void register_self_healing_engine();
+    void register_hierarchy_engine();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -37,6 +39,8 @@ namespace fo::core {
         register_audit_logger();
         register_treemap_engine();
         register_data_pruner();
+        register_self_healing_engine();
+        register_hierarchy_engine();
         
         register_extended_providers();
     }

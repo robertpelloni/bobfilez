@@ -60,11 +60,13 @@ public:
     void set_granularity(double value) override { granularity_ = value; }
 };
 
-static auto reg = []() {
+static bool reg_hierarchy = []() {
     Registry<IHierarchyEngine>::instance().add("default", []() {
         return std::make_unique<HierarchyEngineImpl>();
     });
     return true;
 }();
+
+void register_hierarchy_engine() { (void)reg_hierarchy; }
 
 } // namespace fo::core

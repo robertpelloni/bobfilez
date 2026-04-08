@@ -36,14 +36,16 @@ public:
         return true;
     }
 
-    void set_schedule_days(int days) override {}
+    void set_schedule_days(int /*days*/) override {}
 };
 
-static auto reg = []() {
+static bool reg_self_healing = []() {
     Registry<ISelfHealingEngine>::instance().add("default", []() {
         return std::make_unique<SelfHealingEngineImpl>();
     });
     return true;
 }();
+
+void register_self_healing_engine() { (void)reg_self_healing; }
 
 } // namespace fo::core
