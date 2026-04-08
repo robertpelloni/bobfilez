@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.0.75] - 2026-04-08
+
+### Added — The "Linter Expansion + Integration Pipeline" Release
+
+#### 🔍 Linter expanded with 4 new detection types
+- `HiddenFile`: Detects dot-prefix and dollar-prefix files (excluding common VCS entries).
+- `DuplicateName`: Detects same filename appearing in multiple directories.
+- `LargeFile`: Flags files exceeding 100 MB threshold with human-readable size reporting.
+- `DeepNesting`: Flags directory trees deeper than 10 levels.
+- Improved temp-file detection: `Thumbs.db`, `.DS_Store`, `desktop.ini` now recognized.
+- Added `lint_type_name` entries for all new types in the C API.
+
+#### 🧪 6 new integration tests (100 → 106)
+- `OrganizeDryRunDoesNotMoveFiles` — verifies RuleEngine dry-run leaves files in place.
+- `OrganizeAndUndoRestoresFiles` — full move → record → undo → verify pipeline.
+- `SearchEngineIntegrationFindsByLiteral` — Engine.search_engine() literal search.
+- `SearchEngineIntegrationContentSearch` — content-only search via SearchEngine.
+- `LinterDetectsIssuesInOrganizedDir` — linter catches empty files, temp files, empty dirs.
+- `ExportCsvContainsHeaders` — CSV export produces valid headers and file entries.
+
+### Version
+- Bumped to **6.0.75**.
+
 ## [6.0.74] - 2026-04-08
 
 ### Added — The "CLI SearchEngine + C API Export" Release
