@@ -549,6 +549,14 @@ std::string lint_type_name(fo::core::LintType type)
             return "BrokenSymlink";
         case fo::core::LintType::TemporaryFile:
             return "TemporaryFile";
+        case fo::core::LintType::HiddenFile:
+            return "HiddenFile";
+        case fo::core::LintType::DuplicateName:
+            return "DuplicateName";
+        case fo::core::LintType::LargeFile:
+            return "LargeFile";
+        case fo::core::LintType::DeepNesting:
+            return "DeepNesting";
     }
 
     return "Unknown";

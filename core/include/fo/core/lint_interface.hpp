@@ -11,7 +11,11 @@ enum class LintType {
     EmptyFile,
     EmptyDirectory,
     BrokenSymlink,
-    TemporaryFile
+    TemporaryFile,
+    HiddenFile,         // Files starting with '.' or '$' that may be system artifacts
+    DuplicateName,      // Same filename exists in multiple directories
+    LargeFile,          // Files exceeding a configurable size threshold
+    DeepNesting,        // Directories nested beyond a threshold
 };
 
 struct LintResult {

@@ -79,3 +79,57 @@ TEST_F(StdLinterTest, DetectsTempFile) {
     }
     EXPECT_TRUE(found);
 }
+
+TEST_F(StdLinterTest, DetectsHiddenFile) {
+    auto linter = Registry<ILinter>::instance().create("std");
+    auto hidden = test_dir / ".hidden_config";
+    std::ofstream(hidden) << "config data";
+    
+    auto results = linter->lint({test_dir});
+    
+    bool found = false;
+    for (const auto& r : results) {
+        if (r.path == hidden && r.type == LintType::HiddenFile) {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+}
+
+TEST_F(StdLinterTest, DetectsDuplicateNames) {
+    auto linter = Registry<ILinter>::instance().create("std");
+    auto sub_a = test_dir / "sub_a";
+    auto sub_b = test_dir / "sub_b";
+    std::filesystem::create_directories(sub_a);
+    std::filesystem::create_directories(sub_b);
+    std::ofstream(sub_a / "readme.txt") << "aaa";
+    std::ofstream(sub_b / "readme.txt") << "bbb";
+    
+    auto results = linter->lint({test_dir});
+    
+    int dup_count = 0;
+    for (const auto& r : results) {
+        if (r.type == LintType::DuplicateName) {
+            dup_count++;
+        }
+    }
+    EXPECT_GE(dup_count, 2); // Both copies should be flagged
+}
+
+TEST_F(StdLinterTest, DetectsThumbsDb) {
+    auto linter = Registry<ILinter>::instance().create("std");
+    auto thumbs = test_dir / "Thumbs.db";
+    std::ofstream(thumbs) << "binary";
+    
+    auto results = linter->lint({test_dir});
+    
+    bool found = false;
+    for (const auto& r : results) {
+        if (r.path == thumbs && r.type == LintType::TemporaryFile) {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+}
