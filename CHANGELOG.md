@@ -1,5 +1,39 @@
 # Changelog
 
+## [6.0.86] - 2026-04-08
+
+### Added — The "Nexus + Vault + AutoCleanup" Release
+
+#### 🔐 8 VaultManager tests
+- Initialize creates vault directory
+- Initialize with pre-existing directory
+- Lock file returns true for existing files
+- Lock file returns false for missing files
+- Unlock file returns true
+- List contents returns empty for fresh vault
+- Lock multiple files in sequence
+- Lock file with nested subdirectory
+
+#### ⏱️ 6 Nexus Master Clock tests
+- Default engine is registered
+- Submit task executes on worker thread
+- Logical tick monotonically increases
+- `now()` returns current system time
+- Report and read performance metrics
+- Acquire and release resource arbitration
+
+#### 🧹 2 AutoCleanupManager tests
+- Run smart purge submits task to Nexus
+- Schedule maintenance does not crash
+
+#### 🔧 Provider registration fixes
+- Added `register_nexus()` to `register_all_providers()`.
+- Fixed MSVC static-init stripping for Nexus.
+- Suppressed unused-parameter warnings in NexusImpl.
+
+### Version
+- Bumped to **6.0.86**.
+
 ## [6.0.85] - 2026-04-08
 
 ### Added — The "Operation Repository" Release

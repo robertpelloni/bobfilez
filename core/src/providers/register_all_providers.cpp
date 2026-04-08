@@ -11,6 +11,7 @@ namespace fo::core {
     void register_data_pruner();
     void register_self_healing_engine();
     void register_hierarchy_engine();
+    void register_nexus();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -41,6 +42,7 @@ namespace fo::core {
         register_data_pruner();
         register_self_healing_engine();
         register_hierarchy_engine();
+        register_nexus();
         
         register_extended_providers();
     }

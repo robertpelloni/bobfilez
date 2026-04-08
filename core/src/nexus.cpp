@@ -132,17 +132,19 @@ public:
         std::cout << "[Nexus] Joining data swarm: " << remote_host << "\n";
     }
 
-    void broadcast_event(const std::string& type, const std::string& data) {
+    void broadcast_event(const std::string& /*type*/, const std::string& /*data*/) {
         // Logic to sync audit ledger entries across nodes
     }
 };
 
 // Register the Nexus
-static auto reg = []() {
+static bool reg_nexus = []() {
     Registry<INexus>::instance().add("default", []() {
         return std::make_unique<NexusImpl>();
     });
     return true;
 }();
+
+void register_nexus() { (void)reg_nexus; }
 
 } // namespace fo::core
