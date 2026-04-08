@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.93] - 2026-04-08
+
+### Added — The "DuplicateFinder + ImageViewer" Release
+- **DuplicateFinder 8 tests**: SizeHashDuplicateFinder name/find/empty/multiple-groups, SizeHashByteDuplicateFinder name/true-duplicates/reject-different, SizeHashEmptyInput.
+- **ImageViewer 7 tests**: ImageInfo/ChannelHistogram/ImageHistogram/ColorAdjustments/SlideshowOptions/ImageFormatSupport struct defaults and field verification.
+- Test count: 395 → **410 (409 passed, 1 skipped)**.
+
 ## [6.0.92] - 2026-04-08
 
 ### Added — The "Omni Matrix + Remote Storage" Release
