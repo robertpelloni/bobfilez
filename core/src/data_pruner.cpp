@@ -89,11 +89,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_pruner = []() {
     Registry<IDataPruner>::instance().add("default", []() {
         return std::make_unique<DataPrunerImpl>();
     });
     return true;
 }();
+
+void register_data_pruner() { (void)reg_pruner; }
 
 } // namespace fo::core

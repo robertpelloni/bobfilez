@@ -75,11 +75,13 @@ public:
     }
 };
 
-static auto reg = []() {
+static bool reg_treemap = []() {
     Registry<ITreemapEngine>::instance().add("default", []() {
         return std::make_unique<TreemapEngineImpl>();
     });
     return true;
 }();
+
+void register_treemap_engine() { (void)reg_treemap; }
 
 } // namespace fo::core

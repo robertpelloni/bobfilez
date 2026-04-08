@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.0.81] - 2026-04-08
+
+### Added — The "TreemapEngine + DataPruner Tests" Release
+
+#### 🗺️ 9 TreemapEngine tests
+- Registration, single/multiple file sizing, subdirectory traversal
+- Max depth limiting, empty directory, non-existent path
+- Layout coordinate calculation, children-within-parent bounds
+
+#### 🗑️ 9 DataPruner tests
+- Registration, temp file detection, incomplete download detection
+- Normal files below threshold, min-confidence filter
+- Custom pruning rules, empty/non-existent directory handling
+- Suggestion field validation (path, reason, confidence, size)
+
+#### 🔧 Provider registration fixes
+- Added `register_treemap_engine()` and `register_data_pruner()` to `register_all_providers()`.
+- Fixed MSVC static-initializer stripping for both components.
+
+### Version
+- Bumped to **6.0.81**.
+
 ## [6.0.80] - 2026-04-08
 
 ### Added — The "Repository Test Suite" Release

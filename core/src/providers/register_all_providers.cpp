@@ -7,6 +7,8 @@ namespace fo::core {
     void register_linter_std();
     void register_file_watcher_native();
     void register_audit_logger();
+    void register_treemap_engine();
+    void register_data_pruner();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -33,6 +35,8 @@ namespace fo::core {
         register_linter_std();
         register_file_watcher_native();
         register_audit_logger();
+        register_treemap_engine();
+        register_data_pruner();
         
         register_extended_providers();
     }
