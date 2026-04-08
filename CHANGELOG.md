@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.94] - 2026-04-08
+
+### Added — The "Cloud + Metadata + Neural" Release
+- **CloudProviderManager 7 tests**: add/remove/overwrite account, multiple accounts, credentials, remove nonexistent safety, get provider returns null.
+- **TinyEXIF Metadata 3 tests**: provider registration, read nonexistent file, read non-image file.
+- **NeuralBridge 5 tests**: creates default bridge, load suite, get status, unload idle models, ModelStatus struct.
+- Test count: 410 → **425 (424 passed, 1 skipped)**.
+- **61 of 73 source files now have test coverage (83.6%)**.
+
 ## [6.0.93] - 2026-04-08
 
 ### Added — The "DuplicateFinder + ImageViewer" Release
