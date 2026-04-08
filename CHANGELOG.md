@@ -1,5 +1,32 @@
 # Changelog
 
+## [6.0.84] - 2026-04-08
+
+### Added — The "Copy Engine + Shadow Sorter" Release
+
+#### 📋 8 EnhancedCopyEngine tests
+- Enqueue copy job (single file copy with verification)
+- Enqueue move job (move with source deletion verification)
+- Enqueue multiple files (3-file batch copy)
+- Copy preserves exact binary content
+- Cancel all jobs (no crash on immediate cancel)
+- Clear finished jobs
+- Get job by ID (no crash after completion)
+- All jobs list (no crash after completion)
+
+#### 🔀 3 ShadowSorterService tests
+- Construction with FileWatcher + RuleEngine + CopyEngine dependencies
+- Start/stop lifecycle with real OS file watcher
+- Service with rules configuration
+
+#### 🔧 Test infrastructure
+- All EnhancedCopyEngine tests use heap-allocated engines to avoid
+  use-after-free from detached worker threads.
+- Added `set_speed_limit` detection (documented but not yet implemented).
+
+### Version
+- Bumped to **6.0.84**.
+
 ## [6.0.83] - 2026-04-08
 
 ### 🎉 **200 TEST MILESTONE**

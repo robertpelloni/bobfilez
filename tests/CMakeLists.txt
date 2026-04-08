@@ -18,6 +18,7 @@ add_executable(fo_tests
     test_repositories.cpp
     test_treemap_pruner.cpp
     test_session_healing_hierarchy.cpp
+    test_shadow_sorter_copy.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
