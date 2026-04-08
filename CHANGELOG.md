@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.0.85] - 2026-04-08
+
+### Added — The "Operation Repository" Release
+
+#### 📋 16 OperationRepository tests
+- Log operation returns valid ID
+- Get all returns logged operations in DESC order
+- Get all respects limit parameter
+- Get all returns empty for fresh DB
+- All 4 operation types (Move/Copy/Delete/Rename) round-trip
+- Get by ID returns correct record with all fields
+- Get by ID returns nullopt for missing
+- Get undoable returns only non-undone completed ops
+- Get undoable excludes failed operations
+- **Real undo for Move** — file physically moves back
+- **Real undo for Copy** — copy physically deleted
+- Undo returns nullopt when nothing to undo
+- Clear old removes records older than N days
+- File size and hash preserved across store/retrieve
+- Undone flag preserved across store/retrieve
+
+### Version
+- Bumped to **6.0.85**.
+
 ## [6.0.84] - 2026-04-08
 
 ### Added — The "Copy Engine + Shadow Sorter" Release
