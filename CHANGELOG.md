@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.96] - 2026-04-08
+
+### Added — The "OmniGraph BFS/Pathfinding" Release
+- **OmniGraph real BFS traversal**: Implemented proper breadth-first search for `get_connected_nodes()` with configurable depth.
+- **OmniGraph shortest path**: Implemented BFS shortest-path algorithm for `find_path()` with edge reconstruction.
+- **4 OmniGraph integration tests**: BFS multi-hop depth control, A→B→C path reconstruction, path-not-found, export topology with pre-seeded data.
+- Test count: 429 → **433 (432 passed, 1 skipped)**.
+
 ## [6.0.95] - 2026-04-08
 
 ### Added — The "C API Export CSV/HTML" Release

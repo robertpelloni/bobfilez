@@ -63,8 +63,63 @@ TEST_F(OmniRegistrationTest, OmniGraphGetConnectedNodes) {
     GraphNode n1; n1.id = "file1"; engine->upsert_node(n1);
     GraphNode n2; n2.id = "file2"; engine->upsert_node(n2);
     engine->add_edge("file1", "file2", "related", 1.0f);
-    // Stub implementation may not store edges
-    EXPECT_NO_THROW(engine->get_connected_nodes("file1"));
+    auto neighbors = engine->get_connected_nodes("file1");
+    EXPECT_EQ(neighbors.size(), 1u);
+    EXPECT_EQ(neighbors[0].id, "file2");
+}
+
+TEST_F(OmniRegistrationTest, OmniGraphBfsMultiHop) {
+    auto engine = Registry<IOmniGraph>::instance().create("default");
+    // Create a chain: A -> B -> C
+    GraphNode a; a.id = "A"; engine->upsert_node(a);
+    GraphNode b; b.id = "B"; engine->upsert_node(b);
+    GraphNode c; c.id = "C"; engine->upsert_node(c);
+    engine->add_edge("A", "B", "link", 1.0f);
+    engine->add_edge("B", "C", "link", 1.0f);
+
+    // Depth 1 from A: only B
+    auto d1 = engine->get_connected_nodes("A", 1);
+    EXPECT_EQ(d1.size(), 1u);
+
+    // Depth 2 from A: B and C
+    auto d2 = engine->get_connected_nodes("A", 2);
+    EXPECT_EQ(d2.size(), 2u);
+}
+
+TEST_F(OmniRegistrationTest, OmniGraphFindPath) {
+    auto engine = Registry<IOmniGraph>::instance().create("default");
+    GraphNode a; a.id = "A"; engine->upsert_node(a);
+    GraphNode b; b.id = "B"; engine->upsert_node(b);
+    GraphNode c; c.id = "C"; engine->upsert_node(c);
+    engine->add_edge("A", "B", "link", 1.0f);
+    engine->add_edge("B", "C", "link", 1.0f);
+
+    auto path = engine->find_path("A", "C");
+    ASSERT_EQ(path.size(), 2u);
+    EXPECT_EQ(path[0].source_id, "A");
+    EXPECT_EQ(path[0].target_id, "B");
+    EXPECT_EQ(path[1].source_id, "B");
+    EXPECT_EQ(path[1].target_id, "C");
+}
+
+TEST_F(OmniRegistrationTest, OmniGraphFindPathNotFound) {
+    auto engine = Registry<IOmniGraph>::instance().create("default");
+    GraphNode a; a.id = "A"; engine->upsert_node(a);
+    GraphNode z; z.id = "Z"; engine->upsert_node(z);
+    auto path = engine->find_path("A", "Z");
+    EXPECT_TRUE(path.empty());
+}
+
+TEST_F(OmniRegistrationTest, OmniGraphExportTopology) {
+    auto engine = Registry<IOmniGraph>::instance().create("default");
+    GraphNode a; a.id = "A"; engine->upsert_node(a);
+    GraphNode b; b.id = "B"; engine->upsert_node(b);
+    engine->add_edge("A", "B", "link", 1.0f);
+
+    auto [nodes, edges] = engine->export_topology();
+    // OmniGraphImpl pre-seeds 7 nodes + 8 edges in its constructor
+    EXPECT_GE(nodes.size(), 9u); // 7 seeded + 2 added
+    EXPECT_GE(edges.size(), 9u); // 8 seeded + 1 added
 }
 
 // ── OmniMount Tests ─────────────────────────────────────────────────────

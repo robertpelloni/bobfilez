@@ -51,13 +51,90 @@ public:
     std::vector<GraphNode> get_connected_nodes(const std::string& node_id, int max_depth) override {
         std::vector<GraphNode> result;
         std::set<std::string> seen;
-        // Simple BFS for connections (omitted for brevity)
+        seen.insert(node_id);
+
+        // BFS traversal
+        std::vector<std::pair<std::string, int>> queue;
+        queue.push_back({node_id, 0});
+
+        size_t front = 0;
+        while (front < queue.size()) {
+            auto [current_id, depth] = queue[front++];
+            if (depth >= max_depth) continue;
+
+            for (const auto& edge : edges_) {
+                std::string neighbor_id;
+                if (edge.source_id == current_id) neighbor_id = edge.target_id;
+                else if (edge.target_id == current_id) neighbor_id = edge.source_id;
+                else continue;
+
+                if (seen.count(neighbor_id)) continue;
+                seen.insert(neighbor_id);
+
+                auto it = nodes_.find(neighbor_id);
+                if (it != nodes_.end()) {
+                    result.push_back(it->second);
+                }
+                queue.push_back({neighbor_id, depth + 1});
+            }
+        }
+
         return result;
     }
 
     std::vector<GraphEdge> find_path(const std::string& start_id, const std::string& end_id) override {
-        // Dijkstra's algorithm (omitted for brevity)
-        return {};
+        // BFS shortest path
+        if (start_id == end_id) return {};
+
+        std::map<std::string, std::string> parent;
+        std::set<std::string> visited;
+        visited.insert(start_id);
+
+        std::vector<std::string> queue;
+        queue.push_back(start_id);
+
+        size_t front = 0;
+        while (front < queue.size()) {
+            std::string current = queue[front++];
+            if (current == end_id) break;
+
+            for (const auto& edge : edges_) {
+                std::string neighbor;
+                if (edge.source_id == current) neighbor = edge.target_id;
+                else if (edge.target_id == current) neighbor = edge.source_id;
+                else continue;
+
+                if (visited.count(neighbor)) continue;
+                visited.insert(neighbor);
+                parent[neighbor] = current;
+                queue.push_back(neighbor);
+            }
+        }
+
+        if (parent.find(end_id) == parent.end()) return {};
+
+        // Reconstruct path
+        std::vector<std::string> path_ids;
+        std::string cur = end_id;
+        while (cur != start_id) {
+            path_ids.push_back(cur);
+            cur = parent[cur];
+        }
+        path_ids.push_back(start_id);
+        std::reverse(path_ids.begin(), path_ids.end());
+
+        // Convert to edges
+        std::vector<GraphEdge> result;
+        for (size_t i = 0; i + 1 < path_ids.size(); ++i) {
+            for (const auto& edge : edges_) {
+                if ((edge.source_id == path_ids[i] && edge.target_id == path_ids[i + 1]) ||
+                    (edge.target_id == path_ids[i] && edge.source_id == path_ids[i + 1])) {
+                    result.push_back(edge);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     std::pair<std::vector<GraphNode>, std::vector<GraphEdge>> export_topology() override {
