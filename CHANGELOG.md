@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.1.1] - 2026-04-08
+
+### Added — The "CLI Flow Command" Release
+- **CLI `flow` command**: `fo flow list` lists all OmniFlow workflows, `fo flow run <id> <path>` executes a workflow on a file.
+- Supports `--format=json` for structured output.
+- Shows workflow status (active/inactive), node count, and connection count.
+- 22 CLI commands total (scan, duplicates, hash, metadata, ocr, similar, vhash, afingerprint, classify, organize, delete-duplicates, rename, stats, lint, export, undo, history, ignore, convert, search, rename-batch, watch, **flow**).
+
 ## [6.1.0] - 2026-04-08
 
 ### Added — The "480-Test Milestone" Release

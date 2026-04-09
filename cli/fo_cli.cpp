@@ -12,6 +12,7 @@
 #include "fo/core/lint_interface.hpp"
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/omniflow_engine_interface.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -100,6 +101,7 @@ static void print_usage() {
               << "  search       Search files by name, content, or AI (semantic search)\n"
               << "  rename-batch Batch rename files using rule chains\n"
               << "  watch        Real-time directory watcher (Shadow Sorter)\n"
+              << "  flow         Manage OmniFlow automation workflows (list, run)\n"
               << "\nSearch Options:\n"
               << "  --content          Search inside file contents\n"
               << "  --regex            Use regex matching\n"
@@ -1893,6 +1895,59 @@ int main(int argc, char** argv) {
                 }
 
                 file_times = std::move(current);
+            }
+
+        } else if (command == "flow") {
+            // ─── Flow Command (OmniFlow Automation) ──────────────────────────
+            // Usage: fo_cli flow list | fo_cli flow run <workflow_id> <payload_path>
+            auto flow_engine = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+            if (!flow_engine) {
+                std::cerr << "Error: OmniFlow engine not available.\n";
+                return 1;
+            }
+
+            if (args.size() < 2 || args[1] == "list") {
+                auto workflows = flow_engine->get_workflows();
+                if (format == "json") {
+                    std::cout << "{\"workflows\": [";
+                    for (size_t i = 0; i < workflows.size(); ++i) {
+                        const auto& wf = workflows[i];
+                        if (i > 0) std::cout << ",";
+                        std::cout << "{\"id\":\"" << wf.id << "\",";
+                        std::cout << "\"name\":\"" << wf.name << "\",";
+                        std::cout << "\"active\":" << (wf.is_active ? "true" : "false") << ",";
+                        std::cout << "\"nodes\":" << wf.nodes.size() << ",";
+                        std::cout << "\"connections\":" << wf.connections.size() << "}";
+                    }
+                    std::cout << "]}";
+                } else {
+                    std::cout << "OmniFlow Workflows:\n";
+                    std::cout << "───────────────────\n";
+                    for (const auto& wf : workflows) {
+                        std::cout << "  [" << (wf.is_active ? "●" : "○") << "] " << wf.id << ": " << wf.name;
+                        std::cout << " (" << wf.nodes.size() << " nodes, " << wf.connections.size() << " connections)\n";
+                    }
+                    if (workflows.empty()) std::cout << "  (no workflows registered)\n";
+                }
+            } else if (args[1] == "run" && args.size() >= 4) {
+                const auto& workflow_id = args[2];
+                const auto& payload = args[3];
+                bool ok = flow_engine->execute_workflow(workflow_id, payload);
+                if (format == "json") {
+                    std::cout << "{\"workflow_id\":\"" << workflow_id << "\",";
+                    std::cout << "\"payload\":\"" << payload << "\",";
+                    std::cout << "\"success\":" << (ok ? "true" : "false") << "}";
+                } else {
+                    if (ok) {
+                        std::cout << "✓ Workflow '" << workflow_id << "' executed successfully on '" << payload << "'\n";
+                    } else {
+                        std::cerr << "✗ Workflow '" << workflow_id << "' execution failed.\n";
+                        return 1;
+                    }
+                }
+            } else {
+                std::cerr << "Usage: fo flow [list|run <id> <path>] [--format=json]\n";
+                return 1;
             }
 
         } else {
