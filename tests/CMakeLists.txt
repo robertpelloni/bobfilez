@@ -31,6 +31,7 @@ add_executable(fo_tests
     test_omni_remote.cpp
     test_dupe_finder_imageviewer.cpp
     test_cloud_metadata_neural.cpp
+    test_archive.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)

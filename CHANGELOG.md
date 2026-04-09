@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.97] - 2026-04-08
+
+### Added — The "Archive Manager" Release
+- **AdvancedArchiveManager 21 tests**: struct validation for ArchiveBrowserEntry (2), ArchiveCreateOptions (2), ArchiveExtractOptions (2), TestResult (2), BenchmarkResult (2), ArchiveInfo (2), plus 9 interface tests for nonexistent archives (browse, test, extract, delete, rename, search, benchmark, info, repair, merge).
+- **Struct zero-initialization fix**: Discovered ArchiveInfo and BenchmarkResult need `{}` initialization (MSVC doesn't zero-init by default).
+- Test count: 433 → **454 (453 passed, 1 skipped)**.
+
 ## [6.0.96] - 2026-04-08
 
 ### Added — The "OmniGraph BFS/Pathfinding" Release
