@@ -340,3 +340,135 @@ TEST_F(OmniFlowTest, FalseBranchExecutes) {
     EXPECT_FALSE(std::filesystem::exists(pdf_dir / "readme.txt"));
     EXPECT_TRUE(std::filesystem::exists(other_dir / "readme.txt"));
 }
+
+// ── IsAudio Filter ────────────────────────────────────────────────────────
+
+TEST_F(OmniFlowTest, FilterIsAudioPasses) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto mp3 = test_dir_ / "song.mp3";
+    create_file(mp3);
+
+    Workflow wf;
+    wf.id = "audio-filter-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsAudio", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("audio-filter-test", mp3));
+    EXPECT_TRUE(std::filesystem::exists(dest_dir_ / "song.mp3"));
+}
+
+TEST_F(OmniFlowTest, FilterIsAudioRejectsPdf) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto pdf = test_dir_ / "doc.pdf";
+    create_file(pdf);
+
+    Workflow wf;
+    wf.id = "audio-reject-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsAudio", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("audio-reject-test", pdf));
+    EXPECT_FALSE(std::filesystem::exists(dest_dir_ / "doc.pdf"));
+}
+
+// ── IsVideo Filter ────────────────────────────────────────────────────────
+
+TEST_F(OmniFlowTest, FilterIsVideoPasses) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto mp4 = test_dir_ / "clip.mp4";
+    create_file(mp4);
+
+    Workflow wf;
+    wf.id = "video-filter-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsVideo", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("video-filter-test", mp4));
+    EXPECT_TRUE(std::filesystem::exists(dest_dir_ / "clip.mp4"));
+}
+
+TEST_F(OmniFlowTest, FilterIsVideoRejectsTxt) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto txt = test_dir_ / "notes.txt";
+    create_file(txt);
+
+    Workflow wf;
+    wf.id = "video-reject-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsVideo", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("video-reject-test", txt));
+    EXPECT_FALSE(std::filesystem::exists(dest_dir_ / "notes.txt"));
+}
+
+// ── IsArchive Filter ──────────────────────────────────────────────────────
+
+TEST_F(OmniFlowTest, FilterIsArchivePasses) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto zip = test_dir_ / "backup.zip";
+    create_file(zip);
+
+    Workflow wf;
+    wf.id = "archive-filter-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsArchive", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("archive-filter-test", zip));
+    EXPECT_TRUE(std::filesystem::exists(dest_dir_ / "backup.zip"));
+}
+
+TEST_F(OmniFlowTest, FilterIsArchiveRejectsPng) {
+    auto engine = Registry<IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(engine, nullptr);
+
+    auto png = test_dir_ / "photo.png";
+    create_file(png);
+
+    Workflow wf;
+    wf.id = "archive-reject-test";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"f1", "Filter.IsArchive", FlowNodeType::Filter, {}});
+    wf.nodes.push_back({"a1", "Action.CopyTo", FlowNodeType::Action, {{"target_dir", dest_dir_.string()}}});
+    wf.connections.push_back({"t1", "out", "f1", "in"});
+    wf.connections.push_back({"f1", "true", "a1", "in"});
+
+    engine->register_workflow(wf);
+    EXPECT_TRUE(engine->execute_workflow("archive-reject-test", png));
+    EXPECT_FALSE(std::filesystem::exists(dest_dir_ / "photo.png"));
+}

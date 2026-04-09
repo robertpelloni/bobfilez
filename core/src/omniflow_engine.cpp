@@ -76,6 +76,21 @@ public:
                 std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                 return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp" || ext == ".webp";
             }
+            if (node.type_name == "Filter.IsAudio") {
+                auto ext = payload.extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                return ext == ".mp3" || ext == ".wav" || ext == ".flac" || ext == ".aac" || ext == ".ogg" || ext == ".wma" || ext == ".m4a";
+            }
+            if (node.type_name == "Filter.IsVideo") {
+                auto ext = payload.extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                return ext == ".mp4" || ext == ".mkv" || ext == ".avi" || ext == ".mov" || ext == ".wmv" || ext == ".flv" || ext == ".webm";
+            }
+            if (node.type_name == "Filter.IsArchive") {
+                auto ext = payload.extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                return ext == ".zip" || ext == ".7z" || ext == ".rar" || ext == ".tar" || ext == ".gz" || ext == ".bz2" || ext == ".xz";
+            }
             if (node.type_name == "Filter.Extension") {
                 auto it = node.config.find("ext");
                 if (it != node.config.end()) {

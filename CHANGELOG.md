@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.1.0] - 2026-04-08
+
+### Added — The "480-Test Milestone" Release
+- **OmniFlow new filters**: `Filter.IsAudio` (.mp3/.wav/.flac/.aac/.ogg/.wma/.m4a), `Filter.IsVideo` (.mp4/.mkv/.avi/.mov/.wmv/.flv/.webm), `Filter.IsArchive` (.zip/.7z/.rar/.tar/.gz/.bz2/.xz).
+- **6 new OmniFlow tests**: IsAudio pass/reject, IsVideo pass/reject, IsArchive pass/reject.
+- **C API Flow**: `fo_bobfilez_flow_list_json()` and `fo_bobfilez_flow_execute()` for native workflow management.
+- **480 tests milestone** — the first minor-version bump reflecting the significant new OmniFlow automation capabilities.
+- Test count: 474 → **480 (479 passed, 1 skipped)**.
+
 ## [6.0.99] - 2026-04-08
 
 ### Added — The "C API Flow" Release
