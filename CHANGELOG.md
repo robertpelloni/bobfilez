@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.98] - 2026-04-08
+
+### Added — The "OmniFlow Real Automation" Release
+- **OmniFlow engine rewritten from stub to real implementation**: BFS-based workflow execution with proper node graph traversal.
+- **Built-in filters**: `Filter.IsPDF`, `Filter.IsImage`, `Filter.Extension`, `Filter.IsLarger`.
+- **Built-in conditions**: `Condition.TextContains`, `Condition.AlwaysTrue`.
+- **Built-in actions**: `Action.MoveTo`, `Action.CopyTo`, `Action.Delete`.
+- **True/False branch routing**: Filters/conditions route to different branches based on evaluation.
+- **17 OmniFlow tests**: struct validation, engine creation, preloaded workflows, PDF/image/text filtering, move/copy/delete actions, multi-step pipelines, false-branch routing, daemon start.
+- Test count: 454 → **471 (470 passed, 1 skipped)**.
+
 ## [6.0.97] - 2026-04-08
 
 ### Added — The "Archive Manager" Release
