@@ -7,6 +7,7 @@
 #include <fo/core/search_interface.hpp>
 #include <fo/core/omniflow_engine_interface.hpp>
 #include <fo/core/self_healing_interface.hpp>
+#include <fo/core/export.hpp>
 
 #include <QMetaObject>
 #include <QString>
@@ -200,6 +201,26 @@ DemoWindow::DemoWindow(QWidget *parent) : QWidget(parent)
     scrubLayout->addWidget(scrubResultLbl, 1);
     connect(scrubBtn, SIGNAL(clicked()), this, SLOT(onScrubClicked()));
     tabs->addTab(scrubTab, QString::fromLatin1("Scrub"));
+
+    // Export tab
+    exportTab = new QWidget();
+    exportTab = createTextTabRow(
+        exportPathEdit, exportBtn, exportResultLbl,
+        QString::fromLatin1("Directory to export..."),
+        QString::fromLatin1("Export"));
+    exportResultLbl->setText(QString::fromLatin1("No export run yet."));
+    connect(exportBtn, SIGNAL(clicked()), this, SLOT(onExportClicked()));
+    tabs->addTab(exportTab, QString::fromLatin1("Export"));
+
+    // Count tab
+    countTab = new QWidget();
+    countTab = createTextTabRow(
+        countPathEdit, countBtn, countResultLbl,
+        QString::fromLatin1("Directory to count..."),
+        QString::fromLatin1("Count"));
+    countResultLbl->setText(QString::fromLatin1("No count run yet."));
+    connect(countBtn, SIGNAL(clicked()), this, SLOT(onCountClicked()));
+    tabs->addTab(countTab, QString::fromLatin1("Count"));
 }
 
 void DemoWindow::onScanClicked()
@@ -715,4 +736,86 @@ void DemoWindow::applyScrubResult(const QString &result)
 {
     scrubResultLbl->setText(result);
     scrubBtn->setEnabled(true);
+}
+
+// ── Export Tab ───────────────────────────────────────────────────────────────
+
+void DemoWindow::onExportClicked()
+{
+    const QString path = exportPathEdit->text();
+    if (path.isEmpty()) return;
+    runExport(path);
+}
+
+void DemoWindow::runExport(const QString &dir)
+{
+    exportBtn->setEnabled(false);
+    exportResultLbl->setText(QString::fromLatin1("Exporting: ") + dir + QString::fromLatin1(" ..."));
+    const std::string stdDir = dir.toStdString();
+    std::thread([this, stdDir]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            auto files = engine.scan({std::filesystem::u8path(stdDir)}, {}, false, false);
+            auto groups = engine.find_duplicates(files);
+            auto stats = fo::core::Exporter::compute_stats(files, groups);
+            std::ostringstream out;
+            fo::core::Exporter::to_json(out, files, groups, stats);
+            resultStr = QString::fromLatin1("Export Complete\n\n%1 files, %2 duplicate groups\n\nFirst 500 chars:\n")
+                .arg(files.size()).arg(groups.size())
+                + QString::fromStdString(out.str()).left(500);
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyExportResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyExportResult(const QString &result)
+{
+    exportResultLbl->setText(result);
+    exportBtn->setEnabled(true);
+}
+
+// ── Count Tab ────────────────────────────────────────────────────────────────
+
+void DemoWindow::onCountClicked()
+{
+    const QString path = countPathEdit->text();
+    if (path.isEmpty()) return;
+    runCount(path);
+}
+
+void DemoWindow::runCount(const QString &dir)
+{
+    countBtn->setEnabled(false);
+    countResultLbl->setText(QString::fromLatin1("Counting: ") + dir + QString::fromLatin1(" ..."));
+    const std::string stdDir = dir.toStdString();
+    std::thread([this, stdDir]() {
+        QString resultStr;
+        try {
+            auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+            if (!scanner) throw std::runtime_error("Scanner not found");
+            auto files = scanner->scan({std::filesystem::u8path(stdDir)}, {}, false);
+            std::uintmax_t total_size = 0;
+            int file_count = 0, dir_count = 0;
+            for (const auto &f : files) {
+                if (f.is_dir) { ++dir_count; continue; }
+                ++file_count; total_size += f.size;
+            }
+            resultStr = QString::fromLatin1("File Count\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n"
+                "Files: %1\nDirectories: %2\nTotal Size: %3 MB\n").arg(file_count).arg(dir_count).arg(total_size / (1024*1024));
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyCountResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyCountResult(const QString &result)
+{
+    countResultLbl->setText(result);
+    countBtn->setEnabled(true);
 }

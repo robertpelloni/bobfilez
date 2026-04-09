@@ -362,6 +362,33 @@ function App() {
   var searchContent = _React$useState44[0];
   var setSearchContent = _React$useState44[1];
 
+  // Export state
+  var _React$useState45 = useState('json');
+  var exportFormat = _React$useState45[0];
+  var setExportFormat = _React$useState45[1];
+  var _React$useState46 = useState('');
+  var exportResult = _React$useState46[0];
+  var setExportResult = _React$useState46[1];
+
+  // Organize state
+  var _React$useState47 = useState('');
+  var organizePath = _React$useState47[0];
+  var setOrganizePath = _React$useState47[1];
+  var _React$useState48 = useState('{extension}/{year}/{name}');
+  var organizeRule = _React$useState48[0];
+  var setOrganizeRule = _React$useState48[1];
+  var _React$useState49 = useState('');
+  var organizeResult = _React$useState49[0];
+  var setOrganizeResult = _React$useState49[1];
+
+  // Count state
+  var _React$useState50 = useState('');
+  var countPath = _React$useState50[0];
+  var setCountPath = _React$useState50[1];
+  var _React$useState51 = useState(null);
+  var countResult = _React$useState51[0];
+  var setCountResult = _React$useState51[1];
+
   useEffect(function () {
     fetch('/api/health')
       .then(function (response) {
@@ -1147,6 +1174,133 @@ function App() {
     ]);
   }
 
+  function renderExport() {
+    return React.createElement(Card, { title: 'Export' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Export scan results as JSON, CSV, or HTML.'),
+      React.createElement('form', {
+        key: 'form',
+        onSubmit: function (e) {
+          e.preventDefault();
+          setExportResult('Exporting...');
+          var format = exportFormat;
+          fetch('/api/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paths: [exportResult.split('\n')[0] || '.'], format: format })
+          }).then(function (r) { return r.text(); }).then(function (text) {
+            setExportResult(text);
+          }).catch(function (err) { setExportResult('Error: ' + err.message); });
+        },
+        style: { display: 'grid', gap: 12, gridTemplateColumns: '2fr 1fr auto', marginBottom: 16 }
+      }, [
+        React.createElement('input', {
+          key: 'path',
+          type: 'text',
+          value: exportPath,
+          onChange: function (e) { setExportPath(e.target.value); },
+          placeholder: 'Directory to scan and export...',
+          style: textInputStyle()
+        }),
+        React.createElement('select', {
+          key: 'format',
+          value: exportFormat,
+          onChange: function (e) { setExportFormat(e.target.value); },
+          style: Object.assign({}, textInputStyle(), { cursor: 'pointer' })
+        }, [
+          React.createElement('option', { key: 'json', value: 'json' }, 'JSON'),
+          React.createElement('option', { key: 'csv', value: 'csv' }, 'CSV'),
+          React.createElement('option', { key: 'html', value: 'html' }, 'HTML')
+        ]),
+        React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Export')
+      ]),
+      exportResult && exportResult !== 'Exporting...' ? React.createElement('pre', { key: 'result', style: { background: '#0f172a', borderRadius: 8, padding: 16, color: '#e2e8f0', overflow: 'auto', maxHeight: 400, fontSize: 12 } }, exportResult) : null
+    ]);
+  }
+
+  function renderOrganize() {
+    return React.createElement(Card, { title: 'Organize (Dry Run)' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Preview file organization moves without executing them.'),
+      React.createElement('form', {
+        key: 'form',
+        onSubmit: function (e) {
+          e.preventDefault();
+          setOrganizeResult('Analyzing...');
+          fetch('/api/organize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paths: [organizePath], rule: organizeRule })
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            setOrganizeResult(JSON.stringify(data, null, 2));
+          }).catch(function (err) { setOrganizeResult('Error: ' + err.message); });
+        },
+        style: { display: 'grid', gap: 12, gridTemplateColumns: '2fr 2fr auto', marginBottom: 16 }
+      }, [
+        React.createElement('input', {
+          key: 'path',
+          type: 'text',
+          value: organizePath,
+          onChange: function (e) { setOrganizePath(e.target.value); },
+          placeholder: 'Directory to organize...',
+          style: textInputStyle()
+        }),
+        React.createElement('input', {
+          key: 'rule',
+          type: 'text',
+          value: organizeRule,
+          onChange: function (e) { setOrganizeRule(e.target.value); },
+          placeholder: '{extension}/{year}/{name}',
+          style: textInputStyle()
+        }),
+        React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Preview')
+      ]),
+      organizeResult ? React.createElement('pre', { key: 'result', style: { background: '#0f172a', borderRadius: 8, padding: 16, color: '#e2e8f0', overflow: 'auto', maxHeight: 300, fontSize: 13 } }, organizeResult) : null
+    ]);
+  }
+
+  function renderCount() {
+    return React.createElement(Card, { title: 'File Count' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Quick file, duplicate, and wasted-space count.'),
+      React.createElement('form', {
+        key: 'form',
+        onSubmit: function (e) {
+          e.preventDefault();
+          fetch('/api/count', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paths: [countPath] })
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            setCountResult(data);
+          }).catch(function () { setCountResult(null); });
+        },
+        style: { display: 'grid', gap: 12, gridTemplateColumns: '3fr auto', marginBottom: 16 }
+      }, [
+        React.createElement('input', {
+          key: 'path',
+          type: 'text',
+          value: countPath,
+          onChange: function (e) { setCountPath(e.target.value); },
+          placeholder: 'Directory to count...',
+          style: textInputStyle()
+        }),
+        React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Count')
+      ]),
+      countResult !== null ? React.createElement('div', { key: 'stats', style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 } }, [
+        React.createElement('div', { key: 'files', style: { background: '#1e293b', borderRadius: 12, padding: 20, textAlign: 'center' } }, [
+          React.createElement('div', { style: { fontSize: 32, fontWeight: 700, color: '#7dd3fc' } }, countResult.count || '0'),
+          React.createElement('div', { style: { color: '#94a3b8', marginTop: 4 } }, 'Files')
+        ]),
+        React.createElement('div', { key: 'dupes', style: { background: '#1e293b', borderRadius: 12, padding: 20, textAlign: 'center' } }, [
+          React.createElement('div', { style: { fontSize: 32, fontWeight: 700, color: '#f472b6' } }, countResult.duplicates || '0'),
+          React.createElement('div', { style: { color: '#94a3b8', marginTop: 4 } }, 'Duplicate Groups')
+        ]),
+        React.createElement('div', { key: 'waste', style: { background: '#1e293b', borderRadius: 12, padding: 20, textAlign: 'center' } }, [
+          React.createElement('div', { style: { fontSize: 32, fontWeight: 700, color: '#fbbf24' } }, countResult.wasted_mb || '0'),
+          React.createElement('div', { style: { color: '#94a3b8', marginTop: 4 } }, 'Wasted MB')
+        ])
+      ]) : React.createElement('div', { key: 'empty', style: { color: '#64748b' } }, 'Enter a path and click Count.')
+    ]);
+  }
+
   if (activeTab === 'scanner') {
     content = renderScan();
   } else if (activeTab === 'duplicates') {
@@ -1167,6 +1321,12 @@ function App() {
     content = renderFlow();
   } else if (activeTab === 'scrub') {
     content = renderScrub();
+  } else if (activeTab === 'export') {
+    content = renderExport();
+  } else if (activeTab === 'organize') {
+    content = renderOrganize();
+  } else if (activeTab === 'count') {
+    content = renderCount();
   } else if (activeTab === 'search') {
     content = renderSearch();
   }
@@ -1197,7 +1357,10 @@ function App() {
       React.createElement('button', { key: 'ignore', onClick: function () { setActiveTab('ignore'); }, style: buttonStyle(activeTab === 'ignore') }, 'Ignore Rules'),
       React.createElement('button', { key: 'search', onClick: function () { setActiveTab('search'); }, style: buttonStyle(activeTab === 'search') }, 'Search'),
       React.createElement('button', { key: 'flow', onClick: function () { setActiveTab('flow'); }, style: buttonStyle(activeTab === 'flow') }, 'Flow'),
-      React.createElement('button', { key: 'scrub', onClick: function () { setActiveTab('scrub'); }, style: buttonStyle(activeTab === 'scrub') }, 'Scrub')
+      React.createElement('button', { key: 'scrub', onClick: function () { setActiveTab('scrub'); }, style: buttonStyle(activeTab === 'scrub') }, 'Scrub'),
+      React.createElement('button', { key: 'export', onClick: function () { setActiveTab('export'); }, style: buttonStyle(activeTab === 'export') }, 'Export'),
+      React.createElement('button', { key: 'organize', onClick: function () { setActiveTab('organize'); }, style: buttonStyle(activeTab === 'organize') }, 'Organize'),
+      React.createElement('button', { key: 'count', onClick: function () { setActiveTab('count'); }, style: buttonStyle(activeTab === 'count') }, 'Count')
     ]),
     content
   ]));

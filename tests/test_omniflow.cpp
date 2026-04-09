@@ -612,3 +612,4 @@ TEST_F(OmniFlowTest, SaveAndLoadRoundTripPreservesConfig) {
     }
     EXPECT_TRUE(found);
 }
+

@@ -85,6 +85,22 @@ public:
     void applyScrubResult(const QString &result);
     CS_SLOT_2(applyScrubResult)
 
+    CS_SLOT_1(Private)
+    void onExportClicked();
+    CS_SLOT_2(onExportClicked)
+
+    CS_SLOT_1(Private)
+    void onCountClicked();
+    CS_SLOT_2(onCountClicked)
+
+    CS_SLOT_1(Private)
+    void applyExportResult(const QString &result);
+    CS_SLOT_2(applyExportResult)
+
+    CS_SLOT_1(Private)
+    void applyCountResult(const QString &result);
+    CS_SLOT_2(applyCountResult)
+
 private:
     void runScan(const QString &dir);
     void runDuplicates(const QString &dir);
@@ -95,6 +111,8 @@ private:
     void runSearch(const QString &query, const QString &dir);
     void runFlowList();
     void runScrub(const QString &dir);
+    void runExport(const QString &dir);
+    void runCount(const QString &dir);
 
     QTabWidget *tabs;
 
@@ -142,4 +160,14 @@ private:
     QLineEdit *scrubPathEdit;
     QPushButton *scrubBtn;
     QLabel *scrubResultLbl;
+
+    QWidget *exportTab;
+    QLineEdit *exportPathEdit;
+    QPushButton *exportBtn;
+    QLabel *exportResultLbl;
+
+    QWidget *countTab;
+    QLineEdit *countPathEdit;
+    QPushButton *countBtn;
+    QLabel *countResultLbl;
 };

@@ -20,6 +20,7 @@
 #include <fo/core/search_interface.hpp>
 #include <fo/core/omniflow_engine_interface.hpp>
 #include <fo/core/self_healing_interface.hpp>
+#include <fo/core/export.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -805,6 +806,78 @@ int main(int argc, char *argv[])
     tabs->addTab(new SearchTab(tabs), QStringLiteral("Search"));
     tabs->addTab(new FlowTab(tabs), QStringLiteral("Flow"));
     tabs->addTab(new ScrubTab(tabs), QStringLiteral("Scrub"));
+
+    // Export Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *top = new QHBoxLayout();
+        auto *pathEdit = new QLineEdit(tab);
+        pathEdit->setPlaceholderText(QStringLiteral("Directory to export..."));
+        auto *btn = new QPushButton(QStringLiteral("Export JSON"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        top->addWidget(pathEdit, 3);
+        top->addWidget(btn);
+        layout->addLayout(top);
+        layout->addWidget(output);
+        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+            btn->setEnabled(false);
+            const std::string dir = pathEdit->text().toStdString();
+            std::thread([btn, dir, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    auto files = engine.scan({std::filesystem::u8path(dir)}, {}, false, false);
+                    auto groups = engine.find_duplicates(files);
+                    auto stats = fo::core::Exporter::compute_stats(files, groups);
+                    std::ostringstream out;
+                    fo::core::Exporter::to_json(out, files, groups, stats);
+                    result = QStringLiteral("Exported %1 files, %2 groups\n\n").arg(files.size()).arg(groups.size())
+                        + QString::fromStdString(out.str()).left(2000);
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(btn, [btn]() { btn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("Export"));
+    }
+
+    // Count Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *top = new QHBoxLayout();
+        auto *pathEdit = new QLineEdit(tab);
+        pathEdit->setPlaceholderText(QStringLiteral("Directory to count..."));
+        auto *btn = new QPushButton(QStringLiteral("Count"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        top->addWidget(pathEdit, 3);
+        top->addWidget(btn);
+        layout->addLayout(top);
+        layout->addWidget(output);
+        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+            btn->setEnabled(false);
+            const std::string dir = pathEdit->text().toStdString();
+            std::thread([btn, dir, output]() {
+                QString result;
+                try {
+                    auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("std");
+                    if (!scanner) throw std::runtime_error("Scanner not found");
+                    auto files = scanner->scan({std::filesystem::u8path(dir)}, {}, false);
+                    std::uintmax_t total_size = 0; int fc = 0, dc = 0;
+                    for (const auto &f : files) { if (f.is_dir) { ++dc; continue; } ++fc; total_size += f.size; }
+                    result = QStringLiteral("Files: %1\nDirectories: %2\nTotal Size: %3 MB").arg(fc).arg(dc).arg(total_size/(1024*1024));
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(btn, [btn]() { btn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("Count"));
+    }
 
     window.setCentralWidget(tabs);
     window.show();

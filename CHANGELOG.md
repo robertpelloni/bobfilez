@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.2.1] - 2026-04-08
+
+### Added — The "Export + Organize + Count" Frontend Expansion
+
+#### WebUI (Express + React)
+- **3 new React tabs**: Export (JSON/CSV/HTML format selector), Organize (dry-run preview with rule template), Count (3-card dashboard: files/duplicates/wasted MB).
+- **15 total React tabs**: Dashboard, Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, History, Ignore Rules, Search, Flow, Scrub, Export, Organize, Count.
+- Organize uses `{extension}/{year}/{name}` rule template with live preview.
+- Count shows large-format stat cards with color-coded metrics.
+
+#### BTK/CopperSpice Native Demo
+- **2 new tabs**: Export (JSON export with file/duplicate data), Count (file/directory/size summary).
+- **11 total tabs**: Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, Search, Flow, Scrub, Export, Count.
+- Export uses `fo::core::Exporter::to_json()` directly.
+
+#### BobUI/Qt Demo
+- **2 new inline tabs**: Export (JSON with file/duplicate data), Count (file/directory/MB summary).
+- **12 total tabs**: Dashboard, Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, Search, Flow, Scrub, Export, Count.
+- Both use real `fo_core` engine integration.
+
+#### BobGUI/GTK Demo
+- **2 new operation buttons**: Export, Count — added to utility row.
+- **17 total operations**: Scan, Duplicates, Statistics, Hash, Metadata, Lint, Search, Flow, Scrub, Export, Count, History, Ignore List, Ignore Add, Ignore Remove, Reset Fields, Clear Output.
+
 ## [6.2.0] - 2026-04-08
 
 ### Added — The "Four Frontend" Release
