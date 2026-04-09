@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.4] - 2026-04-08
+
+### Added — The "CLI Scrub Command" Release
+- **CLI `scrub` command**: `fo scrub <path>` establishes file integrity baselines using fast64 hashing.
+- Supports `--format=json` for structured output.
+- 23 CLI commands total (scan, duplicates, hash, metadata, ocr, similar, vhash, afingerprint, classify, organize, delete-duplicates, rename, stats, lint, export, undo, history, ignore, convert, search, rename-batch, watch, flow, **scrub**).
+
 ## [6.1.3] - 2026-04-08
 
 ### Added — The "Self-Healing Real Verification" Release
