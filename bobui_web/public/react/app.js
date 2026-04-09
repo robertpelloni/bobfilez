@@ -329,6 +329,39 @@ function App() {
   var isSavingIgnore = _React$useState35[0];
   var setIsSavingIgnore = _React$useState35[1];
 
+  // Flow state
+  var _React$useState36 = useState([]);
+  var flowWorkflows = _React$useState36[0];
+  var setFlowWorkflows = _React$useState36[1];
+  var _React$useState37 = useState('');
+  var flowPayload = _React$useState37[0];
+  var setFlowPayload = _React$useState37[1];
+  var _React$useState38 = useState('');
+  var flowResult = _React$useState38[0];
+  var setFlowResult = _React$useState38[1];
+
+  // Scrub state
+  var _React$useState39 = useState('');
+  var scrubPath = _React$useState39[0];
+  var setScrubPath = _React$useState39[1];
+  var _React$useState40 = useState('');
+  var scrubResult = _React$useState40[0];
+  var setScrubResult = _React$useState40[1];
+
+  // Search state
+  var _React$useState41 = useState('');
+  var searchQuery = _React$useState41[0];
+  var setSearchQuery = _React$useState41[1];
+  var _React$useState42 = useState('');
+  var searchPath = _React$useState42[0];
+  var setSearchPath = _React$useState42[1];
+  var _React$useState43 = useState([]);
+  var searchResults = _React$useState43[0];
+  var setSearchResults = _React$useState43[1];
+  var _React$useState44 = useState(false);
+  var searchContent = _React$useState44[0];
+  var setSearchContent = _React$useState44[1];
+
   useEffect(function () {
     fetch('/api/health')
       .then(function (response) {
@@ -975,6 +1008,145 @@ function App() {
   }
 
   var content = renderDashboard();
+  function renderFlow() {
+    return React.createElement(Card, { title: 'OmniFlow Automation' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Manage and execute visual automation workflows.'),
+      React.createElement('div', { key: 'run', style: { display: 'grid', gap: 12, gridTemplateColumns: '2fr auto', marginBottom: 16 } }, [
+        React.createElement('input', {
+          key: 'payload',
+          type: 'text',
+          value: flowPayload,
+          onChange: function (e) { setFlowPayload(e.target.value); },
+          placeholder: 'Payload file path...',
+          style: textInputStyle()
+        }),
+        React.createElement('button', {
+          onClick: function () {
+            fetch('/api/flow/list').then(function (r) { return r.json(); }).then(function (data) {
+              setFlowWorkflows(data.workflows || []);
+            });
+          },
+          style: buttonStyle()
+        }, 'Refresh Workflows')
+      ]),
+      React.createElement('div', { key: 'wflist', style: { marginBottom: 16 } },
+        flowWorkflows.length === 0
+          ? React.createElement('div', { style: { color: '#64748b' } }, 'Click Refresh to load workflows.')
+          : flowWorkflows.map(function (wf, i) {
+              return React.createElement('div', {
+                key: i,
+                style: { background: '#1e293b', borderRadius: 8, padding: 12, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
+              }, [
+                React.createElement('div', { key: 'info' }, [
+                  React.createElement('span', { style: { fontWeight: 600 } }, wf.name || wf.id),
+                  React.createElement('span', { style: { color: '#64748b', marginLeft: 12 } }, wf.nodes + ' nodes, ' + wf.connections + ' connections'),
+                  wf.active ? React.createElement('span', { style: { color: '#22c55e', marginLeft: 8 } }, '\u25CF Active') : null
+                ]),
+                React.createElement('button', {
+                  key: 'run',
+                  onClick: function () {
+                    fetch('/api/flow/run', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ workflow_id: wf.id, payload_path: flowPayload })
+                    }).then(function (r) { return r.json(); }).then(function (data) {
+                      setFlowResult(JSON.stringify(data, null, 2));
+                    });
+                  },
+                  style: Object.assign({}, buttonStyle(), { background: '#7c3aed' }),
+                  disabled: !flowPayload
+                }, 'Run')
+              ]);
+            })
+      ),
+      flowResult ? React.createElement('pre', { key: 'result', style: { background: '#0f172a', borderRadius: 8, padding: 16, color: '#e2e8f0', overflow: 'auto', maxHeight: 300, fontSize: 13 } }, flowResult) : null
+    ]);
+  }
+
+  function renderScrub() {
+    return React.createElement(Card, { title: 'Integrity Scrub' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Establish file integrity baselines and detect silent corruption.'),
+      React.createElement('form', {
+        key: 'form',
+        onSubmit: function (e) {
+          e.preventDefault();
+          setScrubResult('Scanning...');
+          fetch('/api/scrub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paths: [scrubPath] })
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            setScrubResult(JSON.stringify(data, null, 2));
+          }).catch(function (err) { setScrubResult('Error: ' + err.message); });
+        },
+        style: { display: 'grid', gap: 12, gridTemplateColumns: '3fr auto', marginBottom: 16 }
+      }, [
+        React.createElement('input', {
+          key: 'path',
+          type: 'text',
+          value: scrubPath,
+          onChange: function (e) { setScrubPath(e.target.value); },
+          placeholder: 'Directory path to scrub...',
+          style: textInputStyle()
+        }),
+        React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Scrub')
+      ]),
+      scrubResult ? React.createElement('pre', { key: 'result', style: { background: '#0f172a', borderRadius: 8, padding: 16, color: '#e2e8f0', overflow: 'auto', maxHeight: 300, fontSize: 13 } }, scrubResult) : null
+    ]);
+  }
+
+  function renderSearch() {
+    return React.createElement(Card, { title: 'Search' }, [
+      React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Search files by name or content.'),
+      React.createElement('form', {
+        key: 'form',
+        onSubmit: function (e) {
+          e.preventDefault();
+          fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchQuery, paths: searchPath ? [searchPath] : [], content: searchContent })
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            setSearchResults(data.results || data.files || []);
+          }).catch(function () { setSearchResults([]); });
+        },
+        style: { display: 'grid', gap: 12, gridTemplateColumns: '2fr 2fr auto', marginBottom: 16 }
+      }, [
+        React.createElement('input', {
+          key: 'query',
+          type: 'text',
+          value: searchQuery,
+          onChange: function (e) { setSearchQuery(e.target.value); },
+          placeholder: 'Search query...',
+          style: textInputStyle()
+        }),
+        React.createElement('input', {
+          key: 'path',
+          type: 'text',
+          value: searchPath,
+          onChange: function (e) { setSearchPath(e.target.value); },
+          placeholder: 'Search root (optional)',
+          style: textInputStyle()
+        }),
+        React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Search')
+      ]),
+      React.createElement('label', { key: 'content-toggle', style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, color: '#94a3b8', cursor: 'pointer' } }, [
+        React.createElement('input', { type: 'checkbox', checked: searchContent, onChange: function (e) { setSearchContent(e.target.checked); } }),
+        'Search file contents'
+      ]),
+      searchResults.length > 0
+        ? React.createElement('div', { key: 'results', style: { maxHeight: 300, overflow: 'auto' } },
+            searchResults.map(function (r, i) {
+              return React.createElement('div', {
+                key: i,
+                style: { background: '#1e293b', borderRadius: 6, padding: 10, marginBottom: 4, fontFamily: 'monospace', fontSize: 13 }
+              }, typeof r === 'string' ? r : (r.path || r.uri || JSON.stringify(r)));
+            })
+          )
+        : React.createElement('div', { key: 'empty', style: { color: '#64748b' } }, 'No results yet.')
+    ]);
+  }
+
   if (activeTab === 'scanner') {
     content = renderScan();
   } else if (activeTab === 'duplicates') {
@@ -991,6 +1163,12 @@ function App() {
     content = renderHistory();
   } else if (activeTab === 'ignore') {
     content = renderIgnoreRules();
+  } else if (activeTab === 'flow') {
+    content = renderFlow();
+  } else if (activeTab === 'scrub') {
+    content = renderScrub();
+  } else if (activeTab === 'search') {
+    content = renderSearch();
   }
 
   return React.createElement('div', {
@@ -1016,7 +1194,10 @@ function App() {
       React.createElement('button', { key: 'metadata', onClick: function () { setActiveTab('metadata'); }, style: buttonStyle(activeTab === 'metadata') }, 'Metadata'),
       React.createElement('button', { key: 'lint', onClick: function () { setActiveTab('lint'); }, style: buttonStyle(activeTab === 'lint') }, 'Lint'),
       React.createElement('button', { key: 'history', onClick: function () { setActiveTab('history'); }, style: buttonStyle(activeTab === 'history') }, 'History'),
-      React.createElement('button', { key: 'ignore', onClick: function () { setActiveTab('ignore'); }, style: buttonStyle(activeTab === 'ignore') }, 'Ignore Rules')
+      React.createElement('button', { key: 'ignore', onClick: function () { setActiveTab('ignore'); }, style: buttonStyle(activeTab === 'ignore') }, 'Ignore Rules'),
+      React.createElement('button', { key: 'search', onClick: function () { setActiveTab('search'); }, style: buttonStyle(activeTab === 'search') }, 'Search'),
+      React.createElement('button', { key: 'flow', onClick: function () { setActiveTab('flow'); }, style: buttonStyle(activeTab === 'flow') }, 'Flow'),
+      React.createElement('button', { key: 'scrub', onClick: function () { setActiveTab('scrub'); }, style: buttonStyle(activeTab === 'scrub') }, 'Scrub')
     ]),
     content
   ]));

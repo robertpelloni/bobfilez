@@ -11,6 +11,7 @@
 typedef struct {
     BobguiWidget *window;
     BobguiWidget *path_entry;
+    BobguiWidget *search_query_entry;
     BobguiWidget *ignore_pattern_entry;
     BobguiWidget *ignore_reason_entry;
     BobguiWidget *status_label;
@@ -172,6 +173,12 @@ reset_ignore_fields (AppState *state,
 }
 
 static gboolean
+operation_uses_search_query (const gchar *operation)
+{
+    return g_strcmp0 (operation, "search") == 0;
+}
+
+static gboolean
 operation_uses_ignore_pattern (const gchar *operation)
 {
     return g_strcmp0 (operation, "ignore-add") == 0
@@ -182,8 +189,10 @@ static gboolean
 operation_requires_path (const gchar *operation)
 {
     return g_strcmp0 (operation, "history") != 0
+        && g_strcmp0 (operation, "undo") != 0
         && g_strcmp0 (operation, "ignore") != 0
-        && !operation_uses_ignore_pattern (operation);
+        && !operation_uses_ignore_pattern (operation)
+        && !operation_uses_search_query (operation);
 }
 
 static gboolean
@@ -197,6 +206,9 @@ operation_display_name (const gchar *operation)
 {
     if (g_strcmp0 (operation, "scan") == 0) {
         return "Scan";
+    }
+    if (g_strcmp0 (operation, "search") == 0) {
+        return "Search";
     }
     if (g_strcmp0 (operation, "duplicates") == 0) {
         return "Duplicate Analysis";
@@ -216,6 +228,9 @@ operation_display_name (const gchar *operation)
     if (g_strcmp0 (operation, "history") == 0) {
         return "History Listing";
     }
+    if (g_strcmp0 (operation, "undo") == 0) {
+        return "Undo Last Action";
+    }
     if (g_strcmp0 (operation, "ignore") == 0) {
         return "Ignore Rule Listing";
     }
@@ -224,6 +239,15 @@ operation_display_name (const gchar *operation)
     }
     if (g_strcmp0 (operation, "ignore-remove") == 0) {
         return "Ignore Rule Remove";
+    }
+    if (g_strcmp0 (operation, "search") == 0) {
+        return "Search";
+    }
+    if (g_strcmp0 (operation, "flow") == 0) {
+        return "Flow Automation";
+    }
+    if (g_strcmp0 (operation, "scrub") == 0) {
+        return "Integrity Scrub";
     }
 
     return operation;
@@ -234,6 +258,9 @@ operation_target_heading (const gchar *operation)
 {
     if (operation_requires_path (operation)) {
         return "Path";
+    }
+    if (operation_uses_search_query (operation)) {
+        return "Search Query";
     }
     if (operation_uses_ignore_pattern (operation)) {
         return "Ignore Pattern";
@@ -246,7 +273,7 @@ static const gchar *
 operation_target_label (const gchar *operation,
                         const gchar *target_path)
 {
-    if (operation_requires_path (operation) || operation_uses_ignore_pattern (operation)) {
+    if (operation_requires_path (operation) || operation_uses_ignore_pattern (operation) || operation_uses_search_query (operation)) {
         return target_path;
     }
 
@@ -436,6 +463,9 @@ build_cli_argv (const gchar *cli_path,
     if (g_strcmp0 (operation, "ignore") == 0) {
         g_ptr_array_add (args, g_strdup ("ignore"));
         g_ptr_array_add (args, g_strdup ("--format=json"));
+    } else if (g_strcmp0 (operation, "undo") == 0) {
+        g_ptr_array_add (args, g_strdup ("undo"));
+        g_ptr_array_add (args, g_strdup ("--format=json"));
     } else if (g_strcmp0 (operation, "ignore-add") == 0) {
         g_ptr_array_add (args, g_strdup ("ignore"));
         g_ptr_array_add (args, g_strdup ("add"));
@@ -446,6 +476,12 @@ build_cli_argv (const gchar *cli_path,
     } else if (g_strcmp0 (operation, "ignore-remove") == 0) {
         g_ptr_array_add (args, g_strdup ("ignore"));
         g_ptr_array_add (args, g_strdup ("remove"));
+        g_ptr_array_add (args, g_strdup (target_path));
+    } else if (g_strcmp0 (operation, "search") == 0) {
+        g_ptr_array_add (args, g_strdup ("search"));
+        if (extra_text != NULL && extra_text[0] != '\0') {
+            g_ptr_array_add (args, g_strdup (extra_text));
+        }
         g_ptr_array_add (args, g_strdup (target_path));
     } else {
         g_ptr_array_add (args, g_strdup (operation));
@@ -458,7 +494,7 @@ build_cli_argv (const gchar *cli_path,
         }
     }
 
-    if (operation_requires_path (operation)) {
+    if (operation_requires_path (operation) && g_strcmp0 (operation, "search") != 0) {
         g_ptr_array_add (args, g_strdup (target_path));
     }
 
@@ -858,6 +894,9 @@ activate (BobguiApplication *app,
     BobguiWidget *hash_button;
     BobguiWidget *metadata_button;
     BobguiWidget *lint_button;
+    BobguiWidget *search_button;
+    BobguiWidget *flow_button;
+    BobguiWidget *scrub_button;
     BobguiWidget *history_button;
     BobguiWidget *ignore_button;
     BobguiWidget *ignore_add_button;
@@ -912,6 +951,9 @@ activate (BobguiApplication *app,
     hash_button = bobgui_button_new_with_label ("Hash");
     metadata_button = bobgui_button_new_with_label ("Metadata");
     lint_button = bobgui_button_new_with_label ("Lint");
+    search_button = bobgui_button_new_with_label ("Search");
+    flow_button = bobgui_button_new_with_label ("Flow");
+    scrub_button = bobgui_button_new_with_label ("Scrub");
     history_button = bobgui_button_new_with_label ("List History");
     ignore_button = bobgui_button_new_with_label ("List Ignore Rules");
     ignore_add_button = bobgui_button_new_with_label ("Add Ignore Rule");
@@ -925,11 +967,14 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (filesystem_row), hash_button);
     bobgui_box_append (BOBGUI_BOX (filesystem_row), metadata_button);
     bobgui_box_append (BOBGUI_BOX (filesystem_row), lint_button);
+    bobgui_box_append (BOBGUI_BOX (filesystem_row), search_button);
     bobgui_box_append (BOBGUI_BOX (operations_row), history_button);
     bobgui_box_append (BOBGUI_BOX (operations_row), ignore_button);
     bobgui_box_append (BOBGUI_BOX (operations_row), ignore_add_button);
     bobgui_box_append (BOBGUI_BOX (operations_row), ignore_remove_button);
+    bobgui_box_append (BOBGUI_BOX (operations_row), flow_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), reset_ignore_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), scrub_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), clear_output_button);
 
     status_label = bobgui_label_new ("Ready.");
@@ -1031,6 +1076,24 @@ activate (BobguiApplication *app,
                            "clicked",
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "lint"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (search_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "search"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (flow_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "flow"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (scrub_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "scrub"),
                            (GClosureNotify) g_free,
                            0);
     g_signal_connect_data (history_button,

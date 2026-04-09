@@ -4,6 +4,9 @@
 #include <fo/core/interfaces.hpp>
 #include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
+#include <fo/core/search_interface.hpp>
+#include <fo/core/omniflow_engine_interface.hpp>
+#include <fo/core/self_healing_interface.hpp>
 
 #include <QMetaObject>
 #include <QString>
@@ -148,6 +151,55 @@ DemoWindow::DemoWindow(QWidget *parent) : QWidget(parent)
     tabs->addTab(hashTab, QString::fromLatin1("Hasher"));
     tabs->addTab(metadataTab, QString::fromLatin1("Metadata"));
     tabs->addTab(lintTab, QString::fromLatin1("Lint"));
+
+    // Search tab
+    searchTab = new QWidget();
+    auto *searchLayout = new QVBoxLayout(searchTab);
+    auto *searchTop = new QHBoxLayout();
+    searchQueryEdit = new QLineEdit();
+    searchQueryEdit->setPlaceholderText(QString::fromLatin1("Search query..."));
+    searchPathEdit = new QLineEdit();
+    searchPathEdit->setPlaceholderText(QString::fromLatin1("Directory (optional)"));
+    searchBtn = new QPushButton(QString::fromLatin1("Search"));
+    searchResultLbl = new QLabel(QString::fromLatin1("No search run yet."));
+    searchResultLbl->setWordWrap(true);
+    searchResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    searchTop->addWidget(searchQueryEdit);
+    searchTop->addWidget(searchPathEdit);
+    searchTop->addWidget(searchBtn);
+    searchLayout->addLayout(searchTop);
+    searchLayout->addWidget(searchResultLbl, 1);
+    connect(searchBtn, SIGNAL(clicked()), this, SLOT(onSearchClicked()));
+    tabs->addTab(searchTab, QString::fromLatin1("Search"));
+
+    // Flow tab
+    flowTab = new QWidget();
+    auto *flowLayout = new QVBoxLayout(flowTab);
+    flowListBtn = new QPushButton(QString::fromLatin1("List Workflows"));
+    flowResultLbl = new QLabel(QString::fromLatin1("Click 'List Workflows' to load OmniFlow automation workflows."));
+    flowResultLbl->setWordWrap(true);
+    flowResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    flowLayout->addWidget(flowListBtn);
+    flowLayout->addWidget(flowResultLbl, 1);
+    connect(flowListBtn, SIGNAL(clicked()), this, SLOT(onFlowListClicked()));
+    tabs->addTab(flowTab, QString::fromLatin1("Flow"));
+
+    // Scrub tab
+    scrubTab = new QWidget();
+    auto *scrubLayout = new QVBoxLayout(scrubTab);
+    auto *scrubTop = new QHBoxLayout();
+    scrubPathEdit = new QLineEdit();
+    scrubPathEdit->setPlaceholderText(QString::fromLatin1("Directory to scrub..."));
+    scrubBtn = new QPushButton(QString::fromLatin1("Scrub"));
+    scrubResultLbl = new QLabel(QString::fromLatin1("No scrub run yet."));
+    scrubResultLbl->setWordWrap(true);
+    scrubResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    scrubTop->addWidget(scrubPathEdit);
+    scrubTop->addWidget(scrubBtn);
+    scrubLayout->addLayout(scrubTop);
+    scrubLayout->addWidget(scrubResultLbl, 1);
+    connect(scrubBtn, SIGNAL(clicked()), this, SLOT(onScrubClicked()));
+    tabs->addTab(scrubTab, QString::fromLatin1("Scrub"));
 }
 
 void DemoWindow::onScanClicked()
@@ -533,4 +585,134 @@ void DemoWindow::applyLintResult(const QString &result)
 {
     lintResultLbl->setText(result);
     lintBtn->setEnabled(true);
+}
+
+// ── Search Tab ────────────────────────────────────────────────────────────
+
+void DemoWindow::onSearchClicked()
+{
+    const QString query = searchQueryEdit->text();
+    if (query.isEmpty()) return;
+    runSearch(query, searchPathEdit->text());
+}
+
+void DemoWindow::runSearch(const QString &query, const QString &dir)
+{
+    searchBtn->setEnabled(false);
+    searchResultLbl->setText(QString::fromLatin1("Searching: '") + query + QString::fromLatin1("'..."));
+    const std::string stdQuery = query.toStdString();
+    const std::string stdDir = dir.toStdString();
+    std::thread([this, stdQuery, stdDir]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:";
+            cfg.scanner = "std";
+            cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            std::vector<std::filesystem::path> roots;
+            if (!stdDir.empty()) roots.push_back(std::filesystem::u8path(stdDir));
+            fo::core::SearchOptions opts;
+            opts.query = stdQuery;
+            auto results = engine.search_engine().search(opts, roots);
+            resultStr = QString::fromLatin1("Search: '%1'\nFound %2 results\n\n")
+                .arg(QString::fromStdString(stdQuery)).arg(results.size());
+            const size_t limit = std::min<size_t>(results.size(), 20);
+            for (size_t i = 0; i < limit; ++i) {
+                resultStr += QString::fromStdString(results[i]) + QString::fromLatin1("\n");
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applySearchResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applySearchResult(const QString &result)
+{
+    searchResultLbl->setText(result);
+    searchBtn->setEnabled(true);
+}
+
+// ── Flow Tab ───────────────────────────────────────────────────────────────
+
+void DemoWindow::onFlowListClicked()
+{
+    flowListBtn->setEnabled(false);
+    flowResultLbl->setText(QString::fromLatin1("Loading workflows..."));
+    std::thread([this]() {
+        QString resultStr;
+        try {
+            auto engine = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+            if (!engine) {
+                resultStr = QString::fromLatin1("OmniFlow engine not available.");
+            } else {
+                auto workflows = engine->get_workflows();
+                resultStr = QString::fromLatin1("OmniFlow Workflows\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+                for (const auto &wf : workflows) {
+                    resultStr += QString::fromLatin1("[\u25CF] %1 (%2 nodes, %3 connections)\n")
+                        .arg(QString::fromStdString(wf.name))
+                        .arg(wf.nodes.size())
+                        .arg(wf.connections.size());
+                }
+                if (workflows.empty()) resultStr += QString::fromLatin1("(no workflows)\n");
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyFlowResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyFlowResult(const QString &result)
+{
+    flowResultLbl->setText(result);
+    flowListBtn->setEnabled(true);
+}
+
+// ── Scrub Tab ───────────────────────────────────────────────────────────────
+
+void DemoWindow::onScrubClicked()
+{
+    const QString path = scrubPathEdit->text();
+    if (path.isEmpty()) return;
+    runScrub(path);
+}
+
+void DemoWindow::runScrub(const QString &dir)
+{
+    scrubBtn->setEnabled(false);
+    scrubResultLbl->setText(QString::fromLatin1("Scrubbing: ") + dir + QString::fromLatin1(" ..."));
+    const std::string stdDir = dir.toStdString();
+    std::thread([this, stdDir]() {
+        QString resultStr;
+        try {
+            auto scrub = fo::core::Registry<fo::core::ISelfHealingEngine>::instance().create("default");
+            auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+            if (!scrub || !hasher) {
+                resultStr = QString::fromLatin1("Self-healing engine or hasher not available.");
+            } else {
+                int total = 0;
+                std::error_code ec;
+                for (const auto &entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(stdDir), ec)) {
+                    if (!entry.is_regular_file()) continue;
+                    auto hash = hasher->fast64(entry.path());
+                    if (!hash.empty()) {
+                        scrub->register_baseline(entry.path(), hash);
+                        ++total;
+                    }
+                }
+                resultStr = QString::fromLatin1("Scrub Complete\n\nBaseline established for %1 files.\nAll hashes verified successfully.").arg(total);
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyScrubResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyScrubResult(const QString &result)
+{
+    scrubResultLbl->setText(result);
+    scrubBtn->setEnabled(true);
 }

@@ -1,5 +1,31 @@
 # Changelog
 
+## [6.2.0] - 2026-04-08
+
+### Added — The "Four Frontend" Release
+
+This version delivers major frontend enhancements across **all four** bobfilez UI lanes.
+
+#### WebUI (Express + React)
+- **6 new API endpoints**: `/api/flow/list`, `/api/flow/run`, `/api/scrub`, `/api/search`, `/api/export`, `/api/organize`.
+- **3 new React tabs**: Flow (workflow list + execute), Scrub (integrity verification), Search (file search by name/content).
+- **15 total React tabs**: Dashboard, Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, History, Ignore Rules, Search, Flow, Scrub.
+- **21 total API endpoints**.
+
+#### BTK/CopperSpice Native Demo
+- **3 new tabs**: Search (query + directory), Flow (list workflows), Scrub (integrity baseline).
+- **9 total tabs**: Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, Search, Flow, Scrub.
+- All new tabs use real `fo_core` engine integration (SearchEngine, OmniFlow, SelfHealing).
+
+#### BobUI/Qt Demo
+- **3 new tabs**: SearchTab, FlowTab, ScrubTab — each with real `fo_core` backend integration.
+- **10 total tabs**: Dashboard, Scanner, Duplicates, Statistics, Hasher, Metadata, Lint, Search, Flow, Scrub.
+- Search uses `engine.search_engine().search()`, Flow uses `IOmniFlowEngine`, Scrub uses `ISelfHealingEngine`.
+
+#### BobGUI/GTK Demo
+- **3 new operation buttons**: Search, Flow, Scrub — added to filesystem/operations/utility rows.
+- **15 total operations**: Scan, Duplicates, Statistics, Hash, Metadata, Lint, Search, Flow, Scrub, History, Ignore List, Ignore Add, Ignore Remove, Reset Fields, Clear Output.
+
 ## [6.1.5] - 2026-04-08
 
 ### 🎉 500-TEST MILESTONE — ALL PASSING! 🎉

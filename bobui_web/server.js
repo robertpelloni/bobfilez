@@ -195,6 +195,73 @@ app.get('/api/audit', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Flow (OmniFlow Automation) ──
+app.get('/api/flow/list', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['flow', 'list', '--format=json']);
+        res.json(JSON.parse(stdout || '{"workflows":[]}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/flow/run', async (req, res) => {
+    try {
+        const { workflow_id, payload_path } = req.body;
+        if (!workflow_id || !payload_path) return res.status(400).json({ error: 'workflow_id and payload_path required' });
+        const { stdout } = await runCli(['flow', 'run', workflow_id, payload_path, '--format=json']);
+        res.json(JSON.parse(stdout || '{"success":false}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Scrub (Integrity Verification) ──
+app.post('/api/scrub', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['scrub', '--format=json', ...paths]);
+        res.json(JSON.parse(stdout || '{"scanned":0,"corrupted":0}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Search ──
+app.post('/api/search', async (req, res) => {
+    try {
+        const { query, paths = [], content = false, regex = false } = req.body;
+        if (!query) return res.status(400).json({ error: 'No query provided' });
+        const args = ['search', query, '--format=json'];
+        if (content) args.push('--content');
+        if (regex) args.push('--regex');
+        args.push(...paths);
+        const { stdout } = await runCli(args);
+        res.json(JSON.parse(stdout || '{"results":[]}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Export ──
+app.post('/api/export', async (req, res) => {
+    try {
+        const { paths = [], format = 'json' } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const args = ['export', `--format=${format}`, ...paths];
+        const { stdout } = await runCli(args);
+        if (format === 'json') {
+            res.json(JSON.parse(stdout || '{}'));
+        } else {
+            res.type(format === 'csv' ? 'text/csv' : 'text/html').send(stdout);
+        }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Organize (Dry Run) ──
+app.post('/api/organize', async (req, res) => {
+    try {
+        const { paths = [], rule = '' } = req.body;
+        if (!paths.length || !rule) return res.status(400).json({ error: 'paths and rule required' });
+        const args = ['organize', '--rule', rule, '--dry-run', '--format=json', ...paths];
+        const { stdout } = await runCli(args);
+        res.json(JSON.parse(stdout || '{"moves":[]}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 const PORT = process.env.PORT || 3131;
 app.listen(PORT, () => {
     console.log(`\n  ╔══════════════════════════════════════╗`);

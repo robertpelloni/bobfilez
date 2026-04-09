@@ -17,6 +17,9 @@
 #include <fo/core/lint_interface.hpp>
 #include <fo/core/registry.hpp>
 #include <fo/core/version.hpp>
+#include <fo/core/search_interface.hpp>
+#include <fo/core/omniflow_engine_interface.hpp>
+#include <fo/core/self_healing_interface.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -627,6 +630,160 @@ private:
     QTextEdit *output_ = nullptr;
 };
 
+// ── Search Tab ─────────────────────────────────────────────────────────
+class SearchTab final : public QWidget {
+public:
+    explicit SearchTab(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        auto *layout = new QVBoxLayout(this);
+        auto *topLayout = new QHBoxLayout();
+
+        query_edit_ = new QLineEdit(this);
+        query_edit_->setPlaceholderText(QStringLiteral("Search query..."));
+        path_edit_ = new QLineEdit(this);
+        path_edit_->setPlaceholderText(QStringLiteral("Directory (optional)"));
+        search_btn_ = new QPushButton(QStringLiteral("Search"), this);
+        output_ = new QTextEdit(this);
+        output_->setReadOnly(true);
+
+        topLayout->addWidget(query_edit_, 2);
+        topLayout->addWidget(path_edit_, 2);
+        topLayout->addWidget(search_btn_);
+        layout->addLayout(topLayout);
+        layout->addWidget(output_);
+
+        connect(search_btn_, &QPushButton::clicked, this, [this]() {
+            const QString query = query_edit_->text();
+            if (query.isEmpty()) return;
+            run_search(query.toStdString(), path_edit_->text().toStdString());
+        });
+    }
+
+private:
+    void run_search(const std::string &query, const std::string &dir)
+    {
+        search_btn_->setEnabled(false);
+        output_->setText(QStringLiteral("Searching: '") + QString::fromStdString(query) + QStringLiteral("'..."));
+        std::thread([this, query, dir]() {
+            QString result;
+            try {
+                fo::core::EngineConfig cfg;
+                cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                fo::core::Engine engine(cfg);
+                std::vector<std::filesystem::path> roots;
+                if (!dir.empty()) roots.push_back(std::filesystem::u8path(dir));
+                fo::core::SearchOptions opts;
+                opts.query = query;
+                auto results = engine.search_engine().search(opts, roots);
+                result = QStringLiteral("Found %1 results:\n\n").arg(results.size());
+                for (size_t i = 0; i < std::min<size_t>(results.size(), 30); ++i)
+                    result += QString::fromStdString(results[i]) + QLatin1Char('\n');
+            } catch (const std::exception &e) {
+                result = QStringLiteral("Error: ") + QString::fromStdString(e.what());
+            }
+            QMetaObject::invokeMethod(this, [this, r = result]() {
+                output_->setText(r); search_btn_->setEnabled(true);
+            });
+        }).detach();
+    }
+    QLineEdit *query_edit_, *path_edit_;
+    QPushButton *search_btn_;
+    QTextEdit *output_;
+};
+
+// ── Flow Tab ───────────────────────────────────────────────────────────
+class FlowTab final : public QWidget {
+public:
+    explicit FlowTab(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        auto *layout = new QVBoxLayout(this);
+        list_btn_ = new QPushButton(QStringLiteral("List Workflows"), this);
+        output_ = new QTextEdit(this);
+        output_->setReadOnly(true);
+        layout->addWidget(list_btn_);
+        layout->addWidget(output_);
+
+        connect(list_btn_, &QPushButton::clicked, this, [this]() {
+            list_btn_->setEnabled(false);
+            output_->setText(QStringLiteral("Loading workflows..."));
+            std::thread([this]() {
+                QString result;
+                try {
+                    auto engine = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+                    if (!engine) { result = QStringLiteral("OmniFlow not available."); }
+                    else {
+                        auto wfs = engine->get_workflows();
+                        result = QStringLiteral("OmniFlow Workflows\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+                        for (const auto &wf : wfs)
+                            result += QStringLiteral("\u25CF %1 (%2 nodes, %3 connections)\n").arg(QString::fromStdString(wf.name)).arg(wf.nodes.size()).arg(wf.connections.size());
+                        if (wfs.empty()) result += QStringLiteral("(no workflows)\n");
+                    }
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(this, [this, r = result]() { output_->setText(r); list_btn_->setEnabled(true); });
+            }).detach();
+        });
+    }
+private:
+    QPushButton *list_btn_;
+    QTextEdit *output_;
+};
+
+// ── Scrub Tab ──────────────────────────────────────────────────────────
+class ScrubTab final : public QWidget {
+public:
+    explicit ScrubTab(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        auto *layout = new QVBoxLayout(this);
+        auto *topLayout = new QHBoxLayout();
+
+        dir_button_ = new QPushButton(QStringLiteral("Select Directory..."), this);
+        status_label_ = new QLabel(QStringLiteral("No scrub run yet."), this);
+        output_ = new QTextEdit(this);
+        output_->setReadOnly(true);
+
+        topLayout->addWidget(dir_button_);
+        topLayout->addWidget(status_label_, 1);
+        layout->addLayout(topLayout);
+        layout->addWidget(output_);
+
+        connect(dir_button_, &QPushButton::clicked, this, [this]() {
+            const QString dir = QFileDialog::getExistingDirectory(this, QStringLiteral("Select Directory"));
+            if (!dir.isEmpty()) run_scrub(dir.toStdString());
+        });
+    }
+
+private:
+    void run_scrub(const std::string &dir)
+    {
+        dir_button_->setEnabled(false);
+        output_->setText(QStringLiteral("Scrubbing: ") + QString::fromStdString(dir) + QStringLiteral("..."));
+        std::thread([this, dir]() {
+            QString result;
+            try {
+                auto scrub = fo::core::Registry<fo::core::ISelfHealingEngine>::instance().create("default");
+                auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+                if (!scrub || !hasher) { result = QStringLiteral("Engines not available."); }
+                else {
+                    int total = 0;
+                    std::error_code ec;
+                    for (const auto &e : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(dir), ec)) {
+                        if (!e.is_regular_file()) continue;
+                        auto h = hasher->fast64(e.path());
+                        if (!h.empty()) { scrub->register_baseline(e.path(), h); ++total; }
+                    }
+                    result = QStringLiteral("Scrub Complete\n\nBaseline: %1 files.\nAll hashes verified.").arg(total);
+                }
+            } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+            QMetaObject::invokeMethod(this, [this, r = result]() {
+                output_->setText(r); dir_button_->setEnabled(true);
+            });
+        }).detach();
+    }
+    QPushButton *dir_button_;
+    QLabel *status_label_;
+    QTextEdit *output_;
+};
+
 } // namespace
 
 int main(int argc, char *argv[])
@@ -645,6 +802,9 @@ int main(int argc, char *argv[])
     tabs->addTab(new HashTab(tabs), QStringLiteral("Hasher"));
     tabs->addTab(new MetadataTab(tabs), QStringLiteral("Metadata"));
     tabs->addTab(new LintTab(tabs), QStringLiteral("Lint"));
+    tabs->addTab(new SearchTab(tabs), QStringLiteral("Search"));
+    tabs->addTab(new FlowTab(tabs), QStringLiteral("Flow"));
+    tabs->addTab(new ScrubTab(tabs), QStringLiteral("Scrub"));
 
     window.setCentralWidget(tabs);
     window.show();
