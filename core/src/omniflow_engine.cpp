@@ -124,6 +124,9 @@ public:
             if (node.type_name == "Condition.AlwaysTrue") {
                 return true;
             }
+            if (node.type_name == "Condition.AlwaysFalse") {
+                return false;
+            }
         }
 
         // Default: allow passthrough
@@ -158,6 +161,17 @@ public:
             try {
                 return std::filesystem::remove(payload);
             } catch (...) { return false; }
+        }
+        if (node.type_name == "Action.Rename") {
+            auto it = node.config.find("pattern");
+            if (it != node.config.end() && std::filesystem::exists(payload)) {
+                try {
+                    auto new_name = it->second;
+                    auto dest = payload.parent_path() / new_name;
+                    std::filesystem::rename(payload, dest);
+                    return true;
+                } catch (...) { return false; }
+            }
         }
         // Actions that don't need file I/O just succeed
         return true;

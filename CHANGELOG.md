@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.1.5] - 2026-04-08
+
+### 🎉 500-TEST MILESTONE — ALL PASSING! 🎉
+
+### Added
+- **OmniFlow new actions**: `Action.Rename` (rename files via pattern), `Condition.AlwaysFalse` (explicit block).
+- **8 new OmniFlow tests**: Rename action, AlwaysTrue/AlwaysFalse conditions, no-trigger returns false, Extension filter pass/reject, IsLarger filter pass/reject.
+- **500 tests milestone** — 257 tests added since v6.0.86, doubling the test suite.
+- Test count: 492 → **500 (499 passed, 1 skipped)**.
+
+### Marathon Session Summary (v6.0.86 → v6.1.5)
+- **+257 tests** across 25+ versions (243 → 500, 2x growth)
+- **Real implementations**: OmniFlow BFS executor, OmniGraph pathfinding, SelfHealing verification, OmniFlow SQLite persistence
+- **8 filter/condition/action types**: IsPDF, IsImage, IsAudio, IsVideo, IsArchive, Extension, IsLarger, TextContains
+- **C API extensions**: export CSV/HTML, flow list/execute
+- **CLI commands**: flow, scrub (23 total)
+- **28 MSVC provider registration fixes**
+
 ## [6.1.4] - 2026-04-08
 
 ### Added — The "CLI Scrub Command" Release
