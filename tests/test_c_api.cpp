@@ -524,3 +524,28 @@ TEST_F(CApiTest, ExportHtmlEmptyDirectory)
     ASSERT_NE(html, nullptr) << fo_bobfilez_last_error();
     fo_bobfilez_free_string(html);
 }
+
+TEST_F(CApiTest, FlowListJsonReturnsWorkflows)
+{
+    char* json = fo_bobfilez_flow_list_json();
+    ASSERT_NE(json, nullptr) << fo_bobfilez_last_error();
+
+    std::string text(json);
+    fo_bobfilez_free_string(json);
+
+    EXPECT_NE(text.find("\"workflows\":"), std::string::npos);
+    // Preloaded workflow should appear
+    EXPECT_NE(text.find("flow-01"), std::string::npos);
+}
+
+TEST_F(CApiTest, FlowExecuteReturnsZeroForNonexistent)
+{
+    int result = fo_bobfilez_flow_execute("nonexistent", "/no/file.txt");
+    EXPECT_EQ(result, 0);
+}
+
+TEST_F(CApiTest, FlowExecuteNullParamsReturnsZero)
+{
+    EXPECT_EQ(fo_bobfilez_flow_execute(nullptr, "/some/file"), 0);
+    EXPECT_EQ(fo_bobfilez_flow_execute("flow-01", nullptr), 0);
+}

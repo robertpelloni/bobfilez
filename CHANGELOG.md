@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.99] - 2026-04-08
+
+### Added — The "C API Flow" Release
+- **C API**: Added `fo_bobfilez_flow_list_json()` and `fo_bobfilez_flow_execute()` for native workflow management.
+- **C API 3 tests**: FlowListJsonReturnsWorkflows, FlowExecuteReturnsZeroForNonexistent, FlowExecuteNullParamsReturnsZero.
+- Test count: 471 → **474 (473 passed, 1 skipped)**.
+
 ## [6.0.98] - 2026-04-08
 
 ### Added — The "OmniFlow Real Automation" Release

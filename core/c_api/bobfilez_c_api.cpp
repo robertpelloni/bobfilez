@@ -8,6 +8,7 @@
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
 #include "fo/core/rule_engine.hpp"
+#include "fo/core/omniflow_engine_interface.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -1580,5 +1581,72 @@ extern "C" char* fo_bobfilez_export_html(const char* root_path)
     } catch (...) {
         set_last_error("Unknown bobfilez C API failure.");
         return nullptr;
+    }
+}
+
+// ── Flow ────────────────────────────────────────────────────────────────
+
+extern "C" char* fo_bobfilez_flow_list_json(void)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        auto engine = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+        if (!engine) {
+            set_last_error("OmniFlow engine not available");
+            return nullptr;
+        }
+
+        auto workflows = engine->get_workflows();
+        std::ostringstream out;
+        out << "{";
+        out << "\"workflows\": [";
+        for (size_t i = 0; i < workflows.size(); ++i) {
+            const auto& wf = workflows[i];
+            if (i > 0) out << ",";
+            out << "{";
+            out << "\"id\": \"" << wf.id << "\",";
+            out << "\"name\": \"" << wf.name << "\",";
+            out << "\"active\": " << (wf.is_active ? "true" : "false") << ",";
+            out << "\"nodes\": " << wf.nodes.size() << ",";
+            out << "\"connections\": " << wf.connections.size();
+            out << "}";
+        }
+        out << "]}";
+        return duplicate_c_string(out.str());
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return nullptr;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return nullptr;
+    }
+}
+
+extern "C" int fo_bobfilez_flow_execute(const char* workflow_id, const char* payload_path)
+{
+    clear_last_error();
+
+    try {
+        ensure_providers_registered();
+        auto engine = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+        if (!engine) {
+            set_last_error("OmniFlow engine not available");
+            return 0;
+        }
+
+        if (!workflow_id || !payload_path) {
+            set_last_error("Null workflow_id or payload_path");
+            return 0;
+        }
+
+        return engine->execute_workflow(workflow_id, payload_path) ? 1 : 0;
+    } catch (const std::exception& error) {
+        set_last_error(error.what());
+        return 0;
+    } catch (...) {
+        set_last_error("Unknown bobfilez C API failure.");
+        return 0;
     }
 }

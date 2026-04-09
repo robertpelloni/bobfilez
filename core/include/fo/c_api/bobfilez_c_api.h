@@ -47,6 +47,18 @@ char* fo_bobfilez_export_json(const char* root_path);
 char* fo_bobfilez_export_csv(const char* root_path);
 char* fo_bobfilez_export_html(const char* root_path);
 
+// ── Lint ─────────────────────────────────────────────────────────────
+char* fo_bobfilez_lint_json(const char* root_path);
+char* fo_bobfilez_lint_summary_text(const char* root_path);
+
+// ── Organize ────────────────────────────────────────────────────────
+char* fo_bobfilez_organize_dry_run_json(const char* root_path, const char* rule_template);
+char* fo_bobfilez_organize_dry_run_summary_text(const char* root_path, const char* rule_template);
+
+// ── Flow ────────────────────────────────────────────────────────────
+char* fo_bobfilez_flow_list_json(void);
+int  fo_bobfilez_flow_execute(const char* workflow_id, const char* payload_path);
+
 void fo_bobfilez_free_string(char* value);
 
 #ifdef __cplusplus
