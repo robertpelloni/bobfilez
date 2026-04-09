@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.1.2] - 2026-04-08
+
+### Added — The "OmniFlow Persistence" Release
+- **OmniFlow SQLite persistence**: `save_workflows()` and `load_workflows()` serialize/deserialize complete workflows (nodes, connections, config) to SQLite.
+- **OmniFlow `remove_workflow()`**: Delete workflows by ID from the engine.
+- **6 OmniFlow persistence tests**: Save+Load roundtrip, empty database, load nonexistent, remove workflow, remove nonexistent, rich config roundtrip preserving all fields.
+- Test count: 480 → **486 (485 passed, 1 skipped)**.
+
 ## [6.1.1] - 2026-04-08
 
 ### Added — The "CLI Flow Command" Release

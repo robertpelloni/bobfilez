@@ -4,6 +4,7 @@
 #include "fo/core/omniflow_engine_interface.hpp"
 #include "fo/core/registry.hpp"
 #include "fo/core/nexus_interface.hpp"
+#include <sqlite3.h>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -221,6 +222,173 @@ public:
         std::vector<Workflow> res;
         for (auto const& [id, wf] : workflows_) res.push_back(wf);
         return res;
+    }
+
+    bool remove_workflow(const std::string& workflow_id) override {
+        return workflows_.erase(workflow_id) > 0;
+    }
+
+    bool save_workflows(const std::filesystem::path& db_path) override {
+        sqlite3* db = nullptr;
+        int rc = sqlite3_open(db_path.string().c_str(), &db);
+        if (rc != SQLITE_OK) {
+            if (db) sqlite3_close(db);
+            return false;
+        }
+
+        // Create tables
+        const char* create_sql =
+            "CREATE TABLE IF NOT EXISTS flow_workflows ("
+            "  id TEXT PRIMARY KEY,"
+            "  name TEXT NOT NULL,"
+            "  is_active INTEGER NOT NULL);"
+            "CREATE TABLE IF NOT EXISTS flow_nodes ("
+            "  workflow_id TEXT NOT NULL,"
+            "  node_id TEXT NOT NULL,"
+            "  type_name TEXT NOT NULL,"
+            "  category INTEGER NOT NULL,"
+            "  config_json TEXT NOT NULL DEFAULT '{}',"
+            "  PRIMARY KEY (workflow_id, node_id));"
+            "CREATE TABLE IF NOT EXISTS flow_connections ("
+            "  workflow_id TEXT NOT NULL,"
+            "  from_node_id TEXT NOT NULL,"
+            "  from_pin TEXT NOT NULL,"
+            "  to_node_id TEXT NOT NULL,"
+            "  to_pin TEXT NOT NULL);";
+
+        char* err = nullptr;
+        rc = sqlite3_exec(db, create_sql, nullptr, nullptr, &err);
+        if (rc != SQLITE_OK) {
+            sqlite3_free(err);
+            sqlite3_close(db);
+            return false;
+        }
+
+        // Clear existing data
+        sqlite3_exec(db, "DELETE FROM flow_connections", nullptr, nullptr, nullptr);
+        sqlite3_exec(db, "DELETE FROM flow_nodes", nullptr, nullptr, nullptr);
+        sqlite3_exec(db, "DELETE FROM flow_workflows", nullptr, nullptr, nullptr);
+
+        // Insert workflows
+        for (const auto& [wf_id, wf] : workflows_) {
+            std::string sql = "INSERT INTO flow_workflows (id, name, is_active) VALUES ('";
+            sql += wf_id + "', '" + wf.name + "', " + (wf.is_active ? "1" : "0") + ")";
+            sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
+
+            // Insert nodes
+            for (const auto& node : wf.nodes) {
+                std::string config_json = "{";
+                bool first = true;
+                for (const auto& [k, v] : node.config) {
+                    if (!first) config_json += ",";
+                    config_json += "\"" + k + "\":\"" + v + "\"";
+                    first = false;
+                }
+                config_json += "}";
+
+                std::string nsql = "INSERT INTO flow_nodes (workflow_id, node_id, type_name, category, config_json) VALUES ('";
+                nsql += wf_id + "', '" + node.id + "', '" + node.type_name + "', "
+                     + std::to_string(static_cast<int>(node.category)) + ", '" + config_json + "')";
+                sqlite3_exec(db, nsql.c_str(), nullptr, nullptr, nullptr);
+            }
+
+            // Insert connections
+            for (const auto& conn : wf.connections) {
+                std::string csql = "INSERT INTO flow_connections (workflow_id, from_node_id, from_pin, to_node_id, to_pin) VALUES ('";
+                csql += wf_id + "', '" + conn.from_node_id + "', '" + conn.from_pin + "', '"
+                     + conn.to_node_id + "', '" + conn.to_pin + "')";
+                sqlite3_exec(db, csql.c_str(), nullptr, nullptr, nullptr);
+            }
+        }
+
+        sqlite3_close(db);
+        return true;
+    }
+
+    bool load_workflows(const std::filesystem::path& db_path) override {
+        sqlite3* db = nullptr;
+        int rc = sqlite3_open(db_path.string().c_str(), &db);
+        if (rc != SQLITE_OK) {
+            if (db) sqlite3_close(db);
+            return false;
+        }
+
+        // Load workflows
+        auto wf_callback = [](void* data, int argc, char** argv, char**) -> int {
+            auto* wfs = static_cast<std::map<std::string, Workflow>*>(data);
+            Workflow wf;
+            wf.id = argv[0] ? argv[0] : "";
+            wf.name = argv[1] ? argv[1] : "";
+            wf.is_active = (argv[2] && std::string(argv[2]) == "1");
+            (*wfs)[wf.id] = wf;
+            return 0;
+        };
+
+        char* err = nullptr;
+        rc = sqlite3_exec(db, "SELECT id, name, is_active FROM flow_workflows", wf_callback, &workflows_, &err);
+        if (rc != SQLITE_OK) {
+            sqlite3_free(err);
+            sqlite3_close(db);
+            return false;
+        }
+
+        // Load nodes
+        auto node_callback = [](void* data, int argc, char** argv, char**) -> int {
+            auto* wfs = static_cast<std::map<std::string, Workflow>*>(data);
+            std::string wf_id = argv[0] ? argv[0] : "";
+            auto it = wfs->find(wf_id);
+            if (it == wfs->end()) return 0;
+
+            FlowNode node;
+            node.id = argv[1] ? argv[1] : "";
+            node.type_name = argv[2] ? argv[2] : "";
+            node.category = static_cast<FlowNodeType>(argv[3] ? std::stoi(argv[3]) : 0);
+            // Parse simple JSON config: {"key":"val","key2":"val2"}
+            std::string config = argv[4] ? argv[4] : "{}";
+            if (config.size() >= 2 && config[0] == '{') {
+                std::string inner = config.substr(1, config.size() - 2);
+                // Simple split by ","
+                std::string remaining = inner;
+                while (!remaining.empty()) {
+                    auto comma = remaining.find("\",\"");
+                    std::string pair = (comma == std::string::npos) ? remaining : remaining.substr(0, comma);
+                    remaining = (comma == std::string::npos) ? "" : remaining.substr(comma + 3);
+
+                    auto colon = pair.find("\":\"");
+                    if (colon != std::string::npos) {
+                        std::string key = pair.substr(1, colon - 1); // skip opening "
+                        std::string val = pair.substr(colon + 3); // skip ":"
+                        if (!val.empty() && val.back() == '"') val.pop_back();
+                        node.config[key] = val;
+                    }
+                }
+            }
+            it->second.nodes.push_back(node);
+            return 0;
+        };
+
+        sqlite3_exec(db, "SELECT workflow_id, node_id, type_name, category, config_json FROM flow_nodes", node_callback, &workflows_, nullptr);
+
+        // Load connections
+        auto conn_callback = [](void* data, int argc, char** argv, char**) -> int {
+            auto* wfs = static_cast<std::map<std::string, Workflow>*>(data);
+            std::string wf_id = argv[0] ? argv[0] : "";
+            auto it = wfs->find(wf_id);
+            if (it == wfs->end()) return 0;
+
+            FlowConnection conn;
+            conn.from_node_id = argv[1] ? argv[1] : "";
+            conn.from_pin = argv[2] ? argv[2] : "";
+            conn.to_node_id = argv[3] ? argv[3] : "";
+            conn.to_pin = argv[4] ? argv[4] : "";
+            it->second.connections.push_back(conn);
+            return 0;
+        };
+
+        sqlite3_exec(db, "SELECT workflow_id, from_node_id, from_pin, to_node_id, to_pin FROM flow_connections", conn_callback, &workflows_, nullptr);
+
+        sqlite3_close(db);
+        return true;
     }
 
     void start_daemon() override {

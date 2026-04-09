@@ -50,11 +50,20 @@ public:
     /// Register a new workflow into the active engine
     virtual void register_workflow(const Workflow& workflow) = 0;
 
+    /// Remove a workflow by ID
+    virtual bool remove_workflow(const std::string& workflow_id) = 0;
+
     /// Manually trigger a workflow
     virtual bool execute_workflow(const std::string& workflow_id, const std::filesystem::path& input_payload) = 0;
 
     /// Get all registered workflows
     virtual std::vector<Workflow> get_workflows() = 0;
+
+    /// Save all workflows to SQLite database
+    virtual bool save_workflows(const std::filesystem::path& db_path) = 0;
+
+    /// Load workflows from SQLite database (merges with in-memory)
+    virtual bool load_workflows(const std::filesystem::path& db_path) = 0;
 
     /// Start the background daemon that listens for triggers (File Watcher, Timers)
     virtual void start_daemon() = 0;
