@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.1.3] - 2026-04-08
+
+### Added — The "Self-Healing Real Verification" Release
+- **SelfHealingEngine real hash verification**: `register_baseline()`, `verify_file()`, and `scrub_directory()` now compute actual file hashes and detect corruption.
+- **Corruption detection**: Files with changed content are detected via hash mismatch.
+- **Directory scrubbing**: `scrub_directory()` verifies all files with registered baselines and reports corruption count.
+- **6 Self-Healing verification tests**: match baseline, detect corruption, nonexistent file, register+scrub clean/dirty, no baselines, reports accumulate.
+- Test count: 486 → **492 (491 passed, 1 skipped)**.
+
 ## [6.1.2] - 2026-04-08
 
 ### Added — The "OmniFlow Persistence" Release

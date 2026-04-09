@@ -43,6 +43,15 @@ public:
 
     /// Set scrub schedule (e.g. Weekly)
     virtual void set_schedule_days(int days) = 0;
+
+    /// Register a known-good hash for a file (baseline)
+    virtual void register_baseline(const std::filesystem::path& path, const std::string& hash) = 0;
+
+    /// Verify a single file against its baseline hash
+    virtual CorruptionReport verify_file(const std::filesystem::path& path, const std::string& known_hash) = 0;
+
+    /// Scrub a directory: verify all files with registered baselines
+    virtual int scrub_directory(const std::filesystem::path& root) = 0;
 };
 
 } // namespace fo::core
