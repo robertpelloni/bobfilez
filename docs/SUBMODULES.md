@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-04-01 21:07:41
+**Last Updated:** 2026-04-10 05:13:37
 
 ## Project Structure
 
@@ -29,11 +29,11 @@ The project is organized as follows:
 | libs/ImageMagick | `libs/ImageMagick` | 7.1.2-18 | `b5f32dfb4` | 2026-04-01 | 23874 | [Link](https://github.com/ImageMagick/ImageMagick) |
 | libs/gdk-pixbuf | `libs/gdk-pixbuf` | - | `f81fccb` | 2026-02-26 | 99 | [Link](https://github.com/ImageMagick/gdk-pixbuf) |
 | libs/Imath | `libs/Imath` | v3.2.0 | `cd54202` | 2026-04-01 | 711 | [Link](https://github.com/AcademySoftwareFoundation/Imath) |
-| libs/openexr | `libs/openexr` | v3.4-alpha | `36f035a1` | 2026-04-01 | 2897 | [Link](https://github.com/AcademySoftwareFoundation/openexr) |
-| libs/OpenImageIO | `libs/OpenImageIO` | v3.2.0.0-dev | `f709b430d` | 2026-04-01 | 6516 | [Link](https://github.com/AcademySoftwareFoundation/OpenImageIO) |
-| libs/OpenColorIO | `libs/OpenColorIO` | v2.1.0 | `8a3a37e2` | 2026-04-01 | 1597 | [Link](https://github.com/AcademySoftwareFoundation/OpenColorIO) |
+| libs/openexr | `libs/openexr` | v3.4-alpha | `7d435103` | 2026-04-02 | 2899 | [Link](https://github.com/AcademySoftwareFoundation/openexr) |
+| libs/OpenImageIO | `libs/OpenImageIO` | v3.2.0.0-dev | `9fc3d2785` | 2026-04-02 | 6518 | [Link](https://github.com/AcademySoftwareFoundation/OpenImageIO) |
+| libs/OpenColorIO | `libs/OpenColorIO` | v2.1.0 | `0bf6fa63` | 2026-04-02 | 1599 | [Link](https://github.com/AcademySoftwareFoundation/OpenColorIO) |
 | libs/OpenTimelineIO | `libs/OpenTimelineIO` | v0.18.1 | `a5558ef` | 2026-04-01 | 857 | [Link](https://github.com/AcademySoftwareFoundation/OpenTimelineIO) |
-| libs/OpenCue | `libs/OpenCue` | v1.13.8 | `73a449c3` | 2026-04-01 | 1305 | [Link](https://github.com/AcademySoftwareFoundation/OpenCue) |
+| libs/OpenCue | `libs/OpenCue` | v1.13.8 | `80076fe0` | 2026-04-02 | 1307 | [Link](https://github.com/AcademySoftwareFoundation/OpenCue) |
 | libs/OpenRV | `libs/OpenRV` | v3.1.0 | `48bc17ca` | 2026-04-01 | 633 | [Link](https://github.com/AcademySoftwareFoundation/OpenRV) |
 | libs/openfx | `libs/openfx` | OFX_Release_1.5.1 | `651b62c` | 2026-03-05 | 805 | [Link](https://github.com/AcademySoftwareFoundation/openfx) |
 | libs/openapv | `libs/openapv` | v0.2.1.2 | `949ca81` | 2026-03-21 | 228 | [Link](https://github.com/AcademySoftwareFoundation/openapv) |
@@ -95,13 +95,13 @@ The project is organized as follows:
 | libs/fribidi | `libs/fribidi` | - | `09fa0da` | 2026-02-26 | 4 | [Link](https://github.com/winlibs/fribidi) |
 | libs/libvpx | `libs/libvpx` | libvpx-1.1.0 | `33f47c8` | 2026-03-01 | 5 | [Link](https://github.com/winlibs/libvpx) |
 | libs/libvbucket | `libs/libvbucket` | 2.1.1r | `8d15749` | 2026-03-01 | 129 | [Link](https://github.com/membase/libvbucket) |
-| libs/FFmpeg | `libs/FFmpeg` | n8.2-dev | `81f74fcacf` | 2026-04-01 | 123815 | [Link](https://github.com/FFmpeg/FFmpeg) |
+| libs/FFmpeg | `libs/FFmpeg` | n8.2-dev | `a9031c28a6` | 2026-04-02 | 123817 | [Link](https://github.com/FFmpeg/FFmpeg) |
 | libs/hashcat | `libs/hashcat` | v7.1.2 | `997d0524a` | 2026-03-02 | 11059 | [Link](https://github.com/hashcat/hashcat) |
-| libs/radare2 | `libs/radare2` | 6.1.2 | `ad3cafe2ef` | 2026-04-01 | 35268 | [Link](https://github.com/radareorg/radare2) |
+| libs/radare2 | `libs/radare2` | 6.1.2 | `950e6e76f6` | 2026-04-02 | 35274 | [Link](https://github.com/radareorg/radare2) |
 | libs/C | `libs/C` | - | `72a019b1` | 2026-03-02 | 1540 | [Link](https://github.com/TheAlgorithms/C) |
 | libs/vlc | `libs/vlc` | 4.0.0-dev | `896e658473` | 2026-04-01 | 109703 | [Link](https://github.com/videolan/vlc) |
 | libs/sumatrapdf | `libs/sumatrapdf` | 3.2 | `97c1d9141` | 2026-03-11 | 16597 | [Link](https://github.com/sumatrapdfreader/sumatrapdf) |
-| libs/mpv | `libs/mpv` | v0.41.0 | `de84642ae4` | 2026-04-01 | 54877 | [Link](https://github.com/mpv-player/mpv) |
+| libs/mpv | `libs/mpv` | v0.41.0 | `aab1fab6a9` | 2026-04-02 | 54881 | [Link](https://github.com/mpv-player/mpv) |
 | libs/sqlite | `libs/sqlite` | version-3.52.0 | `e4b9a19b95` | 2026-04-01 | 31596 | [Link](https://github.com/sqlite/sqlite) |
 | libs/tinyxml2 | `libs/tinyxml2` | 11.0.0 | `f41a497` | 2026-03-11 | 1286 | [Link](https://github.com/leethomason/tinyxml2) |
 | libs/libvips | `libs/libvips` | v8.18.1 | `cb3a9f108` | 2026-04-01 | 9255 | [Link](https://github.com/libvips/libvips) |
@@ -114,8 +114,8 @@ The project is organized as follows:
 | libs/jhead | `libs/jhead` | 3.08 | `44f1f23` | 2026-04-01 | 549 | [Link](https://github.com/Matthias-Wandel/jhead) |
 | libs/libexif | `libs/libexif` | libexif-0_6_25-release | `d8de7d4` | 2026-04-01 | 1507 | [Link](https://github.com/libexif/libexif) |
 | libs/getopt-win32 | `libs/getopt-win32` | - | `bc89dc4` | 2026-02-26 | 5 | [Link](https://github.com/nanoporetech/getopt-win32) |
-| libs/raylib | `libs/raylib` | 5.5 | `1df2b2206` | 2026-04-01 | 9721 | [Link](https://github.com/raysan5/raylib) |
-| libs/lvgl | `libs/lvgl` | v9.5.0 | `9f91b9fd9` | 2026-04-01 | 12433 | [Link](https://github.com/lvgl/lvgl) |
+| libs/raylib | `libs/raylib` | 5.5 | `a836dfb0d` | 2026-04-02 | 9724 | [Link](https://github.com/raysan5/raylib) |
+| libs/lvgl | `libs/lvgl` | v9.5.0 | `93c004ccd` | 2026-04-02 | 12438 | [Link](https://github.com/lvgl/lvgl) |
 | libs/getopt-win | `libs/getopt-win` | v2.42.0 | `ac1b9ea` | 2026-03-01 | 36 | [Link](https://github.com/ludvikjerabek/getopt-win) |
 | libs/libunistd | `libs/libunistd` | v1.4 | `bd579ab` | 2026-03-01 | 554 | [Link](https://github.com/robinrowe/libunistd) |
 | libs/ShazamAPI | `libs/ShazamAPI` | - | `096d5a2` | 2026-03-01 | 33 | [Link](https://github.com/Numenorean/ShazamAPI) |
@@ -155,7 +155,37 @@ The project is organized as follows:
 | libs/ADSman | `libs/ADSman` | - | `3ab428a` | 2026-03-01 | 5 | [Link](https://github.com/8gudbits/ADSman) |
 | libs/ADSFileSystem | `libs/ADSFileSystem` | - | `5ab73c6` | 2026-02-26 | 11 | [Link](https://github.com/marcelogm/ADSFileSystem) |
 | libs/Bringing-Old-Photos-Back-to-Life | `libs/Bringing-Old-Photos-Back-to-Life` | v1.0 | `2093171` | 2026-02-26 | 110 | [Link](https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life) |
-| ai-file-sorter | `ai-file-sorter` | v1.6.0 | `3fec960` | 2026-04-01 | 588 | [Link](https://github.com/hyperfield/ai-file-sorter) |
+| ai-file-sorter | `ai-file-sorter` | v1.6.0 | `f29262a` | 2026-02-06 | 513 | [Link](https://github.com/hyperfield/ai-file-sorter) |
 | VERT | `VERT` | - | `990f3f5` | 2026-04-01 | 746 | [Link](https://github.com/VERT-sh/VERT) |
 | libs/BLAKE3 | `libs/BLAKE3` | 1.8.4 | `175f664` | 2026-04-01 | 775 | [Link](https://github.com/BLAKE3-team/BLAKE3.git) |
-| libs/btk | `libs/btk` | - | `20314db1c5` | 2026-04-05 | - | [Link](https://github.com/robertpelloni/btk.git) |
+| libs/btk | `libs/btk` | cs-2.1.0 | `4f5a809e4` | 2026-04-05 | 3560 | [Link](https://github.com/robertpelloni/btk.git) |
+| libs/bobui | `libs/bobui` | - | `540b06d96f` | 2026-04-05 | 77784 | [Link](https://github.com/robertpelloni/bobui.git) |
+| libs/pandoc | `libs/pandoc` | - | `1a8d44b` | 2026-04-01 | 1 | [Link](https://github.com/jgm/pandoc) |
+| libs/ghostpdl | `libs/ghostpdl` | - | `a0311b3` | 2026-04-03 | 1 | [Link](https://github.com/ArtifexSoftware/ghostpdl) |
+| libs/LibRaw | `libs/LibRaw` | - | `a45bbe1` | 2026-04-03 | 1 | [Link](https://github.com/LibRaw/LibRaw) |
+| libs/libde265 | `libs/libde265` | v1.0.18 | `36ad048` | 2026-03-19 | 1 | [Link](https://github.com/strukturag/libde265) |
+| libs/poppler | `libs/poppler` | - | `2569df1` | 2026-04-03 | 1 | [Link](https://gitlab.freedesktop.org/poppler/poppler) |
+| libs/calibre | `libs/calibre` | - | `37eba19` | 2026-04-03 | 1 | [Link](https://github.com/kovidgoyal/calibre) |
+| libs/wkhtmltopdf | `libs/wkhtmltopdf` | - | `024b2b2` | 2022-06-29 | 1 | [Link](https://github.com/wkhtmltopdf/wkhtmltopdf) |
+| libs/Magick.NET | `libs/Magick.NET` | - | `e1076f9` | 2026-04-03 | 1 | [Link](https://github.com/dlemstra/Magick.NET) |
+| libs/ripgrep | `libs/ripgrep` | - | `4519153` | 2026-02-27 | 1 | [Link](https://github.com/BurntSushi/ripgrep) |
+| libs/the_silver_searcher | `libs/the_silver_searcher` | - | `a61f178` | 2020-12-16 | 1 | [Link](https://github.com/ggreer/the_silver_searcher) |
+| libs/pcre2 | `libs/pcre2` | - | `123424f` | 2026-03-03 | 1 | [Link](https://github.com/PCRE2Project/pcre2) |
+| libs/re2 | `libs/re2` | - | `972a15c` | 2026-01-22 | 1 | [Link](https://github.com/google/re2) |
+| libs/rename-utils | `libs/rename-utils` | - | `4cffb0c` | 2026-02-20 | 1 | [Link](https://github.com/nih-at/ckmame) |
+| libs/sigil | `libs/sigil` | - | `d8b7bd0` | 2026-03-31 | 1 | [Link](https://github.com/Sigil-Ebook/Sigil) |
+| libs/libarchive | `libs/libarchive` | - | `2bb6f34` | 2026-03-29 | 1 | [Link](https://github.com/libarchive/libarchive) |
+| libs/librsync | `libs/librsync` | - | `271744d` | 2025-08-29 | 1 | [Link](https://github.com/librsync/librsync) |
+| libs/zstd | `libs/zstd` | - | `48c0ed7` | 2026-04-01 | 1 | [Link](https://github.com/facebook/zstd) |
+| libs/lz4 | `libs/lz4` | - | `9da37b2` | 2026-04-01 | 1 | [Link](https://github.com/lz4/lz4) |
+| libs/brotli | `libs/brotli` | - | `5583858` | 2026-03-26 | 1 | [Link](https://github.com/google/brotli) |
+| libs/p7zip | `libs/p7zip` | - | `6819e2d` | 2025-05-20 | 1 | [Link](https://github.com/p7zip-project/p7zip) |
+| libs/dtl-diff | `libs/dtl-diff` | v1.21 | `32567bb` | 2024-07-11 | 1 | [Link](https://github.com/cubicdaiya/dtl) |
+| libs/cmark | `libs/cmark` | - | `64efa3b` | 2026-03-01 | 1 | [Link](https://github.com/commonmark/cmark) |
+| libs/7zip | `libs/7zip` | - | `fea94d3` | 2025-10-01 | 1 | [Link](https://github.com/nicehash/NiceHashQuickMiner) |
+| libs/glad | `libs/glad` | - | `a4ca574` | 2026-01-31 | 1 | [Link](https://github.com/Dav1dde/glad) |
+| libs/rapidjson | `libs/rapidjson` | - | `24b5e7a` | 2025-02-05 | 1 | [Link](https://github.com/Tencent/rapidjson) |
+| libs/md4c | `libs/md4c` | - | `481fbfb` | 2024-02-25 | 1 | [Link](https://github.com/mity/md4c) |
+| libs/highlightjs | `libs/highlightjs` | - | `5697ae5` | 2025-07-06 | 1 | [Link](https://github.com/highlightjs/highlight.js) |
+| libs/bobgui | `libs/bobgui` | 4.22.0 | `0d914fa8e3` | 2026-04-04 | 88511 | [Link](https://github.com/robertpelloni/bobgui) |
+| libs/JUCE | `libs/JUCE` | 8.0.12 | `501c07674e` | 2026-01-16 | 15597 | [Link](https://github.com/juce-framework/JUCE.git) |
