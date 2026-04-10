@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/core/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/cli/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/frontends/qt/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/benchmarks/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-qt-demo/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

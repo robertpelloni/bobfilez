@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+1 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "C:/Users/hyper/workspace/bobfilez/build-qt-demo/benchmarks/CMakeFiles/fo_bench_dhash.dir/embed.manifest"

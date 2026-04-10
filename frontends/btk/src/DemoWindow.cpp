@@ -8,6 +8,9 @@
 #include <fo/core/omniflow_engine_interface.hpp>
 #include <fo/core/self_healing_interface.hpp>
 #include <fo/core/export.hpp>
+#include <fo/core/operation_repository.hpp>
+#include <fo/core/ignore_repository.hpp>
+#include <fo/core/rule_engine.hpp>
 
 #include <QMetaObject>
 #include <QString>
@@ -221,6 +224,76 @@ DemoWindow::DemoWindow(QWidget *parent) : QWidget(parent)
     countResultLbl->setText(QString::fromLatin1("No count run yet."));
     connect(countBtn, SIGNAL(clicked()), this, SLOT(onCountClicked()));
     tabs->addTab(countTab, QString::fromLatin1("Count"));
+
+    // History tab
+    historyTab = new QWidget();
+    auto *histLayout = new QVBoxLayout(historyTab);
+    historyBtn = new QPushButton(QString::fromLatin1("Load History"));
+    historyResultLbl = new QLabel(QString::fromLatin1("Click 'Load History' to view operations."));
+    historyResultLbl->setWordWrap(true);
+    historyResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    histLayout->addWidget(historyBtn);
+    histLayout->addWidget(historyResultLbl, 1);
+    connect(historyBtn, SIGNAL(clicked()), this, SLOT(onHistoryClicked()));
+    tabs->addTab(historyTab, QString::fromLatin1("History"));
+
+    // Ignore tab
+    ignoreTab = new QWidget();
+    auto *ignoreLayout = new QVBoxLayout(ignoreTab);
+    auto *ignoreTop = new QHBoxLayout();
+    ignorePatternEdit = new QLineEdit();
+    ignorePatternEdit->setPlaceholderText(QString::fromLatin1("Pattern (e.g. .*\\.tmp)"));
+    ignoreListBtn = new QPushButton(QString::fromLatin1("List Rules"));
+    ignoreAddBtn = new QPushButton(QString::fromLatin1("Add Rule"));
+    ignoreResultLbl = new QLabel(QString::fromLatin1("No ignore operations yet."));
+    ignoreResultLbl->setWordWrap(true);
+    ignoreResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    ignoreTop->addWidget(ignorePatternEdit, 2);
+    ignoreTop->addWidget(ignoreListBtn);
+    ignoreTop->addWidget(ignoreAddBtn);
+    ignoreLayout->addLayout(ignoreTop);
+    ignoreLayout->addWidget(ignoreResultLbl, 1);
+    connect(ignoreListBtn, SIGNAL(clicked()), this, SLOT(onIgnoreListClicked()));
+    connect(ignoreAddBtn, SIGNAL(clicked()), this, SLOT(onIgnoreAddClicked()));
+    tabs->addTab(ignoreTab, QString::fromLatin1("Ignore"));
+
+    // Organize tab
+    organizeTab = new QWidget();
+    auto *orgLayout = new QVBoxLayout(organizeTab);
+    auto *orgTop = new QHBoxLayout();
+    organizePathEdit = new QLineEdit();
+    organizePathEdit->setPlaceholderText(QString::fromLatin1("Directory to organize..."));
+    organizeRuleEdit = new QLineEdit();
+    organizeRuleEdit->setPlaceholderText(QString::fromLatin1("Rule: {extension}/{name}"));
+    organizeRuleEdit->setText(QString::fromLatin1("{extension}/{year}/{name}"));
+    organizeBtn = new QPushButton(QString::fromLatin1("Preview"));
+    organizeResultLbl = new QLabel(QString::fromLatin1("No organize preview yet."));
+    organizeResultLbl->setWordWrap(true);
+    organizeResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    orgTop->addWidget(organizePathEdit, 2);
+    orgTop->addWidget(organizeRuleEdit, 2);
+    orgTop->addWidget(organizeBtn);
+    orgLayout->addLayout(orgTop);
+    orgLayout->addWidget(organizeResultLbl, 1);
+    connect(organizeBtn, SIGNAL(clicked()), this, SLOT(onOrganizeClicked()));
+    tabs->addTab(organizeTab, QString::fromLatin1("Organize"));
+
+    // Delete Dupes tab
+    deleteDupesTab = new QWidget();
+    auto *ddLayout = new QVBoxLayout(deleteDupesTab);
+    auto *ddTop = new QHBoxLayout();
+    deleteDupesPathEdit = new QLineEdit();
+    deleteDupesPathEdit->setPlaceholderText(QString::fromLatin1("Directory to deduplicate..."));
+    deleteDupesBtn = new QPushButton(QString::fromLatin1("Delete Dupes"));
+    deleteDupesResultLbl = new QLabel(QString::fromLatin1("No deduplication run yet."));
+    deleteDupesResultLbl->setWordWrap(true);
+    deleteDupesResultLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    ddTop->addWidget(deleteDupesPathEdit, 3);
+    ddTop->addWidget(deleteDupesBtn);
+    ddLayout->addLayout(ddTop);
+    ddLayout->addWidget(deleteDupesResultLbl, 1);
+    connect(deleteDupesBtn, SIGNAL(clicked()), this, SLOT(onDeleteDupesClicked()));
+    tabs->addTab(deleteDupesTab, QString::fromLatin1("Delete Dupes"));
 }
 
 void DemoWindow::onScanClicked()
@@ -818,4 +891,186 @@ void DemoWindow::applyCountResult(const QString &result)
 {
     countResultLbl->setText(result);
     countBtn->setEnabled(true);
+}
+
+// ── History Tab ─────────────────────────────────────────────────────────────
+
+void DemoWindow::onHistoryClicked()
+{
+    historyBtn->setEnabled(false);
+    historyResultLbl->setText(QString::fromLatin1("Loading history..."));
+    std::thread([this]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            fo::core::OperationRepository op_repo(engine.database());
+            auto ops = op_repo.list_recent(50);
+            resultStr = QString::fromLatin1("Operation History\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+            if (ops.empty()) resultStr += QString::fromLatin1("(no operations recorded)\n");
+            for (const auto &op : ops) {
+                resultStr += QString::fromLatin1("[%1] %2: %3 -> %4\n")
+                    .arg(QString::fromStdString(op.source_path).left(30))
+                    .arg(op.type == fo::core::OperationType::Move ? "Move" : "Copy")
+                    .arg(QString::fromStdString(op.source_path).left(40))
+                    .arg(QString::fromStdString(op.dest_path).left(40));
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyHistoryResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyHistoryResult(const QString &result)
+{
+    historyResultLbl->setText(result);
+    historyBtn->setEnabled(true);
+}
+
+// ── Ignore Tab ─────────────────────────────────────────────────────────────
+
+void DemoWindow::onIgnoreListClicked()
+{
+    ignoreListBtn->setEnabled(false);
+    ignoreResultLbl->setText(QString::fromLatin1("Loading ignore rules..."));
+    std::thread([this]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            fo::core::IgnoreRepository ignore_repo(engine.database());
+            ignore_repo.migrate();
+            auto rules = ignore_repo.list_rules();
+            resultStr = QString::fromLatin1("Ignore Rules\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+            if (rules.empty()) resultStr += QString::fromLatin1("(no rules)\n");
+            for (const auto &r : rules) {
+                resultStr += QString::fromStdString(r.pattern) + QString::fromLatin1(" - ") + QString::fromStdString(r.reason) + QString::fromLatin1("\n");
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyIgnoreResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::onIgnoreAddClicked()
+{
+    const QString pattern = ignorePatternEdit->text();
+    if (pattern.isEmpty()) return;
+    ignoreAddBtn->setEnabled(false);
+    const std::string stdPattern = pattern.toStdString();
+    std::thread([this, stdPattern]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            fo::core::IgnoreRepository ignore_repo(engine.database());
+            ignore_repo.migrate();
+            fo::core::IgnoreRule rule;
+            rule.pattern = stdPattern;
+            rule.reason = "Added from BTK demo";
+            ignore_repo.add_rule(rule);
+            resultStr = QString::fromLatin1("Added rule: %1\n").arg(QString::fromStdString(stdPattern));
+            auto rules = ignore_repo.list_rules();
+            for (const auto &r : rules) {
+                resultStr += QString::fromStdString(r.pattern) + QString::fromLatin1("\n");
+            }
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyIgnoreResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyIgnoreResult(const QString &result)
+{
+    ignoreResultLbl->setText(result);
+    ignoreListBtn->setEnabled(true);
+    ignoreAddBtn->setEnabled(true);
+}
+
+// ── Organize Tab ────────────────────────────────────────────────────────────
+
+void DemoWindow::onOrganizeClicked()
+{
+    const QString path = organizePathEdit->text();
+    const QString rule = organizeRuleEdit->text();
+    if (path.isEmpty() || rule.isEmpty()) return;
+    organizeBtn->setEnabled(false);
+    const std::string stdPath = path.toStdString();
+    const std::string stdRule = rule.toStdString();
+    std::thread([this, stdPath, stdRule]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            auto files = engine.scan({std::filesystem::u8path(stdPath)}, {}, false, false);
+            fo::core::RuleEngine rule_engine;
+            rule_engine.add_rule({"cli_rule", "", stdRule});
+            int moves = 0;
+            for (const auto &f : files) {
+                auto new_path = rule_engine.apply_rules(f, {});
+                if (new_path && new_path->string() != f.uri) ++moves;
+            }
+            resultStr = QString::fromLatin1("Organize Dry Run\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n"
+                "Scanned: %1 files\nProposed moves: %2\nRule: %3\n").arg(files.size()).arg(moves).arg(QString::fromStdString(stdRule));
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyOrganizeResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyOrganizeResult(const QString &result)
+{
+    organizeResultLbl->setText(result);
+    organizeBtn->setEnabled(true);
+}
+
+// ── Delete Dupes Tab ────────────────────────────────────────────────────────
+
+void DemoWindow::onDeleteDupesClicked()
+{
+    const QString path = deleteDupesPathEdit->text();
+    if (path.isEmpty()) return;
+    deleteDupesBtn->setEnabled(false);
+    const std::string stdPath = path.toStdString();
+    std::thread([this, stdPath]() {
+        QString resultStr;
+        try {
+            fo::core::EngineConfig cfg;
+            cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+            fo::core::Engine engine(cfg);
+            auto files = engine.scan({std::filesystem::u8path(stdPath)}, {}, false, false);
+            auto groups = engine.find_duplicates(files);
+            int deleted = 0;
+            std::uintmax_t freed = 0;
+            for (const auto &g : groups) {
+                // Keep first, delete rest
+                for (size_t i = 1; i < g.files.size(); ++i) {
+                    try {
+                        auto sz = std::filesystem::file_size(g.files[i].uri);
+                        std::filesystem::remove(g.files[i].uri);
+                        ++deleted; freed += sz;
+                    } catch (...) {}
+                }
+            }
+            resultStr = QString::fromLatin1("Delete Duplicates\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n"
+                "Groups: %1\nDeleted: %2 files\nFreed: %3 MB\n").arg(groups.size()).arg(deleted).arg(freed/(1024*1024));
+        } catch (const std::exception &e) {
+            resultStr = QString::fromLatin1("Error: ") + QString::fromStdString(e.what());
+        }
+        QMetaObject::invokeMethod(this, "applyDeleteDupesResult", Qt::QueuedConnection, Q_ARG(QString, resultStr));
+    }).detach();
+}
+
+void DemoWindow::applyDeleteDupesResult(const QString &result)
+{
+    deleteDupesResultLbl->setText(result);
+    deleteDupesBtn->setEnabled(true);
 }

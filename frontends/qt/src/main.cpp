@@ -21,6 +21,9 @@
 #include <fo/core/omniflow_engine_interface.hpp>
 #include <fo/core/self_healing_interface.hpp>
 #include <fo/core/export.hpp>
+#include <fo/core/operation_repository.hpp>
+#include <fo/core/ignore_repository.hpp>
+#include <fo/core/rule_engine.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -877,6 +880,191 @@ int main(int argc, char *argv[])
             }).detach();
         });
         tabs->addTab(tab, QStringLiteral("Count"));
+    }
+
+    // History Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *btn = new QPushButton(QStringLiteral("Load History"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        layout->addWidget(btn);
+        layout->addWidget(output);
+        connect(btn, &QPushButton::clicked, btn, [btn, output]() {
+            btn->setEnabled(false);
+            std::thread([btn, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    fo::core::OperationRepository op_repo(engine.database());
+                    auto ops = op_repo.list_recent(50);
+                    result = QStringLiteral("Operation History\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+                    if (ops.empty()) result += QStringLiteral("(no operations recorded)\n");
+                    for (const auto &op : ops) {
+                        result += QStringLiteral("%1: %2 -> %3\n")
+                            .arg(op.type == fo::core::OperationType::Move ? QStringLiteral("Move") : QStringLiteral("Copy"))
+                            .arg(QString::fromStdString(op.source_path).left(40))
+                            .arg(QString::fromStdString(op.dest_path).left(40));
+                    }
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(btn, [btn]() { btn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("History"));
+    }
+
+    // Ignore Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *top = new QHBoxLayout();
+        auto *patternEdit = new QLineEdit(tab);
+        patternEdit->setPlaceholderText(QStringLiteral("Pattern (e.g. .*\\.tmp)"));
+        auto *listBtn = new QPushButton(QStringLiteral("List Rules"), tab);
+        auto *addBtn = new QPushButton(QStringLiteral("Add Rule"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        top->addWidget(patternEdit, 2);
+        top->addWidget(listBtn);
+        top->addWidget(addBtn);
+        layout->addLayout(top);
+        layout->addWidget(output);
+        connect(listBtn, &QPushButton::clicked, listBtn, [listBtn, output]() {
+            listBtn->setEnabled(false);
+            std::thread([listBtn, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    fo::core::IgnoreRepository ignore_repo(engine.database());
+                    ignore_repo.migrate();
+                    auto rules = ignore_repo.list_rules();
+                    result = QStringLiteral("Ignore Rules\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
+                    if (rules.empty()) result += QStringLiteral("(no rules)\n");
+                    for (const auto &r : rules) result += QString::fromStdString(r.pattern) + "\n";
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(listBtn, [listBtn]() { listBtn->setEnabled(true); });
+            }).detach();
+        });
+        connect(addBtn, &QPushButton::clicked, addBtn, [addBtn, patternEdit, output]() {
+            auto pattern = patternEdit->text().toStdString();
+            if (pattern.empty()) return;
+            addBtn->setEnabled(false);
+            std::thread([addBtn, pattern, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    fo::core::IgnoreRepository ignore_repo(engine.database());
+                    ignore_repo.migrate();
+                    fo::core::IgnoreRule rule;
+                    rule.pattern = pattern; rule.reason = "Added from Qt demo";
+                    ignore_repo.add_rule(rule);
+                    result = QStringLiteral("Added: %1\n").arg(QString::fromStdString(pattern));
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(addBtn, [addBtn]() { addBtn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("Ignore"));
+    }
+
+    // Organize Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *top = new QHBoxLayout();
+        auto *pathEdit = new QLineEdit(tab);
+        pathEdit->setPlaceholderText(QStringLiteral("Directory to organize..."));
+        auto *ruleEdit = new QLineEdit(tab);
+        ruleEdit->setPlaceholderText(QStringLiteral("Rule template"));
+        ruleEdit->setText(QStringLiteral("{extension}/{year}/{name}"));
+        auto *btn = new QPushButton(QStringLiteral("Preview"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        top->addWidget(pathEdit, 2);
+        top->addWidget(ruleEdit, 2);
+        top->addWidget(btn);
+        layout->addLayout(top);
+        layout->addWidget(output);
+        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, ruleEdit, output]() {
+            auto path = pathEdit->text().toStdString();
+            auto rule = ruleEdit->text().toStdString();
+            if (path.empty() || rule.empty()) return;
+            btn->setEnabled(false);
+            std::thread([btn, path, rule, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    auto files = engine.scan({std::filesystem::u8path(path)}, {}, false, false);
+                    fo::core::RuleEngine rule_engine;
+                    rule_engine.add_rule({"cli", "", rule});
+                    int moves = 0;
+                    for (const auto &f : files) {
+                        auto np = rule_engine.apply_rules(f, {});
+                        if (np && np->string() != f.uri) ++moves;
+                    }
+                    result = QStringLiteral("Organize Preview\nFiles: %1, Moves: %2, Rule: %3").arg(files.size()).arg(moves).arg(QString::fromStdString(rule));
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(btn, [btn]() { btn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("Organize"));
+    }
+
+    // Delete Dupes Tab
+    {
+        auto *tab = new QWidget(tabs);
+        auto *layout = new QVBoxLayout(tab);
+        auto *top = new QHBoxLayout();
+        auto *pathEdit = new QLineEdit(tab);
+        pathEdit->setPlaceholderText(QStringLiteral("Directory to deduplicate..."));
+        auto *btn = new QPushButton(QStringLiteral("Delete Dupes"), tab);
+        auto *output = new QTextEdit(tab);
+        output->setReadOnly(true);
+        top->addWidget(pathEdit, 3);
+        top->addWidget(btn);
+        layout->addLayout(top);
+        layout->addWidget(output);
+        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+            auto path = pathEdit->text().toStdString();
+            if (path.empty()) return;
+            btn->setEnabled(false);
+            std::thread([btn, path, output]() {
+                QString result;
+                try {
+                    fo::core::EngineConfig cfg;
+                    cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
+                    fo::core::Engine engine(cfg);
+                    auto files = engine.scan({std::filesystem::u8path(path)}, {}, false, false);
+                    auto groups = engine.find_duplicates(files);
+                    int deleted = 0; std::uintmax_t freed = 0;
+                    for (const auto &g : groups) {
+                        for (size_t i = 1; i < g.files.size(); ++i) {
+                            try {
+                                auto sz = std::filesystem::file_size(g.files[i].uri);
+                                std::filesystem::remove(g.files[i].uri);
+                                ++deleted; freed += sz;
+                            } catch (...) {}
+                        }
+                    }
+                    result = QStringLiteral("Delete Dupes\nGroups: %1, Deleted: %2, Freed: %3 MB").arg(groups.size()).arg(deleted).arg(freed/(1024*1024));
+                } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
+                QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
+                QMetaObject::invokeMethod(btn, [btn]() { btn->setEnabled(true); });
+            }).detach();
+        });
+        tabs->addTab(tab, QStringLiteral("Delete Dupes"));
     }
 
     window.setCentralWidget(tabs);

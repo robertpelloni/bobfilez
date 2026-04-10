@@ -1,0 +1,5 @@
+if(EXISTS "C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/fo_tests[1]_tests.cmake")
+  include("C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/fo_tests[1]_tests.cmake")
+else()
+  add_test(fo_tests_NOT_BUILT fo_tests_NOT_BUILT)
+endif()

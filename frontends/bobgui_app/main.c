@@ -255,6 +255,12 @@ operation_display_name (const gchar *operation)
     if (g_strcmp0 (operation, "count") == 0) {
         return "File Count";
     }
+    if (g_strcmp0 (operation, "organize") == 0) {
+        return "Organize Preview";
+    }
+    if (g_strcmp0 (operation, "delete-duplicates") == 0) {
+        return "Delete Duplicates";
+    }    }
 
     return operation;
 }
@@ -905,6 +911,9 @@ activate (BobguiApplication *app,
     BobguiWidget *scrub_button;
     BobguiWidget *export_button;
     BobguiWidget *count_button;
+    BobguiWidget *organize_button;
+    BobguiWidget *delete_dupes_button;
+    BobguiWidget *undo_button;
     BobguiWidget *history_button;
     BobguiWidget *ignore_button;
     BobguiWidget *ignore_add_button;
@@ -964,6 +973,9 @@ activate (BobguiApplication *app,
     scrub_button = bobgui_button_new_with_label ("Scrub");
     export_button = bobgui_button_new_with_label ("Export");
     count_button = bobgui_button_new_with_label ("Count");
+    organize_button = bobgui_button_new_with_label ("Organize");
+    delete_dupes_button = bobgui_button_new_with_label ("Delete Dupes");
+    undo_button = bobgui_button_new_with_label ("Undo");
     history_button = bobgui_button_new_with_label ("List History");
     ignore_button = bobgui_button_new_with_label ("List Ignore Rules");
     ignore_add_button = bobgui_button_new_with_label ("Add Ignore Rule");
@@ -987,6 +999,9 @@ activate (BobguiApplication *app,
     bobgui_box_append (BOBGUI_BOX (utility_row), scrub_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), export_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), count_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), organize_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), delete_dupes_button);
+    bobgui_box_append (BOBGUI_BOX (utility_row), undo_button);
     bobgui_box_append (BOBGUI_BOX (utility_row), clear_output_button);
 
     status_label = bobgui_label_new ("Ready.");
@@ -1118,6 +1133,24 @@ activate (BobguiApplication *app,
                            "clicked",
                            G_CALLBACK (action_button_clicked),
                            create_button_context (state, "count"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (organize_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "organize"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (delete_dupes_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "delete-duplicates"),
+                           (GClosureNotify) g_free,
+                           0);
+    g_signal_connect_data (undo_button,
+                           "clicked",
+                           G_CALLBACK (action_button_clicked),
+                           create_button_context (state, "undo"),
                            (GClosureNotify) g_free,
                            0);
     g_signal_connect_data (history_button,

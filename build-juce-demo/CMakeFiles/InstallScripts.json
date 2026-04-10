@@ -1,0 +1,16 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/core/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/cli/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/frontends/juce/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/modules/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/extras/Build/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/extras/Build/juceaide/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/benchmarks/cmake_install.cmake",
+		"C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

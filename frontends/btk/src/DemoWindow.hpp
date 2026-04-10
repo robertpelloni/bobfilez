@@ -101,6 +101,42 @@ public:
     void applyCountResult(const QString &result);
     CS_SLOT_2(applyCountResult)
 
+    CS_SLOT_1(Private)
+    void onHistoryClicked();
+    CS_SLOT_2(onHistoryClicked)
+
+    CS_SLOT_1(Private)
+    void onIgnoreListClicked();
+    CS_SLOT_2(onIgnoreListClicked)
+
+    CS_SLOT_1(Private)
+    void onIgnoreAddClicked();
+    CS_SLOT_2(onIgnoreAddClicked)
+
+    CS_SLOT_1(Private)
+    void onOrganizeClicked();
+    CS_SLOT_2(onOrganizeClicked)
+
+    CS_SLOT_1(Private)
+    void onDeleteDupesClicked();
+    CS_SLOT_2(onDeleteDupesClicked)
+
+    CS_SLOT_1(Private)
+    void applyHistoryResult(const QString &result);
+    CS_SLOT_2(applyHistoryResult)
+
+    CS_SLOT_1(Private)
+    void applyIgnoreResult(const QString &result);
+    CS_SLOT_2(applyIgnoreResult)
+
+    CS_SLOT_1(Private)
+    void applyOrganizeResult(const QString &result);
+    CS_SLOT_2(applyOrganizeResult)
+
+    CS_SLOT_1(Private)
+    void applyDeleteDupesResult(const QString &result);
+    CS_SLOT_2(applyDeleteDupesResult)
+
 private:
     void runScan(const QString &dir);
     void runDuplicates(const QString &dir);
@@ -170,4 +206,25 @@ private:
     QLineEdit *countPathEdit;
     QPushButton *countBtn;
     QLabel *countResultLbl;
+
+    QWidget *historyTab;
+    QPushButton *historyBtn;
+    QLabel *historyResultLbl;
+
+    QWidget *ignoreTab;
+    QLineEdit *ignorePatternEdit;
+    QPushButton *ignoreListBtn;
+    QPushButton *ignoreAddBtn;
+    QLabel *ignoreResultLbl;
+
+    QWidget *organizeTab;
+    QLineEdit *organizePathEdit;
+    QLineEdit *organizeRuleEdit;
+    QPushButton *organizeBtn;
+    QLabel *organizeResultLbl;
+
+    QWidget *deleteDupesTab;
+    QLineEdit *deleteDupesPathEdit;
+    QPushButton *deleteDupesBtn;
+    QLabel *deleteDupesResultLbl;
 };
