@@ -508,3 +508,6 @@
 [submodule "ai-file-sorter"]
 	path = ai-file-sorter
 	url = https://github.com/hyperfield/ai-file-sorter
+[submodule "VERT"]
+	url = https://github.com/VERT-sh/vert
+	path = VERT
