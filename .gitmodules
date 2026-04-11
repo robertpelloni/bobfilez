@@ -412,9 +412,6 @@
 [submodule "ai-file-sorter"]
 	path = ai-file-sorter
 	url = https://github.com/hyperfield/ai-file-sorter
-[submodule "VERT"]
-	path = VERT
-	url = https://github.com/VERT-sh/VERT
 [submodule "libs/BLAKE3"]
 	path = libs/BLAKE3
 	url = https://github.com/BLAKE3-team/BLAKE3.git
