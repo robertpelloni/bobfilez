@@ -1,0 +1,212 @@
+/***********************************************************************
+*
+* Copyright (c) 2012-2026 Barbara Geller
+* Copyright (c) 2012-2026 Ansel Sermersheim
+*
+* Copyright (c) 2015 The Qt Company Ltd.
+* Copyright (c) 2012-2016 Digia Plc and/or its subsidiary(-ies).
+* Copyright (c) 2008-2012 Nokia Corporation and/or its subsidiary(-ies).
+*
+* This file is part of CopperSpice.
+*
+* CopperSpice is free software. You can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* version 2.1 as published by the Free Software Foundation.
+*
+* CopperSpice is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+*
+* https://www.gnu.org/licenses/
+*
+***********************************************************************/
+
+#include <write_declaration.h>
+
+#include <qdebug.h>
+#include <qtextstream.h>
+
+#include <customwidgetsinfo.h>
+#include <databaseinfo.h>
+#include <driver.h>
+#include <extract_images.h>
+#include <ui4.h>
+#include <uic.h>
+#include <write_icondeclaration.h>
+#include <write_iconinitialization.h>
+#include <write_initialization.h>
+
+#include <ranges>
+
+namespace {
+
+void openNameSpaces(const QStringList &namespaceList, QTextStream &output)
+{
+   for (const QString &item : namespaceList) {
+      if (! item.isEmpty()) {
+         output << "namespace " << item << " {\n";
+      }
+   }
+}
+
+void closeNameSpaces(const QStringList &namespaceList, QTextStream &output)
+{
+   for (const QString &item : namespaceList | std::views::reverse) {
+
+      if (! item.isEmpty()) {
+         output << "}  // namespace " << item << "\n";
+      }
+   }
+}
+
+}  // namespace
+
+namespace CPP {
+
+WriteDeclaration::WriteDeclaration(Uic *uic)
+   : m_uic(uic), m_driver(uic->driver()), m_output(uic->output()), m_option(uic->option())
+{
+}
+
+void WriteDeclaration::acceptUI(DomUI *node)
+{
+   QString qualifiedClassName = node->elementClass() + m_option.postfix;
+   QString className = qualifiedClassName;
+
+   QString varName = m_driver->findOrInsertWidget(node->elementWidget());
+   QString widgetClassName = node->elementWidget()->attributeClass();
+
+   QString exportMacro = node->elementExportMacro();
+   if (! exportMacro.isEmpty()) {
+      exportMacro.append(' ');
+   }
+
+   QStringList namespaceList = qualifiedClassName.split("::");
+
+   if (! namespaceList.isEmpty()) {
+      className = namespaceList.last();
+      namespaceList.removeLast();
+   }
+
+   openNameSpaces(namespaceList, m_output);
+
+   if (! namespaceList.isEmpty()) {
+      m_output << "\n";
+   }
+
+   m_output << "class " << exportMacro << m_option.prefix << className << "\n"
+            << "{\n"
+            << "public:\n";
+
+   const QStringList connections = m_uic->databaseInfo()->connections();
+
+   for (const QString &item : connections) {
+      if (item != "(default)") {
+         m_output << m_option.indent << "QSqlDatabase " << item << "Connection;\n";
+      }
+   }
+
+   TreeWalker::acceptWidget(node->elementWidget());
+   if (const DomButtonGroups *domButtonGroups = node->elementButtonGroups()) {
+      acceptButtonGroups(domButtonGroups);
+   }
+
+   m_output << "\n";
+
+   WriteInitialization(m_uic).acceptUI(node);
+
+   if (node->elementImages()) {
+      if (m_option.extractImages) {
+         ExtractImages(m_uic->option()).acceptUI(node);
+
+      } else {
+         m_output << "\n"
+            << "protected:\n"
+            << m_option.indent << "enum IconID\n"
+            << m_option.indent << "{\n";
+         WriteIconDeclaration(m_uic).acceptUI(node);
+
+         m_output << m_option.indent << m_option.indent << "unknown_ID\n"
+            << m_option.indent << "};\n";
+
+         WriteIconInitialization(m_uic).acceptUI(node);
+      }
+   }
+
+   m_output << "};\n\n";
+
+   closeNameSpaces(namespaceList, m_output);
+
+   if (! namespaceList.isEmpty()) {
+      m_output << "\n";
+   }
+
+   if (m_option.generateNamespace && ! m_option.prefix.isEmpty()) {
+      namespaceList.append("Ui");
+      openNameSpaces(namespaceList, m_output);
+
+      m_output << m_option.indent << "class "  << exportMacro << className << " : public "
+               << m_option.prefix << className << " {};\n";
+
+      closeNameSpaces(namespaceList, m_output);
+
+      if (! namespaceList.isEmpty()) {
+         m_output << "\n";
+      }
+   }
+}
+
+void WriteDeclaration::acceptWidget(DomWidget *node)
+{
+   QString className = "QWidget";
+
+   if (node->hasAttributeClass()) {
+      className = node->attributeClass();
+   }
+
+   m_output << m_option.indent << m_uic->customWidgetsInfo()->realClassName(className) << " *"
+      << m_driver->findOrInsertWidget(node) << ";\n";
+
+   TreeWalker::acceptWidget(node);
+}
+
+void WriteDeclaration::acceptSpacer(DomSpacer *node)
+{
+   m_output << m_option.indent << "QSpacerItem *" << m_driver->findOrInsertSpacer(node) << ";\n";
+   TreeWalker::acceptSpacer(node);
+}
+
+void WriteDeclaration::acceptLayout(DomLayout *node)
+{
+   QString className = "QLayout";
+
+   if (node->hasAttributeClass()) {
+      className = node->attributeClass();
+   }
+
+   m_output << m_option.indent << className << " *" << m_driver->findOrInsertLayout(node) << ";\n";
+
+   TreeWalker::acceptLayout(node);
+}
+
+void WriteDeclaration::acceptActionGroup(DomActionGroup *node)
+{
+   m_output << m_option.indent << "QActionGroup *" << m_driver->findOrInsertActionGroup(node) << ";\n";
+
+   TreeWalker::acceptActionGroup(node);
+}
+
+void WriteDeclaration::acceptAction(DomAction *node)
+{
+   m_output << m_option.indent << "QAction *" << m_driver->findOrInsertAction(node) << ";\n";
+
+   TreeWalker::acceptAction(node);
+}
+
+void WriteDeclaration::acceptButtonGroup(const DomButtonGroup *buttonGroup)
+{
+   m_output << m_option.indent << "QButtonGroup *" << m_driver->findOrInsertButtonGroup(buttonGroup) << ";\n";
+   TreeWalker::acceptButtonGroup(buttonGroup);
+}
+
+}   // namespace

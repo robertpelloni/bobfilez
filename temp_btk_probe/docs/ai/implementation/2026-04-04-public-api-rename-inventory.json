@@ -1,0 +1,444 @@
+{
+  "root": "C:\\Users\\hyper\\workspace\\btk",
+  "brand_counts": {
+    "CopperSpice": 13478,
+    "copperspice": 336,
+    "BTK": 454,
+    "btk": 348
+  },
+  "cmake_library_targets": [
+    "CsCore",
+    "CsDeclarative",
+    "CsGui",
+    "CsGuiCocoa",
+    "CsGuiWayland",
+    "CsGuiWayland_Egl",
+    "CsGuiWayland_bradient",
+    "CsGuiWin",
+    "CsGuiXcb",
+    "CsGuiXcb_Glx",
+    "CsImageFormatsSvg",
+    "CsMultimedia",
+    "CsMultimedia_DirectShow",
+    "CsMultimedia_avf_camera",
+    "CsMultimedia_avf_mediaplayer",
+    "CsMultimedia_gst_audiodecoder",
+    "CsMultimedia_gst_camerabin",
+    "CsMultimedia_gst_mediaplayer",
+    "CsMultimedia_m3u",
+    "CsNetwork",
+    "CsOpenGL",
+    "CsPrinterDriverCocoa",
+    "CsPrinterDriverCups",
+    "CsPrinterDriverWin",
+    "CsSql",
+    "CsSqlDb2",
+    "CsSqlIBase",
+    "CsSqlMySql",
+    "CsSqlOci",
+    "CsSqlOdbc",
+    "CsSqlPsql",
+    "CsSvg",
+    "CsVulkan",
+    "CsWaylandClient",
+    "CsWebKit",
+    "CsXcbSupport",
+    "CsXml",
+    "CsXmlPatterns"
+  ],
+  "cmake_alias_targets": [
+    {
+      "alias": "CopperSpice::CsCore",
+      "target": "CsCore"
+    },
+    {
+      "alias": "CopperSpice::CsDeclarative",
+      "target": "CsDeclarative"
+    },
+    {
+      "alias": "CopperSpice::CsGui",
+      "target": "CsGui"
+    },
+    {
+      "alias": "CopperSpice::CsGuiWayland",
+      "target": "CsGuiWayland"
+    },
+    {
+      "alias": "CopperSpice::CsGuiWayland_Egl",
+      "target": "CsGuiWayland_Egl"
+    },
+    {
+      "alias": "CopperSpice::CsGuiWayland_bradient",
+      "target": "CsGuiWayland_bradient"
+    },
+    {
+      "alias": "CopperSpice::CsGuiWin",
+      "target": "CsGuiWin"
+    },
+    {
+      "alias": "CopperSpice::CsGuiXcb",
+      "target": "CsGuiXcb"
+    },
+    {
+      "alias": "CopperSpice::CsGuiXcb_Glx",
+      "target": "CsGuiXcb_Glx"
+    },
+    {
+      "alias": "CopperSpice::CsImageFormatsSvg",
+      "target": "CsImageFormatsSvg"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia",
+      "target": "CsMultimedia"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_DirectShow",
+      "target": "CsMultimedia_DirectShow"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_avf_camera",
+      "target": "CsMultimedia_avf_camera"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_avf_mediaplayer",
+      "target": "CsMultimedia_avf_mediaplayer"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_gst_audiodecoder",
+      "target": "CsMultimedia_gst_audiodecoder"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_gst_camerabin",
+      "target": "CsMultimedia_gst_camerabin"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_gst_mediaplayer",
+      "target": "CsMultimedia_gst_mediaplayer"
+    },
+    {
+      "alias": "CopperSpice::CsMultimedia_m3u",
+      "target": "CsMultimedia_m3u"
+    },
+    {
+      "alias": "CopperSpice::CsNetwork",
+      "target": "CsNetwork"
+    },
+    {
+      "alias": "CopperSpice::CsOpenGL",
+      "target": "CsOpenGL"
+    },
+    {
+      "alias": "CopperSpice::CsPrinterDriverCocoa",
+      "target": "CsPrinterDriverCocoa"
+    },
+    {
+      "alias": "CopperSpice::CsPrinterDriverCups",
+      "target": "CsPrinterDriverCups"
+    },
+    {
+      "alias": "CopperSpice::CsPrinterDriverWin",
+      "target": "CsPrinterDriverWin"
+    },
+    {
+      "alias": "CopperSpice::CsSql",
+      "target": "CsSql"
+    },
+    {
+      "alias": "CopperSpice::CsSqlDb2",
+      "target": "CsSqlDb2"
+    },
+    {
+      "alias": "CopperSpice::CsSqlMySql",
+      "target": "CsSqlMySql"
+    },
+    {
+      "alias": "CopperSpice::CsSqlOci",
+      "target": "CsSqlOci"
+    },
+    {
+      "alias": "CopperSpice::CsSqlOdbc",
+      "target": "CsSqlOdbc"
+    },
+    {
+      "alias": "CopperSpice::CsSqlPsql",
+      "target": "CsSqlPsql"
+    },
+    {
+      "alias": "CopperSpice::CsSvg",
+      "target": "CsSvg"
+    },
+    {
+      "alias": "CopperSpice::CsVulkan",
+      "target": "CsVulkan"
+    },
+    {
+      "alias": "CopperSpice::CsWaylandClient",
+      "target": "CsWaylandClient"
+    },
+    {
+      "alias": "CopperSpice::CsWebKit",
+      "target": "CsWebKit"
+    },
+    {
+      "alias": "CopperSpice::CsXcbSupport",
+      "target": "CsXcbSupport"
+    },
+    {
+      "alias": "CopperSpice::CsXml",
+      "target": "CsXml"
+    },
+    {
+      "alias": "CopperSpice::CsXmlPatterns",
+      "target": "CsXmlPatterns"
+    }
+  ],
+  "annex_namespaces": [
+    "CsPointer",
+    "CsSignal",
+    "CsString"
+  ],
+  "cs_prefix_file_count": 28,
+  "cs_prefix_file_samples": [
+    "src/annex/cs_libguarded/cs_rcu_guarded.h",
+    "src/annex/cs_libguarded/cs_rcu_list.h",
+    "src/annex/cs_libguarded/cs_shared_guarded.h",
+    "src/annex/cs_pointer/cs_enable_shared.h",
+    "src/annex/cs_pointer/cs_pointer_traits.h",
+    "src/annex/cs_pointer/cs_shared_array_pointer.h",
+    "src/annex/cs_pointer/cs_shared_pointer.h",
+    "src/annex/cs_pointer/cs_unique_array_pointer.h",
+    "src/annex/cs_pointer/cs_unique_pointer.h",
+    "src/annex/cs_pointer/cs_weak_pointer.h",
+    "src/annex/cs_signal/cs_internal.h",
+    "src/annex/cs_signal/cs_macro.h",
+    "src/annex/cs_signal/cs_signal.cpp",
+    "src/annex/cs_signal/cs_signal.h",
+    "src/annex/cs_signal/cs_slot.cpp",
+    "src/annex/cs_signal/cs_slot.h",
+    "src/annex/cs_string/cs_char.h",
+    "src/annex/cs_string/cs_encoding.h",
+    "src/annex/cs_string/cs_string.h",
+    "src/annex/cs_string/cs_string_iterator.h",
+    "src/annex/cs_string/cs_string_view.h",
+    "src/core/global/cs_build_info.h.in",
+    "src/gui/kernel/cs_carbon_wrapper.h",
+    "src/gui/kernel/cs_carbon_wrapper_p.h",
+    "src/gui/kernel/cs_mac_p.h",
+    "src/plugins/platforms/wayland/scanner/cs_wayland_scanner.cpp",
+    "test/cs_catch2.h",
+    "test/cs_catch_defines.h"
+  ],
+  "top_cs_symbols": [
+    {
+      "symbol": "CsBasicString",
+      "references": 584,
+      "files": 6
+    },
+    {
+      "symbol": "CsString",
+      "references": 569,
+      "files": 23
+    },
+    {
+      "symbol": "CsSignal",
+      "references": 204,
+      "files": 32
+    },
+    {
+      "symbol": "CsBasicStringView",
+      "references": 176,
+      "files": 5
+    },
+    {
+      "symbol": "CsCore",
+      "references": 158,
+      "files": 69
+    },
+    {
+      "symbol": "CsString_utf16",
+      "references": 153,
+      "files": 5
+    },
+    {
+      "symbol": "CsChar",
+      "references": 142,
+      "files": 7
+    },
+    {
+      "symbol": "CsGui",
+      "references": 108,
+      "files": 50
+    },
+    {
+      "symbol": "CsPointer",
+      "references": 99,
+      "files": 17
+    },
+    {
+      "symbol": "CsSharedPointer",
+      "references": 84,
+      "files": 8
+    },
+    {
+      "symbol": "CsStringIterator",
+      "references": 68,
+      "files": 4
+    },
+    {
+      "symbol": "CsNetwork",
+      "references": 53,
+      "files": 17
+    },
+    {
+      "symbol": "CsMultimedia",
+      "references": 41,
+      "files": 17
+    },
+    {
+      "symbol": "CsWeakPointer",
+      "references": 40,
+      "files": 6
+    },
+    {
+      "symbol": "CsUniquePointer",
+      "references": 35,
+      "files": 6
+    },
+    {
+      "symbol": "CsXmlPatterns",
+      "references": 31,
+      "files": 16
+    },
+    {
+      "symbol": "CsSql",
+      "references": 30,
+      "files": 11
+    },
+    {
+      "symbol": "CsLibGuarded",
+      "references": 29,
+      "files": 7
+    },
+    {
+      "symbol": "CsSharedArrayPointer",
+      "references": 27,
+      "files": 5
+    },
+    {
+      "symbol": "CsXml",
+      "references": 26,
+      "files": 11
+    },
+    {
+      "symbol": "CsVulkan",
+      "references": 24,
+      "files": 4
+    },
+    {
+      "symbol": "CsOpenGL",
+      "references": 24,
+      "files": 5
+    },
+    {
+      "symbol": "CsWebKit",
+      "references": 24,
+      "files": 4
+    },
+    {
+      "symbol": "CsSvg",
+      "references": 21,
+      "files": 4
+    },
+    {
+      "symbol": "CsSqlPsql",
+      "references": 20,
+      "files": 5
+    },
+    {
+      "symbol": "CsWaylandClient",
+      "references": 20,
+      "files": 5
+    },
+    {
+      "symbol": "CsSqlOdbc",
+      "references": 19,
+      "files": 3
+    },
+    {
+      "symbol": "CsXcbSupport",
+      "references": 19,
+      "files": 4
+    },
+    {
+      "symbol": "CsCoreTest",
+      "references": 19,
+      "files": 4
+    },
+    {
+      "symbol": "CsUniqueArrayPointer",
+      "references": 19,
+      "files": 5
+    },
+    {
+      "symbol": "CsSqlMySql",
+      "references": 18,
+      "files": 3
+    },
+    {
+      "symbol": "CsImageFormatsSvg",
+      "references": 18,
+      "files": 3
+    },
+    {
+      "symbol": "CsGuiCocoa",
+      "references": 17,
+      "files": 4
+    },
+    {
+      "symbol": "CsGuiXcb",
+      "references": 17,
+      "files": 5
+    },
+    {
+      "symbol": "CsGuiWin",
+      "references": 17,
+      "files": 4
+    },
+    {
+      "symbol": "CsMultimedia_gst_audiodecoder",
+      "references": 17,
+      "files": 3
+    },
+    {
+      "symbol": "CsMultimedia_gst_camerabin",
+      "references": 17,
+      "files": 3
+    },
+    {
+      "symbol": "CsMultimedia_gst_mediaplayer",
+      "references": 17,
+      "files": 3
+    },
+    {
+      "symbol": "CsPrinterDriverCups",
+      "references": 17,
+      "files": 3
+    },
+    {
+      "symbol": "CsMultimedia_m3u",
+      "references": 16,
+      "files": 3
+    }
+  ],
+  "cs_token_count_by_top_dir": {
+    "src": 2991,
+    "docs": 166,
+    "cmake": 99,
+    "test": 61,
+    "CMakeLists.txt": 34,
+    "utilities": 4,
+    "HANDOFF.md": 0,
+    "README.md": 0,
+    "license": 0
+  }
+}

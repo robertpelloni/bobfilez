@@ -1,0 +1,9 @@
+[submodule "external/juce"]
+	path = external/juce
+	url = https://github.com/juce-framework/JUCE
+[submodule "external/ultimatepp"]
+	path = external/ultimatepp
+	url = https://github.com/ultimatepp/ultimatepp
+[submodule "external/bobui-reference"]
+	path = external/bobui-reference
+	url = https://github.com/robertpelloni/bobui
