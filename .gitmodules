@@ -316,6 +316,7 @@
 [submodule "libs/image-hash"]
 	path = libs/image-hash
 	url = https://github.com/robertpelloni/bobfilez.git
+	branch = image-hash-stable
 [submodule "libs/imghash-viewer"]
 	path = libs/imghash-viewer
 	url = https://github.com/YannickAlex07/imghash-viewer
