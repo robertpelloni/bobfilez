@@ -315,7 +315,7 @@
 	url = https://github.com/nihas101/pHash
 [submodule "libs/image-hash"]
 	path = libs/image-hash
-	url = https://github.com/ytetsuro/image-hash
+	url = https://github.com/robertpelloni/bobfilez.git
 [submodule "libs/imghash-viewer"]
 	path = libs/imghash-viewer
 	url = https://github.com/YannickAlex07/imghash-viewer
