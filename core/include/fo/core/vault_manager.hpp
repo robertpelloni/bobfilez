@@ -33,7 +33,16 @@ public:
 
 private:
     std::filesystem::path vault_path_;
-    std::string key_hash_; // For password verification
+    std::string password_;
+
+    // Generates a 256-bit key from the password and a salt using PBKDF2
+    bool derive_key(const std::string& password, const unsigned char* salt, unsigned char* key) const;
+
+    // Internal encryption function
+    bool encrypt_file(const std::filesystem::path& input, const std::filesystem::path& output) const;
+
+    // Internal decryption function
+    bool decrypt_file(const std::filesystem::path& input, const std::filesystem::path& output) const;
 };
 
 } // namespace fo::core

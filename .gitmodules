@@ -512,3 +512,6 @@
 [submodule "VERT"]
 	url = https://github.com/VERT-sh/vert
 	path = VERT
+[submodule "libs/ultimatepp"]
+	path = libs/ultimatepp
+	url = https://github.com/ultimatepp/ultimatepp

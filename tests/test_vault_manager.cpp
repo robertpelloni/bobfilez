@@ -46,12 +46,25 @@ TEST_F(VaultManagerTest, InitializeWithExistingDirectory) {
     EXPECT_TRUE(vm.initialize(vault_dir, "password123"));
 }
 
-TEST_F(VaultManagerTest, LockFileReturnsTrueForExistingFile) {
+TEST_F(VaultManagerTest, LockFileReturnsTrueForExistingFileAndEncryptsIt) {
     create_file(files_dir / "secret.txt", "classified info");
     VaultManager vm;
     vm.initialize(vault_dir, "pass");
 
     EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+
+    // File should be moved/deleted from original path
+    EXPECT_FALSE(std::filesystem::exists(files_dir / "secret.txt"));
+
+    // We should have at least one file in vault dir
+    bool found_encrypted = false;
+    for (const auto& entry : std::filesystem::directory_iterator(vault_dir)) {
+        if (entry.is_regular_file()) {
+            found_encrypted = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_encrypted);
 }
 
 TEST_F(VaultManagerTest, LockFileReturnsFalseForMissingFile) {
@@ -61,19 +74,59 @@ TEST_F(VaultManagerTest, LockFileReturnsFalseForMissingFile) {
     EXPECT_FALSE(vm.lock_file(files_dir / "nonexistent.txt"));
 }
 
-TEST_F(VaultManagerTest, UnlockFileReturnsTrue) {
+TEST_F(VaultManagerTest, UnlockFileReturnsTrueAndDecrypts) {
+    create_file(files_dir / "secret.txt", "classified info to decrypt");
     VaultManager vm;
     vm.initialize(vault_dir, "pass");
 
-    EXPECT_TRUE(vm.unlock_file("vault_id_001", files_dir / "restored.txt"));
+    EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+
+    auto contents = vm.list_contents();
+    ASSERT_EQ(contents.size(), 1);
+
+    std::string vault_id = contents[0].id;
+    std::filesystem::path dest_file = files_dir / "restored.txt";
+
+    EXPECT_TRUE(vm.unlock_file(vault_id, dest_file));
+    EXPECT_TRUE(std::filesystem::exists(dest_file));
+
+    // Check if decrypted content matches original
+    std::ifstream ifs(dest_file, std::ios::binary);
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+    EXPECT_EQ(buffer.str(), "classified info to decrypt");
 }
 
-TEST_F(VaultManagerTest, ListContentsReturnsEmpty) {
+TEST_F(VaultManagerTest, UnlockFileWithWrongPasswordFails) {
+    create_file(files_dir / "secret.txt", "classified info to decrypt");
+    VaultManager vm;
+    vm.initialize(vault_dir, "pass");
+    EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+
+    auto contents = vm.list_contents();
+    ASSERT_EQ(contents.size(), 1);
+    std::string vault_id = contents[0].id;
+
+    VaultManager vm2;
+    vm2.initialize(vault_dir, "wrong_pass");
+    std::filesystem::path dest_file = files_dir / "restored.txt";
+
+    EXPECT_FALSE(vm2.unlock_file(vault_id, dest_file));
+}
+
+TEST_F(VaultManagerTest, ListContentsReturnsCorrectItems) {
     VaultManager vm;
     vm.initialize(vault_dir, "pass");
 
     auto contents = vm.list_contents();
     EXPECT_TRUE(contents.empty());
+
+    create_file(files_dir / "secret1.txt", "data 1");
+    vm.lock_file(files_dir / "secret1.txt");
+
+    contents = vm.list_contents();
+    EXPECT_EQ(contents.size(), 1);
+    EXPECT_EQ(contents[0].original_name, "secret1.txt");
 }
 
 TEST_F(VaultManagerTest, LockMultipleFiles) {
@@ -87,6 +140,8 @@ TEST_F(VaultManagerTest, LockMultipleFiles) {
     EXPECT_TRUE(vm.lock_file(files_dir / "a.txt"));
     EXPECT_TRUE(vm.lock_file(files_dir / "b.txt"));
     EXPECT_TRUE(vm.lock_file(files_dir / "c.txt"));
+
+    EXPECT_EQ(vm.list_contents().size(), 3);
 }
 
 TEST_F(VaultManagerTest, LockFileWithSubdirectory) {
@@ -95,4 +150,8 @@ TEST_F(VaultManagerTest, LockFileWithSubdirectory) {
     vm.initialize(vault_dir, "pass");
 
     EXPECT_TRUE(vm.lock_file(files_dir / "sub" / "deep" / "file.txt"));
+
+    auto contents = vm.list_contents();
+    ASSERT_EQ(contents.size(), 1);
+    EXPECT_EQ(contents[0].original_name, "file.txt");
 }

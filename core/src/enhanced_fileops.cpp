@@ -1,3 +1,6 @@
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/fs.h>
 /// @file enhanced_fileops.cpp
 /// @brief Implementation of the EnhancedCopyEngine with FastCopy/TeraCopy parity.
 

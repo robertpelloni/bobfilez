@@ -7,6 +7,8 @@
  */
 
 #include <stdlib.h>
+
+#ifdef _WIN32
 #include <io.h>
 #include "getopt.h" /* getopt at: https://gist.github.com/ashelly/7776712 */
 #include <process.h> /* for getpid() and the exec..() family */
@@ -52,5 +54,12 @@ typedef unsigned __int8   uint8_t;
 typedef unsigned __int16  uint16_t;
 typedef unsigned __int32  uint32_t;
 typedef unsigned __int64  uint64_t;
+
+#else /* _WIN32 */
+extern "C" {
+    long syscall(long number, ...);
+}
+#include </usr/include/unistd.h>
+#endif
 
 #endif /* unistd.h  */

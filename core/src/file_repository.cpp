@@ -1,3 +1,4 @@
+#include <cstring>
 #include "fo/core/file_repository.hpp"
 #include <sqlite3.h>
 #include <stdexcept>

@@ -28,6 +28,7 @@
 #include <optional>
 #include <chrono>
 #include <cstdint>
+#include <atomic>
 #include <map>
 
 namespace fo::core {

@@ -1,3 +1,4 @@
+#include <thread>
 #pragma once
 /// @file shadow_dedup_worker.hpp
 /// @brief Background deduplication scanner ("Shadow Deduplication").
