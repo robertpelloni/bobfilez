@@ -40,13 +40,19 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
 
     auto ts = std::chrono::duration_cast<std::chrono::seconds>(record.timestamp.time_since_epoch()).count();
 
+    std::string op_type = operation_type_to_string(record.type);
+    std::string src = record.source_path;
+    std::string dst = record.dest_path;
+    std::string fh = record.file_hash;
+    std::string st = record.status;
+
     sqlite3_bind_int64(stmt, 1, ts);
-    sqlite3_bind_text(stmt, 2, operation_type_to_string(record.type).c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, record.source_path.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 4, record.dest_path.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, op_type.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, src.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, dst.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int64(stmt, 5, record.file_size);
-    sqlite3_bind_text(stmt, 6, record.file_hash.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 7, record.status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, fh.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 7, st.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 8, record.undone ? 1 : 0);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {

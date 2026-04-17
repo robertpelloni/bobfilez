@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.3.1] - 2026-04-17
+
+### Added
+- VaultManager real implementation using OpenSSL AES-256-GCM for encrypted storage.
+- Submodules: ultimatepp, bobui, btk, and bobgui added to libs/ to support native frontend rewrite phase.
+- Nexus master clock unification implemented to coordinate scheduling and arbitration natively.
+
+### Fixed
+- Fixed unaligned tcache chunk bug in OperationRepository bindings caused by transient C++ string temporary pointers.
+- Upgraded scripts/generate_dashboard.py to recursively find nested submodules correctly.
+- Addressed <unistd.h> and <sys/syscall.h> header definition conflicts breaking std::atomic_wait compilation natively on Linux.
+
 ## [6.2.1] - 2026-04-08
 
 ### Added — The "Export + Organize + Count" Frontend Expansion

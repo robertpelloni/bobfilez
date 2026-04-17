@@ -84,26 +84,32 @@ public:
         queue_cv_.notify_one();
     }
 
+    // We'll use a single CV for all resources for simplicity, waking up
+    // everyone to check if their resource is free.
+    std::condition_variable resource_cv_;
+
     bool acquire_resource(ResourceType type, const std::string& requester_id, bool blocking) override {
         std::unique_lock<std::mutex> lock(resource_mutex_);
-        // Simple mutual exclusion for now
+
         if (active_locks_.count(type)) {
             if (!blocking) return false;
-            // Simplified blocking logic: poll (Real impl would use CV per resource)
-            while (active_locks_.count(type)) {
-                lock.unlock();
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                lock.lock();
-            }
+
+            resource_cv_.wait(lock, [this, type]() {
+                return active_locks_.count(type) == 0 || !running_;
+            });
+
+            if (!running_) return false;
         }
+
         active_locks_[type] = requester_id;
         return true;
     }
 
     void release_resource(ResourceType type, const std::string& requester_id) override {
         std::lock_guard<std::mutex> lock(resource_mutex_);
-        if (active_locks_[type] == requester_id) {
+        if (active_locks_.count(type) && active_locks_[type] == requester_id) {
             active_locks_.erase(type);
+            resource_cv_.notify_all();
         }
     }
 

@@ -9,7 +9,9 @@
 - [x] **Taskbar Scaffolding**: Begin implementing the `bob_shell` taskbar with app pinning.
 - [x] **Start Menu**: Design and implement the AI-powered Start Menu.
 - [x] **Desktop Environment**: Implement Desktop Icons and a System Dashboard.
-- [ ] **Nexus Integration**: Implement the C++ master clock unification across all modules.
+- [x] **Nexus Integration**: Implement the C++ master clock unification across all modules.
+- [ ] **Ultimate++ Refactoring**: Begin refactoring and planning to utilize Ultimate++'s utility toolkit classes across the core.
+- [ ] **BobUI Web**: Update web UI to reflect the native functionality.
 - [x] **Vector-Semantic Search**: Integrate local Clip/BERT for AI-driven file discovery in Explorer.
 
 ## In Progress
@@ -22,7 +24,7 @@
 
 ## Bug Fixes
 - [ ] Resolve any remaining linker issues with `vcpkg` and cloud SDKs in non-standard environments.
-- [ ] Update `generate_dashboard.py` to handle nested submodules (submodules of submodules).
+- [ ] Compile and configure `btk`, `bobui`, and `ultimatepp` successfully so they can be consumed by the frontend target apps.
 
 ## Low Priority
 - [ ] Web GUI (`bobui_web`) polish and additional REST API endpoints.

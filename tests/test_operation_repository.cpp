@@ -10,13 +10,15 @@ using namespace fo::core;
 class OperationRepositoryTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        db.open(":memory:");
-        db.migrate();
-        repo = std::make_unique<OperationRepository>(db);
+        db = std::make_unique<DatabaseManager>();
+        db->open(":memory:");
+        db->migrate();
+        repo = std::make_unique<OperationRepository>(*db);
     }
 
     void TearDown() override {
         repo.reset();
+        db.reset();
     }
 
     void create_file(const std::filesystem::path& path, const std::string& content = "data") {
@@ -25,7 +27,7 @@ protected:
         ofs << content;
     }
 
-    DatabaseManager db;
+    std::shared_ptr<DatabaseManager> db;
     std::unique_ptr<OperationRepository> repo;
 };
 
