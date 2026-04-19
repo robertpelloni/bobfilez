@@ -19,6 +19,10 @@
 #include <unistd.h>
 #endif
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+extern "C" int close(int fd);
 namespace fo::core {
 
 //─────────────────────────── Data Interpretation ───────────────────────────────
