@@ -1,0 +1,18 @@
+# Software Developer Rules
+# Automatically cleans up environments and organizes downloads.
+
+- name: Group Source Code by Extension
+  pattern: "*.{cpp,c,h,hpp,py,js,ts,go,rs,java}"
+  target: "Workspace/Source_Code/{ext}/{filename}"
+
+- name: Purge build artifacts
+  pattern: "*.{o,obj,a,lib,so,dll,dylib,class,pyc}"
+  target: "/dev/null"
+
+- name: Organize Dependency Locks
+  pattern: "*{lock.json,.lock}"
+  target: "Workspace/Lockfiles/{filename}"
+
+- name: Documentation and Markdown
+  pattern: "*.{md,txt,rst}"
+  target: "Workspace/Docs/{filename}"

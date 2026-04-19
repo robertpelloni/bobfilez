@@ -28,4 +28,4 @@
 
 ## Low Priority
 - [ ] Web GUI (`bobui_web`) polish and additional REST API endpoints.
-- [ ] Example `rules.yaml` files for various user personas (Photographer, SysAdmin).
+- [x] Example `rules.yaml` files for various user personas (Photographer, SysAdmin).

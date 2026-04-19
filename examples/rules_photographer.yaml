@@ -1,0 +1,22 @@
+# Photographer and Media Professional Rules
+# Automates the categorization of raw photos, exported JPEGs, and video clips based on metadata and dates.
+
+- name: Raw Image Organization
+  pattern: "*.{cr2,cr3,nef,arw,dng}"
+  target: "Photography/{exif:CreateDate:yyyy}/{exif:CreateDate:MM-dd}_RAW_Shoots/{filename}"
+
+- name: Processed JPEG Exports
+  pattern: "*.jpg"
+  target: "Photography/{exif:CreateDate:yyyy}/Final_Exports/{filename}"
+
+- name: High Quality Video Renders
+  pattern: "*.{mp4,mov,mkv}"
+  target: "Video_Projects/{exif:CreateDate:yyyy}/{exif:CreateDate:MM-dd}/{filename}"
+
+- name: Isolate Audio Stems
+  pattern: "*.{wav,flac,mp3}"
+  target: "Audio_Stems/{exif:CreateDate:yyyy}/{filename}"
+
+- name: Delete temporary sidecar files
+  pattern: "*.{xmp,crd}"
+  target: "/dev/null"

@@ -1,0 +1,22 @@
+# System Administrator Rules
+# Automates the sorting of system logs, database backups, and server configurations.
+
+- name: Group MySQL Dumps by Year and Month
+  pattern: "*.sql.gz"
+  target: "Backups/Database/{mtime:yyyy}/{mtime:MM}/{filename}"
+
+- name: Archive Old Web Logs
+  pattern: "access*.log"
+  target: "Archives/Web_Logs/{mtime:yyyy}-{mtime:MM}/{filename}"
+
+- name: Isolate Application Error Logs
+  pattern: "*error*.log"
+  target: "Archives/Error_Logs/{mtime:yyyy}/{filename}"
+
+- name: Organize Configuration Backups
+  pattern: "*.conf.bak"
+  target: "Backups/Configs/{filename}"
+
+- name: Purge Temporary PID Files
+  pattern: "*.pid"
+  target: "/dev/null"
