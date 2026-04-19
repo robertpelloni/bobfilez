@@ -50,3 +50,7 @@
 4. **SelfHealing real implementation** — hash verification against DB
 5. **Wire organize/count/export into BobGUI** — extend frontend
 6. **Nexus master clock** — unified scheduling seam
+
+
+### BobUI Web Vault API Integration
+The `bobui_web` server has been updated with REST API endpoints bridging the VaultManager C++ logic to the web interface. Frontend engineers can now hit `/api/vault/init|lock|unlock|list` using `POST` passing `vaultPath` and `password`.

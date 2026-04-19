@@ -254,7 +254,7 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
     return false;
 }
 
-std::vector<VaultManager::VaultEntry> VaultManager::list_contents() {
+std::vector<VaultEntry> VaultManager::list_contents() {
     std::vector<VaultEntry> entries;
     if (!std::filesystem::exists(vault_path_)) return entries;
 

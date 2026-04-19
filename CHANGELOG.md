@@ -3,6 +3,14 @@
 ## [6.3.1] - 2026-04-17
 
 ### Added
+- **BobUI Web Vault Support**: Extended the `bobui_web` NodeJS REST API server to support VaultManager operations.
+  - POST `/api/vault/init`: Initialize a new encrypted vault
+  - POST `/api/vault/lock`: Move and encrypt a file into the vault
+  - POST `/api/vault/unlock`: Decrypt and restore a file from the vault
+  - POST `/api/vault/list`: Retrieve the vault's current encrypted inventory
+- **VaultManager C API**: Added native FFI boundaries for `VaultManager` (`fo_bobfilez_vault_*`) ensuring GUI decoupling.
+
+### Added
 - VaultManager real implementation using OpenSSL AES-256-GCM for encrypted storage.
 - Submodules: ultimatepp, bobui, btk, and bobgui added to libs/ to support native frontend rewrite phase.
 - Nexus master clock unification implemented to coordinate scheduling and arbitration natively.

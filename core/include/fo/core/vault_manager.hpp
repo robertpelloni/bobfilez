@@ -8,28 +8,23 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include "fo/core/interfaces.hpp"
 
 namespace fo::core {
 
-class VaultManager {
+class VaultManager : public IVaultManager {
 public:
     /// Initialize vault at path with password
-    bool initialize(const std::filesystem::path& vault_path, const std::string& password);
+    bool initialize(const std::filesystem::path& vault_path, const std::string& password) override;
 
     /// Move a file into the vault (encrypts it)
-    bool lock_file(const std::filesystem::path& file_path);
+    bool lock_file(const std::filesystem::path& file_path) override;
 
     /// Extract a file from the vault (decrypts it)
-    bool unlock_file(const std::string& vault_id, const std::filesystem::path& dest_path);
+    bool unlock_file(const std::string& vault_id, const std::filesystem::path& dest_path) override;
 
     /// List all files currently in the vault
-    struct VaultEntry {
-        std::string id;
-        std::string original_name;
-        uintmax_t size;
-        int64_t added_at;
-    };
-    std::vector<VaultEntry> list_contents();
+    std::vector<VaultEntry> list_contents() override;
 
 private:
     std::filesystem::path vault_path_;

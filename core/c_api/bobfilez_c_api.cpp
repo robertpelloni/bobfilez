@@ -1655,13 +1655,17 @@ extern "C" int fo_bobfilez_flow_execute(const char* workflow_id, const char* pay
 #include "fo/core/vault_manager.hpp"
 #include <nlohmann/json.hpp>
 
-static fo::core::VaultManager g_vault_manager;
+static std::unique_ptr<fo::core::IVaultManager> g_vault_manager;
 static bool g_vault_initialized = false;
 
 extern "C" int fo_bobfilez_vault_initialize(const char* vault_path, const char* password) {
     if (!vault_path || !password) return 0;
     try {
-        g_vault_initialized = g_vault_manager.initialize(vault_path, password);
+        if (!g_vault_manager) {
+            g_vault_manager = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+            if (!g_vault_manager) return 0;
+        }
+        g_vault_initialized = g_vault_manager->initialize(vault_path, password);
         return g_vault_initialized ? 1 : 0;
     } catch (...) {
         return 0;
@@ -1671,7 +1675,7 @@ extern "C" int fo_bobfilez_vault_initialize(const char* vault_path, const char* 
 extern "C" int fo_bobfilez_vault_lock(const char* file_path) {
     if (!g_vault_initialized || !file_path) return 0;
     try {
-        return g_vault_manager.lock_file(file_path) ? 1 : 0;
+        return g_vault_manager->lock_file(file_path) ? 1 : 0;
     } catch (...) {
         return 0;
     }
@@ -1680,7 +1684,7 @@ extern "C" int fo_bobfilez_vault_lock(const char* file_path) {
 extern "C" int fo_bobfilez_vault_unlock(const char* vault_id, const char* dest_path) {
     if (!g_vault_initialized || !vault_id || !dest_path) return 0;
     try {
-        return g_vault_manager.unlock_file(vault_id, dest_path) ? 1 : 0;
+        return g_vault_manager->unlock_file(vault_id, dest_path) ? 1 : 0;
     } catch (...) {
         return 0;
     }
@@ -1689,7 +1693,7 @@ extern "C" int fo_bobfilez_vault_unlock(const char* vault_id, const char* dest_p
 extern "C" char* fo_bobfilez_vault_list() {
     if (!g_vault_initialized) return nullptr;
     try {
-        auto entries = g_vault_manager.list_contents();
+        auto entries = g_vault_manager->list_contents();
         nlohmann::json j = nlohmann::json::array();
         for (const auto& e : entries) {
             j.push_back({

@@ -1,12 +1,16 @@
 #include <gtest/gtest.h>
 #include "fo/core/vault_manager.hpp"
+#include "fo/core/registry.hpp"
 #include <filesystem>
 #include <fstream>
 #include <chrono>
 
 using namespace fo::core;
 
+namespace fo::core::providers { extern void force_register_vault_manager(); }
 class VaultManagerTest : public ::testing::Test {
+public:
+    VaultManagerTest() { fo::core::providers::force_register_vault_manager(); }
 protected:
     void SetUp() override {
         auto unique_id = std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -34,24 +38,24 @@ protected:
 };
 
 TEST_F(VaultManagerTest, InitializeCreatesDirectory) {
-    VaultManager vm;
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
     EXPECT_FALSE(std::filesystem::exists(vault_dir));
-    EXPECT_TRUE(vm.initialize(vault_dir, "my_password"));
+    EXPECT_TRUE(vm->initialize(vault_dir, "my_password"));
     EXPECT_TRUE(std::filesystem::is_directory(vault_dir));
 }
 
 TEST_F(VaultManagerTest, InitializeWithExistingDirectory) {
     std::filesystem::create_directories(vault_dir);
-    VaultManager vm;
-    EXPECT_TRUE(vm.initialize(vault_dir, "password123"));
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    EXPECT_TRUE(vm->initialize(vault_dir, "password123"));
 }
 
 TEST_F(VaultManagerTest, LockFileReturnsTrueForExistingFileAndEncryptsIt) {
     create_file(files_dir / "secret.txt", "classified info");
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "secret.txt"));
 
     // File should be moved/deleted from original path
     EXPECT_FALSE(std::filesystem::exists(files_dir / "secret.txt"));
@@ -68,26 +72,26 @@ TEST_F(VaultManagerTest, LockFileReturnsTrueForExistingFileAndEncryptsIt) {
 }
 
 TEST_F(VaultManagerTest, LockFileReturnsFalseForMissingFile) {
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    EXPECT_FALSE(vm.lock_file(files_dir / "nonexistent.txt"));
+    EXPECT_FALSE(vm->lock_file(files_dir / "nonexistent.txt"));
 }
 
 TEST_F(VaultManagerTest, UnlockFileReturnsTrueAndDecrypts) {
     create_file(files_dir / "secret.txt", "classified info to decrypt");
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "secret.txt"));
 
-    auto contents = vm.list_contents();
+    auto contents = vm->list_contents();
     ASSERT_EQ(contents.size(), 1);
 
     std::string vault_id = contents[0].id;
     std::filesystem::path dest_file = files_dir / "restored.txt";
 
-    EXPECT_TRUE(vm.unlock_file(vault_id, dest_file));
+    EXPECT_TRUE(vm->unlock_file(vault_id, dest_file));
     EXPECT_TRUE(std::filesystem::exists(dest_file));
 
     // Check if decrypted content matches original
@@ -99,32 +103,32 @@ TEST_F(VaultManagerTest, UnlockFileReturnsTrueAndDecrypts) {
 
 TEST_F(VaultManagerTest, UnlockFileWithWrongPasswordFails) {
     create_file(files_dir / "secret.txt", "classified info to decrypt");
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
-    EXPECT_TRUE(vm.lock_file(files_dir / "secret.txt"));
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
+    EXPECT_TRUE(vm->lock_file(files_dir / "secret.txt"));
 
-    auto contents = vm.list_contents();
+    auto contents = vm->list_contents();
     ASSERT_EQ(contents.size(), 1);
     std::string vault_id = contents[0].id;
 
-    VaultManager vm2;
-    vm2.initialize(vault_dir, "wrong_pass");
+    auto vm2 = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm2->initialize(vault_dir, "wrong_pass");
     std::filesystem::path dest_file = files_dir / "restored.txt";
 
-    EXPECT_FALSE(vm2.unlock_file(vault_id, dest_file));
+    EXPECT_FALSE(vm2->unlock_file(vault_id, dest_file));
 }
 
 TEST_F(VaultManagerTest, ListContentsReturnsCorrectItems) {
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    auto contents = vm.list_contents();
+    auto contents = vm->list_contents();
     EXPECT_TRUE(contents.empty());
 
     create_file(files_dir / "secret1.txt", "data 1");
-    vm.lock_file(files_dir / "secret1.txt");
+    vm->lock_file(files_dir / "secret1.txt");
 
-    contents = vm.list_contents();
+    contents = vm->list_contents();
     EXPECT_EQ(contents.size(), 1);
     EXPECT_EQ(contents[0].original_name, "secret1.txt");
 }
@@ -134,24 +138,24 @@ TEST_F(VaultManagerTest, LockMultipleFiles) {
     create_file(files_dir / "b.txt", "data b");
     create_file(files_dir / "c.txt", "data c");
 
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    EXPECT_TRUE(vm.lock_file(files_dir / "a.txt"));
-    EXPECT_TRUE(vm.lock_file(files_dir / "b.txt"));
-    EXPECT_TRUE(vm.lock_file(files_dir / "c.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "a.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "b.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "c.txt"));
 
-    EXPECT_EQ(vm.list_contents().size(), 3);
+    EXPECT_EQ(vm->list_contents().size(), 3);
 }
 
 TEST_F(VaultManagerTest, LockFileWithSubdirectory) {
     create_file(files_dir / "sub" / "deep" / "file.txt", "nested");
-    VaultManager vm;
-    vm.initialize(vault_dir, "pass");
+    auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
+    vm->initialize(vault_dir, "pass");
 
-    EXPECT_TRUE(vm.lock_file(files_dir / "sub" / "deep" / "file.txt"));
+    EXPECT_TRUE(vm->lock_file(files_dir / "sub" / "deep" / "file.txt"));
 
-    auto contents = vm.list_contents();
+    auto contents = vm->list_contents();
     ASSERT_EQ(contents.size(), 1);
     EXPECT_EQ(contents[0].original_name, "file.txt");
 }

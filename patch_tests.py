@@ -1,10 +1,12 @@
-import sys
-with open("tests/test_shadow_sorter_copy.cpp", "r") as f:
-    content = f.read()
+import re
 
-# Make sure ShadowSorter is fully cleaned up before moving on to the next test suite
-if 'watcher->stop();' in content:
-    content = content.replace('std::this_thread::sleep_for(std::chrono::milliseconds(250));', 'std::this_thread::sleep_for(std::chrono::milliseconds(250));\n        sorter.reset();\n        watcher.reset();\n        db.reset();\n        std::this_thread::sleep_for(std::chrono::milliseconds(100));')
+with open("tests/test_vault_manager.cpp", "r") as f:
+    text = f.read()
 
-with open("tests/test_shadow_sorter_copy.cpp", "w") as f:
-    f.write(content)
+text = text.replace('VaultManager vm;', 'auto vm = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");')
+text = text.replace('VaultManager vm2;', 'auto vm2 = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");')
+text = text.replace('vm.', 'vm->')
+text = text.replace('vm2.', 'vm2->')
+
+with open("tests/test_vault_manager.cpp", "w") as f:
+    f.write(text)
