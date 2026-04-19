@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-04-15 17:33:08
+**Last Updated:** 2026-04-19 03:06:13
 
 ## Project Structure
 
@@ -188,3 +188,7 @@ The project is organized as follows:
 | libs/bobgui | `libs/bobgui` | 4.22.0 | `ce7fcfeb92` | 2026-04-14 | 90542 | [Link](https://github.com/robertpelloni/bobgui) |
 | libs/JUCE | `libs/JUCE` | 8.0.12 | `501c07674e` | 2026-01-16 | 15597 | [Link](https://github.com/juce-framework/JUCE.git) |
 | ai-file-sorter | `ai-file-sorter` | v1.7.3 | `630b46a` | 2026-03-25 | 638 | [Link](https://github.com/hyperfield/ai-file-sorter) |
+| VERT"]
+	url = https://github.com/VERT-sh/vert
+	path = VERT
+[submodule "libs/ultimatepp | `libs/ultimatepp` | v2026.1 | `162be7b33` | 2026-04-16 | 16226 | [Link](https://github.com/ultimatepp/ultimatepp) |
