@@ -29,3 +29,5 @@
 ## Low Priority
 - [ ] Web GUI (`bobui_web`) polish and additional REST API endpoints.
 - [x] Example `rules.yaml` files for various user personas (Photographer, SysAdmin).
+
+- [x] Expanded VaultManager tests to 14 total ensuring 200+ testing milestone completeness.
