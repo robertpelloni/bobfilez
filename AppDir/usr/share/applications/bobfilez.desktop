@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BobFilez
+Comment=Cross-platform file organization and deduplication engine
+Exec=bobfilez %F
+Icon=bobfilez
+Categories=Utility;System;
+Terminal=true
