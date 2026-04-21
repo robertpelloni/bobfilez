@@ -1,6 +1,7 @@
 #pragma once
 /// @file search_interface.hpp
 /// @brief Comprehensive filename + content search engine for bobfilez.
+#include <atomic>
 ///
 /// Combines features from:
 ///   Everything (voidtools)    — instant filename search, regex, size/date filters
@@ -31,6 +32,7 @@ namespace fo::core {
 //───────────────────────── Search Filter Options ────────────────────────────//
 
 /// Date range filter (used for created/modified/accessed)
+#include <atomic>
 struct DateRangeFilter {
     bool enabled = false;
     std::chrono::system_clock::time_point from;

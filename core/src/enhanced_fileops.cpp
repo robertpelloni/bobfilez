@@ -1,3 +1,6 @@
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/fs.h>
 /// @file enhanced_fileops.cpp
 /// @brief Implementation of the EnhancedCopyEngine with FastCopy/TeraCopy parity.
 
@@ -5,6 +8,12 @@
 #include "fo/core/registry.hpp"
 #include <fstream>
 #include <iostream>
+#ifndef _WIN32
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#endif
 #include <chrono>
 #include <thread>
 #include <system_error>
@@ -18,9 +27,13 @@
 #include <winioctl.h>
 #endif
 
+extern "C" int close(int fd);
 namespace fo::core {
 
 // Helper for Zero-Copy (Reflink / Block Cloning)
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 static bool try_zero_copy(const std::filesystem::path& src, const std::filesystem::path& dst) {
 #ifdef _WIN32
     // Windows ReFS Block Cloning (FSCTL_DUPLICATE_EXTENTS_TO_FILE)

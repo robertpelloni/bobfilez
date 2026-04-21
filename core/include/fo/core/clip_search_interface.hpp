@@ -1,3 +1,4 @@
+#include <cmath>
 #pragma once
 /// @file clip_search_interface.hpp
 /// @brief Vector-Semantic Search engine interface for bobfilez.

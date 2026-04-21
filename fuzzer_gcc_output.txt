@@ -1,0 +1,384 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet x64-linux...
+Compiler found: /usr/bin/g++
+The following packages will be built and installed:
+  * aws-c-auth:x64-linux@0.10.1
+  * aws-c-cal:x64-linux@0.9.13
+  * aws-c-common:x64-linux@0.12.6
+  * aws-c-compression:x64-linux@0.3.2
+  * aws-c-event-stream:x64-linux@0.7.0
+  * aws-c-http:x64-linux@0.10.14
+  * aws-c-io:x64-linux@0.26.3
+  * aws-c-mqtt:x64-linux@0.15.2
+  * aws-c-s3:x64-linux@0.12.2
+  * aws-c-sdkutils:x64-linux@0.2.4
+  * aws-checksums:x64-linux@0.2.10
+  * aws-crt-cpp:x64-linux@0.38.5
+    aws-sdk-cpp[core,s3]:x64-linux@1.11.790
+  * azure-core-cpp[core,curl,http]:x64-linux@1.16.3
+    azure-storage-blobs-cpp:x64-linux@12.16.0
+  * azure-storage-common-cpp:x64-linux@12.12.0
+    benchmark:x64-linux@1.9.5
+    blake3:x64-linux@1.8.4
+    cpr[core,ssl]:x64-linux@1.14.2
+  * curl[core,non-http,openssl,ssl]:x64-linux@8.19.0
+    gtest:x64-linux@1.17.0#2
+  * libiconv:x64-linux@1.18#3
+  * libxml2[core,iconv,zlib]:x64-linux@2.15.2
+    nlohmann-json:x64-linux@3.12.0#2
+  * openssl:x64-linux@3.6.2
+  * s2n:x64-linux@1.7.2
+    sqlite3[core,json1]:x64-linux@3.53.0
+  * vcpkg-cmake:x64-linux@2024-04-23
+  * vcpkg-cmake-config:x64-linux@2024-05-23
+  * vcpkg-cmake-get-vars:x64-linux@2025-05-29
+    yaml-cpp:x64-linux@0.9.0
+  * zlib:x64-linux@1.3.1
+Additional packages (*) will be modified to complete this operation.
+Restored 32 package(s) from /home/jules/.cache/vcpkg/archives in 2.2 s. Use --debug to see more details.
+Installing 1/32 vcpkg-cmake:x64-linux@2024-04-23...
+vcpkg-cmake:x64-linux@2024-04-23 package ABI: 8f2153eb6dcca270e064868ddd3737879fc1f23daa19d7e655e2344ecc321fd9
+Elapsed time to handle vcpkg-cmake:x64-linux: 2.82 ms
+Installing 2/32 zlib:x64-linux@1.3.1...
+zlib:x64-linux@1.3.1 package ABI: 2414e91d3d8fb369cab1b592b365701d960e4479d8bca8c1e3104291b1163153
+Elapsed time to handle zlib:x64-linux: 5.25 ms
+Installing 3/32 vcpkg-cmake-config:x64-linux@2024-05-23...
+vcpkg-cmake-config:x64-linux@2024-05-23 package ABI: 63a3ca443fab9494f7145771496b8add2c2ce38249c0faef827f6a4202bf4457
+Elapsed time to handle vcpkg-cmake-config:x64-linux: 3.29 ms
+Installing 4/32 vcpkg-cmake-get-vars:x64-linux@2025-05-29...
+vcpkg-cmake-get-vars:x64-linux@2025-05-29 package ABI: d4fd7643601bc6290d649d892a70d74eb263cbc232c2eeedf8e9ee4fb319ef89
+Elapsed time to handle vcpkg-cmake-get-vars:x64-linux: 3.81 ms
+Installing 5/32 openssl:x64-linux@3.6.2...
+openssl:x64-linux@3.6.2 package ABI: 05dff9fcb4e39ea16be93209de57f4aeb24dd5dae93963508b1c98750d58d1e0
+Elapsed time to handle openssl:x64-linux: 13.8 ms
+Installing 6/32 curl[core,non-http,openssl,ssl]:x64-linux@8.19.0...
+curl[core,non-http,openssl,ssl]:x64-linux@8.19.0 package ABI: 843e5722cd89e165a12dd7a459341cf96aefc2496198580820a2908a7f7b741b
+Elapsed time to handle curl:x64-linux: 10.6 ms
+Installing 7/32 s2n:x64-linux@1.7.2...
+s2n:x64-linux@1.7.2 package ABI: 57f14da7eb8f8fdb83e6f09b7406e0b11908b501bfe2f58bb81ee78f4703ced6
+Elapsed time to handle s2n:x64-linux: 4.8 ms
+Installing 8/32 aws-c-common:x64-linux@0.12.6...
+aws-c-common:x64-linux@0.12.6 package ABI: a84bbd89fd0fe64cb7e9e857d4aa7c87ca7ed09e39bbc3be3ab600d64f765f00
+Elapsed time to handle aws-c-common:x64-linux: 10.9 ms
+Installing 9/32 aws-checksums:x64-linux@0.2.10...
+aws-checksums:x64-linux@0.2.10 package ABI: 2cc0f79c972be0ba63946794fb09febb5041ec48fd298ced35c5fcc08f31199d
+Elapsed time to handle aws-checksums:x64-linux: 3.48 ms
+Installing 10/32 aws-c-sdkutils:x64-linux@0.2.4...
+aws-c-sdkutils:x64-linux@0.2.4 package ABI: f56a1fc2b48ffe2b7b74df9351adda744e74c07a3c09edf3e9924dc05923fe33
+Elapsed time to handle aws-c-sdkutils:x64-linux: 4.04 ms
+Installing 11/32 aws-c-cal:x64-linux@0.9.13...
+aws-c-cal:x64-linux@0.9.13 package ABI: 89da7f2248aaa75c729cf2e7c1063a668b83074107dc29fca9801a27d2c4c591
+Elapsed time to handle aws-c-cal:x64-linux: 4.28 ms
+Installing 12/32 aws-c-io:x64-linux@0.26.3...
+aws-c-io:x64-linux@0.26.3 package ABI: f424d4bc6cb3e30623e70055daf5fe4b0532e7424ab1357cf18f8984ae10d8f2
+Elapsed time to handle aws-c-io:x64-linux: 5.24 ms
+Installing 13/32 aws-c-compression:x64-linux@0.3.2...
+aws-c-compression:x64-linux@0.3.2 package ABI: b49bd0177bf5daae2bae3649ab8a39dc8b8682ea3fb237bef31995c4cfe3ada1
+Elapsed time to handle aws-c-compression:x64-linux: 4.38 ms
+Installing 14/32 aws-c-http:x64-linux@0.10.14...
+aws-c-http:x64-linux@0.10.14 package ABI: dfbb52e64c78be9e71baf666cb78e8b103e6c4820d674b873a62a55f226c0c43
+Elapsed time to handle aws-c-http:x64-linux: 4.32 ms
+Installing 15/32 aws-c-auth:x64-linux@0.10.1...
+aws-c-auth:x64-linux@0.10.1 package ABI: fce9dbf79bfd53b8bde6624fe273b2141ba33ed4f465e82085e4f08ec6e82225
+Elapsed time to handle aws-c-auth:x64-linux: 4.7 ms
+Installing 16/32 aws-c-s3:x64-linux@0.12.2...
+aws-c-s3:x64-linux@0.12.2 package ABI: 95c7d2152fb8f82b25de468ce31fd196222e0f7c42606b389393a3c9d7881de7
+Elapsed time to handle aws-c-s3:x64-linux: 5.82 ms
+Installing 17/32 aws-c-mqtt:x64-linux@0.15.2...
+aws-c-mqtt:x64-linux@0.15.2 package ABI: 514ba371f8dc7d96585437958e336d1510c7e310fe9eda58c705213c182873f1
+Elapsed time to handle aws-c-mqtt:x64-linux: 6.64 ms
+Installing 18/32 aws-c-event-stream:x64-linux@0.7.0...
+aws-c-event-stream:x64-linux@0.7.0 package ABI: 3aeef38c19cc5e58e18d7c3004eb6d20e8bc41f3ea80e1127e1fb398c4fc45a3
+Elapsed time to handle aws-c-event-stream:x64-linux: 4.38 ms
+Installing 19/32 aws-crt-cpp:x64-linux@0.38.5...
+aws-crt-cpp:x64-linux@0.38.5 package ABI: 5ae6e9ed8da6b05f15d05d909080b53a142786c470e498c54d12dcbcf0be8027
+Elapsed time to handle aws-crt-cpp:x64-linux: 9.81 ms
+Installing 20/32 aws-sdk-cpp[core,s3]:x64-linux@1.11.790...
+aws-sdk-cpp[core,s3]:x64-linux@1.11.790 package ABI: 6e6e639d3463b83557ba52fdc51a59d8b05d65cc3fd07765f8e4ac948c85bfcf
+Elapsed time to handle aws-sdk-cpp:x64-linux: 72.6 ms
+Installing 21/32 libiconv:x64-linux@1.18#3...
+libiconv:x64-linux@1.18#3 package ABI: 2bee62a4c9e17993211847394ead6f0189f0132c6bb715470ce886cfcc5af3c4
+Elapsed time to handle libiconv:x64-linux: 5.95 ms
+Installing 22/32 libxml2[core,iconv,zlib]:x64-linux@2.15.2...
+libxml2[core,iconv,zlib]:x64-linux@2.15.2 package ABI: ec044b57db44fb1c816bec5716e516a7137a1560fc69610e91a6c4ca3cbe3108
+Elapsed time to handle libxml2:x64-linux: 12.8 ms
+Installing 23/32 azure-core-cpp[core,curl,http]:x64-linux@1.16.3...
+azure-core-cpp[core,curl,http]:x64-linux@1.16.3 package ABI: cc3b8e6558a406f300ebf057f29b9646f7d388fe8d9a9859406a55c9ada591f4
+Elapsed time to handle azure-core-cpp:x64-linux: 13.3 ms
+Installing 24/32 azure-storage-common-cpp:x64-linux@12.12.0...
+azure-storage-common-cpp:x64-linux@12.12.0 package ABI: 6930c9023864aeb9328cf56cff02d77b48f06ebc342639dc603de16a311dd461
+Elapsed time to handle azure-storage-common-cpp:x64-linux: 6.93 ms
+Installing 25/32 azure-storage-blobs-cpp:x64-linux@12.16.0...
+azure-storage-blobs-cpp:x64-linux@12.16.0 package ABI: 9adbe2954bcb80cdd3167586c59f50d43f53d4f9d939c72c545c9aadbe6b9ceb
+Elapsed time to handle azure-storage-blobs-cpp:x64-linux: 7.16 ms
+Installing 26/32 benchmark:x64-linux@1.9.5...
+benchmark:x64-linux@1.9.5 package ABI: 3e84a2c5f992d0aed7fb999868946f65b53d03c2ef6ae8a00ab0dab9cdce51ce
+Elapsed time to handle benchmark:x64-linux: 10.4 ms
+Installing 27/32 blake3:x64-linux@1.8.4...
+blake3:x64-linux@1.8.4 package ABI: 56691b7166662fd5d2a68319ab672e8c54235991b203a7ce9df35902f8e09a66
+Elapsed time to handle blake3:x64-linux: 5.49 ms
+Installing 28/32 cpr[core,ssl]:x64-linux@1.14.2...
+cpr[core,ssl]:x64-linux@1.14.2 package ABI: 44c3b6e87622d496f4ae9a1c9b6ecc017076720756b515136c565c9e538aba8d
+Elapsed time to handle cpr:x64-linux: 9.75 ms
+Installing 29/32 gtest:x64-linux@1.17.0#2...
+gtest:x64-linux@1.17.0#2 package ABI: dbc37849bfce70db1a0c884176414bfcf34b84402793fdd5b98e8cc23b2a6195
+Elapsed time to handle gtest:x64-linux: 9.28 ms
+Installing 30/32 nlohmann-json:x64-linux@3.12.0#2...
+nlohmann-json:x64-linux@3.12.0#2 package ABI: df6b012f302c4c72990e4fd5e00debb02674e7dbc022c03303d80bd74d58b20d
+Elapsed time to handle nlohmann-json:x64-linux: 12.3 ms
+Installing 31/32 sqlite3[core,json1]:x64-linux@3.53.0...
+sqlite3[core,json1]:x64-linux@3.53.0 package ABI: 3ce74b8ed492aa75fe6a3f390bd1b0e3f87bc9de686753399d52088503c501b5
+Elapsed time to handle sqlite3:x64-linux: 9.9 ms
+Installing 32/32 yaml-cpp:x64-linux@0.9.0...
+yaml-cpp:x64-linux@0.9.0 package ABI: f744614587e0080f34fa531f2db8dfadc8e5e177c163cf1097076df03fc40616
+Elapsed time to handle yaml-cpp:x64-linux: 8.19 ms
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Some packages did not declare an SPDX license. Check the `copyright` file for each package for more information about their licensing.
+Packages installed in this vcpkg installation declare the following licenses:
+(CC0-1.0 OR Apache-2.0)
+Apache-2.0
+BSD-3-Clause
+ISC
+MIT
+Zlib
+blessing
+curl
+The package aws-sdk-cpp:x64-linux provides CMake targets:
+
+    When using AWSSDK, AWSSDK_ROOT_DIR must be defined by the user.
+    find_package(AWSSDK CONFIG COMPONENTS core dynamodb kinesis s3 REQUIRED)
+    target_include_directories(main PRIVATE ${AWSSDK_INCLUDE_DIRS})
+    target_link_libraries(main PRIVATE ${AWSSDK_LIBRARIES})
+
+    OR
+
+    find_package(aws-cpp-sdk-core REQUIRED)
+    target_include_directories(main PRIVATE aws-cpp-sdk-core)
+    target_link_libraries(main PRIVATE aws-cpp-sdk-core)
+
+azure-storage-blobs-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(azure-storage-blobs-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Azure::azure-storage-blobs)
+
+benchmark provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(benchmark CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE benchmark::benchmark benchmark::benchmark_main)
+
+benchmark provides pkg-config modules:
+
+  # Google microbenchmark framework
+  benchmark
+
+  # Google microbenchmark framework (with main() function)
+  benchmark_main
+
+blake3 provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(blake3 CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE BLAKE3::blake3)
+
+blake3 provides pkg-config modules:
+
+  # BLAKE3 C implementation
+  libblake3
+
+cpr provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(cpr CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE cpr::cpr)
+
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+
+    add_test(AllTestsInMain main)
+
+The package nlohmann-json provides CMake targets:
+
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
+
+The package nlohmann-json can be configured to not provide implicit conversions via a custom triplet file:
+
+    set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+
+For more information, see the docs here:
+
+    https://json.nlohmann.me/api/macros/json_use_implicit_conversions/
+
+sqlite3 provides pkgconfig bindings.
+sqlite3 provides CMake targets:
+
+    find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE unofficial::sqlite3::sqlite3)
+
+yaml-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(yaml-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE yaml-cpp::yaml-cpp)
+
+yaml-cpp provides pkg-config modules:
+
+  # A YAML parser and emitter for C++
+  yaml-cpp
+
+All requested installations completed successfully in: 303 ms
+-- Running vcpkg install - done
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found AWS SDK for C++, Version: 1.11.790, Install Root:/app/build_fuzz/vcpkg_installed/x64-linux, Platform Prefix:, Platform Dependent Libraries: pthread;curl
+-- Components specified for AWSSDK: s3;core, application will be depending on libs: aws-cpp-sdk-s3;aws-cpp-sdk-core;AWS::aws-crt-cpp;AWS::aws-c-http;AWS::aws-c-mqtt;AWS::aws-c-cal;AWS::aws-c-auth;AWS::aws-c-common;AWS::aws-c-io;AWS::aws-checksums;AWS::aws-c-event-stream;AWS::aws-c-s3;AWS::aws-c-compression;AWS::aws-c-sdkutils;pthread;curl
+-- Try finding aws-cpp-sdk-core
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found OpenSSL: /app/build_fuzz/vcpkg_installed/x64-linux/debug/lib/libcrypto.a (found version "3.6.2") found components: Crypto
+-- Found OpenSSL: /app/build_fuzz/vcpkg_installed/x64-linux/debug/lib/libcrypto.a (found version "3.6.2")
+-- Found ZLIB: /app/build_fuzz/vcpkg_installed/x64-linux/lib/libz.a (found version "1.3.1")
+-- Found OpenSSL: /app/build_fuzz/vcpkg_installed/x64-linux/debug/lib/libcrypto.a (found suitable version "3.6.2", minimum required is "3")
+-- Found ZLIB: /app/build_fuzz/vcpkg_installed/x64-linux/lib/libz.a (found suitable version "1.3.1", minimum required is "1")
+-- Found aws-cpp-sdk-core
+-- Try finding aws-cpp-sdk-s3
+-- Found aws-cpp-sdk-s3
+-- Performing Test Iconv_IS_BUILT_IN
+-- Performing Test Iconv_IS_BUILT_IN - Success
+-- Found BLAKE3, enabling blake3 hasher
+-- Found AWSSDK, enabling AWS S3 provider
+-- Found cpr, enabling Google Drive HTTP provider
+-- Found Azure Storage Blobs SDK, enabling Azure Blob provider
+-- Configuring done (5.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: /app/build_fuzz
+[  1%] Building CXX object core/CMakeFiles/fo_core.dir/src/ads_cache.cpp.o
+[  2%] Building CXX object core/CMakeFiles/fo_core.dir/src/advanced_archive_manager.cpp.o
+/app/core/src/advanced_archive_manager.cpp: In member function ‘bool fo::core::AdvancedArchiveManager::update_entry(const std::filesystem::__cxx11::path&, const std::string&, const std::filesystem::__cxx11::path&)’:
+/app/core/src/advanced_archive_manager.cpp:127:62: warning: unused parameter ‘entry_path’ [-Wunused-parameter]
+  127 |                                           const std::string& entry_path,
+      |                                           ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/app/core/src/advanced_archive_manager.cpp: In member function ‘bool fo::core::AdvancedArchiveManager::merge_volumes(const std::vector<std::filesystem::__cxx11::path>&, const std::filesystem::__cxx11::path&)’:
+/app/core/src/advanced_archive_manager.cpp:194:86: warning: unused parameter ‘volumes’ [-Wunused-parameter]
+  194 | bool AdvancedArchiveManager::merge_volumes(const std::vector<std::filesystem::path>& volumes, const std::filesystem::path& dest_archive) {
+      |                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/app/core/src/advanced_archive_manager.cpp:194:124: warning: unused parameter ‘dest_archive’ [-Wunused-parameter]
+  194 | bool AdvancedArchiveManager::merge_volumes(const std::vector<std::filesystem::path>& volumes, const std::filesystem::path& dest_archive) {
+      |                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~
+[  3%] Building CXX object core/CMakeFiles/fo_core.dir/src/audio_fingerprint_chromaprint.cpp.o
+[  4%] Building CXX object core/CMakeFiles/fo_core.dir/src/audit_logger.cpp.o
+[  5%] Building CXX object core/CMakeFiles/fo_core.dir/src/auto_cleanup_manager.cpp.o
+/app/core/src/auto_cleanup_manager.cpp: In member function ‘void fo::core::AutoCleanupManager::schedule_maintenance(int)’:
+/app/core/src/auto_cleanup_manager.cpp:37:51: warning: unused parameter ‘interval_days’ [-Wunused-parameter]
+   37 | void AutoCleanupManager::schedule_maintenance(int interval_days) {
+      |                                               ~~~~^~~~~~~~~~~~~
+[  6%] Building CXX object core/CMakeFiles/fo_core.dir/src/batch_rename_engine.cpp.o
+/app/core/src/batch_rename_engine.cpp: In member function ‘virtual std::string fo::core::ExtensionRule::apply(const std::string&, int, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&) const’:
+/app/core/src/batch_rename_engine.cpp:338:90: warning: unused parameter ‘p’ [-Wunused-parameter]
+  338 | std::string ExtensionRule::apply(const std::string& s, int, const std::filesystem::path& p, const std::map<std::string, std::string>&) const {
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+/app/core/src/batch_rename_engine.cpp: At global scope:
+/app/core/src/batch_rename_engine.cpp:35:13: warning: ‘bool fo::core::is_ascii(const std::string&)’ defined but not used [-Wunused-function]
+   35 | static bool is_ascii(const std::string& s) {
+      |             ^~~~~~~~
+/app/core/src/batch_rename_engine.cpp:20:20: warning: ‘std::string fo::core::wildcard_to_regex(const std::string&)’ defined but not used [-Wunused-function]
+   20 | static std::string wildcard_to_regex(const std::string& wildcard) {
+      |                    ^~~~~~~~~~~~~~~~~
+[  7%] Building CXX object core/CMakeFiles/fo_core.dir/src/classifier_onnx.cpp.o
+[  8%] Building CXX object core/CMakeFiles/fo_core.dir/src/clip_search_engine.cpp.o
+[  9%] Building CXX object core/CMakeFiles/fo_core.dir/src/cloud_provider.cpp.o
+/app/core/src/cloud_provider.cpp: In member function ‘std::shared_ptr<fo::core::ICloudProvider> fo::core::CloudProviderManager::get_provider(const std::string&)’:
+/app/core/src/cloud_provider.cpp:25:87: warning: unused parameter ‘account_id’ [-Wunused-parameter]
+   25 | std::shared_ptr<ICloudProvider> CloudProviderManager::get_provider(const std::string& account_id) {
+      |                                                                    ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+[ 10%] Building CXX object core/CMakeFiles/fo_core.dir/src/conversion_engine.cpp.o
+/app/core/src/conversion_engine.cpp: In member function ‘virtual std::vector<fo::core::ConvertOption> fo::core::FFmpegConverter::available_options(const std::string&, const std::string&) const’:
+/app/core/src/conversion_engine.cpp:110:69: warning: unused parameter ‘in’ [-Wunused-parameter]
+  110 |     std::vector<ConvertOption> available_options(const std::string& in, const std::string& out) const override {
+      |                                                  ~~~~~~~~~~~~~~~~~~~^~
+/app/core/src/conversion_engine.cpp: In member function ‘virtual fo::core::ConversionResult fo::core::PopplerConverter::convert(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&)’:
+/app/core/src/conversion_engine.cpp:553:139: warning: unused parameter ‘opts’ [-Wunused-parameter]
+  553 |     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+      |                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/conversion_engine.cpp: In member function ‘virtual fo::core::ConversionResult fo::core::WkhtmltopdfConverter::convert(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&)’:
+/app/core/src/conversion_engine.cpp:577:139: warning: unused parameter ‘opts’ [-Wunused-parameter]
+  577 |     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+      |                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/conversion_engine.cpp: In member function ‘virtual fo::core::ConversionResult fo::core::InkscapeConverter::convert(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&)’:
+/app/core/src/conversion_engine.cpp:599:139: warning: unused parameter ‘opts’ [-Wunused-parameter]
+  599 |     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+      |                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/conversion_engine.cpp: In member function ‘virtual fo::core::ConversionResult fo::core::SoxConverter::convert(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&)’:
+/app/core/src/conversion_engine.cpp:619:139: warning: unused parameter ‘opts’ [-Wunused-parameter]
+  619 |     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+      |                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/conversion_engine.cpp: In member function ‘virtual fo::core::ConversionResult fo::core::ArchiveConverter::convert(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const std::map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >&)’:
+/app/core/src/conversion_engine.cpp:639:139: warning: unused parameter ‘opts’ [-Wunused-parameter]
+  639 |     ConversionResult convert(const std::filesystem::path& in, const std::filesystem::path& out, const std::map<std::string, std::string>& opts) override {
+      |                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/conversion_engine.cpp: At global scope:
+/app/core/src/conversion_engine.cpp:59:13: warning: ‘bool fo::core::tool_available(const std::string&)’ defined but not used [-Wunused-function]
+   59 | static bool tool_available(const std::string& name) {
+      |             ^~~~~~~~~~~~~~
+[ 11%] Building CXX object core/CMakeFiles/fo_core.dir/src/data_pruner.cpp.o
+[ 11%] Building CXX object core/CMakeFiles/fo_core.dir/src/database.cpp.o
+/app/core/src/database.cpp:143:20: warning: ‘fo::core::MIGRATION_6’ defined but not used [-Wunused-variable]
+  143 | static const char* MIGRATION_6 = R"(
+      |                    ^~~~~~~~~~~
+[ 12%] Building CXX object core/CMakeFiles/fo_core.dir/src/document_embedder.cpp.o
+/app/core/src/document_embedder.cpp: In member function ‘virtual bool fo::core::OnnxDocumentEmbedder::initialize(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&)’:
+/app/core/src/document_embedder.cpp:14:91: warning: unused parameter ‘vocab_path’ [-Wunused-parameter]
+   14 |     bool initialize(const std::filesystem::path& model_path, const std::filesystem::path& vocab_path) override {
+      |                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/app/core/src/document_embedder.cpp: In member function ‘virtual std::optional<fo::core::DocumentEmbedding> fo::core::OnnxDocumentEmbedder::embed_text(const std::string&)’:
+/app/core/src/document_embedder.cpp:20:68: warning: unused parameter ‘text’ [-Wunused-parameter]
+   20 |     std::optional<DocumentEmbedding> embed_text(const std::string& text) override {
+      |                                                 ~~~~~~~~~~~~~~~~~~~^~~~
+/app/core/src/document_embedder.cpp: In member function ‘virtual std::optional<fo::core::DocumentEmbedding> fo::core::OnnxDocumentEmbedder::embed_file(const std::filesystem::__cxx11::path&)’:
+/app/core/src/document_embedder.cpp:26:78: warning: unused parameter ‘path’ [-Wunused-parameter]
+   26 |     std::optional<DocumentEmbedding> embed_file(const std::filesystem::path& path) override {
+      |                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+[ 13%] Building CXX object core/CMakeFiles/fo_core.dir/src/dupe_size_fast.cpp.o
+[ 14%] Building CXX object core/CMakeFiles/fo_core.dir/src/duplicate_finders.cpp.o
+[ 15%] Building CXX object core/CMakeFiles/fo_core.dir/src/duplicate_repository.cpp.o
+[ 16%] Building CXX object core/CMakeFiles/fo_core.dir/src/engine.cpp.o
+[ 17%] Building CXX object core/CMakeFiles/fo_core.dir/src/enhanced_fileops.cpp.o
+/app/core/src/enhanced_fileops.cpp: In function ‘bool fo::core::try_zero_copy(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&)’:
+/app/core/src/enhanced_fileops.cpp:58:23: error: ‘close’ was not declared in this scope; did you mean ‘pclose’?
+   58 |         if (sfd >= 0) close(sfd);
+      |                       ^~~~~
+      |                       pclose
+/app/core/src/enhanced_fileops.cpp:59:23: error: ‘close’ was not declared in this scope; did you mean ‘pclose’?
+   59 |         if (dfd >= 0) close(dfd);
+      |                       ^~~~~
+      |                       pclose
+/app/core/src/enhanced_fileops.cpp:63:5: error: ‘close’ was not declared in this scope; did you mean ‘pclose’?
+   63 |     close(sfd); close(dfd);
+      |     ^~~~~
+      |     pclose
+/app/core/src/enhanced_fileops.cpp: In member function ‘fo::core::FileOpResult fo::core::EnhancedCopyEngine::copy_single_enhanced(const std::filesystem::__cxx11::path&, const std::filesystem::__cxx11::path&, const fo::core::EnhancedCopyOptions&, fo::core::ErrorHandlerCb, fo::core::TransferStats&)’:
+/app/core/src/enhanced_fileops.cpp:444:27: warning: comparison of integer expressions of different signedness: ‘int64_t’ {aka ‘long int’} and ‘long unsigned int’ [-Wsign-compare]
+  444 |     res.success = (copied == src_size);
+      |                    ~~~~~~~^~~~~~~~~~~
+gmake[3]: *** [core/CMakeFiles/fo_core.dir/build.make:314: core/CMakeFiles/fo_core.dir/src/enhanced_fileops.cpp.o] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:138: core/CMakeFiles/fo_core.dir/all] Error 2
+gmake[1]: *** [CMakeFiles/Makefile2:249: fuzz/CMakeFiles/fuzz_rule_engine.dir/rule] Error 2
+gmake: *** [Makefile:186: fuzz_rule_engine] Error 2
+./run_fuzzer_gcc.sh: line 7: ./build_fuzz/fuzz/fuzz_rule_engine: No such file or directory

@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <sstream>
 #include "fo/core/providers/azure_blob_scanner.hpp"
 #include <iostream>
 #include <chrono>
@@ -72,7 +74,7 @@ std::vector<FileInfo> AzureBlobScanner::scan(
                     std::string time_str = azure_tp.ToString(Azure::DateTime::DateFormat::Rfc3339);
                     std::chrono::system_clock::time_point sys_tp;
                     std::istringstream in{time_str};
-                    in >> std::chrono::parse("%Y-%m-%dT%H:%M:%SZ", sys_tp);
+                    std::tm tm = {}; std::stringstream ss(time_str); ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%SZ"); sys_tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
                     fi.mtime = std::chrono::clock_cast<std::chrono::file_clock>(sys_tp);
                 }
 

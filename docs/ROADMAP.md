@@ -147,9 +147,10 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 **Goal**: Full integration of BTK and advanced media analysis.
 
 ### Tasks
-1. **BTK Native Integration**
-   - [ ] Build and integrate `libs/btk` into CMake.
-   - [ ] Refactor `fo_gui` / `fo_omni` around BTK-compatible native surfaces.
+1. **UI Framework Native Integration**
+   - [ ] Build and integrate `libs/ultimatepp` into the core compilation environment.
+   - [ ] Build and integrate `libs/btk` and `libs/bobui` into CMake.
+   - [ ] Refactor `fo_gui` / `fo_omni` around the new native surfaces.
    - [ ] Benchmarking native UI vs web-based UI overhead.
 
 2. **Advanced Media Analysis** (Completed)
@@ -168,7 +169,20 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Phase 9: Universal Shell & File Manager (Current)
+## Phase 8.5: UI Framework Submodule Integration & Assessment (Current)
+
+**Goal**: Submodule multiple alternative GUI frameworks (BobUI, BTK, BobGUI, and Ultimate++) and build the required CMake infrastructure for cross-evaluation.
+
+### Tasks
+- [x] Add `bobui` (Qt6 fork) as a submodule.
+- [x] Add `btk` (CopperSpice/Qt4 fork) as a submodule.
+- [x] Add `bobgui` (GTK fork) as a submodule.
+- [x] Add `ultimatepp` (Ultimate++) as a submodule.
+- [ ] Connect the `fo_core` (C++) to the new submodule wrappers.
+
+---
+
+## Phase 9: Universal Shell & File Manager (Next)
 
 **Goal**: Transform `filez` into the "Ultimate File Manager" and a complete OS shell replacement.
 

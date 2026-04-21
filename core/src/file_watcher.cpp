@@ -26,6 +26,13 @@
 #include <limits.h>
 #endif
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+extern "C" int close(int fd);
+extern "C" int pipe(int pipefd[2]);
+extern "C" long int read(int fd, void *buf, unsigned long count);
+extern "C" long int write(int fd, const void *buf, unsigned long count);
 namespace fo::core {
 
 class NativeFileWatcher : public IFileWatcher {

@@ -1,3 +1,14 @@
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#define syscall ::syscall
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <atomic>
+#include <memory>
 /// @file audit_logger.cpp
 /// @brief Implementation of the Forensic Audit Ledger using SQLite.
 ///
@@ -6,6 +17,12 @@
 /// previous entry for tamper detection.
 
 #include "fo/core/audit_logger_interface.hpp"
+#include "fo/core/vault_manager.hpp"
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include "fo/core/vault_manager.hpp"
+#include <nlohmann/json.hpp>
+#include <fstream>
 #include "fo/core/registry.hpp"
 #include "fo/core/database.hpp"
 #include <sqlite3.h>
@@ -21,6 +38,7 @@ namespace fo::core {
 
 class AuditLoggerImpl : public IAuditLogger {
     DatabaseManager& db_;
+    std::shared_ptr<VaultManager> vault_;
 
     /// Compute a chain hash for an audit entry: SHA256(prev_hash | id | timestamp | operation | src | dst)
     static std::string compute_entry_hash(
@@ -72,6 +90,10 @@ class AuditLoggerImpl : public IAuditLogger {
 
 public:
     explicit AuditLoggerImpl(DatabaseManager& db) : db_(db) {}
+
+    void set_vault_manager(std::shared_ptr<VaultManager> vault) {
+        vault_ = vault;
+    }
 
     void log(const std::string& op,
              const std::filesystem::path& src,
@@ -130,6 +152,27 @@ public:
         sqlite3_bind_int64(stmt, 2, entry_id);
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
+
+        // Vault integration: Save sensitive operations to the encrypted vault
+        if (vault_ && (op == "delete" || op == "shred" || op == "pii_redact")) {
+            nlohmann::json log_entry;
+            log_entry["id"] = entry_id;
+            log_entry["timestamp"] = timestamp;
+            log_entry["operation"] = op;
+            log_entry["src"] = src.string();
+            log_entry["dst"] = dst.string();
+            log_entry["size"] = size;
+            log_entry["checksum"] = checksum;
+            log_entry["entry_hash"] = entry_hash;
+
+            std::filesystem::path temp_log = std::filesystem::temp_directory_path() / ("audit_" + std::to_string(entry_id) + ".json");
+            std::ofstream out(temp_log);
+            if (out) {
+                out << log_entry.dump(4);
+                out.close();
+                vault_->lock_file(temp_log);
+            }
+        }
     }
 
     std::vector<AuditEntry> get_history(int limit) override {

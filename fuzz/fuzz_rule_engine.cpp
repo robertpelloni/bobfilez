@@ -16,7 +16,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     engine.add_rule(rule);
 
     fo::core::FileInfo file;
-    file.path = "C:/dummy/test/image.jpg";
+    file.uri = "C:/dummy/test/image.jpg";
     file.size = 1048576;
     
     std::vector<std::string> tags = {"FUZZ_TAG"};
