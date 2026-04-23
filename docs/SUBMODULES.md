@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-04-21 17:20:52
+**Last Updated:** 2026-04-23 22:24:02
 
 ## Project Structure
 
@@ -158,12 +158,12 @@ The project is organized as follows:
 | libs/BLAKE3 | `libs/BLAKE3` | 1.8.4 | `15e83a5` | 2026-04-13 | 769 | [Link](https://github.com/BLAKE3-team/BLAKE3.git) |
 | libs/btk | `libs/btk` | cs-2.1.0 | `4d1bccde9` | 2026-04-15 | 3600 | [Link](https://github.com/robertpelloni/btk.git) |
 | libs/bobui | `libs/bobui` | - | `677b0f352a` | 2026-04-15 | 77856 | [Link](https://github.com/robertpelloni/bobui.git) |
-| libs/pandoc | `libs/pandoc` | 3.9.0.2 | `5caad90fc` | 2026-04-13 | 18927 | [Link](https://github.com/jgm/pandoc) |
-| libs/ghostpdl | `libs/ghostpdl` | ghostpdl-10.05.0-test-base-001 | `872e7b014` | 2026-04-13 | 24670 | [Link](https://github.com/ArtifexSoftware/ghostpdl) |
-| libs/LibRaw | `libs/LibRaw` | 0.22.0 | `f74ddd99` | 2026-04-07 | 2868 | [Link](https://github.com/LibRaw/LibRaw) |
-| libs/libde265 | `libs/libde265` | v1.0.18 | `2032bd83` | 2026-04-12 | 2449 | [Link](https://github.com/strukturag/libde265) |
-| libs/poppler | `libs/poppler` | poppler-26.04.0 | `e092d116` | 2026-04-11 | 8716 | [Link](https://gitlab.freedesktop.org/poppler/poppler) |
-| libs/calibre | `libs/calibre` | v9.7.0 | `a92353468b` | 2026-04-14 | 53347 | [Link](https://github.com/kovidgoyal/calibre) |
+| libs/pandoc | `libs/pandoc` | 3.9.0.2 | `62ac67cff` | 2026-04-23 | 18937 | [Link](https://github.com/jgm/pandoc) |
+| libs/ghostpdl | `libs/ghostpdl` | ghostpdl-10.05.0-test-base-001 | `14e983068` | 2026-04-23 | 24678 | [Link](https://github.com/ArtifexSoftware/ghostpdl) |
+| libs/LibRaw | `libs/LibRaw` | 0.22.0 | `4006b2e4` | 2026-04-19 | 2870 | [Link](https://github.com/LibRaw/LibRaw) |
+| libs/libde265 | `libs/libde265` | v1.0.18 | `3cd9fbf1` | 2026-04-20 | 2450 | [Link](https://github.com/strukturag/libde265) |
+| libs/poppler | `libs/poppler` | poppler-26.04.0 | `a8d37638` | 2026-04-21 | 8721 | [Link](https://gitlab.freedesktop.org/poppler/poppler) |
+| libs/calibre | `libs/calibre` | v9.7.0 | `388f978f7d` | 2026-04-23 | 53399 | [Link](https://github.com/kovidgoyal/calibre) |
 | libs/wkhtmltopdf | `libs/wkhtmltopdf` | 0.12.6 | `024b2b2` | 2022-06-29 | 1175 | [Link](https://github.com/wkhtmltopdf/wkhtmltopdf) |
 | libs/Magick.NET | `libs/Magick.NET` | 14.12.0 | `3af7e57da` | 2026-04-14 | 6137 | [Link](https://github.com/dlemstra/Magick.NET) |
 | libs/ripgrep | `libs/ripgrep` | ignore-0.4.25 | `4519153` | 2026-02-27 | 2209 | [Link](https://github.com/BurntSushi/ripgrep) |
@@ -171,19 +171,19 @@ The project is organized as follows:
 | libs/pcre2 | `libs/pcre2` | pcre2-10.47 | `ac0eb712` | 2026-04-03 | 2237 | [Link](https://github.com/PCRE2Project/pcre2) |
 | libs/re2 | `libs/re2` | 2025-11-05 | `972a15c` | 2026-01-22 | 1165 | [Link](https://github.com/google/re2) |
 | libs/rename-utils | `libs/rename-utils` | v2.1 | `4cffb0c0` | 2026-02-20 | 3211 | [Link](https://github.com/nih-at/ckmame) |
-| libs/sigil | `libs/sigil` | 2.7.6 | `d75d3084b` | 2026-04-12 | 7248 | [Link](https://github.com/Sigil-Ebook/Sigil) |
-| libs/libarchive | `libs/libarchive` | v3.7.5 | `6d9dddba` | 2026-04-13 | 7147 | [Link](https://github.com/libarchive/libarchive) |
+| libs/sigil | `libs/sigil` | 2.7.6 | `c573d252d` | 2026-04-23 | 7258 | [Link](https://github.com/Sigil-Ebook/Sigil) |
+| libs/libarchive | `libs/libarchive` | v3.7.5 | `d8ca779e` | 2026-04-21 | 7172 | [Link](https://github.com/libarchive/libarchive) |
 | libs/librsync | `libs/librsync` | v2.3.4 | `271744d` | 2025-08-29 | 1675 | [Link](https://github.com/librsync/librsync) |
 | libs/zstd | `libs/zstd` | v1.4.7 | `48c0ed73` | 2026-04-01 | 11463 | [Link](https://github.com/facebook/zstd) |
 | libs/lz4 | `libs/lz4` | v1.9.2 | `9da37b2e` | 2026-04-01 | 3798 | [Link](https://github.com/lz4/lz4) |
 | libs/brotli | `libs/brotli` | v1.2.0 | `737ae47` | 2026-04-15 | 1497 | [Link](https://github.com/google/brotli) |
 | libs/p7zip | `libs/p7zip` | pre-p7zip21.07 | `6819e2d` | 2025-05-20 | 427 | [Link](https://github.com/p7zip-project/p7zip) |
 | libs/dtl-diff | `libs/dtl-diff` | v1.21 | `32567bb` | 2024-07-11 | 41 | [Link](https://github.com/cubicdaiya/dtl) |
-| libs/cmark | `libs/cmark` | 0.31.2 | `64efa3b` | 2026-03-01 | 2646 | [Link](https://github.com/commonmark/cmark) |
+| libs/cmark | `libs/cmark` | 0.31.2 | `4e47eba` | 2026-04-17 | 2651 | [Link](https://github.com/commonmark/cmark) |
 | libs/7zip | `libs/7zip` | v0.6.13.0 | `fea94d3` | 2025-10-01 | 851 | [Link](https://github.com/nicehash/NiceHashQuickMiner) |
 | libs/glad | `libs/glad` | v2.0.8 | `cef3f89` | 2026-04-09 | 549 | [Link](https://github.com/Dav1dde/glad) |
 | libs/rapidjson | `libs/rapidjson` | v1.1.0 | `24b5e7a8` | 2025-02-05 | 2481 | [Link](https://github.com/Tencent/rapidjson) |
-| libs/md4c | `libs/md4c` | release-0.5.2 | `481fbfb` | 2024-02-25 | 681 | [Link](https://github.com/mity/md4c) |
+| libs/md4c | `libs/md4c` | release-0.5.3 | `472c417` | 2026-04-20 | 720 | [Link](https://github.com/mity/md4c) |
 | libs/highlightjs | `libs/highlightjs` | 11.11.1 | `5697ae51` | 2025-07-06 | 6702 | [Link](https://github.com/highlightjs/highlight.js) |
 | libs/bobgui | `libs/bobgui` | 4.22.0 | `ce7fcfeb92` | 2026-04-14 | 90542 | [Link](https://github.com/robertpelloni/bobgui) |
 | libs/JUCE | `libs/JUCE` | 8.0.12 | `501c07674e` | 2026-01-16 | 15597 | [Link](https://github.com/juce-framework/JUCE.git) |
