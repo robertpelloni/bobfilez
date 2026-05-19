@@ -393,3 +393,8 @@ build_tests
 // dependencies
 node_modules
 >>>>>>> origin/image-hash-stable
+
+# pybind11 recursion fix
+tests/test_cmake_build/
+tests/**/build_output/
+build_output/
