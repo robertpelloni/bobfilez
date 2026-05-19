@@ -1,4 +1,3 @@
-#include <cmath>
 #pragma once
 /// @file clip_search_interface.hpp
 /// @brief Vector-Semantic Search engine interface for bobfilez.
@@ -13,6 +12,7 @@
 /// The engine is completely offline, ensuring user privacy.
 
 #include <string>
+#include <cmath>
 #include <vector>
 #include <filesystem>
 #include <cstdint>
