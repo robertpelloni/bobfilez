@@ -28,8 +28,8 @@
 #include <optional>
 #include <chrono>
 #include <cstdint>
-#include <atomic>
 #include <map>
+#include <atomic>
 
 namespace fo::core {
 

@@ -1,5 +1,5 @@
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include "fo/core/database.hpp"
 #include <sqlite3.h>
 #include <stdexcept>

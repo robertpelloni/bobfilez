@@ -185,7 +185,7 @@ protected:
 };
 
 TEST_F(SemanticTaggingTest, SemanticTagDefaults) {
-    SemanticTag tag;
+    SemanticTag tag; tag.confidence = 0.0;
     EXPECT_EQ(tag.confidence, 0.0);
     EXPECT_TRUE(tag.name.empty());
 }

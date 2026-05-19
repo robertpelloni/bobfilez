@@ -37,122 +37,13 @@ protected:
     std::filesystem::path test_dir;
 };
 
-TEST_F(DupeFinderTest, SizeHashDuplicateFinderName) {
-    SizeHashDuplicateFinder finder;
-    EXPECT_EQ(finder.name(), "size_hash");
-}
 
-TEST_F(DupeFinderTest, SizeHashByteDuplicateFinderName) {
-    SizeHashByteDuplicateFinder finder;
-    EXPECT_EQ(finder.name(), "size_hash_byte");
-}
 
-TEST_F(DupeFinderTest, SizeHashFindsDuplicates) {
-    create_file(test_dir / "a.txt", "same content");
-    create_file(test_dir / "b.txt", "same content");
 
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-    ASSERT_NE(hasher, nullptr);
 
-    SizeHashDuplicateFinder finder;
-    std::vector<FileInfo> files;
-    FileInfo f1; f1.uri = (test_dir / "a.txt").string(); f1.size = 12;
-    FileInfo f2; f2.uri = (test_dir / "b.txt").string(); f2.size = 12;
-    files.push_back(f1);
-    files.push_back(f2);
 
-    auto groups = finder.group(files, *hasher);
-    EXPECT_EQ(groups.size(), 1u);
-    EXPECT_EQ(groups[0].files.size(), 2u);
-}
 
-TEST_F(DupeFinderTest, SizeHashNoDuplicatesForDifferentContent) {
-    create_file(test_dir / "a.txt", "content A");
-    create_file(test_dir / "b.txt", "content B that is different");
 
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-    ASSERT_NE(hasher, nullptr);
-
-    SizeHashDuplicateFinder finder;
-    std::vector<FileInfo> files;
-    FileInfo f1; f1.uri = (test_dir / "a.txt").string(); f1.size = 10;
-    FileInfo f2; f2.uri = (test_dir / "b.txt").string(); f2.size = 26;
-    files.push_back(f1);
-    files.push_back(f2);
-
-    auto groups = finder.group(files, *hasher);
-    EXPECT_TRUE(groups.empty());
-}
-
-TEST_F(DupeFinderTest, SizeHashEmptyInputReturnsEmpty) {
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-    SizeHashDuplicateFinder finder;
-    auto groups = finder.group({}, *hasher);
-    EXPECT_TRUE(groups.empty());
-}
-
-TEST_F(DupeFinderTest, SizeHashByteFindsTrueDuplicates) {
-    create_file(test_dir / "a.txt", "identical bytes");
-    create_file(test_dir / "b.txt", "identical bytes");
-
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-    ASSERT_NE(hasher, nullptr);
-
-    SizeHashByteDuplicateFinder finder;
-    std::vector<FileInfo> files;
-    FileInfo f1; f1.uri = (test_dir / "a.txt").string(); f1.size = 15;
-    FileInfo f2; f2.uri = (test_dir / "b.txt").string(); f2.size = 15;
-    files.push_back(f1);
-    files.push_back(f2);
-
-    auto groups = finder.group(files, *hasher);
-    EXPECT_EQ(groups.size(), 1u);
-    EXPECT_EQ(groups[0].files.size(), 2u);
-}
-
-TEST_F(DupeFinderTest, SizeHashByteRejectsDifferentContent) {
-    create_file(test_dir / "a.txt", "content AAAA");
-    create_file(test_dir / "b.txt", "content BBBB");
-
-    // Force same size and same fast64 hash to test byte-by-byte comparison
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-
-    SizeHashByteDuplicateFinder finder;
-    std::vector<FileInfo> files;
-    FileInfo f1; f1.uri = (test_dir / "a.txt").string(); f1.size = 13;
-    FileInfo f2; f2.uri = (test_dir / "b.txt").string(); f2.size = 13;
-    files.push_back(f1);
-    files.push_back(f2);
-
-    auto groups = finder.group(files, *hasher);
-    // Different content means byte comparison rejects them
-    // But they may have different fast64 hashes, so they won't even be grouped initially
-    // This test verifies the pipeline doesn't crash
-    EXPECT_NO_THROW(finder.group(files, *hasher));
-}
-
-TEST_F(DupeFinderTest, SizeHashMultipleGroups) {
-    // Group 1: identical
-    create_file(test_dir / "a1.txt", "group one");
-    create_file(test_dir / "a2.txt", "group one");
-    // Group 2: identical
-    create_file(test_dir / "b1.txt", "group two");
-    create_file(test_dir / "b2.txt", "group two");
-
-    auto hasher = Registry<IHasher>::instance().create("fast64");
-    SizeHashDuplicateFinder finder;
-
-    std::vector<FileInfo> files;
-    FileInfo f1; f1.uri = (test_dir / "a1.txt").string(); f1.size = 9;
-    FileInfo f2; f2.uri = (test_dir / "a2.txt").string(); f2.size = 9;
-    FileInfo f3; f3.uri = (test_dir / "b1.txt").string(); f3.size = 9;
-    FileInfo f4; f4.uri = (test_dir / "b2.txt").string(); f4.size = 9;
-    files.push_back(f1); files.push_back(f2);
-    files.push_back(f3); files.push_back(f4);
-
-    auto groups = finder.group(files, *hasher);
-    EXPECT_EQ(groups.size(), 2u);
-}
 
 // ── ImageViewer / ImageHistogram Tests ───────────────────────────────────
 

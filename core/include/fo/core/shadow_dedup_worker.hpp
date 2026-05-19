@@ -1,4 +1,3 @@
-#include <thread>
 #pragma once
 /// @file shadow_dedup_worker.hpp
 /// @brief Background deduplication scanner ("Shadow Deduplication").
@@ -11,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <atomic>
+#include <thread>
 
 namespace fo::core {
 

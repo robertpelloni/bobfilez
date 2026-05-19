@@ -34,6 +34,8 @@ add_executable(fo_tests
     test_archive.cpp
     test_omniflow.cpp
     test_omniflow_extra.cpp
+    test_enhanced_fileops.cpp
+    
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)
