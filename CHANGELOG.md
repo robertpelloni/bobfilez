@@ -1,24 +1,58 @@
 # Changelog
 
-## [6.3.1] - 2026-04-17
+## [6.3.0] - 2026-04-10
 
-### Added
-- **BobUI Web Vault Support**: Extended the `bobui_web` NodeJS REST API server to support VaultManager operations.
-  - POST `/api/vault/init`: Initialize a new encrypted vault
-  - POST `/api/vault/lock`: Move and encrypt a file into the vault
-  - POST `/api/vault/unlock`: Decrypt and restore a file from the vault
-  - POST `/api/vault/list`: Retrieve the vault's current encrypted inventory
-- **VaultManager C API**: Added native FFI boundaries for `VaultManager` (`fo_bobfilez_vault_*`) ensuring GUI decoupling.
+### Added -- The "Full Parity" Frontend Release + Jules Clone Fix
 
-### Added
-- VaultManager real implementation using OpenSSL AES-256-GCM for encrypted storage.
-- Submodules: ultimatepp, bobui, btk, and bobgui added to libs/ to support native frontend rewrite phase.
-- Nexus master clock unification implemented to coordinate scheduling and arbitration natively.
+This version achieves near-complete feature parity across all four frontend lanes
+and fixes a critical Jules/CI clone failure caused by stale nested submodule commits.
 
-### Fixed
-- Fixed unaligned tcache chunk bug in OperationRepository bindings caused by transient C++ string temporary pointers.
-- Upgraded scripts/generate_dashboard.py to recursively find nested submodules correctly.
-- Addressed <unistd.h> and <sys/syscall.h> header definition conflicts breaking std::atomic_wait compilation natively on Linux.
+#### Jules Clone Fix (Critical)
+- Fixed `libs/btk/external/bobui-reference/submodules/juce` pointing to unreachable
+  commit `fe2ffcf...` that was rebased/force-pushed on JUCE upstream.
+- Updated submodule pointers across 3 repositories:
+  - **bobui**: juce -> `3ba67d45`, ultimatepp -> `70e1422b`
+  - **bobgui**: juce -> `3ba67d45`, ultimatepp -> `70e1422b`
+  - **btk**: bobui-reference -> latest bobui main, juce/ultimatepp synced
+- Fixed `core/src/audit_logger.cpp` broken includes (duplicated `sys/syscall.h`)
+- Fixed `libs/tinyxml2` merge conflict marker in tracked commit
+- Added OpenSSL to `vcpkg.json` and `core/CMakeLists.txt` for vault_manager
+
+#### Frontend Feature Matrix (v6.3.0)
+
+| Feature       | WebUI | BTK | Qt  | BobGUI |
+|---------------|-------|-----|-----|--------|
+| Scanner       | YES   | YES | YES | YES    |
+| Duplicates    | YES   | YES | YES | YES    |
+| Statistics    | YES   | YES | YES | YES    |
+| Hasher        | YES   | YES | YES | YES    |
+| Metadata      | YES   | YES | YES | YES    |
+| Lint          | YES   | YES | YES | YES    |
+| Search        | YES   | YES | YES | YES    |
+| Flow          | YES   | YES | YES | YES    |
+| Scrub         | YES   | YES | YES | YES    |
+| Export        | YES   | YES | YES | YES    |
+| Count         | YES   | YES | YES | YES    |
+| History       | YES   | YES | YES | YES    |
+| Ignore Rules  | YES   | YES | YES | YES    |
+| Organize      | YES   | YES | YES | YES    |
+| Delete Dupes  | YES   | YES | YES | YES    |
+| Dashboard     | YES   | -   | YES | -      |
+| Undo          | -     | -   | -   | YES    |
+
+**Tab Counts**: WebUI=16, BTK=15, Qt=16, BobGUI=21 operations
+
+#### BTK/CopperSpice Native Demo -- 15 tabs
+- New: History, Ignore, Organize, Delete Dupes
+
+#### BobUI/Qt Demo -- 16 tabs
+- New: History, Ignore, Organize, Delete Dupes
+
+#### BobGUI/GTK Demo -- 21 operations
+- New: Organize, Delete Dupes, Undo
+
+#### WebUI (Express + React) -- 16 tabs
+- New: Delete Dupes tab with dry-run preview
 
 ## [6.2.1] - 2026-04-08
 

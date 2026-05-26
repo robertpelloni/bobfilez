@@ -1,4 +1,23 @@
-# HANDOFF.md — bobfilez Session 115
+---
+
+### Update: 2026-04-10 (Session 117)
+**Author:** Claude
+
+**Scope:** v6.3.0 -- Full Parity Frontend Release + Jules Clone Fix
+
+**Delivered:**
+- FIXED: Jules clone failure caused by stale nested submodule pointers
+  - Updated bobui, bobgui, btk submodule repos (juce+ultimatepp -> upstream HEAD)
+  - Fixed audit_logger.cpp broken includes
+  - Fixed tinyxml2 merge conflict
+  - Added OpenSSL to vcpkg.json + CMakeLists.txt
+- ADDED: History, Ignore, Organize, Delete Dupes tabs to BTK (15 tabs)
+- ADDED: History, Ignore, Organize, Delete Dupes tabs to Qt (16 tabs)
+- ADDED: Organize, Delete Dupes, Undo buttons to BobGUI (21 ops)
+- ADDED: Delete Dupes tab to WebUI (16 tabs)
+- 438/438 tests passing (100%)
+
+# HANDOFF.md — bobfilez Session 117
 
 ## Current Status (2026-04-08)
 **Version:** 6.0.83
