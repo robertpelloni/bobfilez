@@ -55,6 +55,7 @@ find_package(cpr CONFIG QUIET)
 find_package(azure-storage-blobs-cpp CONFIG QUIET)
 find_package(FFmpeg QUIET COMPONENTS avformat avcodec avutil swscale)
 find_package(chromaprint CONFIG QUIET)
+find_package(OpenSSL REQUIRED)
 
 if(exiv2_FOUND)
     message(STATUS "Found exiv2, enabling exiv2 metadata provider")
@@ -175,6 +176,14 @@ if(chromaprint_FOUND)
     message(STATUS "Found Chromaprint, enabling audio fingerprint provider")
     target_compile_definitions(fo_core PUBLIC FO_HAVE_CHROMAPRINT)
     target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
+endif()
+
+if(OpenSSL_FOUND)
+    message(STATUS "Found OpenSSL, enabling vault encryption")
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_OPENSSL)
+    target_link_libraries(fo_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+else()
+    message(WARNING "OpenSSL not found - vault encryption will not be available")
 endif()
 
 target_include_directories(fo_c_api
