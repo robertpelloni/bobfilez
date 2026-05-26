@@ -387,6 +387,12 @@ function App() {
   var setCountPath = _React$useState50[1];
   var _React$useState51 = useState(null);
   var countResult = _React$useState51[0];
+var _React$useState52 = React.useState(''),
+    deleteDupesPath = _React$useState52[0],
+    setDeleteDupesPath = _React$useState52[1];
+var _React$useState53 = React.useState(null),
+    deleteDupesResult = _React$useState53[0],
+    setDeleteDupesResult = _React$useState53[1];
   var setCountResult = _React$useState51[1];
 
   useEffect(function () {
@@ -1257,7 +1263,32 @@ function App() {
     ]);
   }
 
-  function renderCount() {
+  
+function renderDeleteDupes() {
+  return React.createElement(Card, { title: 'Delete Duplicates' }, [
+    React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Find and remove duplicate files, keeping one copy of each.'),
+    React.createElement('form', { key: 'form', onSubmit: function (e) {
+      e.preventDefault();
+      fetch('/api/delete-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: deleteDupesPath, dryRun: true })
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        setDeleteDupesResult(data);
+      }).catch(function () { setDeleteDupesResult(null); });
+    }, style: { display: 'grid', gap: 12, gridTemplateColumns: '3fr auto', marginBottom: 16 } }, [
+      React.createElement('input', { key: 'path', type: 'text', value: deleteDupesPath,
+        onChange: function (e) { setDeleteDupesPath(e.target.value); },
+        placeholder: 'Directory to deduplicate...', style: textInputStyle() }),
+      React.createElement('button', { key: 'btn', type: 'submit', style: buttonStyle() }, 'Preview Dupes')
+    ]),
+    deleteDupesResult !== null ? React.createElement('pre', { key: 'result',
+      style: { background: '#0f172a', borderRadius: 8, padding: 16, color: '#e2e8f0', overflow: 'auto', maxHeight: 400, fontSize: 13 } },
+      JSON.stringify(deleteDupesResult, null, 2)) : null
+  ]);
+}
+
+function renderCount() {
     return React.createElement(Card, { title: 'File Count' }, [
       React.createElement('div', { key: 'desc', style: { marginBottom: 16, color: '#94a3b8' } }, 'Quick file, duplicate, and wasted-space count.'),
       React.createElement('form', {
@@ -1327,6 +1358,12 @@ function App() {
     content = renderOrganize();
   } else if (activeTab === 'count') {
     content = renderCount();
+} else if (activeTab === 'delete-dupes') {
+    content = renderDeleteDupes();
+} else if (activeTab === 'delete-dupes') {
+    content = renderDeleteDupes();
+}
+
   } else if (activeTab === 'search') {
     content = renderSearch();
   }
@@ -1360,7 +1397,8 @@ function App() {
       React.createElement('button', { key: 'scrub', onClick: function () { setActiveTab('scrub'); }, style: buttonStyle(activeTab === 'scrub') }, 'Scrub'),
       React.createElement('button', { key: 'export', onClick: function () { setActiveTab('export'); }, style: buttonStyle(activeTab === 'export') }, 'Export'),
       React.createElement('button', { key: 'organize', onClick: function () { setActiveTab('organize'); }, style: buttonStyle(activeTab === 'organize') }, 'Organize'),
-      React.createElement('button', { key: 'count', onClick: function () { setActiveTab('count'); }, style: buttonStyle(activeTab === 'count') }, 'Count')
+      React.createElement('button', { key: 'count', onClick: function () { setActiveTab('count'); }, style: buttonStyle(activeTab === 'count') }, 'Count'),
+      React.createElement('button', { key: 'delete-dupes', onClick: function () { setActiveTab('delete-dupes'); }, style: buttonStyle(activeTab === 'delete-dupes') }, 'Delete Dupes')
     ]),
     content
   ]));

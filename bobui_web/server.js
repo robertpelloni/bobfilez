@@ -304,6 +304,18 @@ app.post('/api/vault/list', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+
+app.post('/api/delete-duplicates', async (req, res) => {
+  try {
+    const { path: dirPath, dryRun = true } = req.body;
+    if (!dirPath) return res.status(400).json({ error: 'path required' });
+    const args = ['delete-duplicates', '--path=' + dirPath, '--format=json'];
+    if (dryRun) args.push('--dry-run');
+    const { stdout } = await runCli(args);
+    res.json(JSON.parse(stdout || '{}'));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 const PORT = process.env.PORT || 3131;
 app.listen(PORT, () => {
     console.log(`\n  ╔══════════════════════════════════════╗`);
