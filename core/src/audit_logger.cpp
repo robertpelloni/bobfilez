@@ -1,14 +1,3 @@
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#define syscall ::syscall
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <atomic>
-#include <memory>
 /// @file audit_logger.cpp
 /// @brief Implementation of the Forensic Audit Ledger using SQLite.
 ///
@@ -16,10 +5,10 @@
 /// file operations. Each entry includes a SHA-256 chain hash linking it to the
 /// previous entry for tamper detection.
 
+#include <atomic>
+#include <memory>
+
 #include "fo/core/audit_logger_interface.hpp"
-#include "fo/core/vault_manager.hpp"
-#include <nlohmann/json.hpp>
-#include <fstream>
 #include "fo/core/vault_manager.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>

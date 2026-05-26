@@ -16,6 +16,7 @@
       ]
     },
     "cpr",
+    "openssl",
     "azure-storage-blobs-cpp"
   ],
   "features": {
