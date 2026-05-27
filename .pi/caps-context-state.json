@@ -1,0 +1,21 @@
+{
+	"ARCHITECTURE.md": true,
+	"BUILD_RESULTS.md": true,
+	"CHANGELOG.md": true,
+	"DEPLOY.md": true,
+	"EXPLORER_PLAN.md": true,
+	"FILE_ORGANIZER_SKILL.md": true,
+	"FUZZ_RESULTS.md": true,
+	"GEMINI.md": true,
+	"GPT.md": true,
+	"HANDOFF.md": true,
+	"IDEAS.md": true,
+	"MEMORY.md": true,
+	"README.md": true,
+	"README_CLI.md": true,
+	"RELEASE_NOTES.md": true,
+	"SUBMODULE_INVENTORY.md": true,
+	"TODO.md": true,
+	"VERSION.md": true,
+	"VERT/": true
+}

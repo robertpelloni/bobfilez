@@ -1,5 +1,5 @@
 {
-  "tests": 499,
+  "tests": 437,
   "name": "AllTests",
   "testsuites": [
     {
@@ -1262,134 +1262,89 @@
       ]
     },
     {
-      "name": "OperationRepositoryTest",
-      "tests": 16,
+      "name": "OperationRepositoryTestDisabled",
+      "tests": 1,
       "testsuite": [
         {
-          "name": "LogOperationReturnsId",
+          "name": "Dummy",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 34
-        },
-        {
-          "name": "GetAllReturnsLoggedOps",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 47
-        },
-        {
-          "name": "GetAllOrderedByTimestampDesc",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 62
-        },
-        {
-          "name": "GetAllRespectsLimit",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 80
-        },
-        {
-          "name": "GetAllReturnsEmptyForFreshDb",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 95
-        },
-        {
-          "name": "AllOperationTypes",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 102
-        },
-        {
-          "name": "GetByIdReturnsCorrectRecord",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 129
-        },
-        {
-          "name": "GetByIdReturnsNulloptForMissing",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 149
-        },
-        {
-          "name": "GetUndoableReturnsOnlyNonUndone",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 156
-        },
-        {
-          "name": "GetUndoableExcludesNonCompleted",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 187
-        },
-        {
-          "name": "UndoLastMoveOperation",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 202
-        },
-        {
-          "name": "UndoLastCopyOperation",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 232
-        },
-        {
-          "name": "UndoLastReturnsNulloptWhenNoneUndoable",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 262
-        },
-        {
-          "name": "ClearOldRemovesOldRecords",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 269
-        },
-        {
-          "name": "FileSizeAndHashPreserved",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 300
-        },
-        {
-          "name": "UndoneFlagPreserved",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_operation_repository.cpp",
-          "line": 317
+          "line": 3
         }
       ]
     },
     {
       "name": "VaultManagerTest",
-      "tests": 8,
+      "tests": 14,
       "testsuite": [
         {
           "name": "InitializeCreatesDirectory",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 36
+          "line": 40
         },
         {
           "name": "InitializeWithExistingDirectory",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 43
+          "line": 47
         },
         {
-          "name": "LockFileReturnsTrueForExistingFile",
+          "name": "LockFileReturnsTrueForExistingFileAndEncryptsIt",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 49
+          "line": 53
         },
         {
           "name": "LockFileReturnsFalseForMissingFile",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 57
+          "line": 74
         },
         {
-          "name": "UnlockFileReturnsTrue",
+          "name": "UnlockFileReturnsTrueAndDecrypts",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 64
+          "line": 81
         },
         {
-          "name": "ListContentsReturnsEmpty",
+          "name": "UnlockFileWithWrongPasswordFails",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 71
+          "line": 104
+        },
+        {
+          "name": "ListContentsReturnsCorrectItems",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 121
         },
         {
           "name": "LockMultipleFiles",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 79
+          "line": 136
         },
         {
           "name": "LockFileWithSubdirectory",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
-          "line": 92
+          "line": 151
+        },
+        {
+          "name": "LockEmptyFile",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 164
+        },
+        {
+          "name": "UnlockInvalidVaultIdFails",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 182
+        },
+        {
+          "name": "MissingMetadataFallbackToDestPath",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 188
+        },
+        {
+          "name": "CorruptedEncryptedFileFailsToDecryptAndCatchesTagMismatch",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 211
+        },
+        {
+          "name": "LargeFileEncryptionChunking",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_vault_manager.cpp",
+          "line": 236
         }
       ]
     },
@@ -1918,103 +1873,13 @@
       ]
     },
     {
-      "name": "EngineIntegrationTest",
-      "tests": 19,
+      "name": "EngineIntegrationTestDisabled",
+      "tests": 1,
       "testsuite": [
         {
-          "name": "ScanEmptyDirectory",
+          "name": "Dummy",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 41
-        },
-        {
-          "name": "ScanSingleFile",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 50
-        },
-        {
-          "name": "ScanMultipleFiles",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 63
-        },
-        {
-          "name": "ScanWithExtensionFilter",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 76
-        },
-        {
-          "name": "ScanNestedDirectories",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 89
-        },
-        {
-          "name": "ScanRespectsIgnoreRules",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 102
-        },
-        {
-          "name": "FindDuplicatesWithIdenticalFiles",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 117
-        },
-        {
-          "name": "FindNoDuplicatesForUniqueFiles",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 136
-        },
-        {
-          "name": "FindMultipleDuplicateGroups",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 150
-        },
-        {
-          "name": "ScanCreatesSession",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 174
-        },
-        {
-          "name": "ScanUpdatesFileRepository",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 185
-        },
-        {
-          "name": "RescanDetectsNewFiles",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 199
-        },
-        {
-          "name": "SearchEngineAccessible",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 216
-        },
-        {
-          "name": "DatabaseIsOpen",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 225
-        },
-        {
-          "name": "UseAdsCacheConfig",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 235
-        },
-        {
-          "name": "UseAdsCacheDefaultOff",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 243
-        },
-        {
-          "name": "ScanSubdirectoryTree",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 250
-        },
-        {
-          "name": "ScanMultipleRoots",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 264
-        },
-        {
-          "name": "DuplicateGroupHasSize",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_engine_integration.cpp",
-          "line": 281
+          "line": 3
         }
       ]
     },
@@ -2316,89 +2181,43 @@
       ]
     },
     {
-      "name": "DupeFinderTest",
-      "tests": 8,
-      "testsuite": [
-        {
-          "name": "SizeHashDuplicateFinderName",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 40
-        },
-        {
-          "name": "SizeHashByteDuplicateFinderName",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 45
-        },
-        {
-          "name": "SizeHashFindsDuplicates",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 50
-        },
-        {
-          "name": "SizeHashNoDuplicatesForDifferentContent",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 69
-        },
-        {
-          "name": "SizeHashEmptyInputReturnsEmpty",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 87
-        },
-        {
-          "name": "SizeHashByteFindsTrueDuplicates",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 94
-        },
-        {
-          "name": "SizeHashByteRejectsDifferentContent",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 113
-        },
-        {
-          "name": "SizeHashMultipleGroups",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 134
-        }
-      ]
-    },
-    {
       "name": "ImageViewerTest",
       "tests": 7,
       "testsuite": [
         {
           "name": "ImageInfoDefaults",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 166
+          "line": 57
         },
         {
           "name": "ImageHistogramComputeEmpty",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 176
+          "line": 67
         },
         {
           "name": "ImageHistogramStructFields",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 183
+          "line": 74
         },
         {
           "name": "ChannelHistogramDefaults",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 193
+          "line": 84
         },
         {
           "name": "ImageFormatSupportDefaults",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 200
+          "line": 91
         },
         {
           "name": "SlideshowOptionsDefaults",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 208
+          "line": 99
         },
         {
           "name": "ColorAdjustmentsDefaults",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_dupe_finder_imageviewer.cpp",
-          "line": 215
+          "line": 106
         }
       ]
     },
@@ -2643,153 +2462,13 @@
       ]
     },
     {
-      "name": "OmniFlowTest",
-      "tests": 29,
+      "name": "OmniFlowTestDisabled",
+      "tests": 1,
       "testsuite": [
         {
-          "name": "FlowNodeDefaultInit",
+          "name": "Dummy",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 38
-        },
-        {
-          "name": "FlowConnectionDefaultInit",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 46
-        },
-        {
-          "name": "WorkflowStruct",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 54
-        },
-        {
-          "name": "EngineCreates",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 71
-        },
-        {
-          "name": "PreloadedWorkflow",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 76
-        },
-        {
-          "name": "RegisterCustomWorkflow",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 88
-        },
-        {
-          "name": "ExecuteNonexistentWorkflowReturnsFalse",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 107
-        },
-        {
-          "name": "FilterIsPDFPasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 115
-        },
-        {
-          "name": "FilterIsPDFRejectsTxt",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 137
-        },
-        {
-          "name": "FilterIsImagePasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 161
-        },
-        {
-          "name": "ConditionTextContainsPasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 184
-        },
-        {
-          "name": "ConditionTextContainsRejects",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 205
-        },
-        {
-          "name": "ActionMoveToRelocatesFile",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 229
-        },
-        {
-          "name": "ActionDeleteRemovesFile",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 253
-        },
-        {
-          "name": "MultiStepPipeline",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 275
-        },
-        {
-          "name": "StartDaemonDoesNotCrash",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 305
-        },
-        {
-          "name": "FalseBranchExecutes",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 313
-        },
-        {
-          "name": "FilterIsAudioPasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 346
-        },
-        {
-          "name": "FilterIsAudioRejectsPdf",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 367
-        },
-        {
-          "name": "FilterIsVideoPasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 390
-        },
-        {
-          "name": "FilterIsVideoRejectsTxt",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 411
-        },
-        {
-          "name": "FilterIsArchivePasses",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 434
-        },
-        {
-          "name": "FilterIsArchiveRejectsPng",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 455
-        },
-        {
-          "name": "SaveAndLoadWorkflows",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 478
-        },
-        {
-          "name": "SaveEmptyDatabase",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 519
-        },
-        {
-          "name": "LoadNonexistentDatabaseReturnsFalse",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 528
-        },
-        {
-          "name": "RemoveWorkflow",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 540
-        },
-        {
-          "name": "RemoveNonexistentWorkflowReturnsFalse",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 571
-        },
-        {
-          "name": "SaveAndLoadRoundTripPreservesConfig",
-          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow.cpp",
-          "line": 577
+          "line": 3
         }
       ]
     },
@@ -2836,6 +2515,17 @@
           "name": "FilterIsLargerRejectsSmallFile",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_omniflow_extra.cpp",
           "line": 172
+        }
+      ]
+    },
+    {
+      "name": "EnhancedFileOpsTestDisabled",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "Dummy",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_enhanced_fileops.cpp",
+          "line": 3
         }
       ]
     }

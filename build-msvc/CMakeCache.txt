@@ -272,8 +272,26 @@ FO_BUILD_TESTS:BOOL=ON
 //The directory containing a CMake configuration file for GTest.
 GTest_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/share/gtest
 
+//Path to a library.
+LIB_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/debug/lib/libcrypto.lib
+
+//Path to a library.
+LIB_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libcrypto.lib
+
+//Path to a file.
+OPENSSL_APPLINK_SOURCE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include/openssl/applink.c
+
+//Path to a file.
+OPENSSL_INCLUDE_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include
+
 //The directory containing a CMake configuration file for OpenCV.
 OpenCV_DIR:PATH=OpenCV_DIR-NOTFOUND
+
+//Path to a library.
+SSL_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/debug/lib/libssl.lib
+
+//Path to a library.
+SSL_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libssl.lib
 
 //The directory containing a CMake configuration file for Tesseract.
 Tesseract_DIR:PATH=Tesseract_DIR-NOTFOUND
@@ -453,7 +471,7 @@ CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4
 //Minor version of cmake used to create the current loaded cache
 CMAKE_CACHE_MINOR_VERSION:INTERNAL=3
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=1
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=3
 //Path to CMake executable.
 CMAKE_COMMAND:INTERNAL=C:/Program Files/CMake/bin/cmake.exe
 //Path to cpack program executable.
@@ -604,6 +622,8 @@ CURL_LIBRARY_DEBUG:INTERNAL=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_i
 CURL_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //vcpkg
 CURL_LIBRARY_RELEASE:INTERNAL=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libcurl.lib
+//Details about finding OpenSSL
+FIND_PACKAGE_MESSAGE_DETAILS_OpenSSL:INTERNAL=[optimized;C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libcrypto.lib;debug;C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/debug/lib/libcrypto.lib][C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include][ ][v3.6.1()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding ZLIB
@@ -614,6 +634,8 @@ LibCrypto_INCLUDE_DIR:INTERNAL=
 LibCrypto_SHARED_LIBRARY:INTERNAL=
 //The OpenSSL crypto static library
 LibCrypto_STATIC_LIBRARY:INTERNAL=
+//ADVANCED property for variable: OPENSSL_INCLUDE_DIR
+OPENSSL_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: VCPKG_VERBOSE
 VCPKG_VERBOSE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ZLIB_INCLUDE_DIR
