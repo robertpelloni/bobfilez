@@ -175,6 +175,19 @@ CREATE INDEX IF NOT EXISTS idx_photos_raw ON photos(is_raw);
 CREATE INDEX IF NOT EXISTS idx_photos_gps ON photos(lat, lon);
 )";
 
+/// Migration 7: Autonomous Sync History
+static const char* MIGRATION_7 = R"(
+CREATE TABLE IF NOT EXISTS sync_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    remote_path TEXT NOT NULL,
+    version_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    checksum TEXT NOT NULL,
+    author TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sync_path ON sync_history(remote_path);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -291,6 +304,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 5) {
         apply_migration(5, MIGRATION_5);
+    }
+    if (current_ver < 7) {
+        apply_migration(7, MIGRATION_7);
     }
 }
 

@@ -13,6 +13,8 @@
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
 #include "fo/core/omniflow_engine_interface.hpp"
+#include "fo/core/omniclerk_interface.hpp"
+#include "fo/core/omni_oracle_interface.hpp"
 #include "fo/core/self_healing_interface.hpp"
 #include <iostream>
 #include <string>
@@ -103,7 +105,11 @@ static void print_usage() {
               << "  rename-batch Batch rename files using rule chains\n"
               << "  watch        Real-time directory watcher (Shadow Sorter)\n"
               << "  flow         Manage OmniFlow automation workflows (list, run)\n"
+              << "  clerk        Start OmniClerk autonomous secretary (auto-filing)\n"
+              << "  oracle       Ask the filesystem AI a question\n"
               << "  scrub        Verify file integrity against stored baselines\n"
+              << "  autodev      Start Autonomous Development loop (auto-build/test)\n"
+              << "  sync         Start Autonomous Sync daemon (auto-versioning)\n"
               << "\nSearch Options:\n"
               << "  --content          Search inside file contents\n"
               << "  --regex            Use regex matching\n"
@@ -1952,6 +1958,106 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
+        } else if (command == "autodev") {
+            // ─── Autonomous Dev Protocol Command ────────────────────────────
+            if (args.size() < 2 || (args[1] != "start" && args[1] != "stop" && args[1] != "status")) {
+                std::cerr << "Usage: fo autodev [start|stop|status] [repo_root]\n";
+                return 1;
+            }
+            auto& ad = engine.autodev_protocol();
+            if (args[1] == "start" && args.size() >= 3) {
+                ad.start_autodev_loop(args[2]);
+                std::cout << "Autonomous Development Loop started for " << args[2] << "\n";
+                // Block if it's the main command, or return if it's a daemonized concept
+                // For CLI simplicity, we'll keep it alive in this thread for now
+                while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
+            } else if (args[1] == "stop") {
+                ad.stop_autodev_loop();
+            } else if (args[1] == "status") {
+                auto status = ad.get_dev_status();
+                std::cout << "Loop Active: " << (status.is_loop_active ? "Yes" : "No") << "\n";
+                for (auto const& [id, res] : status.last_results) {
+                    std::cout << "  Task " << id << ": " << res << "\n";
+                }
+            }
+        } else if (command == "sync") {
+            // ─── Autonomous Sync Protocol Command ───────────────────────────
+            if (args.size() < 2 || (args[1] != "start" && args[1] != "history" && args[1] != "status")) {
+                std::cerr << "Usage: fo sync [start|history|status] [path]\n";
+                return 1;
+            }
+            auto& sync = engine.sync_service();
+            if (args[1] == "start" && args.size() >= 3) {
+                sync.start_sync_daemon(args[2]);
+                std::cout << "Autonomous Sync Daemon started for " << args[2] << "\n";
+                while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
+            } else if (args[1] == "history" && args.size() >= 3) {
+                auto history = sync.get_version_history(args[2]);
+                std::cout << "Sync History for " << args[2] << ":\n";
+                for (const auto& v : history) {
+                    auto t = std::chrono::system_clock::to_time_t(v.timestamp);
+                    std::cout << "  " << v.version_id << " | " << std::ctime(&t) << " | " << v.checksum << " | " << v.author << "\n";
+                }
+            } else if (args[1] == "status") {
+                auto status = sync.check_sync_status();
+                std::cout << "In Sync: " << (status.is_in_sync ? "Yes" : "No") << "\n";
+            }
+        } else if (command == "clerk") {
+            // ─── OmniClerk Command ───────────────────────────
+            if (args.size() < 2 || (args[1] != "start" && args[1] != "status")) {
+                std::cerr << "Usage: fo clerk [start|status] [inbox] [archive]\n";
+                return 1;
+            }
+            auto& clerk = engine.omniclerk_engine();
+            if (args[1] == "start" && args.size() >= 4) {
+                clerk.start_listener(args[2], args[3]);
+                std::cout << "OmniClerk Autonomous Secretary started.\n";
+                std::cout << "Inbox:   " << args[2] << "\n";
+                std::cout << "Archive: " << args[3] << "\n";
+                while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
+            } else if (args[1] == "status") {
+                auto history = clerk.get_processing_history();
+                std::cout << "OmniClerk Status:\n";
+                std::cout << "  Processed documents: " << history.size() << "\n";
+                for (const auto& rec : history) {
+                    std::cout << "  - " << rec.original_path.filename() << " -> " << rec.filed_path.filename() 
+                              << " (" << rec.document_type << ")\n";
+                }
+            }
+        } else if (command == "oracle") {
+            // ─── OmniOracle Command ───────────────────────────
+            if (args.size() < 2) {
+                std::cerr << "Usage: fo oracle <query|summarize> [path]\n";
+                return 1;
+            }
+            auto& oracle = engine.omni_oracle();
+            if (args[1] == "summarize" && args.size() >= 3) {
+                auto res = oracle.summarize(args[2]);
+                std::cout << "Summary of " << args[2] << ":\n";
+                std::cout << res.answer_text << "\n";
+            } else {
+                std::string query;
+                if (args[1] == "ask" && args.size() >= 3) {
+                    query = args[2];
+                } else {
+                    query = args[1];
+                }
+                auto res = oracle.ask(query);
+                std::cout << "Oracle: " << res.answer_text << "\n";
+                if (!res.citations.empty()) {
+                    std::cout << "\nCitations:\n";
+                    for (const auto& c : res.citations) {
+                        std::cout << "  - " << c.file_path << " (" << (int)(c.relevance_score * 100) << "%)\n";
+                        std::cout << "    \"" << c.snippet << "\"\n";
+                    }
+                }
+                if (!res.suggested_actions.empty()) {
+                    std::cout << "\nActions:\n";
+                    for (const auto& a : res.suggested_actions) {
+                        std::cout << "  [ ] " << a.label << " (" << a.action_id << ")\n";
+                    }
+                }
+            }
         } else if (command == "scrub") {
             // ─── Scrub Command (Self-Healing Integrity Verification) ─────────
             // Usage: fo_cli scrub <path...>

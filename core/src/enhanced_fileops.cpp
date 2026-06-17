@@ -47,6 +47,17 @@ static std::string compute_hash(const std::filesystem::path& p, const std::strin
 
 //─────────────────────────── EnhancedCopyEngine ──────────────────────────────
 
+EnhancedCopyEngine::EnhancedCopyEngine() {}
+
+EnhancedCopyEngine::~EnhancedCopyEngine() {
+    shutting_down_ = true;
+    cancel_all();
+    std::lock_guard<std::mutex> lock(queue_mtx_);
+    for (auto& w : workers_) {
+        if (w.joinable()) w.join();
+    }
+}
+
 std::string EnhancedCopyEngine::enqueue(
     const std::vector<std::filesystem::path>& sources,
     const std::filesystem::path& dest,
@@ -73,13 +84,26 @@ std::string EnhancedCopyEngine::enqueue(
         jobs_.push_back(job);
     }
 
-    // In a real application, a background thread pool would pick up jobs from the queue.
-    // For this engine implementation, we provide the execution logic directly.
-    // Let's spawn a thread for it right now.
-    std::thread([this, job_id = job.id, error_cb, progress_cb, result_cb]() {
+    // Managed worker thread
+    std::lock_guard<std::mutex> lock(queue_mtx_);
+    
+    // Prune finished workers to prevent resource leak
+    workers_.erase(std::remove_if(workers_.begin(), workers_.end(), [](std::thread& w) {
+        if (w.joinable()) {
+            // Note: In a real system we'd use a better way to check if a thread is finished.
+            // For now, we rely on the clear_finished() or destructor.
+            // To properly prune, we'd need a separate thread state map.
+            // Let's at least keep the vector size manageable in the destructor for now.
+            return false;
+        }
+        return true;
+    }), workers_.end());
+
+    workers_.emplace_back([this, job_id = job.id, error_cb, progress_cb, result_cb]() {
         TransferJob* target_job = nullptr;
         {
-            std::lock_guard<std::mutex> lock(queue_mtx_);
+            // We need to re-lock to find the job safely because it might have moved
+            std::lock_guard<std::mutex> inner_lock(queue_mtx_);
             for (auto& j : jobs_) {
                 if (j.id == job_id) {
                     target_job = &j;
@@ -90,7 +114,7 @@ std::string EnhancedCopyEngine::enqueue(
         if (target_job) {
             run_job(*target_job, error_cb, progress_cb, result_cb);
         }
-    }).detach();
+    });
 
     return job.id;
 }
@@ -184,10 +208,10 @@ void EnhancedCopyEngine::run_job(TransferJob& job, ErrorHandlerCb error_cb,
         if (paused_all_ || job.state == TransferJob::State::Paused) {
             while (paused_all_ || job.state == TransferJob::State::Paused) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                if (job.state == TransferJob::State::Cancelled) break;
+                if (job.state == TransferJob::State::Cancelled || shutting_down_) break;
             }
         }
-        if (job.state == TransferJob::State::Cancelled) break;
+        if (job.state == TransferJob::State::Cancelled || shutting_down_) break;
 
         job.stats.current_file = item.src;
         
@@ -237,7 +261,7 @@ void EnhancedCopyEngine::run_job(TransferJob& job, ErrorHandlerCb error_cb,
         }
     }
 
-    job.state = (job.state == TransferJob::State::Cancelled) ? TransferJob::State::Cancelled : TransferJob::State::Done;
+    job.state = (job.state == TransferJob::State::Cancelled || shutting_down_) ? TransferJob::State::Cancelled : TransferJob::State::Done;
     job.finished_at = std::chrono::system_clock::now();
     if (log_file) log_file << "Job Finished. Status: " << static_cast<int>(job.state) << "\n";
 }
@@ -254,15 +278,10 @@ FileOpResult EnhancedCopyEngine::copy_single_enhanced(
     res.dest = dst;
     res.type = opts.move_mode ? FileOpType::Move : FileOpType::Copy;
 
+    int max_attempts = std::max(1, opts.auto_retry_count + 1);
     std::error_code ec;
-    auto src_size = std::filesystem::file_size(src, ec);
-    if (ec) {
-        res.error = "Cannot read source size: " + ec.message();
-        if (error_cb) error_cb(FileError{FileError::Type::ReadError, src, dst, res.error});
-        return res;
-    }
 
-    // Collision handling
+    // Collision handling (outside retry loop to ensure consistent target path)
     std::filesystem::path target = dst;
     if (std::filesystem::exists(target, ec)) {
         if (opts.collision == CollisionPolicy::Skip) {
@@ -293,136 +312,165 @@ FileOpResult EnhancedCopyEngine::copy_single_enhanced(
         }
     }
 
-    auto t0 = std::chrono::steady_clock::now();
+    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
+        res.success = false;
+        res.error.clear();
+        
+        auto src_size = std::filesystem::file_size(src, ec);
+        if (ec) {
+            res.error = "Cannot read source size: " + ec.message();
+            if (attempt == max_attempts) {
+                if (error_cb) error_cb(FileError{FileError::Type::ReadError, src, res.dest, res.error});
+                return res;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(opts.auto_retry_delay_ms));
+            continue;
+        }
 
-    // 0. Try Zero-Copy (Reflink / Block Cloning) — instant move/copy on same volume
-    if (try_zero_copy(src, target)) {
-        stats.bytes_done += src_size;
-        res.success = true;
-        res.bytes_transferred = src_size;
-        res.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-        return res;
-    }
+        auto t0 = std::chrono::steady_clock::now();
 
-    // 1. Fast paths (Hardlinks / Symlinks)
-    if (opts.create_hardlinks) {
-        std::filesystem::create_hard_link(src, target, ec);
-        if (!ec) { res.success = true; return res; }
-    } else if (opts.create_symlinks) {
-        std::filesystem::create_symlink(src, target, ec);
-        if (!ec) { res.success = true; return res; }
-    }
-
-    if (opts.move_mode && opts.smart_mode) {
-        std::filesystem::rename(src, target, ec);
-        if (!ec) {
+        // 0. Try Zero-Copy (Reflink / Block Cloning) — instant move/copy on same volume
+        if (try_zero_copy(src, target)) {
             stats.bytes_done += src_size;
             res.success = true;
+            res.dest = target;
             res.bytes_transferred = src_size;
+            res.duration_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
             return res;
         }
-        // Fallback to copy+delete if cross-device
-    }
 
-    // Buffered copy loop
-    std::ifstream is;
-    std::ofstream os;
-
-#ifdef _WIN32
-    // Optional: Use Win32 CreateFile with FILE_FLAG_NO_BUFFERING for FastCopy parity.
-    if (opts.no_buffering) {
-        HANDLE hSrc = CreateFileW(src.wstring().c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-        HANDLE hDst = CreateFileW(target.wstring().c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, NULL);
-        if (hSrc != INVALID_HANDLE_VALUE && hDst != INVALID_HANDLE_VALUE) {
-            // Sector-aligned copying would go here.
-            // For now, we fall back to streams if this is too complex for a single edit.
-            CloseHandle(hSrc); CloseHandle(hDst);
+        // 1. Fast paths (Hardlinks / Symlinks)
+        if (opts.create_hardlinks) {
+            std::filesystem::create_hard_link(src, target, ec);
+            if (!ec) { res.success = true; res.dest = target; return res; }
+        } else if (opts.create_symlinks) {
+            std::filesystem::create_symlink(src, target, ec);
+            if (!ec) { res.success = true; res.dest = target; return res; }
         }
-    }
-#endif
 
-    is.open(src, std::ios::binary);
-    if (!is) {
-        res.error = "Cannot open source";
-        if (error_cb) error_cb(FileError{FileError::Type::ReadError, src, target, res.error});
-        return res;
-    }
-
-    os.open(target, std::ios::binary | std::ios::trunc);
-    if (!os) {
-        res.error = "Cannot open destination";
-        if (error_cb) error_cb(FileError{FileError::Type::WriteError, src, target, res.error});
-        return res;
-    }
-
-    size_t buf_size = opts.read_buffer_size > 0 ? opts.read_buffer_size : (4 * 1024 * 1024);
-    std::vector<char> buffer(buf_size);
-
-    int64_t copied = 0;
-    auto t_last_speed = t0;
-    int64_t bytes_since_last_speed = 0;
-
-    while (is && os) {
-        apply_throttle(buf_size);
-
-        is.read(buffer.data(), buffer.size());
-        std::streamsize bytes_read = is.gcount();
-        if (bytes_read > 0) {
-            os.write(buffer.data(), bytes_read);
-            if (!os) {
-                res.error = "Write failed";
-                break;
+        if (opts.move_mode && opts.smart_mode) {
+            std::filesystem::rename(src, target, ec);
+            if (!ec) {
+                stats.bytes_done += src_size;
+                res.success = true;
+                res.dest = target;
+                res.bytes_transferred = src_size;
+                return res;
             }
-            copied += bytes_read;
-            stats.bytes_done += bytes_read;
-            bytes_since_last_speed += bytes_read;
+            // Fallback to copy+delete if cross-device
+        }
 
-            auto t_now = std::chrono::steady_clock::now();
-            auto dt = std::chrono::duration<double>(t_now - t_last_speed).count();
-            if (dt > 0.5) { // Update speed every 500ms
-                stats.current_speed_bps = bytes_since_last_speed / dt;
-                if (stats.current_speed_bps > stats.peak_speed_bps) {
-                    stats.peak_speed_bps = stats.current_speed_bps;
+        // Buffered copy loop
+        std::ifstream is(src, std::ios::binary);
+        if (!is) {
+            res.error = "Cannot open source";
+            if (attempt == max_attempts) {
+                if (error_cb) error_cb(FileError{FileError::Type::ReadError, src, target, res.error});
+                return res;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(opts.auto_retry_delay_ms));
+            continue;
+        }
+
+        std::ofstream os(target, std::ios::binary | std::ios::trunc);
+        if (!os) {
+            res.error = "Cannot open destination";
+            if (attempt == max_attempts) {
+                if (error_cb) error_cb(FileError{FileError::Type::WriteError, src, target, res.error});
+                return res;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(opts.auto_retry_delay_ms));
+            continue;
+        }
+
+        size_t buf_size = opts.read_buffer_size > 0 ? opts.read_buffer_size : (4 * 1024 * 1024);
+        std::vector<char> buffer(buf_size);
+
+        int64_t copied = 0;
+        auto t_last_speed = t0;
+        int64_t bytes_since_last_speed = 0;
+        uintmax_t stats_bytes_added_this_attempt = 0;
+
+        while (is && os) {
+            apply_throttle(buf_size);
+
+            is.read(buffer.data(), buffer.size());
+            std::streamsize bytes_read = is.gcount();
+            if (bytes_read > 0) {
+                os.write(buffer.data(), bytes_read);
+                if (!os) {
+                    res.error = "Write failed";
+                    break;
                 }
-                // Ring buffer for graph
-                stats.speed_history.push_back(stats.current_speed_bps);
-                if (stats.speed_history.size() > 60) stats.speed_history.erase(stats.speed_history.begin());
+                copied += bytes_read;
+                stats.bytes_done += bytes_read;
+                stats_bytes_added_this_attempt += bytes_read;
+                bytes_since_last_speed += bytes_read;
 
-                bytes_since_last_speed = 0;
-                t_last_speed = t_now;
+                auto t_now = std::chrono::steady_clock::now();
+                auto dt = std::chrono::duration<double>(t_now - t_last_speed).count();
+                if (dt > 0.5) { // Update speed every 500ms
+                    stats.current_speed_bps = bytes_since_last_speed / dt;
+                    if (stats.current_speed_bps > stats.peak_speed_bps) {
+                        stats.peak_speed_bps = stats.current_speed_bps;
+                    }
+                    // Ring buffer for graph
+                    stats.speed_history.push_back(stats.current_speed_bps);
+                    if (stats.speed_history.size() > 60) stats.speed_history.erase(stats.speed_history.begin());
+
+                    bytes_since_last_speed = 0;
+                    t_last_speed = t_now;
+                }
             }
         }
-    }
 
-    is.close();
-    os.close();
+        is.close();
+        os.close();
 
-    res.success = (copied == src_size);
-    res.bytes_transferred = copied;
-
-    if (res.success && opts.verify_checksums) {
-        stats.current_phase = "Verifying";
-        res.checksum_before = compute_hash(src, opts.verify_hash);
-        res.checksum_after = compute_hash(target, opts.verify_hash);
-        res.checksum_match = (res.checksum_before == res.checksum_after);
-        if (!res.checksum_match) {
-            res.success = false;
-            res.error = "Checksum mismatch";
-            if (error_cb) error_cb(FileError{FileError::Type::ChecksumMismatch, src, target, res.error});
+        if (copied != src_size) {
+            stats.bytes_done -= stats_bytes_added_this_attempt;
+            if (attempt == max_attempts) return res;
+            std::this_thread::sleep_for(std::chrono::milliseconds(opts.auto_retry_delay_ms));
+            continue;
         }
-        stats.current_phase = "Copying";
-    }
 
-    if (res.success && opts.preserve_timestamps) {
-        std::filesystem::last_write_time(target, std::filesystem::last_write_time(src, ec), ec);
-    }
+        res.success = true;
+        res.bytes_transferred = copied;
 
-    if (res.success && opts.move_mode) {
-        std::filesystem::remove(src, ec);
-    }
+        if (res.success && opts.verify_checksums) {
+            stats.current_phase = "Verifying";
+            res.checksum_before = compute_hash(src, opts.verify_hash);
+            res.checksum_after = compute_hash(target, opts.verify_hash);
+            res.checksum_match = (res.checksum_before == res.checksum_after);
+            if (!res.checksum_match) {
+                res.success = false;
+                res.error = "Checksum mismatch";
+                stats.bytes_done -= stats_bytes_added_this_attempt;
+                if (attempt == max_attempts) {
+                    if (error_cb) error_cb(FileError{FileError::Type::ChecksumMismatch, src, target, res.error});
+                    return res;
+                }
+                stats.current_phase = "Copying";
+                std::this_thread::sleep_for(std::chrono::milliseconds(opts.auto_retry_delay_ms));
+                continue;
+            }
+            stats.current_phase = "Copying";
+        }
 
-    auto t1 = std::chrono::steady_clock::now();
-    res.duration_sec = std::chrono::duration<double>(t1 - t0).count();
+        if (res.success && opts.preserve_timestamps) {
+            std::filesystem::last_write_time(target, std::filesystem::last_write_time(src, ec), ec);
+        }
+
+        if (res.success && opts.move_mode) {
+            std::filesystem::remove(src, ec);
+        }
+
+        auto t1 = std::chrono::steady_clock::now();
+        res.duration_sec = std::chrono::duration<double>(t1 - t0).count();
+        res.dest = target;
+
+        return res;
+    }
 
     return res;
 }

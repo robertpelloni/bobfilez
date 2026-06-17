@@ -1,6 +1,10 @@
 # filez TODO List
 
 ## Immediate (Short Term)
+- [x] **Autonomous Sync**: Implement real-time file synchronization across nodes.
+- [x] **Distributed Coordination**: Integrate version tracking into the core Engine.
+- [x] **Robust Error Handling**: retry mechanism implemented for file operations.
+- [ ] **BobTK Go Port**: Stabilize the initial Go port scaffolding and documentation.
 - [x] **OmniUI Transition**: Transition the native GUI (`fo_gui`) to the **OmniUI** framework (Qt + JUCE + WASM).
 - [x] **Windows 11 Explorer Clone**: Implement a high-fidelity Windows 11 Explorer UI in QML/TypeScript.
 - [x] **`FileModel` Integration**: Bridge `fo_core` deduplication engine into the new Explorer UI.

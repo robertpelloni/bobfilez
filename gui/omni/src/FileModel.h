@@ -11,6 +11,12 @@ class FileModel : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(QString currentPath READ currentPath WRITE setCurrentPath NOTIFY pathChanged)
     Q_PROPERTY(int selectedCount READ selectedCount NOTIFY selectedCountChanged)
+    Q_PROPERTY(int totalWorkflows READ totalWorkflows NOTIFY healthChanged)
+    Q_PROPERTY(double avgWorkflowDuration READ avgWorkflowDuration NOTIFY healthChanged)
+    Q_PROPERTY(int totalSyncUploads READ totalSyncUploads NOTIFY healthChanged)
+    Q_PROPERTY(bool lastValidationOk READ lastValidationOk NOTIFY healthChanged)
+    Q_PROPERTY(int activeSwarmPeers READ activeSwarmPeers NOTIFY healthChanged)
+    Q_PROPERTY(QString lastCheckpointId READ lastCheckpointId NOTIFY healthChanged)
 
 public:
     enum FileRoles {
@@ -35,6 +41,14 @@ public:
     
     int selectedCount() const { return m_selectedCount; }
 
+    // Autonomous Health metrics
+    int totalWorkflows();
+    double avgWorkflowDuration();
+    int totalSyncUploads();
+    bool lastValidationOk();
+    int activeSwarmPeers();
+    QString lastCheckpointId();
+
     Q_INVOKABLE void openFolder(const QString &path);
     Q_INVOKABLE void goUp();
     Q_INVOKABLE void refresh();
@@ -54,6 +68,7 @@ public:
 signals:
     void pathChanged();
     void selectedCountChanged();
+    void healthChanged();
     void duplicateDetectionStarted();
     void duplicateDetectionFinished(int groupsFound);
 

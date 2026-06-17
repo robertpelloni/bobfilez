@@ -35,6 +35,8 @@ namespace fo::core {
     void register_omniterminal_engine();
     void register_omniverse_engine();
     void register_omnivision_engine();
+    void register_autonomous_sync_service();
+    void register_autonomous_dev_protocol();
     void register_scanner_s3();
     void register_scanner_gdrive();
     void register_scanner_azure();
@@ -92,6 +94,9 @@ namespace fo::core {
         register_omniverse_engine();
         register_omnivision_engine();
         
+        register_autonomous_sync_service();
+        register_autonomous_dev_protocol();
+
         register_extended_providers();
     }
 }

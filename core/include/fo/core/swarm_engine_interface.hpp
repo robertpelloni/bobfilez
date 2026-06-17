@@ -14,6 +14,7 @@
 #include <vector>
 #include <filesystem>
 #include <map>
+#include <functional>
 
 namespace fo::core {
 
@@ -30,6 +31,9 @@ class ISwarmEngine {
 public:
     virtual ~ISwarmEngine() = default;
 
+    /// Internal: Handle update notice
+    virtual void on_remote_update(const std::string& file_id) = 0;
+
     /// Start the node discovery service (mDNS/UDP)
     virtual void start_discovery() = 0;
 
@@ -37,13 +41,19 @@ public:
     virtual bool connect_to_peer(const std::string& address) = 0;
 
     /// Broadcast an index update to all online peers
-    virtual void broadcast_index_update() = 0;
+    virtual void broadcast_index_update(const std::string& file_id = "") = 0;
 
     /// Sync the forensic audit ledger with the swarm
     virtual void sync_ledger() = 0;
 
     /// Get list of discovered swarm nodes
     virtual std::vector<SwarmNode> get_active_nodes() = 0;
+
+    /// Subscribe to remote update notifications. Returns a handle.
+    virtual uint64_t subscribe_to_updates(std::function<void(const std::string&)> callback) = 0;
+
+    /// Unsubscribe from updates using a handle.
+    virtual void unsubscribe(uint64_t handle) = 0;
 };
 
 } // namespace fo::core
