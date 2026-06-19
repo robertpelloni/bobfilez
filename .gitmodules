@@ -415,10 +415,10 @@
 	url = https://github.com/BLAKE3-team/BLAKE3.git
 [submodule "libs/btk"]
 	path = libs/btk
-	url = https://github.com/robertpelloni/btk.git
+	url = https://github.com/robertpelloni/bcs.git
 [submodule "libs/bobui"]
 	path = libs/bobui
-	url = https://github.com/robertpelloni/bobui.git
+	url = https://github.com/robertpelloni/bqt.git
 [submodule "libs/pandoc"]
 	path = libs/pandoc
 	url = https://github.com/jgm/pandoc
@@ -502,7 +502,7 @@
 	url = https://github.com/highlightjs/highlight.js
 [submodule "libs/bobgui"]
 	path = libs/bobgui
-	url = https://github.com/robertpelloni/bobgui
+	url = https://github.com/robertpelloni/bgtk
 [submodule "libs/JUCE"]
 	path = libs/JUCE
 	url = https://github.com/juce-framework/JUCE.git
