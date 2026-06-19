@@ -6,4 +6,4 @@
 	url = https://github.com/ultimatepp/ultimatepp
 [submodule "external/bobui-reference"]
 	path = external/bobui-reference
-	url = https://github.com/robertpelloni/bobui
+	url = https://github.com/robertpelloni/bqt
