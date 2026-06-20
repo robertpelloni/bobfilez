@@ -357,3 +357,4 @@ node_modules
 tests/test_cmake_build/
 tests/**/build_output/
 build_output/
+build-linux/

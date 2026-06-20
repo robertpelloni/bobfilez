@@ -185,6 +185,31 @@ void FileModel::updateSelectedCount() {
     }
 }
 
+int FileModel::totalWorkflows() {
+    return static_cast<int>(m_engine->get_autonomous_health().total_workflows_executed);
+}
+
+double FileModel::avgWorkflowDuration() {
+    return m_engine->get_autonomous_health().avg_workflow_duration;
+}
+
+int FileModel::totalSyncUploads() {
+    return static_cast<int>(m_engine->get_autonomous_health().total_sync_uploads);
+}
+
+bool FileModel::lastValidationOk() {
+    return m_engine->get_autonomous_health().last_live_validation_success;
+}
+
+int FileModel::activeSwarmPeers() {
+    return m_engine->get_autonomous_health().active_swarm_nodes;
+}
+
+QString FileModel::lastCheckpointId() {
+    auto status = m_engine->autodev_protocol().get_dev_status();
+    return QString::fromStdString(status.last_checkpoint_id);
+}
+
 void FileModel::findDuplicates() {
     emit duplicateDetectionStarted();
     

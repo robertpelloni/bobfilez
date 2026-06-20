@@ -35,7 +35,14 @@ add_executable(fo_tests
     test_omniflow.cpp
     test_omniflow_extra.cpp
     test_enhanced_fileops.cpp
-    
+    test_omniclerk_watcher.cpp
+    test_autonomous_sync.cpp
+    test_autonomous_protocol_e2e.cpp
+    test_performance_monitor.cpp
+    test_autonomous_dev_protocol.cpp
+    test_distributed_sync.cpp
+    test_autodev_comprehensive.cpp
+    test_ingestion_pipeline.cpp
 )
 
 target_link_libraries(fo_tests PRIVATE GTest::gtest GTest::gtest_main fo_core fo_c_api)

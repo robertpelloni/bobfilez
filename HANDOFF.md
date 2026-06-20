@@ -1,75 +1,29 @@
----
+# Session Handoff - v6.3.4 (Autonomous Coordination & Feedback)
 
-### Update: 2026-04-10 (Session 117)
-**Author:** Claude
+## Executive Summary
+This session focused on maturing the **Autonomous Ecosystem** (Phase 10 of the Roadmap) by transitioning from a singleton-heavy architecture to an explicit **Dependency Injection (DI)** model for coordination services (`INexus`, `ISwarmEngine`, `IAutonomousSyncService`). This was critical to enable reliable integration testing where multiple `Engine` instances coexist without interfering with each other's state or database connections.
 
-**Scope:** v6.3.0 -- Full Parity Frontend Release + Jules Clone Fix
+## Completed Milestones
+- **Architectural Refactoring (Ownership & DI)**: Services are now created as `shared_ptr` within the `Engine` and wired together using explicit setters (`set_swarm_engine`, `set_sync_service`).
+- **Registry Enhancements**: `Registry<T>` now supports `get_shared` and `clear_shared_instances` to manage singleton lifecycle during test teardown.
+- **Distributed Swarm Simulation**: The `SwarmHub` (process-local routing) allows independent nodes to broadcast file update notices, simulating a cluster environment.
+- **Autonomous Protocol Logic**:
+    - Mandatory checkpointing (automatic `upload_file`) before task execution in `AutonomousDevProtocolImpl`.
+    - Human-in-the-loop feedback mechanism (`provide_feedback`) for manual approval/rejection of autonomous tasks.
+- **UI Integration**: Wired `activeSwarmPeers` and `lastCheckpointId` to `AutonomousMonitoringPanel.qml` through `FileModel`.
+- **Integration Test Stability**: All 22+ tests passing. Resolved DB lock contention and race conditions in file watchers by introducing stabilization delays and explicit DB pathing.
 
-**Delivered:**
-- FIXED: Jules clone failure caused by stale nested submodule pointers
-  - Updated bobui, bobgui, btk submodule repos (juce+ultimatepp -> upstream HEAD)
-  - Fixed audit_logger.cpp broken includes
-  - Fixed tinyxml2 merge conflict
-  - Added OpenSSL to vcpkg.json + CMakeLists.txt
-- ADDED: History, Ignore, Organize, Delete Dupes tabs to BTK (15 tabs)
-- ADDED: History, Ignore, Organize, Delete Dupes tabs to Qt (16 tabs)
-- ADDED: Organize, Delete Dupes, Undo buttons to BobGUI (21 ops)
-- ADDED: Delete Dupes tab to WebUI (16 tabs)
-- 438/438 tests passing (100%)
+## Technical Notes
+- **DB Isolation**: Each test node now has its own `nodeN_sync.db` to prevent cross-contamination.
+- **Watcher Debounce**: CI environments required increasing watcher debounce to 500ms-1000ms to avoid overlapping event bursts during rapid file writes.
+- **Swarm Peer Discovery**: Currently simulated via `SwarmHub`. Real-world UDP/mDNS discovery is scaffolded in `swarm_engine.cpp` but not yet fully activated in the simulation layer.
 
-# HANDOFF.md — bobfilez Session 117
+## Outstanding Items (ROADMAP.md)
+- [ ] Transition `bob_shell` to use the new `AutonomousMonitoringPanel`.
+- [ ] Implement `io_uring` support for zero-copy file operations in `enhanced_fileops.cpp`.
+- [ ] Full BTK native surface refactoring for the Explorer UI.
 
-## Current Status (2026-04-08)
-**Version:** 6.0.83
-**Focus:** 🎉 **200-TEST MILESTONE REACHED** 🎉
-**Tests:** 200 all passing (up from 74 at session start — **126 new tests**)
-**Commits:** 12 pushes to main (v6.0.73 → v6.0.83)
-
----
-
-## Session Summary (v6.0.73 → v6.0.83)
-
-| Version | What | Tests | Δ |
-|---------|------|-------|---|
-| 6.0.73 | C API organize/count + SearchEngine→Engine | 74→95 | +21 |
-| 6.0.74 | CLI search→SearchEngine wiring + C API export | 95→97 | +2 |
-| 6.0.75 | Linter 4 new types + integration pipeline | 97→106 | +9 |
-| 6.0.76 | --list-linters CLI + benchmarks | 106 | 0 |
-| 6.0.77 | FileWatcher 7 tests + MSVC registration fix | 106→113 | +7 |
-| 6.0.78 | BatchRenameEngine 29 tests | 113→142 | +29 |
-| 6.0.79 | Real AuditLogger (SHA-256 chain hash) + 11 tests | 142→153 | +11 |
-| 6.0.80 | IgnoreRepository + DuplicateRepository 11 tests | 153→164 | +11 |
-| 6.0.81 | TreemapEngine + DataPruner 18 tests | 164→182 | +18 |
-| 6.0.82 | ScanSessionRepository + SelfHealing + HierarchyEngine 17 tests | 182→199 | +17 |
-| 6.0.83 | **200-TEST MILESTONE** — Export stats C API test | 199→200 | +1 |
-
-### Test Suite Composition (200 tests across 19 suites)
-- RuleEngine: 12 | Exporter: 7 | Hasher: 7 | Scanner: 8
-- Database: 5 | FileRepository: 14 | Integration: 13
-- Linter: 7 | C API: 18 | SearchEngine: 17 | C API Standalone: 1
-- FileWatcher: 7 | BatchRename: 29 | AuditLogger: 11
-- Repositories: 11 | TreemapEngine: 9 | DataPruner: 9
-- ScanSession: 5 | SelfHealing: 5 | HierarchyEngine: 7 | C API Smoke: 1
-
-### Infrastructure Fixed (MSVC Registration)
-6 components had their static initializers stripped by MSVC. All fixed with explicit `register_*()` functions:
-1. FileWatcher → `register_file_watcher_native()`
-2. AuditLogger → `register_audit_logger()`
-3. TreemapEngine → `register_treemap_engine()`
-4. DataPruner → `register_data_pruner()`
-5. SelfHealing → `register_self_healing_engine()`
-6. HierarchyEngine → `register_hierarchy_engine()`
-
----
-
-## Recommended Next Steps
-1. **VaultManager real implementation** — AES-256-GCM encryption
-2. **EnhancedFileOps tests** — TeraCopy-parity copy engine
-3. **ConversionEngine tests** — file format conversion
-4. **SelfHealing real implementation** — hash verification against DB
-5. **Wire organize/count/export into BobGUI** — extend frontend
-6. **Nexus master clock** — unified scheduling seam
-
-
-### BobUI Web Vault API Integration
-The `bobui_web` server has been updated with REST API endpoints bridging the VaultManager C++ logic to the web interface. Frontend engineers can now hit `/api/vault/init|lock|unlock|list` using `POST` passing `vaultPath` and `password`.
+## Environment & Build
+- **Branch**: `main`
+- **Version**: `6.3.4`
+- **Build Status**: Verified passing with `cmake -DFO_BUILD_GUI=OFF -DFO_BUILD_OMNI=OFF ..` and `./tests/fo_tests`.

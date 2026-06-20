@@ -30,18 +30,39 @@ void ShadowSorterService::handle_file_events(const std::vector<FileChangeEvent>&
         if (evt.type == FileEvent::Created || evt.type == FileEvent::Moved) {
             if (evt.is_directory) continue;
 
+            std::error_code ec;
+            if (!std::filesystem::exists(evt.path, ec)) continue;
+
             // Apply rules to find target destination
             FileInfo info;
             info.uri = evt.path.string();
-            // ... (populate basic info)
+            info.size = std::filesystem::file_size(evt.path, ec);
+            info.mtime = std::filesystem::last_write_time(evt.path, ec);
             
             auto dest = rules_->apply_rules(info, {});
             if (dest) {
                 std::cout << "[ShadowSorter] Auto-moving: " << evt.path << " -> " << *dest << "\n";
-                // Enqueue an enhanced move operation
+                
+                // Enqueue an enhanced move operation with robust retries
                 EnhancedCopyOptions opts;
                 opts.move_mode = true;
-                copy_engine_->enqueue({evt.path}, dest->parent_path(), opts);
+                opts.auto_retry_count = 5;       // More retries for automation
+                opts.auto_retry_delay_ms = 5000; // 5s between retries (wait for locks)
+                opts.verify_checksums = true;    // Always verify automated moves
+                opts.write_log = true;
+
+                copy_engine_->enqueue({evt.path}, dest->parent_path(), opts, 
+                    nullptr, // progress
+                    [evt](const FileError& err) {
+                        std::cerr << "[ShadowSorter] ERROR handling " << evt.path << ": " << err.message << "\n";
+                        return FileErrorAction::Skip; // For now, skip if all engine retries fail
+                    },
+                    [evt](const FileOpResult& res) {
+                        if (res.success) {
+                            std::cout << "[ShadowSorter] Successfully handled: " << evt.path << "\n";
+                        }
+                    }
+                );
             }
         }
     }

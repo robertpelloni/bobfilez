@@ -85,7 +85,8 @@ Rectangle {
                     {icon: "🎬", id: "omnivision", accent: "#ef4444"},
                     {icon: "🎧", id: "omniaudio", accent: "#f59e0b"},
                     {icon: "⌨️", id: "terminal", accent: "#22c55e"},
-                    {icon: "📤", id: "omnishare", accent: "#38bdf8"}
+                    {icon: "📤", id: "omnishare", accent: "#38bdf8"},
+                    {icon: "🛡️", id: "monitor", accent: "#4caf50"}
                 ]
                 Rectangle {
                     width: 40; height: 40; radius: 4

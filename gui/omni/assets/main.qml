@@ -285,6 +285,12 @@ ApplicationWindow {
             anchors.fill: parent; anchors.margins: 40
         }
 
+        // Autonomous Health Monitor
+        AutonomousMonitoringPanel {
+            visible: shell.activePanel === "monitor"
+            anchors.fill: parent; anchors.margins: 40
+        }
+
         // Notification Center Overlay
         Rectangle {
             id: notificationCenter

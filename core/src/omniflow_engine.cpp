@@ -4,6 +4,7 @@
 #include "fo/core/omniflow_engine_interface.hpp"
 #include "fo/core/registry.hpp"
 #include "fo/core/nexus_interface.hpp"
+#include "fo/core/file_watcher_interface.hpp"
 #include <sqlite3.h>
 #include <iostream>
 #include <map>
@@ -16,10 +17,13 @@ namespace fo::core {
 
 class OmniFlowEngineImpl : public IOmniFlowEngine {
     std::map<std::string, Workflow> workflows_;
+    std::unique_ptr<IFileWatcher> watcher_;
+    mutable std::mutex workflows_mtx_;
     bool daemon_running_ = false;
 
 public:
     OmniFlowEngineImpl() {
+        watcher_ = Registry<IFileWatcher>::instance().create("native");
         // Preload an example workflow for the UI preview
         Workflow w1;
         w1.id = "flow-01";
@@ -41,6 +45,7 @@ public:
     }
 
     void register_workflow(const Workflow& workflow) override {
+        std::lock_guard<std::mutex> lock(workflows_mtx_);
         workflows_[workflow.id] = workflow;
     }
 
@@ -178,9 +183,13 @@ public:
     }
 
     bool execute_workflow(const std::string& workflow_id, const std::filesystem::path& input_payload) override {
-        if (!workflows_.count(workflow_id)) return false;
-        
-        auto& wf = workflows_[workflow_id];
+        auto t0 = std::chrono::steady_clock::now();
+        Workflow wf;
+        {
+            std::lock_guard<std::mutex> lock(workflows_mtx_);
+            if (!workflows_.count(workflow_id)) return false;
+            wf = workflows_[workflow_id];
+        }
 
         // 1. Find all trigger nodes
         std::vector<std::string> trigger_ids;
@@ -229,20 +238,32 @@ public:
             }
         }
 
+        auto t1 = std::chrono::steady_clock::now();
+        double duration = std::chrono::duration<double>(t1 - t0).count();
+        
+        auto nexus = Registry<INexus>::instance().create("default");
+        if (nexus) {
+            nexus->report_metric("OmniFlow", "ExecutionCount", 1.0);
+            nexus->report_metric("OmniFlow", "LastExecutionDuration", duration);
+        }
+
         return true;
     }
 
     std::vector<Workflow> get_workflows() override {
+        std::lock_guard<std::mutex> lock(workflows_mtx_);
         std::vector<Workflow> res;
         for (auto const& [id, wf] : workflows_) res.push_back(wf);
         return res;
     }
 
     bool remove_workflow(const std::string& workflow_id) override {
+        std::lock_guard<std::mutex> lock(workflows_mtx_);
         return workflows_.erase(workflow_id) > 0;
     }
 
     bool save_workflows(const std::filesystem::path& db_path) override {
+        std::lock_guard<std::mutex> lock(workflows_mtx_);
         sqlite3* db = nullptr;
         int rc = sqlite3_open(db_path.string().c_str(), &db);
         if (rc != SQLITE_OK) {
@@ -406,7 +427,92 @@ public:
     }
 
     void start_daemon() override {
+        if (daemon_running_) return;
+        if (!watcher_) {
+            std::cerr << "[OmniFlow] ERROR: No file watcher available for daemon.\n";
+            return;
+        }
+
+        std::cout << "[OmniFlow] Starting automation daemon...\n";
         daemon_running_ = true;
+
+        std::vector<std::filesystem::path> watch_paths;
+        for (const auto& [id, wf] : workflows_) {
+            if (!wf.is_active) continue;
+            for (const auto& node : wf.nodes) {
+                if (node.category == FlowNodeType::Trigger && node.type_name == "Trigger.FolderWatcher") {
+                    auto it = node.config.find("path");
+                    if (it != node.config.end()) {
+                        std::filesystem::path p(it->second);
+                        // Home directory expansion if needed
+                        if (!it->second.empty() && it->second[0] == '~') {
+                            const char* home = getenv("HOME");
+                            if (!home) home = getenv("USERPROFILE");
+                            if (home) {
+                                p = std::filesystem::path(home) / it->second.substr(2);
+                            }
+                        }
+                        if (std::filesystem::exists(p)) {
+                            watch_paths.push_back(p);
+                            std::cout << "[OmniFlow] Monitoring folder for workflow '" << wf.name << "': " << p << "\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!watch_paths.empty()) {
+            WatcherConfig cfg;
+            cfg.watch_paths = watch_paths;
+            cfg.recursive = false;
+            cfg.debounce_ms = 1000;
+
+            watcher_->start(cfg, [this](const std::vector<FileChangeEvent>& events) {
+                for (const auto& evt : events) {
+                    if (evt.type == FileEvent::Created || evt.type == FileEvent::Moved) {
+                        if (evt.is_directory) continue;
+
+                        // Identify which workflows should trigger
+        std::vector<Workflow> active_wfs;
+        {
+            std::lock_guard<std::mutex> lock(workflows_mtx_);
+            for (const auto& [id, wf] : workflows_) {
+                if (wf.is_active) active_wfs.push_back(wf);
+            }
+        }
+
+        for (const auto& wf : active_wfs) {
+                            bool match = false;
+                            for (const auto& node : wf.nodes) {
+                                if (node.category == FlowNodeType::Trigger && node.type_name == "Trigger.FolderWatcher") {
+                                    auto it = node.config.find("path");
+                                    if (it != node.config.end()) {
+                                        std::filesystem::path watch_path(it->second);
+                                        // Normalize watch_path if it starts with ~
+                                        if (!it->second.empty() && it->second[0] == '~') {
+                                            const char* home = getenv("HOME");
+                                            if (!home) home = getenv("USERPROFILE");
+                                            if (home) watch_path = std::filesystem::path(home) / it->second.substr(2);
+                                        }
+                                        
+                                        // Robust path comparison: check if evt.path is inside watch_path
+                                        auto rel = std::filesystem::relative(evt.path, watch_path);
+                                        if (!rel.empty() && rel.string().find("..") == std::string::npos) {
+                                            match = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (match) {
+                                std::cout << "[OmniFlow] Triggering workflow '" << wf.name << "' for: " << evt.path.filename() << "\n";
+                                this->execute_workflow(wf.id, evt.path);
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 };
 

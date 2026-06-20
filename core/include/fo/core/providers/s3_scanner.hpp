@@ -4,9 +4,9 @@
 #include <memory>
 #include <string>
 
-namespace Aws::S3 {
-    class S3Client;
-}
+#ifdef FO_HAVE_S3
+#include <aws/s3/S3Client.h>
+#endif
 
 namespace fo::core {
 
@@ -25,7 +25,9 @@ public:
 private:
     std::string bucket_;
     std::string prefix_;
+#ifdef FO_HAVE_S3
     std::unique_ptr<Aws::S3::S3Client> s3_client_;
+#endif
 };
 
 } // namespace fo::core

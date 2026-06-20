@@ -1,6 +1,8 @@
 #include "fo/core/engine.hpp"
 #include "fo/core/ads_cache.hpp"
 #include "fo/core/search_interface.hpp"
+#include "fo/core/nexus_interface.hpp"
+#include "fo/core/swarm_engine_interface.hpp"
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
@@ -16,14 +18,57 @@ Engine::Engine(EngineConfig cfg)
     , ignore_repo_(db_manager_)
     , session_repo_(db_manager_)
     , search_engine_(new SearchEngine())
+    , omniflow_(Registry<IOmniFlowEngine>::instance().get_shared("default"))
+    , omniclerk_(Registry<IOmniClerkEngine>::instance().create("default"))
+    , oracle_(Registry<IOmniOracle>::instance().create("default"))
+    , autodev_(Registry<IAutonomousDevProtocol>::instance().get_shared("default"))
+    , sync_(Registry<IAutonomousSyncService>::instance().create("default"))
+    , nexus_(Registry<INexus>::instance().get_shared("default"))
+    , swarm_(Registry<ISwarmEngine>::instance().create("default"))
 {
     db_manager_.open(cfg_.db_path);
     db_manager_.migrate();
+
+    if (sync_) {
+        sync_->set_swarm_engine(swarm_);
+        std::filesystem::path main_db(cfg_.db_path);
+        auto sync_db = main_db.parent_path() / (main_db.stem().string() + "_sync.db");
+        sync_->set_storage_path(sync_db);
+    }
+    if (autodev_) {
+        autodev_->set_sync_service(sync_);
+    }
 }
 
 Engine::~Engine() { delete search_engine_; }
 
 SearchEngine& Engine::search_engine() { return *search_engine_; }
+
+Engine::AutonomousHealth Engine::get_autonomous_health() {
+    AutonomousHealth health = {0, 0.0, 0, false, 0};
+    if (!nexus_) return health;
+
+    auto metrics = nexus_->get_performance_snapshot();
+    
+    if (metrics.count("OmniFlow.ExecutionCount")) {
+        health.total_workflows_executed = static_cast<uint64_t>(metrics["OmniFlow.ExecutionCount"]);
+    }
+    if (metrics.count("OmniFlow.LastExecutionDuration")) {
+        health.avg_workflow_duration = metrics["OmniFlow.LastExecutionDuration"];
+    }
+    if (metrics.count("SyncService.UploadCount")) {
+        health.total_sync_uploads = static_cast<uint64_t>(metrics["SyncService.UploadCount"]);
+    }
+    if (metrics.count("SyncService.LiveValidationSuccess")) {
+        health.last_live_validation_success = (metrics["SyncService.LiveValidationSuccess"] > 0.5);
+    }
+
+    if (swarm_) {
+        health.active_swarm_nodes = static_cast<int>(swarm_->get_active_nodes().size());
+    }
+
+    return health;
+}
 
 std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roots,
                                    const std::vector<std::string>& include_exts,

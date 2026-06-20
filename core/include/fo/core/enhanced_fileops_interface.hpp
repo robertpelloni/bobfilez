@@ -55,6 +55,7 @@
 #include <deque>
 #include <atomic>
 #include <mutex>
+#include <thread>
 #include <functional>
 #include <chrono>
 
@@ -193,6 +194,9 @@ struct TransferJob {
 /// resume support, per-file verification, speed throttling.
 class EnhancedCopyEngine {
 public:
+    EnhancedCopyEngine();
+    ~EnhancedCopyEngine();
+
     /// Start a new transfer job. Returns job ID.
     std::string enqueue(
         const std::vector<std::filesystem::path>& sources,
@@ -238,8 +242,10 @@ public:
 private:
     mutable std::mutex queue_mtx_;
     std::deque<TransferJob> jobs_;
+    std::vector<std::thread> workers_;
     std::atomic<int64_t> throttle_bps_{0};
     std::atomic<bool> paused_all_{false};
+    std::atomic<bool> shutting_down_{false};
 
     void run_job(TransferJob& job, ErrorHandlerCb error_cb,
                  FileOpProgressCb progress_cb, FileOpResultCb result_cb);
