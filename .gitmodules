@@ -406,7 +406,7 @@
 	url = https://github.com/8gudbits/ADSman
 [submodule "libs/ADSFileSystem"]
 	path = libs/ADSFileSystem
-	url = https://github.com/marcelogm/ADSFileSystem
+	url = https://github.com/robertpelloni/ADSFileSystem
 [submodule "libs/Bringing-Old-Photos-Back-to-Life"]
 	path = libs/Bringing-Old-Photos-Back-to-Life
 	url = https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life
