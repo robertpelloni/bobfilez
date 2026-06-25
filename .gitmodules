@@ -361,7 +361,7 @@
 	url = https://github.com/narasimha14/AlternateDataStreams
 [submodule "libs/DataStreamBrowser"]
 	path = libs/DataStreamBrowser
-	url = https://github.com/Thibstars/DataStreamBrowser
+	url = https://github.com/robertpelloni/DataStreamBrowser
 [submodule "libs/libevent"]
 	path = libs/libevent
 	url = https://github.com/libevent/libevent
