@@ -316,6 +316,116 @@ app.post('/api/delete-duplicates', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Consolidated-UI Phase 1: missing CLI bridges (added 2026-11-03) ──
+app.get('/api/modules', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['--modules']);
+        res.json({ raw: stdout });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/ocr', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['ocr', '--format=json', ...paths]);
+        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/similar', async (req, res) => {
+    try {
+        const { paths = [], threshold = 10 } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['similar', '--format=json', `--threshold=${threshold}`, ...paths]);
+        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/vhash', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['vhash', '--format=json', ...paths]);
+        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/afingerprint', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['afingerprint', '--format=json', ...paths]);
+        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/classify', async (req, res) => {
+    try {
+        const { paths = [] } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const { stdout } = await runCli(['classify', '--format=json', ...paths]);
+        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/rename', async (req, res) => {
+    try {
+        const { paths = [], pattern = '', dryRun = true } = req.body;
+        if (!paths.length || !pattern) return res.status(400).json({ error: 'paths and pattern required' });
+        const args = ['rename', '--pattern=' + pattern, '--format=json', ...paths];
+        if (dryRun) args.push('--dry-run');
+        const { stdout } = await runCli(args);
+        try { res.json(JSON.parse(stdout || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/rename-batch', async (req, res) => {
+    try {
+        const { paths = [], rules = '', dryRun = true } = req.body;
+        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        const args = ['rename-batch', '--format=json', ...paths];
+        if (rules) args.push('--rules=' + rules);
+        if (dryRun) args.push('--dry-run');
+        const { stdout } = await runCli(args);
+        try { res.json(JSON.parse(stdout || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/convert', async (req, res) => {
+    try {
+        const { files = [], to = '' } = req.body;
+        if (!files.length || !to) return res.status(400).json({ error: 'files and target format required' });
+        const { stdout } = await runCli(['convert', '--to=' + to, '--format=json', ...files]);
+        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/undo', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['undo', '--format=json']);
+        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/clerk', async (req, res) => {
+    try {
+        const { paths = [], dryRun = true } = req.body;
+        const args = ['clerk', '--format=json', ...paths];
+        if (dryRun) args.push('--dry-run');
+        const { stdout } = await runCli(args, 300000);
+        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/oracle', async (req, res) => {
+    try {
+        const { question = '', paths = [] } = req.body;
+        if (!question) return res.status(400).json({ error: 'question required' });
+        const { stdout } = await runCli(['oracle', question, '--format=json', ...paths], 300000);
+        try { res.json(JSON.parse(stdout || '{"answer":""}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get('/api/watch/status', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['watch', '--status', '--format=json']);
+        try { res.json(JSON.parse(stdout || '{"watching":false}')); } catch { res.json({ raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/quit', async (req, res) => {
+    res.json({ success: true, message: 'Shutting down dashboard server' });
+    setTimeout(() => process.exit(0), 500);
+});
+
 const PORT = process.env.PORT || 3131;
 app.listen(PORT, () => {
     console.log(`\n  ╔══════════════════════════════════════╗`);

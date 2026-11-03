@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.4.0] - 2026-11-03 — Unified Dashboard + Honest Backend Report
+
+### Added
+- **Unified single-page dashboard** (`bobui_web/public/unified.html`): all 25 CLI
+  workflows on one value-ordered page (A Essentials → B Verify & Manage →
+  C Media & AI → D Organize & Protect → E Automate), every card with ⓘ
+  tooltips, descriptive labels, shared activity log, sticky group nav.
+  Linked from classic (`/`) and React (`/react/`) entry pages.
+- **13 new Express bridges** in `bobui_web/server.js`: `/api/ocr`,
+  `/api/similar`, `/api/vhash`, `/api/afingerprint`, `/api/classify`,
+  `/api/rename`, `/api/rename-batch`, `/api/convert`, `/api/undo`,
+  `/api/clerk`, `/api/oracle`, `/api/watch/status`, `/api/modules`,
+  plus `/api/quit` for tray/controlled shutdown. All return honest
+  `CLI not found` errors when `fo_cli` is not built (verified live).
+- **System-tray controller** (`bobui_web/tray.py` + `tray.bat`):
+  open dashboard / legacy UI, status probe, restart, logs folder,
+  quit server+tray. Uses pystray when installed, tkinter fallback otherwise
+  (tkinter verified present; pystray NOT installed on this host).
+- **Script hygiene**: archived superseded ex-root `build_limited.bat` and
+  `build_fuzz.bat` into `scripts/archive/` via `git mv` (history preserved);
+  added `scripts/README.md` (entry-point map) and `scripts/dev_all.bat`
+  (build → test → smoke → serve one-shot).
+
+### Verified this host (2026-11-03)
+- node v26.13.0 OK; dashboard serves `unified.html` (HTTP 200, 26 KB);
+  `/api/health` → `ok:true, cliExists:false`; POST bridges fail honestly
+  without `fo_cli`; `/api/quit` shuts the server down cleanly.
+- **CANNOT build here**: no cmake, ninja, cl.exe, or Visual Studio;
+  no `D:\Qt` kit. `scripts/build_headless.bat` exits immediately
+  (`Could not find Visual Studio vcvars64.bat`). C++ build/test/CLI
+  verification must run on a dev host (see TODO `build-host`).
 ## [6.3.2] - 2026-05-26
 
 ### Changed

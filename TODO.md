@@ -35,3 +35,4 @@
 - [x] Example `rules.yaml` files for various user personas (Photographer, SysAdmin).
 
 - [x] Expanded VaultManager tests to 14 total ensuring 200+ testing milestone completeness.
+- [ ] **build-host**: re-run scripts/dev_all.bat on a host with MSVC+cmake+Qt to rebuild o_cli, run o_tests.exe, and re-verify all 13 new dashboard bridges end-to-end (2026-11-03: blocked here — no toolchain).
