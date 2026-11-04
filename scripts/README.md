@@ -22,3 +22,5 @@ Nondestructive attic for superseded entry points (kept in git history via `git m
 - `build_fuzz.bat` (ex-root) — old fuzz flags (`FO_BUILD_FUZZ_TESTS`) into stale `build/` dir. Superseded by `build_fuzzer.bat` (`FO_BUILD_FUZZERS` → `build_fuzz/`).
 
 Do not delete: they document the migration path. Do not revive without updating paths/flags.
+
+Portable MinGW lane (no-admin hosts): toolchain lives at C:/tools (cmake 4.4.5 + ninja 1.13.2 + winlibs gcc 16.2 UCRT, all portable zips, installed 2026-11-03). uild_headless_mingw.bat configures uild-mingw/ with GUI/Omni/Bench off; OpenSSL+BLAKE3 degrade to QUIET and the vault compiles to honest stubs when OpenSSL is absent. Needs no elevation; MSVC remains canonical where present.

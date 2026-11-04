@@ -45,7 +45,7 @@ list(APPEND FO_CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/duplicate_finders.cp
 
 # Find optional provider dependencies
 find_package(exiv2 CONFIG QUIET)
-find_package(blake3 CONFIG)
+find_package(blake3 CONFIG QUIET)
 find_package(Tesseract CONFIG QUIET)
 find_package(OpenCV CONFIG QUIET)
 find_package(onnxruntime CONFIG QUIET)
@@ -55,7 +55,7 @@ find_package(cpr CONFIG QUIET)
 find_package(azure-storage-blobs-cpp CONFIG QUIET)
 find_package(FFmpeg QUIET COMPONENTS avformat avcodec avutil swscale)
 find_package(chromaprint CONFIG QUIET)
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL QUIET)
 
 if(exiv2_FOUND)
     message(STATUS "Found exiv2, enabling exiv2 metadata provider")
@@ -113,6 +113,7 @@ target_include_directories(fo_core
     PRIVATE ${LIBS_DIR}/TinyEXIF
     PRIVATE ${LIBS_DIR}/tinyxml2
     PRIVATE ${LIBS_DIR}/hash-library
+    PRIVATE ${LIBS_DIR}/portability
     PRIVATE ${XXHASH_INCLUDE}
     PRIVATE ${LIBS_DIR}/md4c/src
     PRIVATE ${LIBS_DIR}/dirent/src
@@ -186,8 +187,14 @@ else()
     message(WARNING "OpenSSL not found - vault encryption will not be available")
 endif()
 
+# MinGW needs an explicit gdiplus link (MSVC gets it via #pragma comment(lib) in thumbnail.cpp).
+if(MINGW)
+    target_link_libraries(fo_core PUBLIC gdiplus)
+endif()
+
 target_include_directories(fo_c_api
     PUBLIC ${FO_CORE_INCLUDE_DIR}
+    PRIVATE ${LIBS_DIR}
 )
 
 target_link_libraries(fo_c_api PUBLIC fo_core)

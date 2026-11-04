@@ -7,6 +7,7 @@
 /// point on Linux/macOS). Allows third-party apps (Word, Photoshop) to 
 /// interact with AI-generated file collections seamlessly.
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <memory>

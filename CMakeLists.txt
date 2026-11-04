@@ -64,7 +64,7 @@ endif()
 if(FO_BUILD_BENCH)
   add_subdirectory(benchmarks)
 endif()
-if(FO_BUILD_TESTS)
+if(FO_BUILD_TESTS AND EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
   add_subdirectory(tests)
 endif()
 

@@ -9,7 +9,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const CLI_CANDIDATES = [
     path.resolve(__dirname, '..', 'build-msvc', 'cli', 'fo_cli.exe'),
-    path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe')
+    path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe'),
+    path.resolve(__dirname, '..', 'build-mingw', 'cli', 'fo_cli.exe')
 ];
 const CLI = CLI_CANDIDATES.find(fs.existsSync) || CLI_CANDIDATES[0];
 
@@ -26,6 +27,52 @@ function runCli(args, timeout = 120000) {
     });
 }
 
+// fo_cli prints service chatter (e.g. "[SwarmHub] ...") to stdout ahead of and
+// behind the JSON payload. Extract the payload: start at the first line that
+// opens JSON, then cut at the matching close bracket. Log lines open with
+// "[Name]"; payload lines open with { or [ (bare counts like "42" have no
+// brackets, so fall back to the last non-empty line for those).
+function extractJson(stdout) {
+    const text = (stdout || "").trim();
+    if (!text) return text;
+    const lines = text.split(/\r?\n/);
+    let start = -1;
+    for (let i = 0; i < lines.length; i++) {
+        const l = lines[i];
+        if (/^\s*\{/.test(l) || /^\s*\[$/.test(l) || /^\s*\[[{"\d\s\]]/.test(l)) {
+            if (/^\s*\[[A-Za-z][A-Za-z0-9 _-]{0,39}\](\s|$)/.test(l)) continue;
+            start = i;
+            break;
+        }
+    }
+    if (start < 0) {
+        for (let i = lines.length - 1; i >= 0; i--) {
+            const l = lines[i].trim();
+            if (!l) continue;
+            if (/^\[[A-Za-z][A-Za-z0-9 _-]{0,39}\](\s|$)/.test(l)) continue;
+            return l;
+        }
+        return "";
+    }
+    const candidate = lines.slice(start).join("\n").trim();
+    let depth = 0, inStr = false, esc = false;
+    for (let i = 0; i < candidate.length; i++) {
+        const c = candidate[i];
+        if (inStr) {
+            if (esc) esc = false;
+            else if (c === "\\") esc = true;
+            else if (c === '"') inStr = false;
+        } else if (c === '"') {
+            inStr = true;
+        } else if (c === "{" || c === "[") {
+            depth++;
+        } else if (c === "}" || c === "]") {
+            depth--;
+            if (depth === 0) return candidate.slice(0, i + 1);
+        }
+    }
+    return candidate;
+}
 app.get('/api/health', async (req, res) => {
     res.json({
         ok: true,
@@ -47,7 +94,7 @@ app.post('/api/scan', async (req, res) => {
         if (exclude) exclude.forEach(p => args.push(`--exclude=${p}`));
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -63,7 +110,7 @@ app.post('/api/duplicates', async (req, res) => {
         if (exclude) exclude.forEach(p => args.push(`--exclude=${p}`));
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -74,7 +121,7 @@ app.post('/api/stats', async (req, res) => {
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const args = ['stats', '--format=json', ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{}'));
+        res.json(JSON.parse(extractJson(stdout) || '{}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -85,7 +132,7 @@ app.post('/api/hash', async (req, res) => {
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const args = ['hash', '--format=json', `--threads=${threads}`, ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -97,7 +144,7 @@ app.post('/api/metadata', async (req, res) => {
         const args = ['metadata', '--format=json', ...paths];
         if (exts) args.push(`--ext=${exts}`);
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -124,7 +171,7 @@ app.get('/api/history', async (req, res) => {
     try {
         const args = ['history', '--format=json'];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -132,7 +179,7 @@ app.get('/api/history', async (req, res) => {
 app.get('/api/ignore', async (req, res) => {
     try {
         const { stdout } = await runCli(['ignore', '--format=json']);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -163,7 +210,7 @@ app.post('/api/lint', async (req, res) => {
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const args = ['lint', '--format=json', ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '[]'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -173,7 +220,7 @@ app.post('/api/count', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths' });
         const { stdout } = await runCli(['scan', '--count', ...paths]);
-        res.json({ count: parseInt(stdout, 10) || 0 });
+        res.json({ count: parseInt(extractJson(stdout), 10) || 0 });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -199,7 +246,7 @@ app.get('/api/audit', async (req, res) => {
 app.get('/api/flow/list', async (req, res) => {
     try {
         const { stdout } = await runCli(['flow', 'list', '--format=json']);
-        res.json(JSON.parse(stdout || '{"workflows":[]}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"workflows":[]}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -208,7 +255,7 @@ app.post('/api/flow/run', async (req, res) => {
         const { workflow_id, payload_path } = req.body;
         if (!workflow_id || !payload_path) return res.status(400).json({ error: 'workflow_id and payload_path required' });
         const { stdout } = await runCli(['flow', 'run', workflow_id, payload_path, '--format=json']);
-        res.json(JSON.parse(stdout || '{"success":false}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"success":false}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -218,7 +265,7 @@ app.post('/api/scrub', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['scrub', '--format=json', ...paths]);
-        res.json(JSON.parse(stdout || '{"scanned":0,"corrupted":0}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"scanned":0,"corrupted":0}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -232,7 +279,7 @@ app.post('/api/search', async (req, res) => {
         if (regex) args.push('--regex');
         args.push(...paths);
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{"results":[]}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"results":[]}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -244,7 +291,7 @@ app.post('/api/export', async (req, res) => {
         const args = ['export', `--format=${format}`, ...paths];
         const { stdout } = await runCli(args);
         if (format === 'json') {
-            res.json(JSON.parse(stdout || '{}'));
+            res.json(JSON.parse(extractJson(stdout) || '{}'));
         } else {
             res.type(format === 'csv' ? 'text/csv' : 'text/html').send(stdout);
         }
@@ -256,9 +303,9 @@ app.post('/api/organize', async (req, res) => {
     try {
         const { paths = [], rule = '' } = req.body;
         if (!paths.length || !rule) return res.status(400).json({ error: 'paths and rule required' });
-        const args = ['organize', '--rule', rule, '--dry-run', '--format=json', ...paths];
+        const args = ['organize', '--rule=' + rule, '--dry-run', '--format=json', ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{"moves":[]}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}'));
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -268,9 +315,7 @@ app.post('/api/vault/init', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
         if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
-        const args = ['vault-init', '--vault=' + vaultPath, '--password=' + password, '--format=json'];
-        const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{"success":false}'));
+        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -278,9 +323,7 @@ app.post('/api/vault/lock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', file = '' } = req.body;
         if (!vaultPath || !password || !file) return res.status(400).json({ error: 'vaultPath, password, and file required' });
-        const args = ['vault-lock', '--vault=' + vaultPath, '--password=' + password, '--format=json', file];
-        const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{"success":false}'));
+        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -288,9 +331,7 @@ app.post('/api/vault/unlock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', vaultId = '', dest = '' } = req.body;
         if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ error: 'vaultPath, password, vaultId, and dest required' });
-        const args = ['vault-unlock', '--vault=' + vaultPath, '--password=' + password, '--format=json', vaultId, dest];
-        const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '{"success":false}'));
+        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -298,9 +339,7 @@ app.post('/api/vault/list', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
         if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
-        const args = ['vault-list', '--vault=' + vaultPath, '--password=' + password, '--format=json'];
-        const { stdout } = await runCli(args);
-        res.json(JSON.parse(stdout || '[]'));
+        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -309,10 +348,10 @@ app.post('/api/delete-duplicates', async (req, res) => {
   try {
     const { path: dirPath, dryRun = true } = req.body;
     if (!dirPath) return res.status(400).json({ error: 'path required' });
-    const args = ['delete-duplicates', '--path=' + dirPath, '--format=json'];
+    const args = ['delete-duplicates', '--format=json', dirPath];
     if (dryRun) args.push('--dry-run');
     const { stdout } = await runCli(args);
-    res.json(JSON.parse(stdout || '{}'));
+    res.json(JSON.parse(extractJson(stdout) || '{}'));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -328,7 +367,7 @@ app.post('/api/ocr', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['ocr', '--format=json', ...paths]);
-        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/similar', async (req, res) => {
@@ -336,7 +375,7 @@ app.post('/api/similar', async (req, res) => {
         const { paths = [], threshold = 10 } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['similar', '--format=json', `--threshold=${threshold}`, ...paths]);
-        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/vhash', async (req, res) => {
@@ -344,7 +383,7 @@ app.post('/api/vhash', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['vhash', '--format=json', ...paths]);
-        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/afingerprint', async (req, res) => {
@@ -352,7 +391,7 @@ app.post('/api/afingerprint', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['afingerprint', '--format=json', ...paths]);
-        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/classify', async (req, res) => {
@@ -360,7 +399,7 @@ app.post('/api/classify', async (req, res) => {
         const { paths = [] } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
         const { stdout } = await runCli(['classify', '--format=json', ...paths]);
-        try { res.json(JSON.parse(stdout || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/rename', async (req, res) => {
@@ -370,7 +409,7 @@ app.post('/api/rename', async (req, res) => {
         const args = ['rename', '--pattern=' + pattern, '--format=json', ...paths];
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
-        try { res.json(JSON.parse(stdout || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/rename-batch', async (req, res) => {
@@ -381,7 +420,7 @@ app.post('/api/rename-batch', async (req, res) => {
         if (rules) args.push('--rules=' + rules);
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
-        try { res.json(JSON.parse(stdout || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/convert', async (req, res) => {
@@ -389,13 +428,13 @@ app.post('/api/convert', async (req, res) => {
         const { files = [], to = '' } = req.body;
         if (!files.length || !to) return res.status(400).json({ error: 'files and target format required' });
         const { stdout } = await runCli(['convert', '--to=' + to, '--format=json', ...files]);
-        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/undo', async (req, res) => {
     try {
         const { stdout } = await runCli(['undo', '--format=json']);
-        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/clerk', async (req, res) => {
@@ -404,7 +443,7 @@ app.post('/api/clerk', async (req, res) => {
         const args = ['clerk', '--format=json', ...paths];
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args, 300000);
-        try { res.json(JSON.parse(stdout || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/oracle', async (req, res) => {
@@ -412,14 +451,13 @@ app.post('/api/oracle', async (req, res) => {
         const { question = '', paths = [] } = req.body;
         if (!question) return res.status(400).json({ error: 'question required' });
         const { stdout } = await runCli(['oracle', question, '--format=json', ...paths], 300000);
-        try { res.json(JSON.parse(stdout || '{"answer":""}')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"answer":""}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/watch/status', async (req, res) => {
-    try {
-        const { stdout } = await runCli(['watch', '--status', '--format=json']);
-        try { res.json(JSON.parse(stdout || '{"watching":false}')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    // fo_cli watch is a blocking foreground loop (Ctrl+C to stop) with no query
+    // mode; answer 501 until a queryable watcher exists (cf. vault-cli TODO).
+    return res.status(501).json({ error: 'Watch status is not queryable in this build.' });
 });
 app.post('/api/quit', async (req, res) => {
     res.json({ success: true, message: 'Shutting down dashboard server' });

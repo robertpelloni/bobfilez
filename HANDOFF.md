@@ -1,4 +1,31 @@
-# Session Handoff - v6.3.4 (Autonomous Coordination & Feedback)
+# Session Handoff - v6.5.0 (MinGW Lane + Exit-Crash Fix + Verified Bridges)
+
+## What landed (2026-11-03, this turn)
+- Portable no-admin toolchain at `C:/tools` (cmake 4.4.5, ninja 1.13.2, winlibs gcc 16.2).
+  `scripts/build_headless_mingw.bat` configures `build-mingw/`; full compile+link OK.
+- `build-mingw/cli/fo_cli.exe` runs; every CLI invocation previously crashed at exit
+  (`0xC0000374`) — root cause was `SwarmHub` use-after-destroy during static teardown
+  (Engine `get_shared` autodev chain). Fixed by leaking the hub singleton on purpose
+  (`core/src/swarm_engine.cpp`). Latent on MSVC too.
+- `lint` CLI was implemented but never dispatched — wired with `--format=json`.
+- `bobui_web/server.js`: `extractJson` payload extractor (service chatter on stdout),
+  `build-mingw` CLI candidate, organize/delete-duplicates arg fixes, watch 501.
+- HTTP-verified end-to-end (node server, this host): scan/duplicates/stats/lint/count/
+  organize/delete-duplicates/scrub/undo/hash/metadata/export/search/history/ignore/
+  flow-list/modules = 200; vault + watch/status = honest 501.
+
+## Open (not started)
+- `vault-cli` (needs OpenSSL/MSVC host), `watch-status` query mode, `submodule-blake3`
+  gitlink repair, `tests/` dir absent (FO_BUILD_TESTS defaults ON against nothing),
+  model-dependent bridges unverified (ocr/similar/vhash/afingerprint/classify/oracle).
+- Do NOT stage `libs/*` gitlink drift or `build-mingw/` (now gitignored); `fo.db`
+  reverted (test artifact, tracked).
+
+## Next
+- Bump tested: VERSION.md + version.hpp = 6.5.0, CHANGELOG + TODO updated here.
+- `git add` explicit paths only, commit `feat:`/`fix:` prefix, push.
+
+---# Session Handoff - v6.3.4 (Autonomous Coordination & Feedback)
 
 ## Executive Summary
 This session focused on maturing the **Autonomous Ecosystem** (Phase 10 of the Roadmap) by transitioning from a singleton-heavy architecture to an explicit **Dependency Injection (DI)** model for coordination services (`INexus`, `ISwarmEngine`, `IAutonomousSyncService`). This was critical to enable reliable integration testing where multiple `Engine` instances coexist without interfering with each other's state or database connections.

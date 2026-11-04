@@ -7,9 +7,12 @@
 #include <random>
 #include <chrono>
 #include <iomanip>
+#ifdef FO_HAVE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#endif
 
+#ifdef FO_HAVE_OPENSSL
 namespace fo::core {
 
 namespace {
@@ -292,3 +295,12 @@ std::vector<VaultEntry> VaultManager::list_contents() {
 }
 
 } // namespace fo::core
+#else
+namespace fo::core {
+// Built without OpenSSL: vault operations are unavailable (FO_HAVE_OPENSSL unset).
+bool VaultManager::initialize(const std::filesystem::path&, const std::string&) { return false; }
+bool VaultManager::lock_file(const std::filesystem::path&) { return false; }
+bool VaultManager::unlock_file(const std::string&, const std::filesystem::path&) { return false; }
+std::vector<VaultEntry> VaultManager::list_contents() { return {}; }
+} // namespace fo::core
+#endif
