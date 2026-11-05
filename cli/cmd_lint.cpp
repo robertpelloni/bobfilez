@@ -5,36 +5,71 @@
 #include <string>
 #include <filesystem>
 
-void lint_command(const std::vector<std::string>& args) {
+namespace {
+
+std::string json_escape(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    for (char c : s) {
+        switch (c) {
+            case '"': out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default: out += c; break;
+        }
+    }
+    return out;
+}
+
+std::string lint_type_name(fo::core::LintType t) {
+    switch (t) {
+        case fo::core::LintType::EmptyFile: return "EMPTY FILE";
+        case fo::core::LintType::EmptyDirectory: return "EMPTY DIR";
+        case fo::core::LintType::BrokenSymlink: return "BROKEN LINK";
+        case fo::core::LintType::TemporaryFile: return "TEMP FILE";
+        case fo::core::LintType::HiddenFile: return "HIDDEN FILE";
+        case fo::core::LintType::DuplicateName: return "DUPLICATE NAME";
+        case fo::core::LintType::LargeFile: return "LARGE FILE";
+        case fo::core::LintType::DeepNesting: return "DEEP NESTING";
+    }
+    return "UNKNOWN";
+}
+
+} // namespace
+
+void lint_command(const std::vector<std::string>& paths, bool json_output) {
     auto linter = fo::core::Registry<fo::core::ILinter>::instance().create("std");
     if (!linter) {
         std::cerr << "Error: Standard linter not found.\n";
         return;
     }
 
-    std::vector<std::filesystem::path> paths;
-    for (const auto& arg : args) {
-        if (arg.rfind("--", 0) != 0) { // Not an option
-             paths.push_back(arg);
-        }
-    }
-
-    if (paths.empty()) {
+    std::vector<std::filesystem::path> fs_paths(paths.begin(), paths.end());
+    if (fs_paths.empty()) {
         std::cerr << "Usage: fo_cli lint <path> [options]\n";
         return;
     }
 
-    auto results = linter->lint(paths);
+    auto results = linter->lint(fs_paths);
+
+    if (json_output) {
+        std::cout << "[";
+        bool first = true;
+        for (const auto& res : results) {
+            if (!first) std::cout << ",";
+            first = false;
+            std::cout << "{\"path\":\"" << json_escape(res.path.string())
+                      << "\",\"type\":\"" << lint_type_name(res.type)
+                      << "\",\"details\":\"" << json_escape(res.details) << "\"}";
+        }
+        std::cout << "]";
+        return;
+    }
 
     std::cout << "Lint Results:\n";
     for (const auto& res : results) {
-        std::string type_str;
-        switch (res.type) {
-            case fo::core::LintType::EmptyFile: type_str = "EMPTY FILE"; break;
-            case fo::core::LintType::EmptyDirectory: type_str = "EMPTY DIR"; break;
-            case fo::core::LintType::BrokenSymlink: type_str = "BROKEN LINK"; break;
-            case fo::core::LintType::TemporaryFile: type_str = "TEMP FILE"; break;
-        }
-        std::cout << "[" << type_str << "] " << res.path.string() << " (" << res.details << ")\n";
+        std::cout << "[" << lint_type_name(res.type) << "] " << res.path.string() << " (" << res.details << ")\n";
     }
 }

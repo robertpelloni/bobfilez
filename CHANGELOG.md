@@ -1,5 +1,82 @@
 # Changelog
 
+## [6.5.0] - 2026-11-03 — MinGW Lane Builds + Exit-Crash Fix + Verified Bridges
+
+### Added
+- **Portable MinGW build lane** (`scripts/build_headless_mingw.bat`): configures
+  `build-mingw/` with GUI/Omni/Bench/Tests off using the no-admin toolchain at
+  `C:/tools` (cmake 4.4.5 + ninja 1.13.2 + winlibs gcc 16.2 UCRT). Documents the
+  `cmd /c` proxy requirement (direct `C:\tools\...` execution is sandbox-blocked).
+- **Vendored fallbacks for header-only gaps**: `libs/nlohmann/json.hpp` (v3.11.3,
+  audit_logger needs it unguarded) and `libs/portability/endian.h` (MinGW GCC
+  takes the POSIX `#ifndef _MSC_VER` branch but ships no `endian.h`).
+- **`lint` CLI command**: `lint_command` (existed in `cli/cmd_lint.cpp` but was
+  never dispatched) is now wired in `fo_cli.cpp` with `--format=json` output and
+  full 8-value `LintType` names, backing the `/api/lint` bridge.
+- **`extractJson` in `bobui_web/server.js`**: strips `fo_cli` service chatter
+  (`[SwarmHub]`/`[AutoDev]`/... stdout lines) ahead of and behind the JSON
+  payload (payload-start scan + bracket-balance cut; bare `--count` numbers fall
+  back to the last non-log line). Applied to all 27 `JSON.parse` + 1 `parseInt`
+  call sites; `build-mingw/cli/fo_cli.exe` added to `CLI_CANDIDATES`.
+- **Bridge corrections**: `/api/organize` now sends `--rule=<t>` (CLI only accepts
+  `=` form); `/api/delete-duplicates` drops the unsupported `--path=` option;
+  `/api/watch/status` answers honest 501 (CLI `watch` is a blocking loop).
+
+### Fixed
+- **Process-exit segfault/heap-corruption in every CLI invocation** (MinGW exit
+  code `0xC0000374`; latent on all platforms): `Engine` eagerly `get_shared`s
+  the autodev service, whose destruction chain ends at `SwarmEngineImpl`, which
+  touched the already-destroyed `SwarmHub` function-local static during static
+  teardown. `SwarmHub::instance()` is now an intentionally leaked heap singleton.
+  Verified: `hash`/`scan`/`stats`/`duplicates`/`lint`/`organize`/`scrub` all exit 0.
+- MinGW portability: `find_package(blake3|OpenSSL)` → QUIET (code already guards
+  `FO_HAVE_*`; vault compiles to honest stubs without OpenSSL), guarded
+  `add_subdirectory(tests)` (tree has no `tests/`), missing `<cstdint>` include,
+  GDI+ 2-arg `Save` default (MSVC-ism), explicit `gdiplus` link for MinGW
+  (`#pragma comment(lib)` is MSVC-only), `fo_c_api` include path for vendored headers.
+- Sidecar MinGW runtime DLLs (`libstdc++-6`, `libgcc_s_seh-1`, `libwinpthread-1`)
+  copied next to `build-mingw/cli/fo_cli.exe` so dashboard-spawned processes start.
+
+### Verified this host (2026-11-03)
+- `fo_cli --help` lists 30 commands; HTTP end-to-end via node server:
+  `/api/health` ok, scan (6 files), duplicates (`[]`), stats, lint
+  (4× DUPLICATE NAME), count (6), organize dry-run (6 moves), delete-duplicates
+  dry-run, scrub (`scanned:6,corrupted:0`), undo, hash, metadata, export,
+  search, history, ignore add/list/remove, flow/list, modules all 200;
+  `/api/vault/*` and `/api/watch/status` answer honest 501.
+- NOT verified (no providers/models on host): ocr/similar/vhash/afingerprint/
+  classify/oracle/clerk/convert/rename flows (bridges fail gracefully, 500 with message).
+## [6.4.0] - 2026-11-03 — Unified Dashboard + Honest Backend Report
+
+### Added
+- **Unified single-page dashboard** (`bobui_web/public/unified.html`): all 25 CLI
+  workflows on one value-ordered page (A Essentials → B Verify & Manage →
+  C Media & AI → D Organize & Protect → E Automate), every card with ⓘ
+  tooltips, descriptive labels, shared activity log, sticky group nav.
+  Linked from classic (`/`) and React (`/react/`) entry pages.
+- **13 new Express bridges** in `bobui_web/server.js`: `/api/ocr`,
+  `/api/similar`, `/api/vhash`, `/api/afingerprint`, `/api/classify`,
+  `/api/rename`, `/api/rename-batch`, `/api/convert`, `/api/undo`,
+  `/api/clerk`, `/api/oracle`, `/api/watch/status`, `/api/modules`,
+  plus `/api/quit` for tray/controlled shutdown. All return honest
+  `CLI not found` errors when `fo_cli` is not built (verified live).
+- **System-tray controller** (`bobui_web/tray.py` + `tray.bat`):
+  open dashboard / legacy UI, status probe, restart, logs folder,
+  quit server+tray. Uses pystray when installed, tkinter fallback otherwise
+  (tkinter verified present; pystray NOT installed on this host).
+- **Script hygiene**: archived superseded ex-root `build_limited.bat` and
+  `build_fuzz.bat` into `scripts/archive/` via `git mv` (history preserved);
+  added `scripts/README.md` (entry-point map) and `scripts/dev_all.bat`
+  (build → test → smoke → serve one-shot).
+
+### Verified this host (2026-11-03)
+- node v26.13.0 OK; dashboard serves `unified.html` (HTTP 200, 26 KB);
+  `/api/health` → `ok:true, cliExists:false`; POST bridges fail honestly
+  without `fo_cli`; `/api/quit` shuts the server down cleanly.
+- **CANNOT build here**: no cmake, ninja, cl.exe, or Visual Studio;
+  no `D:\Qt` kit. `scripts/build_headless.bat` exits immediately
+  (`Could not find Visual Studio vcvars64.bat`). C++ build/test/CLI
+  verification must run on a dev host (see TODO `build-host`).
 ## [6.3.2] - 2026-05-26
 
 ### Changed

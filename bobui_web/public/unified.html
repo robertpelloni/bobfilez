@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>bobfilez — Unified Dashboard (single page, all workflows)</title>
+<style>
+  :root { --bg:#0b1220; --panel:#111c33; --line:#22314f; --txt:#e8eefc; --mut:#93a4c4; --acc:#38bdf8; --ok:#34d399; --err:#f87171; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, Segoe UI, Arial, sans-serif; background:var(--bg); color:var(--txt); }
+  header.top { position:sticky; top:0; z-index:50; background:rgba(11,18,32,.96); border-bottom:1px solid var(--line); padding:10px 18px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  header.top h1 { font-size:17px; margin:0; }
+  header.top nav a { color:var(--acc); text-decoration:none; font-size:13px; margin-right:10px; font-weight:600; }
+  .badge { font-size:12px; padding:4px 10px; border-radius:20px; background:#1e293b; color:var(--mut); font-weight:600; }
+  .badge.ok { color:var(--ok); } .badge.bad { color:var(--err); }
+  main { max-width:1080px; margin:0 auto; padding:22px 18px 80px; }
+  .group { margin:34px 0 10px; padding:14px 16px; background:linear-gradient(180deg,#12203c,#0e1830); border:1px solid var(--line); border-radius:14px; }
+  .group h2 { margin:0 0 4px; font-size:19px; }
+  .group p.why { margin:0; color:var(--mut); font-size:13px; }
+  section.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:14px 0; }
+  section.card h3 { margin:0 0 2px; font-size:16px; }
+  section.card h3 .tip { cursor:help; color:var(--acc); font-size:14px; }
+  section.card p.desc { margin:6px 0 12px; color:var(--mut); font-size:13px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  label.f { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--mut); min-width:180px; flex:1; }
+  input[type=text], select { padding:9px 12px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:13px; width:100%; }
+  button.go { padding:9px 22px; border-radius:8px; border:none; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; font-size:13px; }
+  button.go:disabled { opacity:.55; cursor:wait; }
+  button.danger { background:#b91c1c; }
+  button.ghost { background:#1e293b; }
+  pre.out { background:#0a0f1f; border:1px solid var(--line); border-radius:8px; padding:12px; max-height:300px; overflow:auto; font-size:12px; white-space:pre-wrap; word-break:break-word; }
+  #console { background:#05080f; border:1px solid var(--line); border-radius:12px; padding:12px; font-family:Consolas,monospace; font-size:12px; max-height:220px; overflow:auto; }
+  #console .t { color:#64748b; } #console .e { color:var(--err); } #console .o { color:var(--ok); }
+  footer { text-align:center; color:var(--mut); font-size:12px; padding:30px 0; }
+</style>
+</head>
+<body>
+<header class="top" title="Single-page console: every bobfilez workflow grouped by value. Highest-value file tasks first. Hover any ⓘ for guidance.">
+  <h1>📁 bobfilez Unified Dashboard</h1>
+  <span id="health" class="badge" title="Backend health: checks /api/health (Express → fo_cli). If offline, start the server with bobui_web/start-server.bat">checking…</span>
+  <nav title="Jump to a workflow group. Groups are ordered by everyday value: essentials first, automation last.">
+    <a href="#g-a" title="Scan, duplicates, statistics, search, organize — the tasks most users run daily">A · Essentials</a>
+    <a href="#g-b" title="Hash, metadata, lint, history, ignore rules, export — verify and manage">B · Verify &amp; Manage</a>
+    <a href="#g-c" title="OCR, similar images, video/audio fingerprints, AI classify, convert — media intelligence">C · Media &amp; AI</a>
+    <a href="#g-d" title="Rename, batch rename, safe duplicate deletion, prune, scrub, vault — change files safely">D · Organize &amp; Protect</a>
+    <a href="#g-e" title="OmniFlow, Clerk, Oracle, watcher, modules — automation and advanced">E · Automate</a>
+  </nav>
+  <button class="go ghost" onclick="quitServer()" title="Stops the Express dashboard server process (calls POST /api/quit). Equivalent to quitting from the system-tray icon.">⏻ Quit server</button>
+</header>
+<main>
+  <div class="group" id="g-a" title="Group A — highest value: the five workflows that answer “what do I have, what is duplicated, and how do I tidy it?”">
+    <h2>A · Everyday essentials <span title="Start here. These five cards cover ~80% of real usage." style="color:var(--acc);cursor:help">ⓘ</span></h2>
+    <p class="why">Highest-value first: find files, reclaim duplicate space, understand the collection, search it, preview a tidy-up.</p>
+  </div>
+  <div id="sec-a"></div>
+  <div class="group" id="g-b" title="Group B — trust and control: verify integrity, inspect metadata, keep history, export results.">
+    <h2>B · Verify &amp; manage <span title="Second priority: prove files are intact, audit what changed, and move results elsewhere." style="color:var(--acc);cursor:help">ⓘ</span></h2>
+    <p class="why">Prove integrity, inspect what you have, keep an undoable history, and export.</p>
+  </div>
+  <div id="sec-b"></div>
+  <div class="group" id="g-c" title="Group C — media intelligence: text in images, look-alike pictures, video/audio identity, AI labels, format conversion.">
+    <h2>C · Media &amp; AI <span title="Needs optional models/codecs for some cards. Errors here usually mean an optional dependency is missing — see /api/modules." style="color:var(--acc);cursor:help">ⓘ</span></h2>
+    <p class="why">Read text from images, find look-alikes, fingerprint video/audio, AI-label pictures, convert formats.</p>
+  </div>
+  <div id="sec-c"></div>
+  <div class="group" id="g-d" title="Group D — change files safely: every destructive action previews first (dry-run) and stays undoable where the backend supports it.">
+    <h2>D · Organize &amp; protect <span title="All rename/delete cards default to dry-run preview. Uncheck preview only to apply for real." style="color:var(--acc);cursor:help">ⓘ</span></h2>
+    <p class="why">Rename, delete duplicates safely, prune stale records, verify integrity, lock secrets in a vault.</p>
+  </div>
+  <div id="sec-d"></div>
+  <div class="group" id="g-e" title="Group E — automation and advanced: workflows, autonomous filing, natural-language questions, live watching.">
+    <h2>E · Automate &amp; advanced <span title="Power-user layer: repeatable workflows and always-on helpers. Heavier and slower than groups A–D." style="color:var(--acc);cursor:help">ⓘ</span></h2>
+    <p class="why">Repeatable OmniFlow workflows, autonomous filing, ask-the-filesystem, live folder watching.</p>
+  </div>
+  <div id="sec-e"></div>
+  <div class="group" title="Shared activity log: every card reports here with a timestamp, newest last.">
+    <h2>🧾 Activity log</h2>
+    <p class="why">Every action on this page reports here with a timestamp. Errors appear in red.</p>
+  </div>
+  <div id="console" title="Shared activity log"></div>
+  <footer>bobfilez unified dashboard · one page, grouped by value · hover any ⓘ for guidance · <a style="color:var(--acc)" href="/react/" title="Legacy multi-tab React UI (kept for reference)">legacy tabbed React UI</a> · <a style="color:var(--acc)" href="/" title="Classic desktop-shell demo page">classic shell demo</a></footer>
+</main>
+<script>
+const $ = (s, r) => (r||document).querySelector(s);
+function log(msg, cls) {
+  const c = $('#console'); const d = document.createElement('div');
+  d.innerHTML = '<span class="t">[' + new Date().toLocaleTimeString() + ']</span> ' + msg;
+  if (cls) d.className = cls; c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+async function api(path, body, outEl, btn) {
+  btn && (btn.disabled = true);
+  const started = Date.now();
+  try {
+    const opt = body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
+    const r = await fetch(path, opt);
+    const j = await r.json();
+    const txt = typeof j === 'string' ? j : JSON.stringify(j, null, 2);
+    outEl.textContent = (txt || '(empty response)').slice(0, 20000);
+    log('<span class="o">OK</span> ' + path + ' (' + (Date.now()-started) + ' ms)', 'o');
+  } catch (e) { outEl.textContent = 'ERROR: ' + e.message; log('<span class="e">FAIL</span> ' + path + ': ' + e.message, 'e'); }
+  btn && (btn.disabled = false);
+}
+function quitServer() {
+  if (!confirm('Quit the bobfilez dashboard server?')) return;
+  fetch('/api/quit', { method:'POST' }).then(()=>log('Server quit requested. You can restart it from the tray icon or start-server.bat.'));
+}
+// id, mount, title, tip(tooltip), desc, endpoint(GET when body===null), fields, submit label
+const SECTIONS = [
+ // ── A · Essentials ──
+ { m:'sec-a', t:'🔍 Scan files', tip:'Lists every file under the given folders. Start every cleanup here.', d:'Full recursive inventory of paths. Optional extension/size filters keep large trees fast.', e:'/api/scan', b:{paths:['']}, f:[{k:'paths',l:'Folders to scan (comma-separated)',tip:'Absolute directories, comma-separated. Scanned recursively unless No-recursive is checked.',ph:'C:/Users/Public, D:/Photos'},{k:'exts',l:'Extensions filter (optional)',tip:'e.g. .jpg,.png — limits the scan to these file types.',ph:'.jpg,.png'},{k:'recursive',l:'Recursive',tip:'Uncheck to scan only the top level of each folder.',type:'check',def:true}], s:'Scan' },
+ { m:'sec-a', t:'👯 Duplicates', tip:'Groups byte-identical (or near-identical) files so you can reclaim space.', d:'Fast default mode, paranoid mode re-reads bytes. Deletion happens only in Group D.', e:'/api/duplicates', b:{paths:['']}, f:[{k:'paths',l:'Folders to compare',tip:'Duplicates are detected across all listed folders.',ph:'C:/Users/Public'},{k:'mode',l:'Verification mode',tip:'fast = hash compare; safe/paranoid add byte-level re-verification.',type:'select',opts:['fast','safe','paranoid']}], s:'Find duplicates' },
+ { m:'sec-a', t:'📊 Statistics', tip:'Totals, size distribution and extension mix — the “what do I actually have?” card.', d:'One-shot rollup: file/dir counts, total bytes, extension breakdown.', e:'/api/stats', b:{paths:['']}, f:[{k:'paths',l:'Folders to summarize',tip:'Statistics are computed over these folders.',ph:'C:/Users/Public'}], s:'Compute stats' },
+ { m:'sec-a', t:'🔎 Search', tip:'Finds files by name, by content, or by regex — the fastest way to locate anything.', d:'Name search by default; tick Content to grep inside files, Regex for patterns.', e:'/api/search', b:{query:'',paths:[]}, f:[{k:'query',l:'Search text',tip:'Filename fragment, phrase, or regex depending on the toggles.',ph:'vacation 2024'},{k:'paths',l:'Folders (optional, comma-separated)',tip:'Leave blank to search the indexed/default scope.',ph:'D:/Photos'},{k:'content',l:'Search file contents',tip:'Slower: opens and greps inside files.',type:'check'},{k:'regex',l:'Regex',tip:'Treat the query as a regular expression.',type:'check'}], s:'Search' },
+ { m:'sec-a', t:'🗂 Organize (dry-run preview)', tip:'Previews moving files into a rule template. Nothing moves unless you confirm.', d:'Rule example: {extension}/{year}/{name}. This card always previews — safe to explore.', e:'/api/organize', b:{paths:[''],rule:''}, f:[{k:'paths',l:'Folders to organize',tip:'Source folders whose files will be sorted by the rule.',ph:'D:/Downloads'},{k:'rule',l:'Rule template',tip:'Destination pattern, e.g. {extension}/{year}/{name}.',ph:'{extension}/{year}/{name}'}], s:'Preview moves' },
+ // ── B · Verify & manage ──
+ { m:'sec-b', t:'🔢 Hash files', tip:'Computes content hashes — the ground truth for identity and dedupe.', d:'Threaded hashing; use for verification or pre-dedupe checks.', e:'/api/hash', b:{paths:['']}, f:[{k:'paths',l:'Folders or files',tip:'Any mix of files and directories.',ph:'D:/Photos'}], s:'Hash' },
+ { m:'sec-b', t:'🏷 Metadata', tip:'EXIF and media tags: dates, GPS, camera, audio headers.', d:'Best on photos/video/audio. Missing tags show as n/a.', e:'/api/metadata', b:{paths:['']}, f:[{k:'paths',l:'Folders or files',tip:'Media files to inspect.',ph:'D:/Photos'}], s:'Read metadata' },
+ { m:'sec-b', t:'🧹 Lint filesystem', tip:'Flags empty files, broken links and junk names before they spread.', d:'Read-only report; nothing is deleted by lint.', e:'/api/lint', b:{paths:['']}, f:[{k:'paths',l:'Folders to lint',tip:'Scanned for empty files, broken symlinks, suspicious names.',ph:'D:/Downloads'}], s:'Lint' },
+ { m:'sec-b', t:'🕘 History & undo', tip:'Every mutating CLI run is journaled. Review here, undo the latest step.', d:'Load shows the journal; Undo reverts the most recent operation.', e:'/api/history', get:true, b:null, f:[], s:'Load history', extra:'undo' },
+ { m:'sec-b', t:'🚫 Ignore rules', tip:'Glob patterns the engine must skip (e.g. node_modules, *.tmp).', d:'Add a pattern with a reason, or remove it. List refreshes automatically.', e:'/api/ignore', get:true, b:null, f:[{k:'pattern',l:'New pattern',tip:'Glob such as *.tmp or node_modules.',ph:'*.tmp'},{k:'reason',l:'Reason (optional)',tip:'Why this pattern is ignored — shown to teammates.',ph:'build noise'}], s:'Refresh list', extra:'ignore-add' },
+ { m:'sec-b', t:'📤 Export', tip:'Dumps the current view to JSON, CSV or HTML for reports.', d:'Exports scan-shaped results of the given folders.', e:'/api/export', b:{paths:[''],format:'json'}, f:[{k:'paths',l:'Folders to export',tip:'Same scope you would scan.',ph:'D:/Photos'},{k:'format',l:'Format',tip:'json for tooling, csv for spreadsheets, html for sharing.',type:'select',opts:['json','csv','html']}], s:'Export' },
+ { m:'sec-b', t:'🔢 Quick count', tip:'Fast “how many files?” without full detail rows.', d:'Cheapest call on this page — use it to sanity-check a path first.', e:'/api/count', b:{paths:['']}, f:[{k:'paths',l:'Folders to count',tip:'Returns a single integer.',ph:'D:/Photos'}], s:'Count' },
+ // ── C · Media & AI ──
+ { m:'sec-c', t:'🔤 OCR (text in images)', tip:'Extracts printed text from pictures and scans.', d:'Requires the OCR module; check Group E → Modules if it fails.', e:'/api/ocr', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'PNG/JPG/TIFF screenshots, scans, photos of documents.',ph:'D:/Scans'}], s:'Extract text' },
+ { m:'sec-c', t:'🖼 Similar images', tip:'Perceptual matching: finds look-alikes, not just byte copies.', d:'Threshold controls strictness (lower = stricter).', e:'/api/similar', b:{paths:[''],threshold:10}, f:[{k:'paths',l:'Folders to compare',tip:'Images compared pairwise by perceptual hash.',ph:'D:/Photos'},{k:'threshold',l:'Threshold',tip:'Max hamming distance. 5–10 is a good starting range.',ph:'10'}], s:'Find look-alikes' },
+ { m:'sec-c', t:'🎬 Video fingerprint', tip:'Perceptual hash for video — matches re-encodes and clips.', d:'Heavier than image hashing; run on small sets first.', e:'/api/vhash', b:{paths:['']}, f:[{k:'paths',l:'Videos or folders',tip:'Video files to fingerprint.',ph:'D:/Videos'}], s:'Fingerprint video' },
+ { m:'sec-c', t:'🎵 Audio fingerprint', tip:'Identifies audio by content, not by filename or tag.', d:'Useful for de-duping music libraries with messy tags.', e:'/api/afingerprint', b:{paths:['']}, f:[{k:'paths',l:'Audio files or folders',tip:'MP3/FLAC/WAV collections.',ph:'D:/Music'}], s:'Fingerprint audio' },
+ { m:'sec-c', t:'🤖 AI classify', tip:'Labels images with an on-device classifier (needs models).', d:'First run may download models — see scripts/download_models.py.', e:'/api/classify', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'Pictures to label.',ph:'D:/Photos'}], s:'Classify' },
+ { m:'sec-c', t:'🔄 Convert', tip:'Re-encodes files via FFmpeg/ImageMagick/Pandoc when installed.', d:'Specify target extension; failures name the missing external tool.', e:'/api/convert', b:{files:[''],to:''}, f:[{k:'files',l:'Files (comma-separated)',tip:'Source files to convert.',ph:'D:/a.wav'},{k:'to',l:'Target format',tip:'Extension without dot, e.g. mp3, png, pdf.',ph:'mp3'}], s:'Convert' },
+ // ── D · Organize & protect ──
+ { m:'sec-d', t:'✏️ Rename (preview)', tip:'Renames using a {pattern}. Always previews first.', d:'Pattern tokens like {year}_{name}.{ext}. Uncheck Preview to apply.', e:'/api/rename', b:{paths:[''],pattern:'',dryRun:true}, f:[{k:'paths',l:'Folders to rename in',tip:'Files directly affected by the pattern.',ph:'D:/Photos'},{k:'pattern',l:'Rename pattern',tip:'e.g. {year}_{name}.{ext}.',ph:'{year}_{name}.{ext}'},{k:'dryRun',l:'Preview only (recommended)',tip:'Uncheck to actually rename.',type:'check',def:true}], s:'Preview rename' },
+ { m:'sec-d', t:'✏️✏️ Batch rename', tip:'Rule-chain renames across many files at once.', d:'Same preview-first safety as single rename.', e:'/api/rename-batch', b:{paths:[''],rules:'',dryRun:true}, f:[{k:'paths',l:'Folders',tip:'Scope of the batch.',ph:'D:/Photos'},{k:'rules',l:'Rules file or chain',tip:'Path to a YAML rule file, if you have one.',ph:'rules.yaml'},{k:'dryRun',l:'Preview only (recommended)',tip:'Uncheck to apply.',type:'check',def:true}], s:'Preview batch' },
+ { m:'sec-d', t:'🗑 Safe duplicate delete', tip:'Deletes only redundant copies, keeps one. Preview shows the keep plan.', d:'Dry-run by default; uncheck to delete for real.', e:'/api/delete-duplicates', b:{path:'',dryRun:true}, f:[{k:'path',l:'Folder to de-duplicate',tip:'One folder per run.',ph:'D:/Photos'},{k:'dryRun',l:'Dry-run (recommended)',tip:'Uncheck to actually delete.',type:'check',def:true}], s:'Preview deletion' },
+ { m:'sec-d', t:'🧹 Prune stale records', tip:'Drops database rows for files deleted outside bobfilez.', d:'Keeps stats/history accurate after external cleanups.', e:'/api/prune', b:{paths:['']}, f:[{k:'paths',l:'Folders to prune',tip:'DB entries pointing outside these files are removed.',ph:'D:/Photos'}], s:'Prune' },
+ { m:'sec-d', t:'🛡 Integrity scrub', tip:'Re-verifies files against stored baselines; reports corruption.', d:'Run after backups or disk scares.', e:'/api/scrub', b:{paths:['']}, f:[{k:'paths',l:'Folders to verify',tip:'Compared against stored baselines.',ph:'D:/Important'}], s:'Scrub' },
+ { m:'sec-d', t:'🔐 Vault', tip:'Encrypted locker: init once, then lock/unlock/list files inside.', d:'Four operations share these three fields; pick an action button. NOTE: backend vault-* CLI commands are not implemented yet — the server currently answers 501 with guidance (TODO vault-cli).', e:'/api/vault/list', b:{vaultPath:'',password:''}, f:[{k:'vaultPath',l:'Vault path',tip:'File path of the vault container.',ph:'D:/vault.fo'},{k:'password',l:'Password',tip:'Never stored; sent per-request only.',ph:''},{k:'file',l:'File (lock) / vaultId+dest (unlock)',tip:'For Lock: file to store. For Unlock: “vaultId|dest”.',ph:'D:/secret.docx'}], s:'List vault', extra:'vault' },
+ // ── E · Automate & advanced ──
+ { m:'sec-e', t:'⚙ OmniFlow workflows', tip:'Saved trigger→action chains you can re-run on new files.', d:'List shows saved workflows; Run executes one against a payload.', e:'/api/flow/list', get:true, b:null, f:[{k:'workflow_id',l:'Workflow id (to run)',tip:'Copy from the listed workflows.',ph:'sort-photos'},{k:'payload_path',l:'Payload path',tip:'JSON payload file for the run.',ph:'D:/payload.json'}], s:'List workflows', extra:'flow-run' },
+ { m:'sec-e', t:'🤖 OmniClerk filing', tip:'Autonomous secretary: files loose documents where they belong.', d:'Always previews in this UI (dry-run).', e:'/api/clerk', b:{paths:[''],dryRun:true}, f:[{k:'paths',l:'Inbox folders',tip:'Unsorted files Clerk should file.',ph:'D:/Downloads'}], s:'Preview filing' },
+ { m:'sec-e', t:'🔮 OmniOracle Q&A', tip:'Ask the filesystem a question in plain language.', d:'Retrieval-augmented answers over your indexed files.', e:'/api/oracle', b:{question:'',paths:[]}, f:[{k:'question',l:'Question',tip:'e.g. Where are the 2023 tax PDFs?',ph:'Where are last year’s invoices?'},{k:'paths',l:'Scope folders (optional)',tip:'Limit the search scope.',ph:'D:/Docs'}], s:'Ask' },
+ { m:'sec-e', t:'👁 Folder watcher', tip:'Live Shadow Sorter status: is the daemon watching right now?', d:'Read-only status probe in this UI.', e:'/api/watch/status', get:true, b:null, f:[], s:'Check status' },
+ { m:'sec-e', t:'🧩 Modules & providers', tip:'Which scanners/hashers/OCR/classifiers are actually compiled in.', d:'First stop when a Group C card fails — missing module = missing feature.', e:'/api/modules', get:true, b:null, f:[], s:'List modules' },
+];
+function fieldInput(sec, fld, vals) {
+  const v = vals[fld.k];
+  const wrap = document.createElement('label');
+  wrap.className = 'f'; wrap.title = fld.tip || '';
+  wrap.innerHTML = '<span>' + fld.l + ' <span style="color:var(--acc)" title="' + (fld.tip||'') + '">ⓘ</span></span>';
+  let inp;
+  if (fld.type === 'check') { inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = v !== undefined ? !!v : !!fld.def; inp.style.width = '18px'; }
+  else if (fld.type === 'select') { inp = document.createElement('select'); (fld.opts||[]).forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; if (v === o) op.selected = true; inp.appendChild(op); }); }
+  else { inp = document.createElement('input'); inp.type = 'text'; inp.value = v === undefined ? (fld.def||'') : v; inp.placeholder = fld.ph || ''; inp.title = fld.tip || ''; }
+  inp.dataset.key = fld.k; wrap.appendChild(inp); return wrap;
+}
+function collectVals(secEl, sec) {
+  const out = {}; const extra = {};
+  secEl.querySelectorAll('[data-key]').forEach(el => {
+    const k = el.dataset.key;
+    out[k] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  // normalize list-ish fields
+  ['paths','files'].forEach(k => { if (typeof out[k] === 'string') out[k] = out[k].split(',').map(s=>s.trim()).filter(Boolean); });
+  if (out.threshold !== undefined && out.threshold !== '') out.threshold = parseInt(out.threshold, 10) || 10;
+  return out;
+}
+function buildSection(sec) {
+  const el = document.createElement('section'); el.className = 'card';
+  const h = document.createElement('h3'); h.textContent = sec.t + ' ';
+  const tip = document.createElement('span'); tip.className = 'tip'; tip.textContent = 'ⓘ'; tip.title = sec.tip; h.appendChild(tip); el.appendChild(h);
+  const d = document.createElement('p'); d.className = 'desc'; d.textContent = sec.d; el.appendChild(d);
+  const form = document.createElement('div'); form.className = 'row';
+  const vals = Object.assign({}, sec.b || {});
+  (sec.f || []).forEach(f => form.appendChild(fieldInput(sec, f, vals)));
+  const btn = document.createElement('button'); btn.className = 'go'; btn.textContent = sec.s; btn.title = sec.tip;
+  const out = document.createElement('pre'); out.className = 'out'; out.title = 'Result of the last run of “' + sec.t + '”.'; out.textContent = 'Not run yet — fill the fields above and press ' + sec.s + '.';
+  btn.onclick = () => {
+    out.textContent = 'Running…';
+    if (sec.get) {
+      if (sec.extra === 'undo') { api('/api/undo', {}, out, btn); }
+      api(sec.e, undefined, out, btn).then(() => {
+        if (sec.extra === 'undo') return;
+        if (sec.extra === 'ignore-add') return;
+      });
+      if (sec.extra === 'flow-run') {
+        // second button handles run; list is primary
+      }
+    } else {
+      const body = collectVals(el, sec);
+      if (sec.extra === 'vault') { /* list uses vaultPath+password only */ api(sec.e, { vaultPath: body.vaultPath, password: body.password }, out, btn); }
+      else api(sec.e, body, out, btn);
+    }
+  };
+  form.appendChild(btn);
+  // extra action buttons
+  if (sec.extra === 'undo') {
+    const b2 = document.createElement('button'); b2.className = 'go danger'; b2.textContent = 'Undo last operation'; b2.title = 'Reverts the most recent mutating operation (uses the history journal).';
+    b2.onclick = () => { out.textContent = 'Running undo…'; api('/api/undo', {}, out, b2); }; form.appendChild(b2);
+  }
+  if (sec.extra === 'ignore-add') {
+    const b2 = document.createElement('button'); b2.className = 'go'; b2.textContent = 'Add rule'; b2.title = 'Adds the pattern above with the reason to the ignore list.';
+    b2.onclick = () => { const v = collectVals(el, sec); api('/api/ignore/add', { pattern: v.pattern, reason: v.reason }, out, b2); }; form.appendChild(b2);
+  }
+  if (sec.extra === 'flow-run') {
+    const b2 = document.createElement('button'); b2.className = 'go'; b2.textContent = 'Run workflow'; b2.title = 'Runs the workflow id above against the payload path.';
+    b2.onclick = () => { const v = collectVals(el, sec); api('/api/flow/run', { workflow_id: v.workflow_id, payload_path: v.payload_path }, out, b2); }; form.appendChild(b2);
+  }
+  if (sec.extra === 'vault') {
+    [['Init vault','/api/vault/init','Initializes a new encrypted vault at the path above.'],['Lock file','/api/vault/lock','Encrypts the file into the vault.'],['Unlock file','/api/vault/unlock','Decrypts vaultId to dest — put “vaultId|dest” in the third field.']].forEach(([label, ep, t]) => {
+      const b = document.createElement('button'); b.className = 'go ghost'; b.textContent = label; b.title = t;
+      b.onclick = () => { const v = collectVals(el, sec); const body = { vaultPath: v.vaultPath, password: v.password };
+        if (ep.endsWith('/lock')) body.file = v.file;
+        if (ep.endsWith('/unlock')) { const parts = String(v.file||'').split('|'); body.vaultId = (parts[0]||'').trim(); body.dest = (parts[1]||'').trim(); }
+        out.textContent = 'Running ' + label + '…'; api(ep, body, out, b); };
+      form.appendChild(b);
+    });
+  }
+  el.appendChild(form); el.appendChild(out);
+  return el;
+}
+SECTIONS.forEach(sec => { $('#' + sec.m).appendChild(buildSection(sec)); });
+fetch('/api/health').then(r=>r.json()).then(j => {
+  const h = $('#health');
+  const ok = j && (j.cliExists || j.ok);
+  h.textContent = ok ? '● backend online (' + (j.cli || 'fo_cli') + ')' : '● backend reachable, CLI missing';
+  h.className = 'badge ' + (ok ? 'ok' : 'bad');
+  h.title = 'Health payload: ' + JSON.stringify(j).slice(0, 200);
+  log('Health check: ' + JSON.stringify(j).slice(0, 300));
+}).catch(e => { const h = $('#health'); h.textContent = '● backend offline — start server first'; h.className = 'badge bad'; log('Health check failed: ' + e.message, 'e'); });
+log('Unified dashboard loaded: ' + SECTIONS.length + ' workflows, 5 value-ordered groups.');
+</script>
+</body>
+</html>

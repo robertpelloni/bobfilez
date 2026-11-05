@@ -74,7 +74,7 @@ static std::string format_human_size(std::uintmax_t bytes) {
     return oss.str();
 }
 
-void lint_command(const std::vector<std::string>& args);
+void lint_command(const std::vector<std::string>& paths, bool json_output);
 
 using namespace std::chrono;
 
@@ -2099,6 +2099,8 @@ int main(int argc, char** argv) {
                 std::cout << "Run 'fo scrub <path>' again after changes to detect corruption.\n";
             }
 
+        } else if (command == "lint") {
+            lint_command(paths, format == "json");
         } else {
             std::cerr << "Unknown command: " << command << "\n";
             return 1;

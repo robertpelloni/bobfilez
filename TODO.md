@@ -35,3 +35,12 @@
 - [x] Example `rules.yaml` files for various user personas (Photographer, SysAdmin).
 
 - [x] Expanded VaultManager tests to 14 total ensuring 200+ testing milestone completeness.
+- [ ] **build-host**: re-run scripts/dev_all.bat on a host with MSVC+cmake+Qt to rebuild o_cli, run o_tests.exe, and re-verify all 13 new dashboard bridges end-to-end (2026-11-03: blocked here — no toolchain).
+
+- [ ] **vault-cli**: implement ault-init|vault-lock|vault-unlock|vault-list dispatch in cli/fo_cli.cpp wired to VaultManager (needs OpenSSL — MSVC host or MSYS2 openssl). Until then Express returns honest 501 (2026-11-03).
+
+- [x] **build-host**: MinGW portable toolchain (cmake 4.4.5 + ninja 1.13.2 + gcc 16.2) installed at C:/tools; uild-mingw configure PASSED 2026-11-03 after OpenSSL/blake3 QUIET + vault stub + tests-dir guard. COMPILE+LINK OK 2026-11-03 (fo_c_api includes, gdiplus link); all CLI smokes exit 0; dashboard bridges verified end-to-end over HTTP (see CHANGELOG 6.5.0). MinGW runtime DLLs sidecarred next to fo_cli.exe.
+
+- [ ] **watch-status**: fo_cli watch is a blocking foreground loop; /api/watch/status answers 501. Add a queryable watcher mode or detached-watch tracking if live status is needed.
+
+- [ ] **submodule-blake3**: superproject pins libs/BLAKE3 @ 3f6dd93 which upstream no longer serves (fetch fails like the old 7zip case); worktree restored at local f55849f. Repair gitlink to a valid remote tip (2026-11-03).
