@@ -1,3 +1,7 @@
+<!-- [TORMENTNEXUS_AUTO_INJECTED] -->
+> [!IMPORTANT]
+> You are running within the TormentNexus environment. You MUST use your available tools frequently and proactively for researching, editing, executing, and validating your work. Always prioritize tool execution.
+
 # AGENTS.md
 
 **Generated:** 2026-04-08 | **Commit:** pending | **Branch:** main | **Version:** 6.0.73
