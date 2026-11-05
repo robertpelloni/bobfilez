@@ -224,3 +224,6 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 2. ~~**Installers**: Verify MSI creation on a machine with WiX installed.~~ (Completed via `package_java_msi.bat`)
 3. ~~**Fuzzing**: Execute extensive libFuzzer campaigns in CI.~~ (Completed locally via Windows WSL bridging)
 
+
+## 2026-11-03 addendum (v6.4.0)
+- Dashboard consolidation done (single unified page). Next: tabbed-React deprecation decision, tray autostart installer wiring, o_cli JSON parity for utodev/sync long-running daemons so they can join Group E.

@@ -337,6 +337,7 @@ FodyWeavers.xsd
 libs/_unsorted/
 /ignore.db
 build/
+build-mingw/
 
 core/include/fo/core/version.hpp
 .aider*

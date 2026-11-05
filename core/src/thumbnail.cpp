@@ -219,7 +219,7 @@ bool ThumbnailGenerator::generate_to_file(
     if (!GetEncoderClsid(L"image/jpeg", &jpegClsid)) return false;
     
     std::wstring wdest = dest.wstring();
-    return thumbnail.Save(wdest.c_str(), &jpegClsid) == Gdiplus::Ok;
+    return thumbnail.Save(wdest.c_str(), &jpegClsid, nullptr) == Gdiplus::Ok;
 }
 
 #else

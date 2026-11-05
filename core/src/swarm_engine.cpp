@@ -19,8 +19,13 @@ class SwarmHub {
     std::set<ISwarmEngine*> peers_;
 public:
     static SwarmHub& instance() {
-        static SwarmHub h;
-        return h;
+        // Intentionally heap-allocated and never destroyed: SwarmEngineImpl
+        // destructors unregister here during static teardown (Engine holds the
+        // autodev service via Registry::get_shared), which can run after this
+        // singleton would otherwise be destroyed. Leaking one hub avoids
+        // use-after-destroy at process exit.
+        static SwarmHub* h = new SwarmHub();
+        return *h;
     }
 
     void register_peer(ISwarmEngine* p) {
