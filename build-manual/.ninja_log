@@ -1,0 +1,12 @@
+# ninja log v7
+93	332655	8157030281827972	core/CMakeFiles/fo_core.dir/src/ads_cache.cpp.obj	1a2068ed703b5450
+158	350522	8157030282495971	core/CMakeFiles/fo_core.dir/src/advanced_archive_manager.cpp.obj	62156fefef198d8b
+333353	460530	8157033614431410	core/CMakeFiles/fo_core.dir/src/audio_fingerprint_chromaprint.cpp.obj	a0e401c59da0687a
+460531	565632	8157034886269748	core/CMakeFiles/fo_core.dir/src/auto_cleanup_manager.cpp.obj	c3911202091cb9bf
+350637	771143	8157033787263526	core/CMakeFiles/fo_core.dir/src/audit_logger.cpp.obj	b8fca60e2afa9c74
+565633	806954	8157035937226563	core/CMakeFiles/fo_core.dir/src/autonomous_dev_protocol_service.cpp.obj	ce32d0ae9041dde8
+771188	952402	8157037992779640	core/CMakeFiles/fo_core.dir/src/autonomous_sync_service.cpp.obj	fb1ac8978d31d2d0
+952403	1001206	8157039805062485	core/CMakeFiles/fo_core.dir/src/classifier_onnx.cpp.obj	1d39db2abd252151
+1001206	1479243	8157040293298212	core/CMakeFiles/fo_core.dir/src/clip_search_engine.cpp.obj	15bbc25126388a6
+1479244	11246638	8157045072954526	core/CMakeFiles/fo_core.dir/src/cloud_provider.cpp.obj	dae837e41fefbf2f
+806955	11254833	8157038350446751	core/CMakeFiles/fo_core.dir/src/batch_rename_engine.cpp.obj	6c3f27f276b23341
