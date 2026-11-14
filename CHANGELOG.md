@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.5.6] - 2026-11-14 — Classifier Softmax Confidences
+
+### Fixed
+- Classifier `confidence` was the raw model logit (e.g. `7.32`, could
+  exceed 1 or go negative). `classifier_onnx.cpp` now applies a
+  numerically stable softmax, so confidences are probabilities in
+  (0, 1) summing to 1 and comparable across images. Ranking unchanged
+  (softmax is monotonic): same test image keeps top-3 984/722/417, now
+  reported as 0.152 / 0.084 / 0.055 via both CLI and `POST /api/classify`.
+
 ## [6.5.5] - 2026-11-14 — OCR Provider Live (All Providers Populated)
 
 ### Added

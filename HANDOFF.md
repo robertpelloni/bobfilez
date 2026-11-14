@@ -11,9 +11,9 @@
 - Version **6.5.5**.
 
 ## Next
-1. Softmax in classifier postprocess (confidences are raw logits today).
-2. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
-3. C++ `fo_tests` rebuild needs a restored `tests/` tree (absent here).
+1. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
+2. C++ `fo_tests` rebuild needs a restored `tests/` tree (absent here).
+3. Softmax DONE in v6.5.6 (confidences are probabilities now).
 
 ---
 # Session Handoff - v6.5.4 (Classify Provider Live)

@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 
 namespace fo::core {
@@ -77,9 +78,17 @@ public:
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             size_t count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
             
-            // Softmax
+            // Softmax (numerically stable): model outputs are logits, so
+            // normalize to probabilities that sum to 1. Without this the
+            // reported "confidence" was a raw logit (could exceed 1 or go
+            // negative) and was not comparable across images.
             std::vector<float> probs(floatarr, floatarr + count);
-            // (Optional: apply softmax if model output is logits. Most are.)
+            if (!probs.empty()) {
+                float mx = *std::max_element(probs.begin(), probs.end());
+                double sum = 0.0;
+                for (float& p : probs) { p = std::exp(p - mx); sum += p; }
+                if (sum > 0.0) for (float& p : probs) p = static_cast<float>(p / sum);
+            }
             
             // Get top K
             std::vector<size_t> indices(probs.size());
