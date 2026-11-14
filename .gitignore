@@ -338,6 +338,8 @@ libs/_unsorted/
 /ignore.db
 build/
 build-mingw/
+build-lean/
+build-lean-deps/
 
 core/include/fo/core/version.hpp
 .aider*

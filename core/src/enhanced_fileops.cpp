@@ -10,6 +10,9 @@
 #include <system_error>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX // keep std::max/std::min usable (windows.h macros break them)
+#endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif

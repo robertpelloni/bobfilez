@@ -10,7 +10,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const CLI_CANDIDATES = [
     path.resolve(__dirname, '..', 'build-msvc', 'cli', 'fo_cli.exe'),
     path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe'),
-    path.resolve(__dirname, '..', 'build-mingw', 'cli', 'fo_cli.exe')
+    path.resolve(__dirname, '..', 'build-mingw', 'cli', 'fo_cli.exe'),
+    path.resolve(__dirname, '..', 'build-lean', 'cli', 'fo_cli.exe')
 ];
 // Prefer the most recently built binary: a stale build-msvc tree must not
 // shadow a fresh build-mingw one (bit us when build-msvc was still v6.3.0

@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.2 (Vault Proof + Lean MSVC Lane)
+
+## What landed (2026-11-14, cron continuation)
+- **Vault proven end-to-end**: standalone OpenSSL 3.6.1 (`build-lean-deps/`,
+  vcpkg classic mode, 1.5 h BelowNormal build) + lean MSVC lane (`build-lean/`,
+  no manifest toolchain; all heavy deps are `find_package(QUIET)`-optional).
+  CLI and HTTP init→lock→list→unlock round-trips restore byte-identical
+  content (`restored-match: true`). Fixed MSVC `std::max` macro break
+  (`NOMINMAX` in `enhanced_fileops.cpp`). Server CLI candidates now include
+  `build-lean/cli/fo_cli.exe`; OpenSSL DLLs sidecarred beside it.
+- Version **6.5.2** (`VERSION.md` + `version.hpp`, binary banner verified).
+- Disk discipline learned: full manifest rebuild wipes `vcpkg_installed`
+  and needs 60 packages + >10 GB; purged regenerable `vcpkg/buildtrees`
+  (kept `openssl`) recovering ~7 GB. Never run two builds on one tree.
+
+## Next
+1. `watch-status` queryable watcher (last honest-501 bridge).
+2. Provider builds for OCR/Classifiers (Media cards already badge absence).
+3. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
+
+---
 # Session Handoff - v6.5.1 (Dashboard Wiring Fixes + Script Archive + Governance)
 
 ## What landed (2026-11-14, Muse Code / muse-wonder-1.0)

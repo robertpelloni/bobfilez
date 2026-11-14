@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.5.2] - 2026-11-14 — Vault End-to-End Proof (AES-256-GCM) + Lean MSVC Lane
+
+### Added
+- **Lean MSVC lane** (`build-lean/` + `build-lean-deps/`): MSVC build with no
+  vcpkg manifest toolchain; standalone OpenSSL 3.6.1 (vcpkg classic mode)
+  supplies `FO_HAVE_OPENSSL`. Dashboard server now also considers
+  `build-lean/cli/fo_cli.exe` (newest-mtime picker). OpenSSL DLLs sidecarred
+  next to the lean `fo_cli.exe` for dashboard-spawned runs.
+
+### Fixed
+- MSVC compile break in `core/src/enhanced_fileops.cpp`: `windows.h`
+  `max` macro collided with `std::max` (C2589); added the `NOMINMAX` guard
+  already used by `file_watcher.cpp`.
+
+### Verified
+- **Vault AES-256-GCM round-trip end-to-end**: lean CLI
+  init→lock→list→unlock restored byte-identical content; HTTP smoke through
+  the Express bridges returned 200 for all four ops with
+  `restored-match: true`. Fresh binary reports **v6.5.2**; wiring tests pass.
+- Known limits: `lock_file` consumes the source file; full manifest
+  `build-msvc` lane still unbuilt (aws-sdk-cpp vcpkg extraction failed on
+  disk pressure/long paths) — the lean lane is the verified MSVC path.
+
 ## [6.5.1] - 2026-11-14 — Dashboard Wiring Fixes + Script Archive + Governance Docs
 
 ### Fixed
