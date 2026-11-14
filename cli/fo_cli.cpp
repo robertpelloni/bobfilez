@@ -16,6 +16,7 @@
 #include "fo/core/omniclerk_interface.hpp"
 #include "fo/core/omni_oracle_interface.hpp"
 #include "fo/core/self_healing_interface.hpp"
+#include "fo/core/vault_manager.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -108,6 +109,10 @@ static void print_usage() {
               << "  clerk        Start OmniClerk autonomous secretary (auto-filing)\n"
               << "  oracle       Ask the filesystem AI a question\n"
               << "  scrub        Verify file integrity against stored baselines\n"
+              << "  vault-init   Create/open vault: vault-init <vaultPath> <password>\n"
+              << "  vault-lock   Encrypt file into vault: vault-lock <vaultPath> <password> <file>\n"
+              << "  vault-unlock Decrypt from vault: vault-unlock <vaultPath> <password> <vaultId> <dest>\n"
+              << "  vault-list   List vault contents: vault-list <vaultPath> <password>\n"
               << "  autodev      Start Autonomous Development loop (auto-build/test)\n"
               << "  sync         Start Autonomous Sync daemon (auto-versioning)\n"
               << "\nSearch Options:\n"
@@ -2001,6 +2006,38 @@ int main(int argc, char** argv) {
             } else if (args[1] == "status") {
                 auto status = sync.check_sync_status();
                 std::cout << "In Sync: " << (status.is_in_sync ? "Yes" : "No") << "\n";
+            }
+        } else if (command == "vault-init" || command == "vault-lock" ||
+                   command == "vault-unlock" || command == "vault-list") {
+            // ─── Vault Commands (AES-256-GCM, needs FO_HAVE_OPENSSL) ───
+            // Grammar: vault-<op> <vaultPath> <password> [op args...]
+            // Without OpenSSL, VaultManager stubs return false and every
+            // op fails honestly below instead of pretending to encrypt.
+            if (args.size() < 3) {
+                std::cerr << "Usage: fo " << command << " <vaultPath> <password> [args...]\n";
+                return 1;
+            }
+            fo::core::VaultManager vault;
+            if (!vault.initialize(args[1], args[2])) {
+                std::cerr << "Error: vault unavailable (built without OpenSSL) or bad vault path.\n";
+                return 1;
+            }
+            if (command == "vault-init") {
+                std::cout << "Vault initialized at " << args[1] << "\n";
+            } else if (command == "vault-lock") {
+                if (args.size() < 4) { std::cerr << "Usage: fo vault-lock <vaultPath> <password> <file>\n"; return 1; }
+                if (!vault.lock_file(args[3])) { std::cerr << "Error: failed to lock file into vault.\n"; return 1; }
+                std::cout << "Locked " << args[3] << " into vault.\n";
+            } else if (command == "vault-unlock") {
+                if (args.size() < 5) { std::cerr << "Usage: fo vault-unlock <vaultPath> <password> <vaultId> <dest>\n"; return 1; }
+                if (!vault.unlock_file(args[3], args[4])) { std::cerr << "Error: failed to unlock vault entry.\n"; return 1; }
+                std::cout << "Unlocked " << args[3] << " to " << args[4] << "\n";
+            } else { // vault-list
+                auto entries = vault.list_contents();
+                std::cout << "Vault contents (" << entries.size() << " entries):\n";
+                for (const auto& e : entries) {
+                    std::cout << "  " << e.id << " | " << e.original_name << " | " << e.size << " bytes\n";
+                }
             }
         } else if (command == "clerk") {
             // ─── OmniClerk Command ───────────────────────────

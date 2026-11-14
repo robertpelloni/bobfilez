@@ -74,12 +74,16 @@ test('health endpoint answers over HTTP', async () => {
   assert.equal(j.ok, true);
 });
 
-test('honest 501 endpoints stay honest (vault, watch)', async () => {
-  const v = await fetch('http://localhost:3199/api/vault/list', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ vaultPath: 'x', password: 'y' }),
-  });
-  assert.equal(v.status, 501);
+test('vault bridges call the real CLI (no blanket 501)', () => {
+  const srv = read('server.js');
+  assert.match(srv, /'vault-init'/);
+  assert.match(srv, /'vault-lock'/);
+  assert.match(srv, /'vault-unlock'/);
+  assert.match(srv, /'vault-list'/);
+  assert.doesNotMatch(srv, /Vault is not wired yet/);
+});
+
+test('watch status stays honest 501 until a queryable watcher exists', async () => {
   const w = await fetch('http://localhost:3199/api/watch/status');
   assert.equal(w.status, 501);
 });

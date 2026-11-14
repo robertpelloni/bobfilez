@@ -329,11 +329,18 @@ app.post('/api/organize', async (req, res) => {
 
 
 // ── Vault ──
+// Vault bridges call the real fo_cli vault-* commands (AES-256-GCM via
+// VaultManager). Builds without OpenSSL fail honestly (CLI exit 1 → 500
+// with the CLI message) instead of the old blanket 501.
+async function vaultRun(res, cliArgs) {
+    const { stdout } = await runCli(cliArgs, 60000);
+    res.json({ success: true, raw: stdout });
+}
 app.post('/api/vault/init', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
         if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
-        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
+        await vaultRun(res, ['vault-init', vaultPath, password]);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -341,7 +348,7 @@ app.post('/api/vault/lock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', file = '' } = req.body;
         if (!vaultPath || !password || !file) return res.status(400).json({ error: 'vaultPath, password, and file required' });
-        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
+        await vaultRun(res, ['vault-lock', vaultPath, password, file]);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -349,7 +356,7 @@ app.post('/api/vault/unlock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', vaultId = '', dest = '' } = req.body;
         if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ error: 'vaultPath, password, vaultId, and dest required' });
-        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
+        await vaultRun(res, ['vault-unlock', vaultPath, password, vaultId, dest]);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -357,7 +364,7 @@ app.post('/api/vault/list', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
         if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
-        return res.status(501).json({ error: 'Vault is not wired yet: fo_cli exposes no vault-* commands in this build (TODO vault-cli).' });
+        await vaultRun(res, ['vault-list', vaultPath, password]);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
