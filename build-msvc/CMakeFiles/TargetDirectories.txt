@@ -35,13 +35,3 @@ C:/Users/hyper/workspace/bobfilez/build-msvc/benchmarks/CMakeFiles/rebuild_cache
 C:/Users/hyper/workspace/bobfilez/build-msvc/benchmarks/CMakeFiles/list_install_components.dir
 C:/Users/hyper/workspace/bobfilez/build-msvc/benchmarks/CMakeFiles/install.dir
 C:/Users/hyper/workspace/bobfilez/build-msvc/benchmarks/CMakeFiles/install/local.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/fo_tests.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/fo_c_api_smoke.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/package.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/package_source.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/test.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/edit_cache.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/rebuild_cache.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/list_install_components.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/install.dir
-C:/Users/hyper/workspace/bobfilez/build-msvc/tests/CMakeFiles/install/local.dir
