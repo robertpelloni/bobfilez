@@ -15,7 +15,8 @@
 - [x] **Desktop Environment**: Implement Desktop Icons and a System Dashboard.
 - [x] **Nexus Integration**: Implement the C++ master clock unification across all modules.
 - [ ] **Ultimate++ Refactoring**: Begin refactoring and planning to utilize Ultimate++'s utility toolkit classes across the core.
-- [ ] **BobUI Web**: Update web UI to reflect the native functionality.
+- [x] **BobUI Web**: Update web UI to reflect the native functionality. — Done: single-page unified dashboard (A–E by value, ⓘ tooltips, activity log) + tray with Quit; wiring bugs fixed in v6.5.1 (history-undo-on-load, dead tray routes, clerk/oracle grammar, swallowed HTTP errors) with `node --test` coverage.
+- [ ] **rebuild-cli**: rebuild `fo_cli` from current source (checked-out `build-msvc` binary is stale v6.3.0, lacks `clerk`/`oracle` dispatch) via `scripts/build_headless.bat` or the MinGW lane, then re-verify Clerk/Oracle/OCR cards end-to-end. Run heavy builds BelowNormal.
 - [x] **Vector-Semantic Search**: Integrate local Clip/BERT for AI-driven file discovery in Explorer.
 
 ## In Progress

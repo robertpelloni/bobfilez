@@ -4,7 +4,15 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Current Status (v2.4.2)
+## Current Status (v6.5.1, 2026-11-14)
+
+> Version truth: `VERSION.md`. The dashboard is consolidated on one page
+> (`bobui_web/public/unified.html`, groups A–E by value) with a system-tray
+> host (`bobui_web/tray.py`, Quit via `/api/quit`). Stale-binary warning:
+> the checked-out `build-msvc` CLI still reports v6.3.0 — rebuild before
+> relying on `clerk`/`oracle` (source dispatch exists in `cli/fo_cli.cpp`).
+
+## Current Status (v2.4.2, historical)
 
 ### Completed
 - ✅ **Core Engine**: C++20 static library (`fo_core`) with plugin registry.
