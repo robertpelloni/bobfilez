@@ -149,17 +149,19 @@ private:
     }
 };
 
-namespace {
-    struct OnnxRegistrar {
-        OnnxRegistrar() {
-            Registry<IImageClassifier>::instance().add("onnx", []() {
-                return std::make_unique<OnnxRuntimeClassifier>();
-            });
-        }
-    };
-    static OnnxRegistrar registrar;
+// Explicit registration (called from register_all_providers): a static
+// registrar here would never run, because nothing references this TU and
+// the linker drops it from fo_core.lib.
+void register_classifier_onnx() {
+    Registry<IImageClassifier>::instance().add("onnx", []() {
+        return std::make_unique<OnnxRuntimeClassifier>();
+    });
 }
 
 } // namespace fo::core
 
 #endif // FO_HAVE_ONNXRUNTIME && FO_HAVE_OPENCV
+
+#if !defined(FO_HAVE_ONNXRUNTIME) || !defined(FO_HAVE_OPENCV)
+namespace fo::core { void register_classifier_onnx() {} }
+#endif

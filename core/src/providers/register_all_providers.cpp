@@ -20,6 +20,7 @@ namespace fo::core {
     void register_swarm_engine();
     void register_neural_bridge();
     void register_perceptual_opencv();
+    void register_classifier_onnx();
     void register_omni_graph();
     void register_omni_mount();
     void register_omni_oracle();
@@ -76,6 +77,7 @@ namespace fo::core {
         register_swarm_engine();
         register_neural_bridge();
         register_perceptual_opencv();
+        register_classifier_onnx();
 
         // Omni subsystem registrations
         register_omni_graph();
