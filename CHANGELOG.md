@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.5.4] - 2026-11-14 — Classify Provider Live (Prebuilt ONNX + OpenCV)
+
+### Added
+- **Classifier + perceptual-OpenCV providers** in the lean lane: staged the
+  official prebuilt ONNX Runtime 1.20.1 and OpenCV 4.10.0 Windows releases
+  into `build-lean-deps` (skipping the multi-hour vcpkg source chain), with
+  a minimal `onnxruntimeConfig.cmake` for the imported target. Configure
+  now finds OpenCV + ONNX Runtime + OpenSSL together.
+
+### Fixed
+- **Classifier never registered** (`core/src/classifier_onnx.cpp`): its only
+  registration was a static registrar in a translation unit nothing
+  references, so the linker dropped it from `fo_core.lib` even with both
+  libraries present. Replaced with explicit `register_classifier_onnx()`
+  called from `register_all_providers()` (the codebase pattern), with a
+  no-op stub when the libraries are absent.
+
+### Verified
+- `--modules`: **Classifiers: onnx**, **Perceptual Hash: dhash phash ahash
+  opencv**. Classify end-to-end: CLI returns top-3 ImageNet indices for a
+  test image (MobileNetV2); dashboard `POST /api/classify` returns 200 with
+  the same classifications. Deployment note: place `model.onnx` (optional
+  `labels.txt`) in the server CWD (`bobui_web/`); without labels, numeric
+  class indices are shown. OCR (Tesseract) remains unbuilt and badged.
+
 ## [6.5.3] - 2026-11-14 — Queryable Watcher Status (Last 501 Closed)
 
 ### Added

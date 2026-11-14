@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.4 (Classify Provider Live)
+
+## What landed (2026-11-14, cron continuation)
+- **Classify live**: prebuilt ONNX Runtime 1.20.1 + OpenCV 4.10.0 staged in
+  `build-lean-deps` (vcpkg source chain abandoned at protobuf — ~10 obj/15min;
+  abseil needed `VCPKG_MAX_CONCURRENCY=4`). Fixed the real registration bug:
+  `classifier_onnx.cpp` static registrar was linker-dropped; now explicit
+  `register_classifier_onnx()` in `register_all_providers()`. Verified:
+  `--modules` shows `Classifiers: onnx`, Perceptual gains `opencv`; Classify
+  CLI + HTTP 200 (MobileNetV2 in `bobui_web/model.onnx` at runtime — not
+  committed; labels.txt optional).
+- Version **6.5.4**. Tray gained watcher-aware status (`7859d44bc`).
+
+## Next
+1. OCR: Tesseract vcpkg chain (smaller than OpenCV was) or prebuilt.
+2. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
+3. Softmax in classifier postprocess (confidences are raw logits today).
+
+---
 # Session Handoff - v6.5.3 (Queryable Watcher — Last 501 Closed)
 
 ## What landed (2026-11-14, cron continuation)
