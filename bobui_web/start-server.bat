@@ -1,4 +1,5 @@
 @echo off
 cd /d "%~dp0"
-echo [bobfilez] dashboard at http://localhost:%PORT%
+if "%PORT%"=="" set PORT=3131
+echo [bobfilez] dashboard at http://localhost:%PORT%/unified.html
 node server.js

@@ -22,7 +22,7 @@ def api(path, body=None, timeout=200):
 
 def health():
     try:
-        return json.loads(api("/health"))
+        return json.loads(api("/api/health"))
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
@@ -32,16 +32,16 @@ def start_server():
     global server_proc
     if server_proc and server_proc.poll() is None:
         return "already running"
-    cmd = [sys.executable if False else "node", "server.js"]
-    server_proc = subprocess.Popen(cmd, cwd=ROOT,
-        stdout=open(os.path.join(LOGDIR, "tray-server.log"), "a"),
-        stderr=subprocess.STDOUT)
+    os.makedirs(LOGDIR, exist_ok=True)
+    log = open(os.path.join(LOGDIR, "tray-server.log"), "a")
+    server_proc = subprocess.Popen(["node", "server.js"], cwd=ROOT,
+        stdout=log, stderr=subprocess.STDOUT)
     return f"started pid={server_proc.pid}"
 
 def stop_server():
     global server_proc
     try:
-        api("/quit", {}, timeout=5)
+        api("/api/quit", {}, timeout=5)
     except Exception:
         pass
     if server_proc and server_proc.poll() is None:

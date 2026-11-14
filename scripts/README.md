@@ -20,6 +20,7 @@ Nondestructive attic for superseded entry points (kept in git history via `git m
 
 - `build_limited.bat` (ex-root) — hardcoded VS2019 path, built stale `build/` dir, ran one test. Superseded by `build_headless.bat`.
 - `build_fuzz.bat` (ex-root) — old fuzz flags (`FO_BUILD_FUZZ_TESTS`) into stale `build/` dir. Superseded by `build_fuzzer.bat` (`FO_BUILD_FUZZERS` → `build_fuzz/`).
+- `root-helpers/` — 20 one-shot `patch_*.py` / `fix_*.py` scripts formerly cluttering the repo root (archived 2026-11-14, contents preserved verbatim). They patched one historical build break each; do not re-run against current sources.
 
 Do not delete: they document the migration path. Do not revive without updating paths/flags.
 

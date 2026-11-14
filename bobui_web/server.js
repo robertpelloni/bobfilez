@@ -272,11 +272,16 @@ app.post('/api/scrub', async (req, res) => {
 // ── Search ──
 app.post('/api/search', async (req, res) => {
     try {
-        const { query, paths = [], content = false, regex = false } = req.body;
+        const { query, paths = [], content = false, regex = false, wildcard = false, caseSensitive = false, wholeWord = false, invert = false, maxResults } = req.body;
         if (!query) return res.status(400).json({ error: 'No query provided' });
         const args = ['search', query, '--format=json'];
         if (content) args.push('--content');
         if (regex) args.push('--regex');
+        if (wildcard) args.push('--wildcard');
+        if (caseSensitive) args.push('--case-sensitive');
+        if (wholeWord) args.push('--whole-word');
+        if (invert) args.push('--invert');
+        if (maxResults) args.push(`--max-results=${parseInt(maxResults, 10) || 0}`);
         args.push(...paths);
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{"results":[]}'));
@@ -439,19 +444,22 @@ app.post('/api/undo', async (req, res) => {
 });
 app.post('/api/clerk', async (req, res) => {
     try {
-        const { paths = [], dryRun = true } = req.body;
-        const args = ['clerk', '--format=json', ...paths];
-        if (dryRun) args.push('--dry-run');
-        const { stdout } = await runCli(args, 300000);
-        try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
+        // fo_cli clerk only supports `start <inbox> <archive>` (blocking
+        // listener, never launched from HTTP) and `status` (plain text).
+        // The old bridge sent `clerk --format=json <paths>` which always
+        // usage-errored; map the dashboard card to the honest status probe.
+        const { stdout } = await runCli(['clerk', 'status'], 30000);
+        res.json({ raw: stdout, note: 'Live filing: run `fo_cli clerk start <inbox> <archive>` in a terminal.' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/oracle', async (req, res) => {
     try {
         const { question = '', paths = [] } = req.body;
         if (!question) return res.status(400).json({ error: 'question required' });
-        const { stdout } = await runCli(['oracle', question, '--format=json', ...paths], 300000);
-        try { res.json(JSON.parse(extractJson(stdout) || '{"answer":""}')); } catch { res.json({ raw: stdout }); }
+        // fo_cli oracle takes a bare query and prints plain text (no JSON
+        // mode, no path args); forward only the question.
+        const { stdout } = await runCli(['oracle', question], 300000);
+        res.json({ answer: stdout, raw: stdout });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/watch/status', async (req, res) => {

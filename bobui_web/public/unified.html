@@ -93,8 +93,14 @@ async function api(path, body, outEl, btn) {
   try {
     const opt = body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
     const r = await fetch(path, opt);
-    const j = await r.json();
+    let j = null; try { j = await r.json(); } catch { j = null; }
     const txt = typeof j === 'string' ? j : JSON.stringify(j, null, 2);
+    if (!r.ok) {
+      const msg = (j && j.error) ? j.error : ('HTTP ' + r.status);
+      outEl.textContent = 'ERROR (' + r.status + '): ' + msg;
+      log('<span class="e">FAIL</span> ' + path + ' HTTP ' + r.status + ': ' + msg, 'e');
+      return;
+    }
     outEl.textContent = (txt || '(empty response)').slice(0, 20000);
     log('<span class="o">OK</span> ' + path + ' (' + (Date.now()-started) + ' ms)', 'o');
   } catch (e) { outEl.textContent = 'ERROR: ' + e.message; log('<span class="e">FAIL</span> ' + path + ': ' + e.message, 'e'); }
@@ -110,7 +116,7 @@ const SECTIONS = [
  { m:'sec-a', t:'🔍 Scan files', tip:'Lists every file under the given folders. Start every cleanup here.', d:'Full recursive inventory of paths. Optional extension/size filters keep large trees fast.', e:'/api/scan', b:{paths:['']}, f:[{k:'paths',l:'Folders to scan (comma-separated)',tip:'Absolute directories, comma-separated. Scanned recursively unless No-recursive is checked.',ph:'C:/Users/Public, D:/Photos'},{k:'exts',l:'Extensions filter (optional)',tip:'e.g. .jpg,.png — limits the scan to these file types.',ph:'.jpg,.png'},{k:'recursive',l:'Recursive',tip:'Uncheck to scan only the top level of each folder.',type:'check',def:true}], s:'Scan' },
  { m:'sec-a', t:'👯 Duplicates', tip:'Groups byte-identical (or near-identical) files so you can reclaim space.', d:'Fast default mode, paranoid mode re-reads bytes. Deletion happens only in Group D.', e:'/api/duplicates', b:{paths:['']}, f:[{k:'paths',l:'Folders to compare',tip:'Duplicates are detected across all listed folders.',ph:'C:/Users/Public'},{k:'mode',l:'Verification mode',tip:'fast = hash compare; safe/paranoid add byte-level re-verification.',type:'select',opts:['fast','safe','paranoid']}], s:'Find duplicates' },
  { m:'sec-a', t:'📊 Statistics', tip:'Totals, size distribution and extension mix — the “what do I actually have?” card.', d:'One-shot rollup: file/dir counts, total bytes, extension breakdown.', e:'/api/stats', b:{paths:['']}, f:[{k:'paths',l:'Folders to summarize',tip:'Statistics are computed over these folders.',ph:'C:/Users/Public'}], s:'Compute stats' },
- { m:'sec-a', t:'🔎 Search', tip:'Finds files by name, by content, or by regex — the fastest way to locate anything.', d:'Name search by default; tick Content to grep inside files, Regex for patterns.', e:'/api/search', b:{query:'',paths:[]}, f:[{k:'query',l:'Search text',tip:'Filename fragment, phrase, or regex depending on the toggles.',ph:'vacation 2024'},{k:'paths',l:'Folders (optional, comma-separated)',tip:'Leave blank to search the indexed/default scope.',ph:'D:/Photos'},{k:'content',l:'Search file contents',tip:'Slower: opens and greps inside files.',type:'check'},{k:'regex',l:'Regex',tip:'Treat the query as a regular expression.',type:'check'}], s:'Search' },
+ { m:'sec-a', t:'🔎 Search', tip:'Finds files by name, by content, or by regex — the fastest way to locate anything.', d:'Name search by default; tick Content to grep inside files, Regex for patterns.', e:'/api/search', b:{query:'',paths:[]}, f:[{k:'query',l:'Search text',tip:'Filename fragment, phrase, or regex depending on the toggles.',ph:'vacation 2024'},{k:'paths',l:'Folders (optional, comma-separated)',tip:'Leave blank to search the indexed/default scope.',ph:'D:/Photos'},{k:'content',l:'Search file contents',tip:'Slower: opens and greps inside files.',type:'check'},{k:'regex',l:'Regex',tip:'Treat the query as a regular expression.',type:'check'},{k:'wildcard',l:'Wildcard (* ?)',tip:'Treat the query as a wildcard pattern such as *.jpg.',type:'check'},{k:'caseSensitive',l:'Case-sensitive',tip:'Match letter case exactly.',type:'check'},{k:'wholeWord',l:'Whole word',tip:'Match whole words only.',type:'check'},{k:'maxResults',l:'Max results (optional)',tip:'Cap the result list, e.g. 100. Blank = no cap.',ph:'100'}], s:'Search' },
  { m:'sec-a', t:'🗂 Organize (dry-run preview)', tip:'Previews moving files into a rule template. Nothing moves unless you confirm.', d:'Rule example: {extension}/{year}/{name}. This card always previews — safe to explore.', e:'/api/organize', b:{paths:[''],rule:''}, f:[{k:'paths',l:'Folders to organize',tip:'Source folders whose files will be sorted by the rule.',ph:'D:/Downloads'},{k:'rule',l:'Rule template',tip:'Destination pattern, e.g. {extension}/{year}/{name}.',ph:'{extension}/{year}/{name}'}], s:'Preview moves' },
  // ── B · Verify & manage ──
  { m:'sec-b', t:'🔢 Hash files', tip:'Computes content hashes — the ground truth for identity and dedupe.', d:'Threaded hashing; use for verification or pre-dedupe checks.', e:'/api/hash', b:{paths:['']}, f:[{k:'paths',l:'Folders or files',tip:'Any mix of files and directories.',ph:'D:/Photos'}], s:'Hash' },
@@ -136,7 +142,7 @@ const SECTIONS = [
  { m:'sec-d', t:'🔐 Vault', tip:'Encrypted locker: init once, then lock/unlock/list files inside.', d:'Four operations share these three fields; pick an action button. NOTE: backend vault-* CLI commands are not implemented yet — the server currently answers 501 with guidance (TODO vault-cli).', e:'/api/vault/list', b:{vaultPath:'',password:''}, f:[{k:'vaultPath',l:'Vault path',tip:'File path of the vault container.',ph:'D:/vault.fo'},{k:'password',l:'Password',tip:'Never stored; sent per-request only.',ph:''},{k:'file',l:'File (lock) / vaultId+dest (unlock)',tip:'For Lock: file to store. For Unlock: “vaultId|dest”.',ph:'D:/secret.docx'}], s:'List vault', extra:'vault' },
  // ── E · Automate & advanced ──
  { m:'sec-e', t:'⚙ OmniFlow workflows', tip:'Saved trigger→action chains you can re-run on new files.', d:'List shows saved workflows; Run executes one against a payload.', e:'/api/flow/list', get:true, b:null, f:[{k:'workflow_id',l:'Workflow id (to run)',tip:'Copy from the listed workflows.',ph:'sort-photos'},{k:'payload_path',l:'Payload path',tip:'JSON payload file for the run.',ph:'D:/payload.json'}], s:'List workflows', extra:'flow-run' },
- { m:'sec-e', t:'🤖 OmniClerk filing', tip:'Autonomous secretary: files loose documents where they belong.', d:'Always previews in this UI (dry-run).', e:'/api/clerk', b:{paths:[''],dryRun:true}, f:[{k:'paths',l:'Inbox folders',tip:'Unsorted files Clerk should file.',ph:'D:/Downloads'}], s:'Preview filing' },
+ { m:'sec-e', t:'🤖 OmniClerk status', tip:'Shows what the autonomous secretary has already filed. Live filing is a blocking listener, so the dashboard never starts it.', d:'Read-only status (fo_cli clerk status). For live filing run fo_cli clerk start in a terminal.', e:'/api/clerk', b:{}, f:[], s:'Check status' },
  { m:'sec-e', t:'🔮 OmniOracle Q&A', tip:'Ask the filesystem a question in plain language.', d:'Retrieval-augmented answers over your indexed files.', e:'/api/oracle', b:{question:'',paths:[]}, f:[{k:'question',l:'Question',tip:'e.g. Where are the 2023 tax PDFs?',ph:'Where are last year’s invoices?'},{k:'paths',l:'Scope folders (optional)',tip:'Limit the search scope.',ph:'D:/Docs'}], s:'Ask' },
  { m:'sec-e', t:'👁 Folder watcher', tip:'Live Shadow Sorter status: is the daemon watching right now?', d:'Read-only status probe in this UI.', e:'/api/watch/status', get:true, b:null, f:[], s:'Check status' },
  { m:'sec-e', t:'🧩 Modules & providers', tip:'Which scanners/hashers/OCR/classifiers are actually compiled in.', d:'First stop when a Group C card fails — missing module = missing feature.', e:'/api/modules', get:true, b:null, f:[], s:'List modules' },
@@ -176,14 +182,9 @@ function buildSection(sec) {
   btn.onclick = () => {
     out.textContent = 'Running…';
     if (sec.get) {
-      if (sec.extra === 'undo') { api('/api/undo', {}, out, btn); }
-      api(sec.e, undefined, out, btn).then(() => {
-        if (sec.extra === 'undo') return;
-        if (sec.extra === 'ignore-add') return;
-      });
-      if (sec.extra === 'flow-run') {
-        // second button handles run; list is primary
-      }
+      // Primary button only loads/lists. Destructive extras (Undo) fire
+      // solely from their own dedicated button below — never on load.
+      api(sec.e, undefined, out, btn);
     } else {
       const body = collectVals(el, sec);
       if (sec.extra === 'vault') { /* list uses vaultPath+password only */ api(sec.e, { vaultPath: body.vaultPath, password: body.password }, out, btn); }
