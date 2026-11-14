@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.5.3] - 2026-11-14 — Queryable Watcher Status (Last 501 Closed)
+
+### Added
+- **Watcher heartbeat + `watch-status` query** (`cli/fo_cli.cpp`): the
+  blocking `watch` poll loop now publishes `%TEMP%/bobfilez_watch_status.json`
+  (started/heartbeat/events/last_event/paths) every poll; the new
+  non-blocking `watch-status` command reports `watching:true` only while the
+  heartbeat is fresh (≤15s), else `watching:false` (`stale` when expired).
+- `/api/watch/status` now bridges to `watch-status --format=json` (HTTP 200)
+  instead of the blanket 501; the dashboard Folder Watcher card documents
+  starting a watcher in a terminal.
+
+### Verified
+- Live watcher E2E: heartbeat fresh with `events: 0` at baseline, creating a
+  file moved it to `events: 1` with `last_event: NEW …/newfile.txt`; killed
+  watcher correctly decays to not-watching. Wiring tests **9/9**; dashboard
+  smoke (health picks `build-lean`, scan/clerk/oracle/modules/history) 200.
+- Every dashboard bridge is now real: no honest-501 endpoints remain
+  (vault graduated in 6.5.2, watch in 6.5.3).
+
 ## [6.5.2] - 2026-11-14 — Vault End-to-End Proof (AES-256-GCM) + Lean MSVC Lane
 
 ### Added

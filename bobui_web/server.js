@@ -484,9 +484,13 @@ app.post('/api/oracle', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/watch/status', async (req, res) => {
-    // fo_cli watch is a blocking foreground loop (Ctrl+C to stop) with no query
-    // mode; answer 501 until a queryable watcher exists (cf. vault-cli TODO).
-    return res.status(501).json({ error: 'Watch status is not queryable in this build.' });
+    try {
+        // fo_cli watch publishes a heartbeat; watch-status reads it
+        // non-blockingly and reports watching:false when stale/absent.
+        const { stdout } = await runCli(['watch-status', '--format=json'], 30000);
+        try { res.json(JSON.parse(extractJson(stdout) || '{"watching":false}')); }
+        catch { res.json({ watching: false, raw: stdout }); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/quit', async (req, res) => {
     res.json({ success: true, message: 'Shutting down dashboard server' });

@@ -37,9 +37,12 @@ By default, the UI is served at `http://localhost:3131`.
 - **Full dev loop**: `scripts\dev_all.bat` — headless build → `fo_tests.exe`
   → CLI smoke → dashboard wiring tests (`node --test test\` in `bobui_web`)
   → server. Run heavy builds BelowNormal on shared machines.
-- **Honest-off endpoints**: `/api/vault/*` and `/api/watch/status` return
-  501 by design until the `vault-cli` / queryable-watcher work lands
-  (see `TODO.md`); the UI renders these as errors, never as success.
+- **All bridges are real** (as of v6.5.3): `/api/vault/*` call the
+  `vault-*` CLI commands (AES-256-GCM, needs an OpenSSL build such as
+  `build-lean/`), and `/api/watch/status` reads the watcher heartbeat via
+  `watch-status` (start a watcher with `fo_cli watch <folder>` in a
+  terminal). No endpoint answers blanket 501 anymore; genuine failures
+  (e.g. vault on a non-OpenSSL MinGW build) return the CLI error.
 
 ---
 

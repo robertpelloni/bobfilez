@@ -83,7 +83,12 @@ test('vault bridges call the real CLI (no blanket 501)', () => {
   assert.doesNotMatch(srv, /Vault is not wired yet/);
 });
 
-test('watch status stays honest 501 until a queryable watcher exists', async () => {
+test('watch status is queryable (heartbeat bridge, not 501)', async () => {
+  const srv = read('server.js');
+  assert.match(srv, /'watch-status', '--format=json'/);
+  assert.doesNotMatch(srv, /Watch status is not queryable/);
   const w = await fetch('http://localhost:3199/api/watch/status');
-  assert.equal(w.status, 501);
+  assert.equal(w.status, 200);
+  const j = await w.json();
+  assert.equal(typeof j.watching, 'boolean');
 });

@@ -45,6 +45,38 @@ static std::uintmax_t parse_size_string(const std::string& s) {
     return static_cast<std::uintmax_t>(std::stoull(num_part)) * multiplier;
 }
 
+// ── Watcher status heartbeat ─────────────────────────────────────────────
+// `watch` is a blocking poll loop, so other processes cannot ask it for
+// status. Instead the watcher publishes a heartbeat JSON file in the temp
+// dir; `watch-status` (and the dashboard bridge) read it non-blockingly.
+// A heartbeat older than kWatchStaleSec means the watcher is gone.
+static constexpr long long kWatchStaleSec = 15;
+static std::filesystem::path watch_status_path() {
+    return std::filesystem::temp_directory_path() / "bobfilez_watch_status.json";
+}
+static long long unix_now() {
+    return std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+}
+static void write_watch_status(long long started, const std::vector<std::string>& paths,
+                               long long events, const std::string& last_event) {
+    std::ofstream out(watch_status_path(), std::ios::trunc);
+    if (!out) return;
+    auto esc = [](std::string s) { // JSON-safe: forward slashes, no quotes
+        std::replace(s.begin(), s.end(), '\\', '/');
+        s.erase(std::remove(s.begin(), s.end(), '"'), s.end());
+        return s;
+    };
+    out << "{\"watching\":true,\"started\":" << started
+        << ",\"heartbeat\":" << unix_now() << ",\"events\":" << events
+        << ",\"last_event\":\"" << esc(last_event) << "\",\"paths\":[";
+    for (size_t i = 0; i < paths.size(); ++i) {
+        if (i) out << ",";
+        out << "\"" << esc(paths[i]) << "\"";
+    }
+    out << "]}";
+}
+
 // Simple glob matching (supports * and ? wildcards against filename only)
 static bool glob_match(const std::string& pattern, const std::string& text) {
     size_t pi = 0, ti = 0;
@@ -105,6 +137,7 @@ static void print_usage() {
               << "  search       Search files by name, content, or AI (semantic search)\n"
               << "  rename-batch Batch rename files using rule chains\n"
               << "  watch        Real-time directory watcher (Shadow Sorter)\n"
+              << "  watch-status Show watcher status (non-blocking, reads heartbeat)\n"
               << "  flow         Manage OmniFlow automation workflows (list, run)\n"
               << "  clerk        Start OmniClerk autonomous secretary (auto-filing)\n"
               << "  oracle       Ask the filesystem AI a question\n"
@@ -1878,6 +1911,12 @@ int main(int argc, char** argv) {
 
             std::cout << "Baseline: " << file_times.size() << " files indexed\n";
 
+            // Publish heartbeat so `watch-status` / dashboard can query us.
+            const long long watch_started = unix_now();
+            long long watch_events = 0;
+            std::string watch_last = "baseline " + std::to_string(file_times.size()) + " files";
+            write_watch_status(watch_started, paths, watch_events, watch_last);
+
             // Continuous poll loop
             while (true) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(debounce_ms));
@@ -1896,18 +1935,56 @@ int main(int argc, char** argv) {
                     auto it = file_times.find(path);
                     if (it == file_times.end()) {
                         std::cout << "[NEW]      " << path << "\n";
+                        ++watch_events; watch_last = "NEW " + path;
                     } else if (it->second != mtime) {
                         std::cout << "[MODIFIED] " << path << "\n";
+                        ++watch_events; watch_last = "MODIFIED " + path;
                     }
                 }
 
                 for (auto& [path, mtime] : file_times) {
                     if (current.find(path) == current.end()) {
                         std::cout << "[DELETED]  " << path << "\n";
+                        ++watch_events; watch_last = "DELETED " + path;
                     }
                 }
 
                 file_times = std::move(current);
+                write_watch_status(watch_started, paths, watch_events, watch_last);
+            }
+
+        } else if (command == "watch-status") {
+            // ─── Watch Status (non-blocking heartbeat read) ─────────────
+            auto path = watch_status_path();
+            std::ifstream in(path);
+            if (!in) {
+                if (format == "json") std::cout << "{\"watching\":false,\"reason\":\"no watcher heartbeat found\"}";
+                else std::cout << "Watcher: not running (no heartbeat found)\n";
+            } else {
+                std::string raw((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+                auto num = [&](const char* key) -> long long {
+                    auto pos = raw.find(key);
+                    if (pos == std::string::npos) return 0;
+                    try { return std::stoll(raw.substr(pos + std::string(key).size())); } catch (...) { return 0; }
+                };
+                long long heartbeat = num("\"heartbeat\":");
+                long long age = unix_now() - heartbeat;
+                bool fresh = heartbeat > 0 && age <= kWatchStaleSec;
+                if (format == "json") {
+                    // Re-emit with freshness applied (stored watching:true
+                    // is only believable while the heartbeat is fresh).
+                    auto out = raw;
+                    if (!fresh) {
+                        auto p = out.find("\"watching\":true");
+                        if (p != std::string::npos) out.replace(p, 15, "\"watching\":false,\"stale\":true");
+                    }
+                    std::cout << out;
+                } else if (fresh) {
+                    std::cout << "Watcher: running (heartbeat " << age << "s ago, "
+                              << num("\"events\":") << " events)\n";
+                } else {
+                    std::cout << "Watcher: not running (stale heartbeat, " << age << "s old)\n";
+                }
             }
 
         } else if (command == "flow") {

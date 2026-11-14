@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.3 (Queryable Watcher — Last 501 Closed)
+
+## What landed (2026-11-14, cron continuation)
+- **Queryable watcher**: `watch` publishes a temp-dir heartbeat JSON every
+  poll (events + last event); new `watch-status` CLI query + `/api/watch/status`
+  bridge report fresh/stale/absent honestly (200, no 501). Live-verified:
+  file creation moved events 0→1. **No honest-501 bridges remain.**
+- Version **6.5.3**. Lean lane (`build-lean/`) is the verified MSVC build;
+  server picks it as newest. Tests 9/9, dashboard smoke all 200.
+
+## Next
+1. Provider builds for OCR/Classifiers (Media cards badge their absence).
+2. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
+3. Tray custodian badge (IDEAS §6) — duplicate-space in the tray tooltip.
+
+---
 # Session Handoff - v6.5.2 (Vault Proof + Lean MSVC Lane)
 
 ## What landed (2026-11-14, cron continuation)
