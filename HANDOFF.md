@@ -28,9 +28,12 @@
   `cli/fo_cli.cpp:2005/2027` has the dispatch — rebuild required).
 
 ## Open / next (in priority order)
-1. `rebuild-cli` (TODO): rebuild via `scripts/build_headless.bat` (MSVC) or
-   `scripts/build_headless_mingw.bat` (C:/tools lane), BelowNormal, then
-   re-verify Clerk/Oracle cards + `fo_tests.exe`.
+1. ~~`rebuild-cli`~~ DONE same session: MinGW lane rebuilt (`build-mingw/`,
+   w64devkit gcc 15.2, BelowNormal) after restoring `libs/hash-library` +
+   `libs/xxHash` pins; fresh CLI = v6.5.1, live smoke health/scan/clerk/
+   oracle/modules/history all 200, wiring tests 7/7. Server now picks the
+   newest-built CLI by mtime. `fo_tests` not rebuilt (no `tests/` tree in
+   this checkout); stale MSVC binary passes 436/437.
 2. `vault-cli`, `watch-status`, `submodule-blake3` (pre-existing TODO items).
 3. Do NOT stage `libs/*` gitlink drift (160+ submodules show modified);
    commit explicit paths only.

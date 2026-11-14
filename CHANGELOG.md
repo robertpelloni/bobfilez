@@ -1,5 +1,41 @@
 # Changelog
 
+## [6.5.1] - 2026-11-14 — Dashboard Wiring Fixes + Script Archive + Governance Docs
+
+### Fixed
+- **History card no longer undoes on load** (`bobui_web/public/unified.html`):
+  the primary GET button fired `POST /api/undo` before loading history.
+  Undo now fires only from its dedicated danger button.
+- **HTTP errors are no longer logged as OK**: `api()` checks `r.ok`; 501/500
+  responses (vault, watch) render as `ERROR (status): …` and log FAIL.
+- **Clerk/Oracle bridges match the real CLI grammar** (`bobui_web/server.js`):
+  `clerk --format=json <paths>` always usage-errored (CLI accepts only
+  `clerk start|status`); the bridge now runs the honest `clerk status`
+  probe and the card is relabeled *OmniClerk status*. `oracle` now forwards
+  the bare question (CLI prints plain text, has no `--format=json` mode).
+- **Tray icon polled dead routes** (`bobui_web/tray.py`): health used
+  `/health` and quit used `/quit`; both now use `/api/health` / `/api/quit`.
+- Server prefers the **newest-built** CLI binary (`pickCli` by mtime) so a
+  stale `build-msvc` (v6.3.0) no longer shadows a fresh `build-mingw`.
+- `bobui_web/start-server.bat`: defaults `PORT=3131` when unset.
+
+### Added
+- Search card + `/api/search` forward wildcard/case/whole-word/invert/max-results.
+- Durable dashboard tests (`bobui_web/test/wiring.test.js`, 7 tests incl.
+  live health + honest-501 + newest-CLI picker), wired into `scripts/dev_all.bat`.
+- `VISION.md` (was missing). Archived 20 root `patch_*.py`/`fix_*.py`
+  one-shots to `scripts/archive/root-helpers/`. Refreshed ROADMAP/TODO/
+  MEMORY/DEPLOY/IDEAS/HANDOFF for v6.5.1.
+
+### Verified this session (2026-11-14, heavy processes BelowNormal)
+- MinGW rebuild (`build-mingw/`, w64devkit gcc 15.2) after restoring
+  `libs/hash-library` + `libs/xxHash` pins: fresh `fo_cli` = **v6.5.1**,
+  `clerk status` exit 0. Live smoke: health/scan/clerk/oracle/modules/
+  history all **200**, `/api/quit` clean, log error-free. Tests **7/7**.
+- Stale MSVC `fo_tests.exe`: **436 passed, 1 skipped** (not rebuilt — this
+  checkout has no `tests/` tree). Honest gaps remain: OCR/Classifiers/
+  Perceptual-Hash providers empty; vault + watch/status stay 501 by design.
+
 ## [6.5.0] - 2026-11-03 — MinGW Lane Builds + Exit-Crash Fix + Verified Bridges
 
 ### Added

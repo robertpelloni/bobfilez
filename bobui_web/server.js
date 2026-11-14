@@ -12,7 +12,20 @@ const CLI_CANDIDATES = [
     path.resolve(__dirname, '..', 'build', 'cli', 'fo_cli.exe'),
     path.resolve(__dirname, '..', 'build-mingw', 'cli', 'fo_cli.exe')
 ];
-const CLI = CLI_CANDIDATES.find(fs.existsSync) || CLI_CANDIDATES[0];
+// Prefer the most recently built binary: a stale build-msvc tree must not
+// shadow a fresh build-mingw one (bit us when build-msvc was still v6.3.0
+// while source was v6.5.1 and clerk/oracle dispatch was missing).
+function pickCli(candidates) {
+    let best = null, bestMtime = -1;
+    for (const c of candidates) {
+        try {
+            const m = fs.statSync(c).mtimeMs;
+            if (m > bestMtime) { bestMtime = m; best = c; }
+        } catch { /* candidate not built */ }
+    }
+    return best || candidates[0];
+}
+const CLI = pickCli(CLI_CANDIDATES);
 
 function runCli(args, timeout = 120000) {
     if (!fs.existsSync(CLI)) {
