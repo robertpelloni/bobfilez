@@ -23,6 +23,24 @@ npm start
 ```
 By default, the UI is served at `http://localhost:3131`.
 
+- **Primary page (open this)**: `http://localhost:3131/unified.html` — every
+  workflow on one value-ordered page (A Essentials → E Automate), each card
+  with label + ⓘ tooltip, one shared activity log. Classic shell demo (`/`)
+  and legacy React tabs (`/react/`) are linked from its footer only.
+- **One-command start**: `bobui_web\start-server.bat` (defaults `PORT=3131`).
+- **System tray**: `bobui_web\tray.bat` (or `python bobui_web\tray.py`) puts
+  bobfilez in the Windows notification area — Open unified dashboard, Server
+  status, Restart server, Open logs folder, **Quit server + tray** (posts
+  `/api/quit`; the dashboard header has the same Quit). Needs `pystray` +
+  `Pillow`; without them it falls back to a small tkinter window with the
+  same actions.
+- **Full dev loop**: `scripts\dev_all.bat` — headless build → `fo_tests.exe`
+  → CLI smoke → dashboard wiring tests (`node --test test\` in `bobui_web`)
+  → server. Run heavy builds BelowNormal on shared machines.
+- **Honest-off endpoints**: `/api/vault/*` and `/api/watch/status` return
+  501 by design until the `vault-cli` / queryable-watcher work lands
+  (see `TODO.md`); the UI renders these as errors, never as success.
+
 ---
 
 ## 3. Native GUI (BobUI / Qt6 Framework)

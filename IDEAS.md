@@ -29,3 +29,11 @@ Bobfilez is a high-performance C++/Qt file organization engine. To move from "Lo
 - **Smart Pruning**: Identify and suggest the removal of old, obsolete versions of software installers and large temporary files.
 - **Deduplication Mode "Media"**: A specialized scanning mode that automatically switches to video hashing (vhash) and audio fingerprinting (afingerprint) instead of byte-for-byte hashing, natively finding logically identical but technically distinct media files across an entire drive.
 - **Live Folders**: Virtual folders implemented via `RuleEngine` that constantly auto-organize matching files into them, without physically moving them, allowing the user to browse semantic groups dynamically.
+
+## 6. Dashboard & Custodian Pivots (2026-11-14)
+- **Tray-resident custodian**: promote `tray.py` from launcher to agent — badge the tray icon with duplicate-space reclaimable, watch health, and one-click *Preview cleanup* that opens the unified page pre-filtered to Group D dry-runs.
+- **Queryable watcher**: give `fo_cli watch` a `--status-socket`/named-pipe mode so `/api/watch/status` graduates from honest 501 to live Shadow Sorter telemetry (files whisked today, by rule).
+- **Vault CLI completion**: wire `vault-init|lock|unlock|list` to `VaultManager` (OpenSSL) so Group D's Vault card graduates from 501 — the UI, bridge, and fields already exist and are tested for honesty.
+- **Provider-aware UI**: render `--modules` output as capability chips on each Media & AI card (OCR/classify grey out with the exact missing provider named), instead of failing after submit.
+- **Cross-surface parity contract**: generate the dashboard card list, BobGUI panels, and Qt tabs from one machine-readable workflow manifest (endpoint, CLI grammar, dry-run default) so a CLI command can never again ship without a UI card — or ship a card with the wrong grammar (the clerk/oracle bug class).
+- **Go/Rust sidecar port**: prototype the scan+hash hot path as a single-file sidecar binary the Express bridge can prefer when present, keeping C++ `fo_core` canonical; measure with `benchmarks/` before committing to any port.

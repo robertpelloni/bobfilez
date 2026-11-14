@@ -1,3 +1,41 @@
+# Session Handoff - v6.5.1 (Dashboard Wiring Fixes + Script Archive + Governance)
+
+## What landed (2026-11-14, Muse Code / muse-wonder-1.0)
+- **Dashboard wiring fixes** (`bobui_web/`): History primary button no longer
+  fires `/api/undo` on load; `api()` surfaces HTTP errors (501 vault/watch
+  now render as errors, not OK); Clerk bridge runs real `clerk status`
+  grammar (card relabeled *OmniClerk status* — `clerk start` blocks forever,
+  terminal-only); Oracle forwards the bare question; Search forwards
+  wildcard/case/whole-word/invert/max-results; tray polls `/api/health` +
+  quits via `/api/quit` (was dead `/health` + `/quit`); `start-server.bat`
+  defaults `PORT=3131`.
+- **Durable tests**: `bobui_web/test/wiring.test.js` (`node --test test/`,
+  6 tests incl. live health + honest-501) wired into `scripts/dev_all.bat`.
+- **Scripts cleanup (nondestructive)**: 20 root `patch_*.py`/`fix_*.py`
+  one-shots `git mv`'d to `scripts/archive/root-helpers/` (see
+  `scripts/README.md`). Canonical entrypoints unchanged.
+- **Governance**: created missing `VISION.md`; refreshed `ROADMAP.md`
+  (status v6.5.1), `TODO.md` (+`rebuild-cli`), `MEMORY.md`, `DEPLOY.md`
+  (unified page + tray + tests), `IDEAS.md` (§6 pivots), `CHANGELOG.md`.
+  Version: `VERSION.md` + `version.hpp` → **6.5.1**.
+
+## Verified this session
+- `node --test test/` in `bobui_web`: 6/6 pass (live server on :3199).
+- `build-msvc/cli/fo_cli.exe --help` exit 0 but banner **v6.3.0** (stale);
+  `--modules`: Scanners gdrive/std/win32/dirent/s3/azure, Hashers
+  fast64/sha256/xxhash/blake3/dhash, Metadata tinyexif, **OCR/Classifiers
+  empty**. `clerk`/`oracle` = Unknown command on this binary (source in
+  `cli/fo_cli.cpp:2005/2027` has the dispatch — rebuild required).
+
+## Open / next (in priority order)
+1. `rebuild-cli` (TODO): rebuild via `scripts/build_headless.bat` (MSVC) or
+   `scripts/build_headless_mingw.bat` (C:/tools lane), BelowNormal, then
+   re-verify Clerk/Oracle cards + `fo_tests.exe`.
+2. `vault-cli`, `watch-status`, `submodule-blake3` (pre-existing TODO items).
+3. Do NOT stage `libs/*` gitlink drift (160+ submodules show modified);
+   commit explicit paths only.
+
+---
 # Session Handoff - v6.5.0 (MinGW Lane + Exit-Crash Fix + Verified Bridges)
 
 ## What landed (2026-11-03, this turn)
