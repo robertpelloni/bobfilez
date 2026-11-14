@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.5 (All Providers Live)
+
+## What landed (2026-11-14, cron continuation)
+- **OCR live — provider matrix complete**: Tesseract 5.5.2 (vcpkg, 40 min)
+  in `build-lean-deps`; real `recognize` implemented in the providers/
+  Tesseract class (was placeholder), explicit registration, `::tesseract::`
+  shadowing fix. `--modules`: OCR tesseract · Classifiers onnx ·
+  Perceptual opencv · Vault OpenSSL — **no empty rows, no badged cards**.
+  Verified CLI + HTTP ("Hello bobfilez OCR 2028"). Server needs
+  `TESSDATA_PREFIX=…\build-lean-deps\x64-windows\share\tessdata`.
+- Version **6.5.5**.
+
+## Next
+1. Softmax in classifier postprocess (confidences are raw logits today).
+2. Full manifest `build-msvc` rebuild only with ample disk + short vcpkg path.
+3. C++ `fo_tests` rebuild needs a restored `tests/` tree (absent here).
+
+---
 # Session Handoff - v6.5.4 (Classify Provider Live)
 
 ## What landed (2026-11-14, cron continuation)

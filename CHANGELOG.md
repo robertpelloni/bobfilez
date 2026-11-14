@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.5.5] - 2026-11-14 — OCR Provider Live (All Providers Populated)
+
+### Added
+- **Tesseract OCR provider**: vcpkg Tesseract 5.5.2 chain (15 packages)
+  into `build-lean-deps`, `eng.traineddata` staged, provider DLLs
+  sidecarred next to the lean `fo_cli.exe`. `--modules` now shows every
+  row populated: OCR tesseract, Classifiers onnx, Perceptual opencv.
+
+### Fixed
+- `providers/tesseract` provider was a **placeholder** (`recognize` always
+  returned nullopt) with only a TU-local static registration. Implemented
+  real OCR (TessBaseAPI + leptonica, `TESSDATA_PREFIX` discovery,
+  mean-confidence) and explicit `register_ocr_tesseract()` called from
+  `register_all_providers()`; fixed the latent `tesseract::` namespace
+  shadowing that prevented it ever compiling with `FO_HAVE_TESSERACT`.
+
+### Verified
+- CLI OCR on a rendered text image returns its text; dashboard
+  `POST /api/ocr` returns 200 with the same text (server started with
+  `TESSDATA_PREFIX` pointing at the staged tessdata). Wiring tests pass.
+
 ## [6.5.4] - 2026-11-14 — Classify Provider Live (Prebuilt ONNX + OpenCV)
 
 ### Added
