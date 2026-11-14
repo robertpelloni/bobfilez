@@ -26,6 +26,22 @@ def health():
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
+def status_summary():
+    """One-line custodian status for tray notifications/tooltips."""
+    h = health()
+    if not h.get("ok"):
+        return "OFFLINE: " + str(h.get("error", "?"))[:100]
+    line = "ONLINE: " + str(h.get("cli", "?"))
+    try:
+        w = json.loads(api("/api/watch/status"))
+        if w.get("watching"):
+            line += f" | watcher ON ({w.get('events', 0)} events)"
+        else:
+            line += " | watcher off"
+    except Exception:
+        pass
+    return line
+
 server_proc = None
 
 def start_server():
@@ -61,8 +77,7 @@ def run_tk():
     w = tk.Tk(); w.title("bobfilez tray (fallback)"); w.geometry("320x260")
     st = tk.StringVar(value="status: unknown")
     def refresh():
-        h = health()
-        st.set("status: " + ("ONLINE " + str(h.get("cli", "")) if h.get("ok") else "OFFLINE " + str(h.get("error", ""))[:80]))
+        st.set("status: " + status_summary()[:120])
     tk.Label(w, text="bobfilez dashboard").pack(pady=6)
     tk.Label(w, textvariable=st, wraplength=300).pack(pady=6)
     for label, fn in [
@@ -85,8 +100,7 @@ def run_pystray():
     def item_open(icon, _): webbrowser.open(BASE + "/unified.html")
     def item_react(icon, _): webbrowser.open(BASE + "/react/")
     def item_status(icon, _):
-        h = health()
-        icon.notify("ONLINE: " + str(h.get("cli", "?")) if h.get("ok") else "OFFLINE: " + str(h.get("error", "?"))[:120])
+        icon.notify(status_summary())
     def item_restart(icon, _): stop_server(); start_server(); icon.notify("server restarted")
     def item_logs(icon, _): open_logs()
     def item_quit(icon, _): stop_server(); icon.stop()
