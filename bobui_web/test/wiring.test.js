@@ -39,6 +39,14 @@ test('server prefers the newest CLI build, not the first existing one', () => {
   assert.match(srv, /mtimeMs/);
 });
 
+test('media cards declare their provider and get badged when missing', () => {
+  const html = read('public/unified.html');
+  assert.match(html, /needs:'OCR'/);
+  assert.match(html, /needs:'Classifiers'/);
+  assert.match(html, /data-needs/);
+  assert.match(html, /no ' \+ name \+ ' provider/);
+});
+
 test('dashboard surfaces HTTP errors instead of logging OK', () => {
   const html = read('public/unified.html');
   assert.match(html, /if \(!r\.ok\)/);

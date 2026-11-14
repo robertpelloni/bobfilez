@@ -127,11 +127,11 @@ const SECTIONS = [
  { m:'sec-b', t:'📤 Export', tip:'Dumps the current view to JSON, CSV or HTML for reports.', d:'Exports scan-shaped results of the given folders.', e:'/api/export', b:{paths:[''],format:'json'}, f:[{k:'paths',l:'Folders to export',tip:'Same scope you would scan.',ph:'D:/Photos'},{k:'format',l:'Format',tip:'json for tooling, csv for spreadsheets, html for sharing.',type:'select',opts:['json','csv','html']}], s:'Export' },
  { m:'sec-b', t:'🔢 Quick count', tip:'Fast “how many files?” without full detail rows.', d:'Cheapest call on this page — use it to sanity-check a path first.', e:'/api/count', b:{paths:['']}, f:[{k:'paths',l:'Folders to count',tip:'Returns a single integer.',ph:'D:/Photos'}], s:'Count' },
  // ── C · Media & AI ──
- { m:'sec-c', t:'🔤 OCR (text in images)', tip:'Extracts printed text from pictures and scans.', d:'Requires the OCR module; check Group E → Modules if it fails.', e:'/api/ocr', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'PNG/JPG/TIFF screenshots, scans, photos of documents.',ph:'D:/Scans'}], s:'Extract text' },
+ { m:'sec-c', t:'🔤 OCR (text in images)', tip:'Extracts printed text from pictures and scans.', d:'Requires the OCR module; check Group E → Modules if it fails.', needs:'OCR', e:'/api/ocr', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'PNG/JPG/TIFF screenshots, scans, photos of documents.',ph:'D:/Scans'}], s:'Extract text' },
  { m:'sec-c', t:'🖼 Similar images', tip:'Perceptual matching: finds look-alikes, not just byte copies.', d:'Threshold controls strictness (lower = stricter).', e:'/api/similar', b:{paths:[''],threshold:10}, f:[{k:'paths',l:'Folders to compare',tip:'Images compared pairwise by perceptual hash.',ph:'D:/Photos'},{k:'threshold',l:'Threshold',tip:'Max hamming distance. 5–10 is a good starting range.',ph:'10'}], s:'Find look-alikes' },
  { m:'sec-c', t:'🎬 Video fingerprint', tip:'Perceptual hash for video — matches re-encodes and clips.', d:'Heavier than image hashing; run on small sets first.', e:'/api/vhash', b:{paths:['']}, f:[{k:'paths',l:'Videos or folders',tip:'Video files to fingerprint.',ph:'D:/Videos'}], s:'Fingerprint video' },
  { m:'sec-c', t:'🎵 Audio fingerprint', tip:'Identifies audio by content, not by filename or tag.', d:'Useful for de-duping music libraries with messy tags.', e:'/api/afingerprint', b:{paths:['']}, f:[{k:'paths',l:'Audio files or folders',tip:'MP3/FLAC/WAV collections.',ph:'D:/Music'}], s:'Fingerprint audio' },
- { m:'sec-c', t:'🤖 AI classify', tip:'Labels images with an on-device classifier (needs models).', d:'First run may download models — see scripts/download_models.py.', e:'/api/classify', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'Pictures to label.',ph:'D:/Photos'}], s:'Classify' },
+ { m:'sec-c', t:'🤖 AI classify', tip:'Labels images with an on-device classifier (needs models).', d:'First run may download models — see scripts/download_models.py.', needs:'Classifiers', e:'/api/classify', b:{paths:['']}, f:[{k:'paths',l:'Images or folders',tip:'Pictures to label.',ph:'D:/Photos'}], s:'Classify' },
  { m:'sec-c', t:'🔄 Convert', tip:'Re-encodes files via FFmpeg/ImageMagick/Pandoc when installed.', d:'Specify target extension; failures name the missing external tool.', e:'/api/convert', b:{files:[''],to:''}, f:[{k:'files',l:'Files (comma-separated)',tip:'Source files to convert.',ph:'D:/a.wav'},{k:'to',l:'Target format',tip:'Extension without dot, e.g. mp3, png, pdf.',ph:'mp3'}], s:'Convert' },
  // ── D · Organize & protect ──
  { m:'sec-d', t:'✏️ Rename (preview)', tip:'Renames using a {pattern}. Always previews first.', d:'Pattern tokens like {year}_{name}.{ext}. Uncheck Preview to apply.', e:'/api/rename', b:{paths:[''],pattern:'',dryRun:true}, f:[{k:'paths',l:'Folders to rename in',tip:'Files directly affected by the pattern.',ph:'D:/Photos'},{k:'pattern',l:'Rename pattern',tip:'e.g. {year}_{name}.{ext}.',ph:'{year}_{name}.{ext}'},{k:'dryRun',l:'Preview only (recommended)',tip:'Uncheck to actually rename.',type:'check',def:true}], s:'Preview rename' },
@@ -171,6 +171,7 @@ function collectVals(secEl, sec) {
 }
 function buildSection(sec) {
   const el = document.createElement('section'); el.className = 'card';
+  if (sec.needs) el.dataset.needs = sec.needs;
   const h = document.createElement('h3'); h.textContent = sec.t + ' ';
   const tip = document.createElement('span'); tip.className = 'tip'; tip.textContent = 'ⓘ'; tip.title = sec.tip; h.appendChild(tip); el.appendChild(h);
   const d = document.createElement('p'); d.className = 'desc'; d.textContent = sec.d; el.appendChild(d);
@@ -219,6 +220,23 @@ function buildSection(sec) {
   return el;
 }
 SECTIONS.forEach(sec => { $('#' + sec.m).appendChild(buildSection(sec)); });
+// Provider-aware cards: ask /api/modules which providers are compiled in and
+// badge (never silently fail) any card whose provider list is empty.
+fetch('/api/modules').then(r => r.json()).then(j => {
+  const raw = (j && j.raw) || '';
+  document.querySelectorAll('[data-needs]').forEach(el => {
+    const name = el.dataset.needs;
+    const m = raw.match(new RegExp(name + ':\\s*([^\\r\\n]*)'));
+    const providers = m ? m[1].trim() : '';
+    if (!providers) {
+      const b = document.createElement('span');
+      b.className = 'badge bad'; b.textContent = '⚠ no ' + name + ' provider in this build';
+      b.title = 'This card needs a ' + name + ' provider, but fo_cli --modules reports none. Build with the provider enabled (see Group E → Modules) — submitting will fail honestly until then.';
+      el.querySelector('h3').appendChild(document.createTextNode(' ')); el.querySelector('h3').appendChild(b);
+      log('Modules: no ' + name + ' provider — related card badged.', 'e');
+    }
+  });
+}).catch(() => {});
 fetch('/api/health').then(r=>r.json()).then(j => {
   const h = $('#health');
   const ok = j && (j.cliExists || j.ok);
