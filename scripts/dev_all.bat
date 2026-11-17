@@ -7,6 +7,6 @@ call scripts\build_headless.bat || exit /b %errorlevel%
 .\build-msvc\tests\fo_tests.exe || exit /b %errorlevel%
 .\build-msvc\cli\fo_cli.exe --help || exit /b %errorlevel%
 echo [dev_all] build+tests OK - verifying dashboard wiring...
-cd bobui_web && node --test test/ || exit /b %errorlevel%
+cd bobui_web && node --test test/wiring.test.js || exit /b %errorlevel%
 echo [dev_all] dashboard wiring OK - starting dashboard at http://localhost:3131/unified.html ...
 node server.js

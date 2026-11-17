@@ -1,5 +1,38 @@
 # Changelog
 
+## [6.5.7] - 2026-11-16 — Full Manifest Parity + Dashboard Coverage Completion
+
+### Added
+- Unified dashboard cards for **Provider directory**, **Autonomous services**
+  (AutoDev/Sync status + Sync history), and **Forensic audit ledger**
+  availability, all with descriptive labels and guidance tooltips.
+- Server bridges `/api/providers`, `/api/download-models`,
+  `/api/autodev/status`, `/api/sync/status`, and `/api/sync/history`.
+- Video/audio media cards now declare their optional provider requirements
+  and are badged from `/api/providers` when a build lacks them.
+
+### Fixed
+- Full manifest `build-msvc` binary now supplements the vcpkg manifest with
+  the verified lean provider prefix and sidecars its DLLs, so the newest
+  binary no longer silently loses OCR/OpenCV/ONNX while gaining cloud
+  scanners. `build_headless.bat` also selects an installed PowerShell for
+  vcpkg's applocal step instead of trusting a stale preview path.
+- `/api/audit` no longer returns fabricated empty history; it returns an
+  honest 501 explaining that the core audit table has no CLI query yet.
+- `scripts/dev_all.bat` invokes `node --test test/wiring.test.js` explicitly
+  (the directory form fails on current Node), and the duplicate destructive
+  `scripts/build_with_env.bat` was archived.
+
+### Verified
+- `scripts/build_headless.bat` completes; manifest `fo_cli --modules` shows
+  cloud scanners plus OCR/Classifiers/Perceptual OpenCV. The existing
+  `fo_tests.exe` binary passes 436 tests with 1 model-dependent skip, but it
+  predates this source tree because no `tests/` directory is tracked here.
+- Dashboard wiring tests pass 13/13. Live HTTP smoke covers health, page,
+  providers, model help, AutoDev/Sync status/history, audit honesty,
+  modules, scan, OCR, Classify, watcher, and quit. Tray starts the server,
+  health succeeds, and quit stops it.
+
 ## [6.5.6] - 2026-11-14 — Classifier Softmax Confidences
 
 ### Fixed

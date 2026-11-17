@@ -61,4 +61,11 @@ if errorlevel 1 exit /b %errorlevel%
 
 echo [INFO] Building headless targets...
 cmake --build build-msvc --parallel 2
-exit /b %errorlevel%
+if errorlevel 1 exit /b %errorlevel%
+
+REM CMake/vcpkg only sidecars DLLs from the manifest install tree. Copy the
+REM supplemented lean-provider DLLs beside fo_cli.exe or Windows fails before
+REM main with STATUS_DLL_NOT_FOUND when OCR/OpenCV/ONNX code is linked in.
+if exist "build-lean-deps\x64-windows\bin\*.dll" copy /Y "build-lean-deps\x64-windows\bin\*.dll" "build-msvc\cli\" >nul
+if exist "build-lean-deps\opencv\x64\vc16\bin\*.dll" copy /Y "build-lean-deps\opencv\x64\vc16\bin\*.dll" "build-msvc\cli\" >nul
+exit /b 0

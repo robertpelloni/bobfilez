@@ -4,13 +4,17 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 
 ---
 
-## Current Status (v6.5.1, 2026-11-14)
+## Current Status (v6.5.7, 2026-11-16)
 
 > Version truth: `VERSION.md`. The dashboard is consolidated on one page
 > (`bobui_web/public/unified.html`, groups A–E by value) with a system-tray
-> host (`bobui_web/tray.py`, Quit via `/api/quit`). Stale-binary warning:
-> the checked-out `build-msvc` CLI still reports v6.3.0 — rebuild before
-> relying on `clerk`/`oracle` (source dispatch exists in `cli/fo_cli.cpp`).
+> host (`bobui_web/tray.py`, Quit via `/api/quit`). Both verified MSVC lanes
+> now report the source version: `build-lean` for the provider-complete local
+> lane and `build-msvc` for the full vcpkg/cloud lane supplemented by the
+> lean provider prefix. Remaining structural work is a persistent forensic
+> audit query, optional FFmpeg/Chromaprint media-analysis providers, a
+> tracked C++ `tests/` tree, and a dedicated unrelated-history decision for
+> `upstream/master` (it has no merge base with `main`).
 
 ## Current Status (v2.4.2, historical)
 

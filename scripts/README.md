@@ -4,8 +4,8 @@ Recommended entry points (everything else is a special case):
 
 | Script | Purpose |
 |---|---|
-| `build_headless.bat` | **Default build.** Verified MSVC+Ninja fallback, GUI/Omni off, tests+bench on → `build-msvc/` |
-| `dev_all.bat` | One-shot: headless build → `fo_tests.exe` → CLI smoke test → dashboard server |
+| `build_headless.bat` | **Default build.** Verified MSVC+Ninja build, GUI/Omni off, bench on → `build-msvc/`; supplements the manifest with `build-lean-deps` providers when present and sidecars their DLLs |
+| `dev_all.bat` | One-shot: headless build → surviving `fo_tests.exe` (if present) → CLI smoke → dashboard wiring tests → dashboard server |
 | `repo_status.py` | Tracked-only `git status` (avoids Windows long-path warning noise) |
 | `download_models.py` | Fetch optional AI models (classify/OCR) |
 | `generate_dashboard.py` | Regenerate `docs/SUBMODULES.md` dashboard |
@@ -21,6 +21,7 @@ Nondestructive attic for superseded entry points (kept in git history via `git m
 - `build_limited.bat` (ex-root) — hardcoded VS2019 path, built stale `build/` dir, ran one test. Superseded by `build_headless.bat`.
 - `build_fuzz.bat` (ex-root) — old fuzz flags (`FO_BUILD_FUZZ_TESTS`) into stale `build/` dir. Superseded by `build_fuzzer.bat` (`FO_BUILD_FUZZERS` → `build_fuzz/`).
 - `root-helpers/` — 20 one-shot `patch_*.py` / `fix_*.py` scripts formerly cluttering the repo root (archived 2026-11-14, contents preserved verbatim). They patched one historical build break each; do not re-run against current sources.
+- `build_with_env.bat` — duplicate of `build_headless.bat` that deleted the legacy `build/` tree before configuring. Archived 2026-11-16; use `build_headless.bat`, which builds incrementally in `build-msvc/`.
 
 Do not delete: they document the migration path. Do not revive without updating paths/flags.
 

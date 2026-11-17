@@ -43,7 +43,11 @@ test('media cards declare their provider and get badged when missing', () => {
   const html = read('public/unified.html');
   assert.match(html, /needs:'OCR'/);
   assert.match(html, /needs:'Classifiers'/);
+  assert.match(html, /needs:'Perceptual Hash'/);
+  assert.match(html, /needs:'Video Hash'/);
+  assert.match(html, /needs:'Audio Fingerprint'/);
   assert.match(html, /data-needs/);
+  assert.match(html, /\/api\/providers/);
   assert.match(html, /no ' \+ name \+ ' provider/);
 });
 
@@ -89,6 +93,8 @@ test('manifest build supplements vcpkg with the verified lean provider prefix', 
   assert.match(build, /Z_VCPKG_PWSH_PATH/);
   assert.match(build, /build-lean-deps\/x64-windows|build-lean-deps\\x64-windows/);
   assert.match(build, /OpenCV_DIR/);
+  assert.match(build, /build-lean-deps\\x64-windows\\bin\\\*\.dll/);
+  assert.match(build, /build-lean-deps\\opencv\\x64\\vc16\\bin\\\*\.dll/);
 });
 
 test('providers and autonomous service status bridges are wired', () => {
@@ -107,6 +113,11 @@ test('providers and autonomous service status bridges are wired', () => {
   assert.match(html, /Provider directory/);
   assert.match(html, /Autonomous services/);
   assert.match(html, /Forensic audit ledger/);
+});
+
+test('dev_all invokes the maintained wiring test file explicitly', () => {
+  const devAll = fs.readFileSync(path.join(root, '..', 'scripts', 'dev_all.bat'), 'utf8');
+  assert.match(devAll, /node --test test\/wiring\.test\.js/);
 });
 
 test('audit bridge never returns fabricated empty history', () => {

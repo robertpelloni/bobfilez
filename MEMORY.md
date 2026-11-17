@@ -1,5 +1,11 @@
 # Memory: Observations & Design Preferences
 
+## Observations (2026-11-16, v6.5.7)
+- **Newest binary is not automatically the best binary**: the dashboard picks the newest `fo_cli.exe`, so a fresh cloud-only manifest build can shadow the provider-complete lean build. `build_headless.bat` now supplements the manifest with `build-lean-deps` and sidecars its DLLs; verify `--modules`, not timestamps alone.
+- **Provider completeness is a configure-time matrix**: cloud scanners come from the vcpkg manifest, while OCR/OpenCV/ONNX can come from the lean prefix in the same binary. Video/audio hash providers remain behind the opt-in `media-analysis` feature and must be badged until enabled.
+- **No fake empty results**: `/api/audit` once returned `{history: []}` for an unimplemented ledger query. That is worse than a 501; unavailable backend queries must say so and point to the closest real surface (`/api/history`).
+- **`main` and `upstream/master` are unrelated histories**: fetch showed 73/62 divergent commits and `git merge-base` fails. Treat upstream synchronization as an explicit import/replacement decision, not a routine merge.
+
 ## Observations (2026-11-14, v6.5.1)
 - **One-page dashboard is the web truth**: `bobui_web/public/unified.html` (groups A–E by value, ⓘ tooltips, shared activity log) supersedes fragmented tab/page UIs; classic (`/`) and React (`/react/`) remain linked legacy lanes only.
 - **Tray = server lifecycle**: `bobui_web/tray.py` (pystray, tkinter fallback) owns Open/Status/Restart/Logs/Quit; Quit posts `/api/quit`. Health route is `/api/health` (the bare `/health` polling bug shipped until v6.5.1).

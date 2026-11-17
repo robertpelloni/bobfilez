@@ -1,3 +1,35 @@
+# Session Handoff - v6.5.7 (Manifest Parity + Coverage Completion)
+
+## What landed (2026-11-16)
+- **Full manifest parity**: `scripts/build_headless.bat` completes and now
+  supplements the vcpkg manifest with the verified lean provider prefix,
+  sidecars its DLLs, and selects an installed PowerShell for vcpkg applocal.
+  Manifest `fo_cli --modules` shows cloud scanners plus OCR, ONNX Classify,
+  and OpenCV perceptual hash in one v6.5.7 binary.
+- **Dashboard coverage completed**: Provider Directory, model-setup help,
+  AutoDev/Sync status + Sync history, and Forensic Audit availability cards
+  were added to the one-page dashboard. `/api/audit` no longer fabricates
+  empty history; it honestly returns 501 pending a persistent CLI query.
+  Video/audio cards now badge missing optional media-analysis providers.
+- **Verification**: wiring tests 13/13; full HTTP smoke passed health,
+  page, providers, model help, AutoDev/Sync, audit honesty, modules, scan,
+  OCR, Classify, watcher, and quit. Tray started the server, health passed,
+  and `/api/quit` stopped it. Existing `fo_tests.exe`: 436 passed, 1 skipped
+  (stale binary; no tracked `tests/` tree in this checkout).
+- **Scripts**: duplicate destructive `build_with_env.bat` archived;
+  `dev_all.bat` now calls the maintained wiring test file explicitly.
+
+## Blockers / next
+1. Implement persistent `audit` CLI query, then wire `/api/audit` for real.
+2. Decide on opt-in FFmpeg/Chromaprint `media-analysis` build for vhash/audio.
+3. Restore/recreate tracked C++ `tests/`; do not treat stale `fo_tests.exe`
+   as current-source proof.
+4. `upstream/master` has no merge base with `main` (73/62 divergent commits);
+   owner must choose separate/import/replace rather than a blind merge.
+5. Direct push still depends on the host credential path; the Protocol
+   daemon has been sweeping and pushing local commits during this session.
+
+---
 # Session Handoff - v6.5.5 (All Providers Live)
 
 ## What landed (2026-11-14, cron continuation)
