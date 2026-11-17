@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.19] - 2026-11-17 — Root Artifact-Dir Cleanup
+
+### Changed
+- **`.gitignore` covers the probe/demo build trees** (`temp_btk_probe/`,
+  `build-bobui-gui*/`, `build-btk/`, `build-headless/`, `undefined/`,
+  `{extension}/`) so `git status` stays readable; nothing was deleted,
+  and content dirs (`filez-java/`, `submodules/`) were deliberately left
+  visible. Several of these dirs also have historically tracked files —
+  the ignore rules do not untrack those. Qt MinGW lane re-verified this
+  session (rebuild + offscreen launch at v6.5.18 source).
+  Suites: lean ctest **23/23**, JUCE-tree ctest **20/20**, wiring **18/18**.
+
 ## [6.5.18] - 2026-11-17 — Dashboard Ignore-Rule Removal
 
 ### Added

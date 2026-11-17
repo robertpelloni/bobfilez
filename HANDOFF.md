@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.19 (Root Artifact-Dir Cleanup)
+
+## What landed (2026-11-17, continuation)
+- `.gitignore` now covers the untracked probe/demo build trees
+  (188 MB `temp_btk_probe/` etc.); nothing deleted. Qt MinGW lane
+  rebuilt + launch-verified offscreen against current core.
+- Version **6.5.19**. Suites: lean **23/23**, JUCE **20/20**,
+  wiring **18/18**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 still lock
+  `build-msvc/tests`; stop them where possible, then rerun
+  `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+- Root still has tracked generated files inside several build dirs
+  (daemon sweeps); untracking them is a separate, deliberate change.
+
+---
 # Session Handoff - v6.5.18 (Dashboard Ignore-Rule Removal)
 
 ## What landed (2026-11-17, continuation)
