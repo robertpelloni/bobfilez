@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.5.17] - 2026-11-17 — Test Runtime-DLL Resolution Fixed
+
+### Fixed
+- **gtest discovery failed in `build-msvc`** (`0xc0000135`): the
+  `fo_tests` post-build copy used `$<TARGET_RUNTIME_DLLS:fo_tests>`,
+  which only covers imported targets; providers linked by plain library
+  names (OpenCV, lean-prefix staged libs) contributed no DLLs, so the
+  test executable could not start at discovery time. Glob-copying whole
+  prefix bin dirs instead shadowed good DLLs with debug variants
+  (`0xc0000005`). `tests/copy_runtime_deps.cmake` now resolves the exact
+  loader set from the linked executable via
+  `file(GET_RUNTIME_DEPENDENCIES)` and copies only those. Verified:
+  lean ctest **23/23**, JUCE-tree ctest **20/20**, wiring **17/17**.
+
+### Known
+- The `build-msvc` tree itself could not be re-verified this session:
+  two hung `fo_tests.exe` processes (PIDs 19124, 63392, no readable
+  path/command line, access denied on stop — likely owned by another
+  session) lock its `tests/*.dll`, and that tree's VS2019-built test
+  binary access-violates during discovery. Left untouched per
+  process-ownership rules; the fix is verified in both VS18 trees.
+
 ## [6.5.16] - 2026-11-17 — Vault Registry Registration Fixed
 
 ### Fixed

@@ -1,5 +1,5 @@
 {
-  "tests": 19,
+  "tests": 20,
   "name": "AllTests",
   "testsuites": [
     {
@@ -92,7 +92,7 @@
     },
     {
       "name": "RegistryFixture",
-      "tests": 2,
+      "tests": 3,
       "testsuite": [
         {
           "name": "CoreProvidersRegistered",
@@ -100,9 +100,14 @@
           "line": 27
         },
         {
+          "name": "VaultManagerRegistered",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
+          "line": 58
+        },
+        {
           "name": "UnknownProviderCreatesNull",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
-          "line": 47
+          "line": 66
         }
       ]
     },

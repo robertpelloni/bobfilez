@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.17 (Test Runtime-DLL Resolution)
+
+## What landed (2026-11-17, continuation)
+- **fo_tests runtime-DLL copy fixed**: replaced the incomplete
+  `TARGET_RUNTIME_DLLS`-only copy with `tests/copy_runtime_deps.cmake`
+  (`file(GET_RUNTIME_DEPENDENCIES)` on the linked exe; api-ms/ext-ms
+  excluded). A glob-copy attempt in between proved why: debug-variant
+  DLLs shadowed good ones (`0xc0000005`). Lean ctest **23/23**,
+  JUCE-tree ctest **20/20**, wiring **17/17**.
+- Version **6.5.17**.
+
+## Blocked / needs owner or other session
+- `build-msvc/tests`: two hung `fo_tests.exe` (PIDs 19124, 63392;
+  access denied, no readable identity) lock its DLLs; VS2019 test
+  binary also access-violates at discovery. Whoever owns those
+  processes should kill them, then rerun `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI: corrupt `project()` in bobgui's own `meson.build` at both
+  its recorded pin and its `main`; fix in the bobgui repo, then retry
+  `scripts/build_bobgui_gui.bat`.
+
+---
 # Session Handoff - v6.5.16 (Vault Registry Registration)
 
 ## What landed (2026-11-17, continuation)
