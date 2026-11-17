@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.13 (Scanner + Rename-Batch Fixes)
+
+## What landed (2026-11-17, continuation)
+- **Scanner file roots** fixed in std/dirent/win32 (Hash/Metadata file
+  inputs no longer return `[]`); **dirent directory-scan crash** fixed
+  (vendored shim truncates the CRT find handle — Windows path now uses
+  `std::filesystem`, vendored code untouched); **batch rename** grammar
+  fixed at parser + bridge + card (it could never run before).
+- New tests: scanner contracts, rename-batch dry-run. ctest **21/21**,
+  wiring **17/17**. Version **6.5.13**.
+- Finding: `fo_qt_demo` configures (MinGW Qt) but `main.cpp` is
+  bit-rotted vs current core APIs → TODO `qt-demo-alignment`.
+
+## Next
+1. Qt demo API alignment (or honest retirement).
+2. `upstream/master` unrelated-history decision (owner).
+
+---
 # Session Handoff - v6.5.12 (Audit-Write Coverage)
 
 ## What landed (2026-11-17, continuation)

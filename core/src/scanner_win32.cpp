@@ -52,6 +52,19 @@ public:
         std::vector<std::filesystem::path> stack;
         for (auto& r : roots) {
             if (!std::filesystem::exists(r)) continue;
+            // A file root scans as itself (Hash/Metadata accept files).
+            std::error_code ec;
+            if (std::filesystem::is_regular_file(r, ec)) {
+                if (accept_ext(r)) {
+                    FileInfo fi;
+                    fi.uri = r.string();
+                    fi.size = std::filesystem::file_size(r, ec);
+                    auto ft = std::filesystem::last_write_time(r, ec);
+                    if (!ec) fi.mtime = ft;
+                    out.push_back(std::move(fi));
+                }
+                continue;
+            }
             stack.push_back(r);
         }
 

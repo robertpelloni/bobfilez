@@ -479,6 +479,8 @@ int main(int argc, char** argv) {
             // Parsed by the search command handler below; accept silently here.
         } else if (a.rfind("--max-results=", 0) == 0) {
             // Parsed by the search command handler below; accept silently here.
+        } else if (a.rfind("--find=", 0) == 0 || a.rfind("--replace=", 0) == 0 || a == "--regex") {
+            // Parsed by the rename-batch command handler below; accept silently here.
         } else if (a.rfind("--limit=", 0) == 0 || a == "--verify") {
             // Parsed by the audit command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {

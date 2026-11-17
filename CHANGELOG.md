@@ -1,5 +1,34 @@
 # Changelog
 
+## [6.5.13] - 2026-11-17 — Scanner File Roots, Dirent Crash, Batch-Rename Grammar
+
+### Fixed
+- **Scanners dropped file roots**: `std`, `dirent`, and `win32` scanners
+  returned nothing when a root was a file, so dashboard Hash/Metadata
+  (which accept "file or folder") silently returned `[]`. All three now
+  scan a file root as itself (contract pinned by new scanner tests).
+- **Dirent scanner crashed on directory scans** with the MSVC CRT: the
+  vendored shim stores the pointer-sized find handle in a 32-bit `long`.
+  The Windows path of `DirentScanner` now walks with `std::filesystem`
+  (vendored code untouched; POSIX keeps the dirent loop). Found by the
+  new scanner test crashing the suite — reproduced standalone first.
+- **Batch rename never worked**: the CLI global option parser rejected
+  `--find=`/`--replace=`/`--regex` before the rename-batch handler saw
+  them, and the dashboard bridge sent a nonexistent `--rules` argument.
+  Parser now accepts the handler's options; the card and bridge speak
+  find/replace/regex. Covered by a CLI integration test.
+
+### Added
+- Scanner contract tests + rename-batch dry-run test. Suites: ctest
+  **21/21**, wiring **17/17**.
+
+### Known
+- The plain Qt demo (`fo_qt_demo`) configures against the MinGW Qt kit
+  but its `main.cpp` is bit-rotted against current core APIs (missing
+  includes, unqualified `connect`, removed repository methods). It needs
+  a dedicated API-alignment pass; the web dashboard remains the verified
+  UI. See TODO `qt-demo-alignment`.
+
 ## [6.5.12] - 2026-11-17 — Audit-Write Integration Coverage
 
 ### Added

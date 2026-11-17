@@ -441,10 +441,11 @@ app.post('/api/rename', async (req, res) => {
 });
 app.post('/api/rename-batch', async (req, res) => {
     try {
-        const { paths = [], rules = '', dryRun = true } = req.body;
+        const { paths = [], find = '', replace = '', regex = false, dryRun = true } = req.body;
         if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
-        const args = ['rename-batch', '--format=json', ...paths];
-        if (rules) args.push('--rules=' + rules);
+        if (!find) return res.status(400).json({ error: 'find text required' });
+        const args = ['rename-batch', '--format=json', `--find=${find}`, `--replace=${replace}`, ...paths];
+        if (regex) args.push('--regex');
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
         try { res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }

@@ -131,6 +131,21 @@ TEST_F(CliFixture, RenameWritesAuditEntry) {
     EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
 }
 
+TEST_F(CliFixture, RenameBatchDryRunFindsMatches) {
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "IMG_001.txt") << "x"; }
+    { std::ofstream(inbox / "IMG_002.txt") << "y"; }
+    auto db = (dir / "t.db").string();
+
+    auto r = run_cli("rename-batch --find=IMG_ --replace=Photo_ --dry-run --db=" + db +
+                     " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("IMG_001"), std::string::npos) << r.out;
+    // Dry-run must not have renamed anything.
+    EXPECT_TRUE(std::filesystem::exists(inbox / "IMG_001.txt"));
+}
+
 #ifdef FO_HAVE_OPENSSL
 TEST_F(CliFixture, VaultRoundTripRestoresBytes) {
     auto vault = (dir / "vault").string();
