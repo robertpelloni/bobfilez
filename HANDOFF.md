@@ -1,3 +1,16 @@
+# Session Handoff - v6.5.12 (Audit-Write Coverage)
+
+## What landed (2026-11-17, continuation)
+- CLI integration tests now cover **applied** audit writes: organize
+  move and delete-duplicates each append their ledger entry with a
+  verified chain (16/16 ctest, 15/15 wiring, HTTP smoke all 200).
+- Version **6.5.12**.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. Native GUI lanes remain blocked on Qt/BobUI provider surface (docs).
+
+---
 # Session Handoff - v6.5.11 (CLI Integration Tests)
 
 ## What landed (2026-11-17, continuation)

@@ -44,11 +44,13 @@ CliResult run_cli(const std::string& args, const std::filesystem::path& workdir)
 
 struct CliFixture : ::testing::Test {
     std::filesystem::path dir;
+    std::filesystem::path original_cwd;
 
     void SetUp() override {
         if (!std::filesystem::exists(cli_path())) {
             GTEST_SKIP() << "fo_cli.exe not built beside fo_tests";
         }
+        original_cwd = std::filesystem::current_path();
         dir = std::filesystem::temp_directory_path() /
               ("bobfilez-cli-test-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
         std::filesystem::create_directories(dir);
@@ -56,6 +58,7 @@ struct CliFixture : ::testing::Test {
 
     void TearDown() override {
         std::error_code ec;
+        std::filesystem::current_path(original_cwd, ec);
         std::filesystem::remove_all(dir, ec);
     }
 };
@@ -73,6 +76,42 @@ TEST_F(CliFixture, AuditJsonOnFreshDatabaseVerifiesEmpty) {
     ASSERT_EQ(r.code, 0) << r.out;
     EXPECT_NE(r.out.find("\"verified\": true"), std::string::npos) << r.out;
     EXPECT_NE(r.out.find("\"entries\": []"), std::string::npos) << r.out;
+}
+
+TEST_F(CliFixture, OrganizeMoveWritesAuditEntry) {
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "photo.txt") << "organize me"; }
+    auto db = (dir / "t.db").string();
+
+    // Organize destinations are CWD-relative; contain them in the fixture.
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(org.code, 0) << org.out;
+
+    auto audit = run_cli("audit --format=json --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("\"operation\": \"move\""), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
+}
+
+TEST_F(CliFixture, DeleteDuplicatesWritesAuditEntry) {
+    auto dups = dir / "dups";
+    std::filesystem::create_directories(dups);
+    { std::ofstream(dups / "a.txt") << "same-content"; }
+    { std::ofstream(dups / "b.txt") << "same-content"; }
+    auto db = (dir / "t.db").string();
+
+    ASSERT_EQ(run_cli("duplicates --db=" + db + " \"" + dups.string() + "\"", dir).code, 0);
+    auto del = run_cli("delete-duplicates --db=" + db + " \"" + dups.string() + "\"", dir);
+    ASSERT_EQ(del.code, 0) << del.out;
+    // Exactly one of the duplicates survives an applied delete.
+    EXPECT_NE(std::filesystem::exists(dups / "a.txt"), std::filesystem::exists(dups / "b.txt"));
+
+    auto audit = run_cli("audit --format=json --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("\"operation\": \"delete\""), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
 }
 
 #ifdef FO_HAVE_OPENSSL

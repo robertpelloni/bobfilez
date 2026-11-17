@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.5.12] - 2026-11-17 — Audit-Write Integration Coverage
+
+### Added
+- CLI integration tests for **applied** audit writes: an applied
+  organize move appends a `move` ledger entry and an applied
+  delete-duplicates run appends a `delete` entry (with exactly one
+  duplicate surviving), each followed by a verified hash chain.
+  Suite total: **16 tests, all passing** (`ctest`), wiring 15/15,
+  exhaustive HTTP smoke all 200.
+
 ## [6.5.11] - 2026-11-17 — CLI-Level Integration Tests
 
 ### Added
