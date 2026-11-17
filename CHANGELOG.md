@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.20] - 2026-11-17 — Similar-Image Search Fixed
+
+### Fixed
+- **`similar` could never match**: two compounding bugs. (1) The
+  `dhash` hasher (`fo::providers::DHash`) set bits with `<` while the
+  OpenCV perceptual hasher used `>`, so hashes stored by
+  `hash --hasher=dhash` were the bitwise complement of `similar`
+  targets (distance ~64 for identical images; proven: a decreasing-
+  gradient pair found 0 matches). (2) `find_similar_images` parsed
+  the stored 16-digit **hex** strings as decimal, collapsing most to
+  0, and treated unparsable rows as hash 0. Both fixed; unparsable
+  rows are now skipped. Note: re-run `hash --hasher=dhash` to refresh
+  rows stored with the old convention. Also re-verified this session:
+  hash, vhash (16 samples), afingerprint (3 chunks), OCR
+  ("Hello bobtilez" from a rendered fixture) via CLI at this version.
+  New `FileRepoFixture` tests (3) failed before, pass after.
+  Suites: lean ctest **26/26**, JUCE-tree ctest **23/23**, wiring **18/18**.
+
 ## [6.5.19] - 2026-11-17 — Root Artifact-Dir Cleanup
 
 ### Changed

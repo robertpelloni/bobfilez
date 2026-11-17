@@ -322,9 +322,14 @@ std::vector<int64_t> FileRepository::find_similar_images(uint64_t target_hash, i
         if (!val_c) continue;
 
         uint64_t hash = 0;
-        // Parse string to uint64
-        // Assuming decimal string from std::to_string
-        std::from_chars(val_c, val_c + strlen(val_c), hash);
+        // Stored 'dhash' values are the 16-digit hex strings written by
+        // the dhash hasher (see fo::providers::DHash::fast64). Parsing
+        // them as decimal silently collapsed most hashes to 0. Skip
+        // rows that are not valid hex instead of treating them as 0.
+        const char* first = val_c;
+        const char* last = val_c + strlen(val_c);
+        auto parsed = std::from_chars(first, last, hash, 16);
+        if (parsed.ec != std::errc() || parsed.ptr != last) continue;
 
         int dist = std::popcount(target_hash ^ hash);
         if (dist <= threshold) {

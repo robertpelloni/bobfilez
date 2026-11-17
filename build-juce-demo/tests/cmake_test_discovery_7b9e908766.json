@@ -1,5 +1,5 @@
 {
-  "tests": 20,
+  "tests": 23,
   "name": "AllTests",
   "testsuites": [
     {
@@ -66,6 +66,27 @@
           "name": "VaultRoundTripRestoresBytes",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_cli_integration.cpp",
           "line": 150
+        }
+      ]
+    },
+    {
+      "name": "FileRepoFixture",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "StoredHexHashMatchesTarget",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_file_repository.cpp",
+          "line": 52
+        },
+        {
+          "name": "NearHexHashWithinThresholdAndFarExcluded",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_file_repository.cpp",
+          "line": 58
+        },
+        {
+          "name": "UnparsableStoredHashIsSkippedNotZero",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_file_repository.cpp",
+          "line": 68
         }
       ]
     },

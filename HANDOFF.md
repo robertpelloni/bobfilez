@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.20 (Similar-Image Search Fixed)
+
+## What landed (2026-11-17, continuation)
+- **`similar` fixed end-to-end**: dhash bit convention aligned between
+  the stb hasher and the OpenCV perceptual hasher; `find_similar_images`
+  now parses the stored hex (and skips garbage instead of reading 0).
+  Proven by CLI workflow (decreasing-gradient pair: 0 matches before,
+  2 after) and 3 new `FileRepoFixture` tests. Existing DBs need a
+  `hash --hasher=dhash` re-run to refresh old-convention rows.
+  Media chain re-verified (hash/vhash/afingerprint/OCR). Lean ctest
+  **26/26**, JUCE-tree ctest **23/23**, wiring **18/18**.
+- Version **6.5.20**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 still lock
+  `build-msvc/tests`; stop them where possible, then rerun
+  `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+
+---
 # Session Handoff - v6.5.19 (Root Artifact-Dir Cleanup)
 
 ## What landed (2026-11-17, continuation)

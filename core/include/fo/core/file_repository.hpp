@@ -46,7 +46,8 @@ public:
     std::optional<FileInfo> get_by_id(int64_t id);
 
     // Find files with similar perceptual hash.
-    // Assumes 'dhash' algorithm stored as decimal or hex string.
+    // 'dhash' values are stored as 16-digit hex strings (the dhash
+    // hasher's output); unparsable rows are skipped.
     // Returns list of file IDs.
     std::vector<int64_t> find_similar_images(uint64_t target_hash, int threshold);
 

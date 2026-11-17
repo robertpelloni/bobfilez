@@ -56,11 +56,15 @@ namespace fo::providers {
 
         stbi_image_free(data);
 
-        // Compute the hash
+        // Compute the hash. Bit convention must match the OpenCV
+        // perceptual hasher (DHashPerceptualHasher): bit set when the
+        // left pixel is brighter. The old '<' produced the bitwise
+        // complement, so hashes stored via `hash --hasher=dhash` never
+        // matched `similar` targets (distance ~64 for identical files).
         uint64_t hash = 0;
         for (int y = 0; y < 8; ++y) {
             for (int x = 0; x < 8; ++x) {
-                if (scaled[y * 9 + x] < scaled[y * 9 + x + 1]) {
+                if (scaled[y * 9 + x] > scaled[y * 9 + x + 1]) {
                     hash |= (1ULL << (y * 8 + x));
                 }
             }
