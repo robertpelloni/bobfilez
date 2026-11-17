@@ -37,19 +37,17 @@ public:
         // 4. Generate answer
         
         OracleResponse res;
-        
-        // Mocking intelligent response
-        if (query.find("invoice") != std::string::npos || query.find("receipt") != std::string::npos) {
-            res.answer_text = "I found 142 unencrypted financial documents scattered across your Downloads and Documents folders. I recommend running the 'Auto-Vault Financials' OmniFlow to secure them.";
-            res.citations.push_back({"/Users/robert/Downloads/tax_return_2023.pdf", "...total tax liability was $12,450...", 0.98});
-            res.citations.push_back({"/Users/robert/Documents/Invoice_AWS_Mar.pdf", "...total due: $45.00...", 0.95});
-            
-            res.suggested_actions.push_back({"omniflow:execute", "Lock Invoices in Secure Vault", "{\"flow_id\":\"flow-01\"}"});
-            res.suggested_actions.push_back({"fileops:move", "Move to /Financials", "{\"dest\":\"/Financials\"}"});
-        } else {
-            res.answer_text = "Based on your files, the project deadline for 'Project Alpha' was updated to Q3. Specifically, in the meeting notes from yesterday, Alice mentioned they need the final CAD models by September 15th.";
-            res.citations.push_back({"/Users/robert/Documents/Alpha_Meeting_Notes.md", "- **Alice**: We need the final CAD models by Sept 15.", 0.99});
-        }
+
+        // No local model or embedding index is wired up yet (the RAG
+        // steps above are the design, not an implementation). Answer
+        // honestly instead of fabricating file citations and counts,
+        // which the previous mock did for every query.
+        res.answer_text =
+            "OmniOracle is not connected to a local model or document "
+            "index yet, so I can't answer questions about your files. "
+            "Your question was: \"" + query + "\". "
+            "Use Search for filename/content lookup today; Oracle Q&A "
+            "arrives when the embedder + local LLM are integrated.";
 
         auto t1 = std::chrono::steady_clock::now();
         res.generation_time_sec = std::chrono::duration<double>(t1 - t0).count();
@@ -60,7 +58,11 @@ public:
     OracleResponse summarize(const std::filesystem::path& file) override {
         std::cout << "[OmniOracle] Summarizing file: " << file << "\n";
         OracleResponse res;
-        res.answer_text = "This is a 24-page PDF document that outlines the Q3 financial budget. The primary expense is Marketing ($45k), followed by R&D ($30k). The conclusion recommends a 10% cut in software licensing.";
+        // Same honesty rule as ask(): no model is loaded, so do not
+        // invent a summary of a file that was never read.
+        res.answer_text =
+            "OmniOracle is not connected to a local model yet, so I "
+            "can't summarize " + file.string() + ".";
         return res;
     }
 };

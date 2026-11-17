@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.21] - 2026-11-17 — Oracle Stops Fabricating Answers
+
+### Fixed
+- **OmniOracle invented answers**: `ask()` returned canned text with
+  fabricated file citations and counts for every query (e.g. a
+  "Project Alpha deadline" answer to "how many files?"), and
+  `summarize()` invented a summary of files it never read, while the
+  dashboard card claimed "Retrieval-augmented answers over your
+  indexed files". No model/index is wired up yet, so both now say so
+  plainly (echoing the question, pointing at Search), return no
+  citations, and the card copy describes the scaffold honestly.
+  Pinned by `RegistryFixture.OracleDoesNotFabricateAnswers` (failed
+  before, passes after); verified via CLI and `/api/oracle`.
+  Suites: lean ctest **27/27**, JUCE-tree ctest **24/24**, wiring **18/18**.
+
 ## [6.5.20] - 2026-11-17 — Similar-Image Search Fixed
 
 ### Fixed
