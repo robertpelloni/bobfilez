@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.22 (Scrub Actually Detects Corruption)
+
+## What landed (2026-11-17, continuation)
+- **Scrub fixed**: baselines were in-memory only (could never detect
+  anything). They now persist via `FileRepository` hashes; scrub
+  reports baselined/corrupted counts and corrupted file names in
+  text and JSON. New CLI integration test + live HTTP tamper cycle
+  verify it. Lean ctest **28/28**, JUCE-tree ctest **25/25**,
+  wiring **18/18**.
+- Version **6.5.22**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 still lock
+  `build-msvc/tests`; stop them where possible, then rerun
+  `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+- Many Omni* QML-demo engines remain mocks (cluster/git/sec/verse
+  etc.); only dashboard-exposed paths are being hardened.
+
+---
 # Session Handoff - v6.5.21 (Oracle Stops Fabricating Answers)
 
 ## What landed (2026-11-17, continuation)

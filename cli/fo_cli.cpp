@@ -2233,44 +2233,87 @@ int main(int argc, char** argv) {
                 }
             }
         } else if (command == "scrub") {
-            // ─── Scrub Command (Self-Healing Integrity Verification) ─────────
+            // ─── Scrub Command (Integrity Verification) ─────────
             // Usage: fo_cli scrub <path...>
-            auto scrub_engine = fo::core::Registry<fo::core::ISelfHealingEngine>::instance().create("default");
-            if (!scrub_engine) {
-                std::cerr << "Error: Self-Healing engine not available.\n";
-                return 1;
-            }
-
+            // Baselines persist in the database (file_hashes, algo
+            // 'fast64'): the first run records them, later runs compare
+            // and report files whose content changed. The previous
+            // implementation kept baselines only in an in-memory engine,
+            // so every run re-baselined and could never detect anything.
             if (paths.empty()) {
                 std::cerr << "Usage: fo scrub <path...> [--format=json]\n";
                 return 1;
             }
 
-            // Build baselines from current files
             auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             if (!hasher) {
                 std::cerr << "Error: No hasher available.\n";
                 return 1;
             }
 
+            auto& repo = engine.file_repository();
             int total_files = 0;
+            int corrupted = 0;
+            int baselined = 0;
+            std::vector<std::string> corrupted_files;
             for (const auto& root : paths) {
                 std::error_code ec;
                 for (const auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
                     if (!entry.is_regular_file()) continue;
-                    auto hash = hasher->fast64(entry.path());
-                    if (!hash.empty()) {
-                        scrub_engine->register_baseline(entry.path(), hash);
-                        ++total_files;
+                    auto current = hasher->fast64(entry.path());
+                    if (current.empty()) continue;
+                    ++total_files;
+
+                    int64_t file_id = 0;
+                    if (auto existing = repo.get_by_path(entry.path().string())) {
+                        file_id = existing->id;
+                    } else {
+                        fo::core::FileInfo fi;
+                        fi.uri = entry.path().string();
+                        fi.size = entry.file_size(ec);
+                        fi.mtime = entry.last_write_time(ec);
+                        repo.upsert(fi);
+                        file_id = fi.id;
+                    }
+                    if (file_id == 0) continue;
+
+                    std::string stored;
+                    for (const auto& [algo, value] : repo.get_hashes(file_id)) {
+                        if (algo == "fast64") stored = value;
+                    }
+                    if (stored.empty()) {
+                        repo.add_hash(file_id, "fast64", current);
+                        ++baselined;
+                    } else if (stored != current) {
+                        ++corrupted;
+                        corrupted_files.push_back(entry.path().string());
                     }
                 }
             }
 
+            const char* status = corrupted > 0 ? "corruption-detected"
+                : (total_files > 0 && baselined == total_files) ? "baseline-established" : "ok";
             if (format == "json") {
-                std::cout << "{\"scanned\":" << total_files << ",\"corrupted\":0,\"status\":\"baseline-established\"}";
+                std::cout << "{\"scanned\":" << total_files
+                          << ",\"corrupted\":" << corrupted
+                          << ",\"baselined\":" << baselined
+                          << ",\"status\":\"" << status << "\""
+                          << ",\"corrupted_files\":[";
+                for (size_t i = 0; i < corrupted_files.size(); ++i) {
+                    if (i) std::cout << ",";
+                    std::cout << "\"" << fo::core::Exporter::json_escape(corrupted_files[i]) << "\"";
+                }
+                std::cout << "]}";
             } else {
-                std::cout << "Baseline established for " << total_files << " files.\n";
-                std::cout << "Run 'fo scrub <path>' again after changes to detect corruption.\n";
+                std::cout << "Scanned " << total_files << " files: "
+                          << baselined << " baselined, " << corrupted << " corrupted.\n";
+                for (const auto& f : corrupted_files) {
+                    std::cout << "  CORRUPTED: " << f << "\n";
+                }
+                if (corrupted == 0 && baselined > 0) {
+                    std::cout << "Baselines stored in the database (--db). "
+                                 "Run 'fo scrub <path>' again after changes to detect corruption.\n";
+                }
             }
 
         } else if (command == "lint") {

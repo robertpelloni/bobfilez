@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.22] - 2026-11-17 — Scrub Actually Detects Corruption
+
+### Fixed
+- **Integrity scrub was a no-op**: the CLI kept baselines only in an
+  in-memory engine, so every run re-baselined and reported
+  `corrupted:0` forever — while advising users to "run again to
+  detect corruption" and the dashboard card promised verification
+  against stored baselines. Baselines now persist in the database
+  (`file_hashes`, algo `fast64`, shared with the `hash` command):
+  first run baselines, later runs compare and report corrupted files
+  by name (`status: corruption-detected`). Verified end-to-end by a
+  new CLI integration test (tamper between two processes) and over
+  HTTP. Suites: lean ctest **28/28**, JUCE-tree ctest **25/25**,
+  wiring **18/18**.
+
 ## [6.5.21] - 2026-11-17 — Oracle Stops Fabricating Answers
 
 ### Fixed
