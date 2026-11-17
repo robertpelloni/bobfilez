@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.11 (CLI Integration Tests)
+
+## What landed (2026-11-17, continuation)
+- **CLI-level integration tests**: `tests/test_cli_integration.cpp`
+  drives the real `fo_cli.exe` (audit limit validation exits, fresh-DB
+  audit JSON, vault byte-compare round-trip). ctest **14/14**, wiring
+  **15/15**, HTTP smoke all 200. Lean lane gained cloud scanners via the
+  shared GTest prefix — both lanes now expose the identical provider
+  matrix (runtime DLLs sidecarred beside each CLI).
+- Version **6.5.11**.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. Native GUI lanes remain blocked on Qt/BobUI provider surface (docs).
+3. Grow tests toward organize/delete audit-write integration at CLI level.
+
+---
 # Session Handoff - v6.5.10 (Tracked Tests Restored + Browser Verification)
 
 ## What landed (2026-11-17, continuation)

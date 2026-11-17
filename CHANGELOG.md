@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.11] - 2026-11-17 — CLI-Level Integration Tests
+
+### Added
+- **CLI integration tests** in the tracked `tests/` tree: the real
+  `fo_cli.exe` is driven as a subprocess for audit `--limit` validation
+  (0, 1001, and non-numeric values all exit 2), fresh-database audit
+  JSON verification, and a full vault init→lock→list→unlock byte-compare
+  round-trip. Suite total: **14 tests, all passing** (`ctest`).
+
+### Verified
+- Dashboard wiring tests 15/15 and the exhaustive HTTP smoke (health,
+  providers, AutoDev/Sync, audit, modules, scan, OCR, watcher, quit)
+  all 200. The lean lane also gained the cloud scanners in this
+  configure (shared manifest prefix for GTest), so both lanes now expose
+  the identical full provider matrix.
+
 ## [6.5.10] - 2026-11-17 — Tracked C++ Test Tree Restored
 
 ### Added
