@@ -25,6 +25,17 @@ test('history primary button never undoes', () => {
   assert.match(html, /Undo last operation/);
 });
 
+test('ignore card can add and remove rules', () => {
+  const html = read('public/unified.html');
+  const srv = read('server.js');
+  assert.match(html, /\/api\/ignore\/add/);
+  // Remove existed server-side long before the card exposed it; the card
+  // copy already promised "or remove it" with no button.
+  assert.match(html, /\/api\/ignore\/remove/);
+  assert.match(html, /Remove rule/);
+  assert.match(srv, /app\.post\('\/api\/ignore\/remove'/);
+});
+
 test('clerk/oracle bridges match the real CLI grammar', () => {
   const srv = read('server.js');
   assert.match(srv, /\['clerk', 'status'\]/);
