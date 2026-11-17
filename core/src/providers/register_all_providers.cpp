@@ -22,6 +22,8 @@ namespace fo::core {
     void register_perceptual_opencv();
     void register_classifier_onnx();
     void register_ocr_tesseract();
+    void register_video_hasher_ffmpeg();
+    void register_audio_fingerprinter_chromaprint();
     void register_omni_graph();
     void register_omni_mount();
     void register_omni_oracle();
@@ -80,6 +82,8 @@ namespace fo::core {
         register_perceptual_opencv();
         register_classifier_onnx();
         register_ocr_tesseract();
+        register_video_hasher_ffmpeg();
+        register_audio_fingerprinter_chromaprint();
 
         // Omni subsystem registrations
         register_omni_graph();

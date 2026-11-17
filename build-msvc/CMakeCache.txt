@@ -132,7 +132,7 @@ CMAKE_MT:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt
 // find_package(), find_program(), find_library(), find_file(),
 // and find_path(). Empty by default; intended to be set by the
 // project or the user.
-CMAKE_PREFIX_PATH:UNINITIALIZED=build-lean-deps/x64-windows
+CMAKE_PREFIX_PATH:UNINITIALIZED=C:\Users\hyper\workspace\bobfilez/build-lean-deps/x64-windows
 
 //Value Computed by CMake
 CMAKE_PROJECT_COMPAT_VERSION:STATIC=
@@ -286,14 +286,26 @@ LIB_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_instal
 //Path to a library.
 LIB_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libcrypto.lib
 
+//The directory containing a CMake configuration file for Leptonica.
+Leptonica_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/leptonica
+
+//libarchive include directory
+LibArchive_INCLUDE_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/include
+
+//libarchive library
+LibArchive_LIBRARY:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/archive.lib
+
 //Path to a file.
 OPENSSL_APPLINK_SOURCE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include/openssl/applink.c
 
 //Path to a file.
 OPENSSL_INCLUDE_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include
 
-//The directory containing a CMake configuration file for OpenCV.
-OpenCV_DIR:PATH=OpenCV_DIR-NOTFOUND
+//No help, variable specified on the command line.
+OpenCV_DIR:UNINITIALIZED=C:\Users\hyper\workspace\bobfilez/build-lean-deps/opencv/x64/vc16/lib
+
+//The directory containing a CMake configuration file for OpenJPEG.
+OpenJPEG_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/openjpeg
 
 //Path to a library.
 SSL_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/debug/lib/libssl.lib
@@ -302,7 +314,7 @@ SSL_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_instal
 SSL_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/libssl.lib
 
 //The directory containing a CMake configuration file for Tesseract.
-Tesseract_DIR:PATH=Tesseract_DIR-NOTFOUND
+Tesseract_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/tesseract
 
 //Automatically copy dependencies into the output directory for
 // executables.
@@ -354,6 +366,9 @@ VCPKG_TRACE_FIND_PACKAGE:BOOL=OFF
 //Enables messages from the VCPKG toolchain for debugging purposes.
 VCPKG_VERBOSE:BOOL=OFF
 
+//The directory containing a CMake configuration file for WebP.
+WebP_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/WebP
+
 //(experimental) Automatically copy dependencies into the install
 // target directory for executables. Requires CMake 3.14.
 X_VCPKG_APPLOCAL_DEPS_INSTALL:BOOL=OFF
@@ -383,6 +398,36 @@ Z_VCPKG_PWSH_PATH:UNINITIALIZED=C:\WINDOWS\System32\WindowsPowerShell\v1.0\power
 //The directory which contains the installed libraries for each
 // triplet
 _VCPKG_INSTALLED_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed
+
+//Path to a library.
+_vcpkg_libwebp_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/debug/lib/libwebp.lib
+
+//Path to a library.
+_vcpkg_libwebp_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/libwebp.lib
+
+//Path to a library.
+_vcpkg_libwebpdecoder_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/debug/lib/libwebpdecoder.lib
+
+//Path to a library.
+_vcpkg_libwebpdecoder_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/libwebpdecoder.lib
+
+//Path to a library.
+_vcpkg_libwebpdemux_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/debug/lib/libwebpdemux.lib
+
+//Path to a library.
+_vcpkg_libwebpdemux_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/libwebpdemux.lib
+
+//Path to a library.
+_vcpkg_libwebpmux_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/debug/lib/libwebpmux.lib
+
+//Path to a library.
+_vcpkg_libwebpmux_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/libwebpmux.lib
+
+//Path to a library.
+_vcpkg_sharpyuv_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/debug/lib/libsharpyuv.lib
+
+//Path to a library.
+_vcpkg_sharpyuv_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/libsharpyuv.lib
 
 //The directory containing a CMake configuration file for aws-c-auth.
 aws-c-auth_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/share/aws-c-auth
@@ -460,7 +505,7 @@ cpr_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-wi
 exiv2_DIR:PATH=exiv2_DIR-NOTFOUND
 
 //The directory containing a CMake configuration file for onnxruntime.
-onnxruntime_DIR:PATH=onnxruntime_DIR-NOTFOUND
+onnxruntime_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/onnxruntime
 
 //The directory containing a CMake configuration file for wil.
 wil_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/share/wil
@@ -646,6 +691,10 @@ FIND_PACKAGE_MESSAGE_DETAILS_OpenSSL:INTERNAL=[optimized;C:/Users/hyper/workspac
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding ZLIB
 FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[optimized;C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/lib/zlib.lib;debug;C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/debug/lib/zlibd.lib][C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/include][ ][v1.3.1()]
+//ADVANCED property for variable: LibArchive_INCLUDE_DIR
+LibArchive_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: LibArchive_LIBRARY
+LibArchive_LIBRARY-ADVANCED:INTERNAL=1
 //The OpenSSL include directory
 LibCrypto_INCLUDE_DIR:INTERNAL=
 //The OpenSSL crypto shared library
@@ -666,4 +715,24 @@ ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 Z_VCPKG_CHECK_MANIFEST_MODE:INTERNAL=ON
 //Vcpkg root directory
 Z_VCPKG_ROOT_DIR:INTERNAL=C:/Users/hyper/workspace/bobfilez/vcpkg
+//ADVANCED property for variable: _vcpkg_libwebp_LIBRARY_DEBUG
+_vcpkg_libwebp_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebp_LIBRARY_RELEASE
+_vcpkg_libwebp_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpdecoder_LIBRARY_DEBUG
+_vcpkg_libwebpdecoder_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpdecoder_LIBRARY_RELEASE
+_vcpkg_libwebpdecoder_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpdemux_LIBRARY_DEBUG
+_vcpkg_libwebpdemux_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpdemux_LIBRARY_RELEASE
+_vcpkg_libwebpdemux_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpmux_LIBRARY_DEBUG
+_vcpkg_libwebpmux_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_libwebpmux_LIBRARY_RELEASE
+_vcpkg_libwebpmux_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_sharpyuv_LIBRARY_DEBUG
+_vcpkg_sharpyuv_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: _vcpkg_sharpyuv_LIBRARY_RELEASE
+_vcpkg_sharpyuv_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 

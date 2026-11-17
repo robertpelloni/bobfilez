@@ -126,6 +126,14 @@ test('audit bridge never returns fabricated empty history', () => {
   assert.doesNotMatch(srv, /Stubbed for now/);
 });
 
+test('media providers use explicit registration and link swresample', () => {
+  const reg = fs.readFileSync(path.join(root, '..', 'core', 'src', 'providers', 'register_all_providers.cpp'), 'utf8');
+  assert.match(reg, /register_video_hasher_ffmpeg\(\)/);
+  assert.match(reg, /register_audio_fingerprinter_chromaprint\(\)/);
+  const cmake = fs.readFileSync(path.join(root, '..', 'core', 'CMakeLists.txt'), 'utf8');
+  assert.match(cmake, /FFmpeg::swresample/);
+});
+
 test('audit bridge queries the persistent ledger via fo_cli', async () => {
   const srv = read('server.js');
   assert.match(srv, /\['audit', '--format=json'/);

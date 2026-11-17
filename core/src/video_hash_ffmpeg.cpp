@@ -265,16 +265,18 @@ public:
     }
 };
 
-// Register the FFmpeg video hasher with the provider registry.
-// This allows CLI/GUI code to instantiate it via:
-//   Registry<IVideoHasher>::instance().create("ffmpeg")
-static auto reg_ffmpeg_vhash = []() {
+// Explicit registration (called from register_all_providers): a TU-local
+// static registrar can be linker-dropped from fo_core.lib.
+void register_video_hasher_ffmpeg() {
     Registry<IVideoHasher>::instance().add("ffmpeg", []() {
         return std::make_unique<FFmpegVideoHasher>();
     });
-    return true;
-}();
+}
 
 } // namespace fo::core
 
 #endif // FO_HAVE_FFMPEG
+
+#ifndef FO_HAVE_FFMPEG
+namespace fo::core { void register_video_hasher_ffmpeg() {} }
+#endif

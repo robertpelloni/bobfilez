@@ -234,13 +234,18 @@ public:
     }
 };
 
-static auto reg_chromaprint = []() {
+// Explicit registration (called from register_all_providers): a TU-local
+// static registrar can be linker-dropped from fo_core.lib.
+void register_audio_fingerprinter_chromaprint() {
     Registry<IAudioFingerprinter>::instance().add("chromaprint", []() {
         return std::make_unique<ChromaprintAudioFingerprinter>();
     });
-    return true;
-}();
+}
 
 } // namespace fo::core
 
 #endif // FO_HAVE_CHROMAPRINT && FO_HAVE_FFMPEG
+
+#if !defined(FO_HAVE_CHROMAPRINT) || !defined(FO_HAVE_FFMPEG)
+namespace fo::core { void register_audio_fingerprinter_chromaprint() {} }
+#endif
