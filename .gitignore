@@ -365,3 +365,16 @@ tests/test_cmake_build/
 tests/**/build_output/
 build_output/
 build-linux/
+
+# Probe/demo build trees and tool scratch (artifacts only; sources live
+# in frontends/, gui/, libs/). Added 2026-11-17 so git status stays
+# readable; several also have historically tracked files, which this
+# does not untrack.
+temp_btk_probe/
+build-bobui-gui/
+build-bobui-gui-mingw-probe/
+build-bobui-gui-qt6-mingw-probe/
+build-btk/
+build-headless/
+undefined/
+{extension}/
