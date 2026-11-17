@@ -114,6 +114,23 @@ TEST_F(CliFixture, DeleteDuplicatesWritesAuditEntry) {
     EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
 }
 
+TEST_F(CliFixture, RenameWritesAuditEntry) {
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "old.txt") << "rename me"; }
+    auto db = (dir / "t.db").string();
+
+    auto ren = run_cli("rename --pattern=renamed-{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(ren.code, 0) << ren.out;
+    // RuleEngine {name} is the stem, so the extension is dropped by design.
+    EXPECT_TRUE(std::filesystem::exists(inbox / "renamed-old"));
+
+    auto audit = run_cli("audit --format=json --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("\"operation\": \"rename\""), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
+}
+
 #ifdef FO_HAVE_OPENSSL
 TEST_F(CliFixture, VaultRoundTripRestoresBytes) {
     auto vault = (dir / "vault").string();
