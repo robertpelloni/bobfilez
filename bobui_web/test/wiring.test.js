@@ -83,6 +83,38 @@ test('vault bridges call the real CLI (no blanket 501)', () => {
   assert.doesNotMatch(srv, /Vault is not wired yet/);
 });
 
+test('manifest build supplements vcpkg with the verified lean provider prefix', () => {
+  const build = fs.readFileSync(path.join(root, '..', 'scripts', 'build_headless.bat'), 'utf8');
+  assert.match(build, /WindowsPowerShell/);
+  assert.match(build, /Z_VCPKG_PWSH_PATH/);
+  assert.match(build, /build-lean-deps\/x64-windows|build-lean-deps\\x64-windows/);
+  assert.match(build, /OpenCV_DIR/);
+});
+
+test('providers and autonomous service status bridges are wired', () => {
+  const srv = read('server.js');
+  const html = read('public/unified.html');
+  assert.match(srv, /\/api\/providers/);
+  assert.match(srv, /--list-scanners/);
+  assert.match(srv, /--list-vhash/);
+  assert.match(srv, /--list-ahash/);
+  assert.match(srv, /\/api\/autodev\/status/);
+  assert.match(srv, /\['autodev', 'status'\]/);
+  assert.match(srv, /\/api\/sync\/status/);
+  assert.match(srv, /\['sync', 'status'\]/);
+  assert.match(srv, /\/api\/sync\/history/);
+  assert.match(srv, /\['sync', 'history'/);
+  assert.match(html, /Provider directory/);
+  assert.match(html, /Autonomous services/);
+  assert.match(html, /Forensic audit ledger/);
+});
+
+test('audit bridge never returns fabricated empty history', () => {
+  const srv = read('server.js');
+  assert.doesNotMatch(srv, /history: \[\] \}\); \/\/ Stubbed/);
+  assert.doesNotMatch(srv, /Stubbed for now/);
+});
+
 test('watch status is queryable (heartbeat bridge, not 501)', async () => {
   const srv = read('server.js');
   assert.match(srv, /'watch-status', '--format=json'/);

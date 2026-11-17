@@ -248,12 +248,14 @@ app.post('/api/prune', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Audit (v3.0.0 feature) ──
+// ── Forensic audit ledger ──
+// The core database has an audit_ledger table (Migration 5), but fo_cli does
+// not expose a persistent audit-history query yet. Never fabricate an empty
+// ledger: say so, and point callers at the operation journal that does exist.
 app.get('/api/audit', async (req, res) => {
-    try {
-        // Migration 5 audit log
-        res.json({ history: [] }); // Stubbed for now
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    return res.status(501).json({
+        error: 'Forensic audit ledger query is not exposed by fo_cli yet. Use /api/history for the operation journal; audit_ledger exists in the core database (Migration 5) but has no CLI query command.'
+    });
 });
 
 // ── Flow (OmniFlow Automation) ──
@@ -492,6 +494,55 @@ app.get('/api/watch/status', async (req, res) => {
         catch { res.json({ watching: false, raw: stdout }); }
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
+// ── Provider directory (every --list-* surface in one place) ──
+app.get('/api/providers', async (req, res) => {
+    try {
+        const lists = {
+            scanners: '--list-scanners', hashers: '--list-hashers',
+            metadata: '--list-metadata', ocr: '--list-ocr',
+            classifiers: '--list-classifiers', perceptualHash: '--list-phash',
+            videoHash: '--list-vhash', audioFingerprint: '--list-ahash',
+            linters: '--list-linters',
+        };
+        const entries = await Promise.all(Object.entries(lists).map(async ([key, flag]) => {
+            try {
+                const { stdout } = await runCli([flag], 30000);
+                return [key, stdout.replace(/^[^:]*:\s*/, '').trim()];
+            } catch (e) { return [key, `unavailable: ${e.message}`]; }
+        }));
+        const { stdout: modules } = await runCli(['--modules'], 30000);
+        res.json({ providers: Object.fromEntries(entries), modules });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get('/api/download-models', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['--download-models'], 30000);
+        res.json({ instructions: stdout, note: 'fo_cli prints setup instructions; it does not download models itself. See scripts/download_models.py for CLIP models.' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Autonomous service status (start/stop are blocking terminal loops) ──
+app.get('/api/autodev/status', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['autodev', 'status'], 30000);
+        res.json({ raw: stdout, note: 'Start in a terminal: fo_cli autodev start <repo_root>. Status is process-local, so a separately started loop is not visible here.' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get('/api/sync/status', async (req, res) => {
+    try {
+        const { stdout } = await runCli(['sync', 'status'], 30000);
+        res.json({ raw: stdout, note: 'Start in a terminal: fo_cli sync start <path>.' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/sync/history', async (req, res) => {
+    try {
+        const { path: syncPath = '' } = req.body;
+        if (!syncPath) return res.status(400).json({ error: 'path required' });
+        const { stdout } = await runCli(['sync', 'history', syncPath], 30000);
+        res.json({ raw: stdout });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/quit', async (req, res) => {
     res.json({ success: true, message: 'Shutting down dashboard server' });
     setTimeout(() => process.exit(0), 500);

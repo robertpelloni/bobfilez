@@ -128,6 +128,12 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
 //Path to a program.
 CMAKE_MT:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe
 
+//Semicolon-separated list of installation prefixes searched by
+// find_package(), find_program(), find_library(), find_file(),
+// and find_path(). Empty by default; intended to be set by the
+// project or the user.
+CMAKE_PREFIX_PATH:UNINITIALIZED=build-lean-deps/x64-windows
+
 //Value Computed by CMake
 CMAKE_PROJECT_COMPAT_VERSION:STATIC=
 
@@ -208,8 +214,10 @@ CMAKE_STATIC_LINKER_FLAGS_RELEASE:STRING=
 // during RELWITHDEBINFO builds.
 CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
-//The CMake toolchain file
-CMAKE_TOOLCHAIN_FILE:FILEPATH=C:/Users/hyper/workspace/bobfilez/vcpkg/scripts/buildsystems/vcpkg.cmake
+//Path to a CMake toolchain file, read early in the CMake run,
+// that specifies the compilers, toolchain utilities, and target-platform
+// information used when cross-compiling.
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=vcpkg/scripts/buildsystems/vcpkg.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console
@@ -366,8 +374,11 @@ ZLIB_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg
 //Path to a program.
 Z_VCPKG_CL:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
 
-//Path to a program.
-Z_VCPKG_PWSH_PATH:FILEPATH=C:/Program Files/PowerShell/7-preview/pwsh.exe
+//No help, variable specified on the command line.
+Z_VCPKG_POWERSHELL_PATH:UNINITIALIZED=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+
+//No help, variable specified on the command line.
+Z_VCPKG_PWSH_PATH:UNINITIALIZED=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
 
 //The directory which contains the installed libraries for each
 // triplet
@@ -653,8 +664,6 @@ ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //Making sure VCPKG_MANIFEST_MODE doesn't change
 Z_VCPKG_CHECK_MANIFEST_MODE:INTERNAL=ON
-//The path to the PowerShell implementation to use.
-Z_VCPKG_POWERSHELL_PATH:INTERNAL=C:/Program Files/PowerShell/7-preview/pwsh.exe
 //Vcpkg root directory
 Z_VCPKG_ROOT_DIR:INTERNAL=C:/Users/hyper/workspace/bobfilez/vcpkg
 

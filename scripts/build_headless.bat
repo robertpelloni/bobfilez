@@ -31,8 +31,32 @@ if errorlevel 1 exit /b %errorlevel%
 
 cd /d "%~dp0.."
 
+REM vcpkg's applocal step invokes PowerShell after linking executables. A stale
+REM CMake cache can retain a removed preview path, so select an installed shell
+REM explicitly instead of inheriting whatever an earlier configure discovered.
+set "PWSH="
+if exist "C:\Program Files\PowerShell\7\pwsh.exe" (
+    set "PWSH=C:\Program Files\PowerShell\7\pwsh.exe"
+) else if exist "C:\Program Files\PowerShell\7-preview\pwsh.exe" (
+    set "PWSH=C:\Program Files\PowerShell\7-preview\pwsh.exe"
+) else if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
+    set "PWSH=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+)
+if "%PWSH%"=="" (
+    echo [ERROR] Could not find pwsh.exe or Windows PowerShell
+    exit /b 1
+)
+
+REM The vcpkg manifest intentionally stays lean. When the separately verified
+REM provider prefix exists, supplement it so the manifest binary gets the same
+REM OCR/OpenCV/ONNX providers as build-lean instead of silently lacking them.
+set "LEAN_ARGS="
+if exist "build-lean-deps\x64-windows\include\onnxruntime_cxx_api.h" (
+    set "LEAN_ARGS=-DCMAKE_PREFIX_PATH=%CD%/build-lean-deps/x64-windows -DOpenCV_DIR=%CD%/build-lean-deps/opencv/x64/vc16/lib"
+)
+
 echo [INFO] Configuring headless build...
-cmake -S . -B build-msvc -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_OMNI=OFF -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON
+cmake -S . -B build-msvc -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_OMNI=OFF -DFO_BUILD_TESTS=ON -DFO_BUILD_BENCH=ON -DZ_VCPKG_PWSH_PATH="%PWSH%" -DZ_VCPKG_POWERSHELL_PATH="%PWSH%" %LEAN_ARGS%
 if errorlevel 1 exit /b %errorlevel%
 
 echo [INFO] Building headless targets...

@@ -146,6 +146,9 @@ const SECTIONS = [
  { m:'sec-e', t:'🔮 OmniOracle Q&A', tip:'Ask the filesystem a question in plain language.', d:'Retrieval-augmented answers over your indexed files.', e:'/api/oracle', b:{question:'',paths:[]}, f:[{k:'question',l:'Question',tip:'e.g. Where are the 2023 tax PDFs?',ph:'Where are last year’s invoices?'},{k:'paths',l:'Scope folders (optional)',tip:'Limit the search scope.',ph:'D:/Docs'}], s:'Ask' },
  { m:'sec-e', t:'👁 Folder watcher', tip:'Live Shadow Sorter status: is a watcher running right now, and what has it seen?', d:'Reads the watcher heartbeat (fo_cli watch-status). Start a watcher in a terminal with: fo_cli watch <folder>. Stale heartbeats (>15s) report as not running.', e:'/api/watch/status', get:true, b:null, f:[], s:'Check status' },
  { m:'sec-e', t:'🧩 Modules & providers', tip:'Which scanners/hashers/OCR/classifiers are actually compiled in.', d:'First stop when a Group C card fails — missing module = missing feature.', e:'/api/modules', get:true, b:null, f:[], s:'List modules' },
+{ m:'sec-e', t:'🗂 Provider directory', tip:'Every registered provider family in one view: scanners, hashers, metadata, OCR, classifiers, perceptual/video/audio hashing, and linters.', d:'Complete provider inventory from the CLI --list-* commands. Use Model setup instructions when a classifier model must be installed.', e:'/api/providers', get:true, b:null, f:[], s:'List all providers', extra:'models' },
+{ m:'sec-e', t:'🤖 Autonomous services', tip:'Status for the autonomous development loop and sync daemon. Starting them is a blocking terminal workflow, so this page never launches them silently.', d:'AutoDev status is process-local to a terminal-started loop. Sync history needs the tracked path. Start commands are shown in the result guidance.', e:'/api/autodev/status', get:true, b:null, f:[{k:'path',l:'Sync history path (optional)',tip:'Path whose autonomous-sync version history should be loaded by the second button.',ph:'D:/Projects/repo'}], s:'Check AutoDev status', extra:'services' },
+{ m:'sec-e', t:'🧾 Forensic audit ledger', tip:'The tamper-evident audit ledger stored by the core database. Its persistent query command is not exposed by fo_cli yet.', d:'Availability check only today: the endpoint reports the missing CLI query honestly instead of inventing an empty ledger. Use History & undo in Group B for the operation journal.', e:'/api/audit', get:true, b:null, f:[], s:'Check ledger availability' },
 ];
 function fieldInput(sec, fld, vals) {
   const v = vals[fld.k];
@@ -205,6 +208,16 @@ function buildSection(sec) {
   if (sec.extra === 'flow-run') {
     const b2 = document.createElement('button'); b2.className = 'go'; b2.textContent = 'Run workflow'; b2.title = 'Runs the workflow id above against the payload path.';
     b2.onclick = () => { const v = collectVals(el, sec); api('/api/flow/run', { workflow_id: v.workflow_id, payload_path: v.payload_path }, out, b2); }; form.appendChild(b2);
+  }
+  if (sec.extra === 'models') {
+    const b2 = document.createElement('button'); b2.className = 'go ghost'; b2.textContent = 'Model setup instructions'; b2.title = 'Shows the model files and placement expected by the classifier. The CLI prints instructions; scripts/download_models.py fetches CLIP models.';
+    b2.onclick = () => { out.textContent = 'Loading model setup instructions…'; api('/api/download-models', undefined, out, b2); }; form.appendChild(b2);
+  }
+  if (sec.extra === 'services') {
+    const b2 = document.createElement('button'); b2.className = 'go ghost'; b2.textContent = 'Check sync status'; b2.title = 'Checks whether the autonomous sync service reports this workspace as in sync.';
+    b2.onclick = () => { out.textContent = 'Checking sync status…'; api('/api/sync/status', undefined, out, b2); }; form.appendChild(b2);
+    const b3 = document.createElement('button'); b3.className = 'go ghost'; b3.textContent = 'Load sync history'; b3.title = 'Loads autonomous-sync version history for the path above.';
+    b3.onclick = () => { const v = collectVals(el, sec); out.textContent = 'Loading sync history…'; api('/api/sync/history', { path: v.path }, out, b3); }; form.appendChild(b3);
   }
   if (sec.extra === 'vault') {
     [['Init vault','/api/vault/init','Initializes a new encrypted vault at the path above.'],['Lock file','/api/vault/lock','Encrypts the file into the vault.'],['Unlock file','/api/vault/unlock','Decrypts vaultId to dest — put “vaultId|dest” in the third field.']].forEach(([label, ep, t]) => {
