@@ -29,8 +29,19 @@ TEST_F(RegistryFixture, CoreProvidersRegistered) {
     EXPECT_TRUE(contains(fo::core::Registry<fo::core::IHasher>::instance().names(), "fast64"));
     EXPECT_TRUE(contains(fo::core::Registry<fo::core::IHasher>::instance().names(), "sha256"));
     EXPECT_TRUE(contains(fo::core::Registry<fo::core::ILinter>::instance().names(), "std"));
-    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IPerceptualHasher>::instance().names(), "dhash"));
+    // "dhash" is OpenCV-backed; asserted under FO_HAVE_OPENCV below.
 }
+
+#ifdef FO_HAVE_OPENCV
+TEST_F(RegistryFixture, PerceptualHashersRegisteredWhenOpenCVPresent) {
+    // Pins the explicit register_perceptual_opencv() path: a TU-local static
+    // registrar was linker-dropped in the JUCE demo tree (dhash missing).
+    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IPerceptualHasher>::instance().names(), "dhash"));
+    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IPerceptualHasher>::instance().names(), "phash"));
+    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IPerceptualHasher>::instance().names(), "ahash"));
+    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IPerceptualHasher>::instance().names(), "opencv"));
+}
+#endif
 
 #ifdef FO_HAVE_FFMPEG
 TEST_F(RegistryFixture, VideoHasherRegisteredWhenFFmpegPresent) {

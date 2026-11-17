@@ -1,3 +1,28 @@
+# Session Handoff - v6.5.15 (JUCE Demo + Perceptual Registration)
+
+## What landed (2026-11-17, continuation)
+- **JUCE demo builds + launches**: VS18 vcvars discovery and vcpkg
+  applocal PowerShell pinning in `scripts/build_juce_gui.bat`;
+  `libs/JUCE` restored to recorded gitlink `762a87fc30`. Exe
+  launch-verified (title "bobfilez JUCE Demo", responding).
+- **Perceptual registration bug fixed**: `perceptual_opencv.cpp` static
+  registrar was linker-dropped (JUCE-tree registry test failed on
+  `dhash`); now explicit `register_perceptual_opencv()`, `FO_HAVE_OPENCV`
+  PUBLIC, guarded registry test added. Lean ctest **22/22**, JUCE-tree
+  ctest **19/19**, wiring **17/17**.
+- **BobGUI probed, blocked upstream**: `libs/bobgui/meson.build` has a
+  duplicate unclosed `project()` at its pin; `meson setup` fails parsing.
+  Submodule not edited; probe dir removed.
+- Version **6.5.15**.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. BobGUI: fix `project()` duplication upstream in bobgui, then retry
+   the Meson lane (GTK4 wrap chain is the next hurdle).
+3. Native BobUI/BTK lanes still blocked on framework provider surfaces;
+   Qt MinGW and JUCE VS18 are the verified native demo paths.
+
+---
 # Session Handoff - v6.5.14 (Qt Demo Aligned)
 
 ## What landed (2026-11-17, continuation)

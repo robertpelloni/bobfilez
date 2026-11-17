@@ -1,5 +1,37 @@
 # Changelog
 
+## [6.5.15] - 2026-11-17 — JUCE Demo Building, Perceptual Registration Fixed
+
+### Added
+- **`fo_juce_demo` builds and launches** (`frontends/juce`, `build-juce-demo/`):
+  `scripts/build_juce_gui.bat` now discovers the VS18 vcvars toolchain and
+  pins `Z_VCPKG_PWSH_PATH`/`Z_VCPKG_POWERSHELL_PATH` to an installed
+  PowerShell (vcpkg applocal otherwise fails on a stale preview path).
+  `libs/JUCE` restored to the recorded gitlink `762a87fc30` (the worktree
+  had drifted to a broken JUCE 9 merge). Verified: exe links
+  (`bobfilez JUCE Demo.exe`, ~24 MB) and launch-verified (window titled
+  "bobfilez JUCE Demo", responding; stopped after verification).
+
+### Fixed
+- **Perceptual hashers could vanish from the registry**: `perceptual_opencv.cpp`
+  used a TU-local static registrar plus a no-op `register_perceptual_opencv()`
+  guard, so the linker dropped `dhash`/`phash`/`ahash`/`opencv` from
+  `IPerceptualHasher` when the TU was pulled from `fo_core.lib` only for the
+  registration call (observed as `RegistryFixture.CoreProvidersRegistered`
+  failing in the JUCE tree). Registration is now explicit, mirroring the
+  classifier/OCR/video/audio providers. `FO_HAVE_OPENCV` is now `PUBLIC`
+  (like `FO_HAVE_FFMPEG`/`FO_HAVE_CHROMAPRINT`) so tests/consumers guard on
+  the same condition, and the `dhash` assertion lives under that guard with
+  a dedicated `PerceptualHashersRegisteredWhenOpenCVPresent` test.
+  Suites: lean ctest **22/22**, JUCE-tree ctest **19/19**, wiring **17/17**.
+
+### Known
+- **BobGUI lane blocked upstream**: `libs/bobgui/meson.build` is corrupt at
+  its pinned commit (duplicate, unclosed `project('bobgui', ...)` before
+  `project('gtk', ...)`), so `meson setup` fails parsing before any
+  dependency check. Not edited (submodule); also a full GTK4 build would
+  need the glib/pango/cairo wrap chain. Probe build dir removed.
+
 ## [6.5.14] - 2026-11-17 — Qt Demo Aligned and Building
 
 ### Fixed
