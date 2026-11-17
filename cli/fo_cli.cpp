@@ -17,6 +17,7 @@
 #include "fo/core/omni_oracle_interface.hpp"
 #include "fo/core/self_healing_interface.hpp"
 #include "fo/core/vault_manager.hpp"
+#include "fo/core/audit_logger_interface.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -132,6 +133,7 @@ static void print_usage() {
               << "  export       Export scan results to JSON/CSV/HTML\n"
               << "  undo         Undo the last file operation\n"
               << "  history      Show operation history\n"
+              << "  audit        Show forensic audit ledger [--limit=N] [--format=json]\n"
               << "  ignore       Manage ignore rules (add, remove, list)\n"
               << "  convert      Convert files between formats (via FFmpeg/ImageMagick/Pandoc)\n"
               << "  search       Search files by name, content, or AI (semantic search)\n"
@@ -477,6 +479,8 @@ int main(int argc, char** argv) {
             // Parsed by the search command handler below; accept silently here.
         } else if (a.rfind("--max-results=", 0) == 0) {
             // Parsed by the search command handler below; accept silently here.
+        } else if (a.rfind("--limit=", 0) == 0 || a == "--verify") {
+            // Parsed by the audit command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -1163,6 +1167,8 @@ int main(int argc, char** argv) {
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);
+                            fo::core::make_audit_logger(engine.database())
+                                ->log("move", f.uri, new_path.string(), f.size, rec.file_hash);
                         } catch (const std::exception& e) {
                             std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
                         }
@@ -1231,6 +1237,8 @@ int main(int argc, char** argv) {
                             rec.source_path = del.uri;
                             rec.file_size = del.size;
                             op_repo.log_operation(rec);
+                            fo::core::make_audit_logger(engine.database())
+                                ->log("delete", del.uri, "", del.size, rec.file_hash);
                         } catch (const std::exception& e) {
                             std::cerr << "Failed to delete: " << e.what() << "\n";
                         }
@@ -1309,6 +1317,8 @@ int main(int argc, char** argv) {
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);
+                            fo::core::make_audit_logger(engine.database())
+                                ->log("rename", f.uri, new_path.string(), f.size, rec.file_hash);
                         } catch (const std::exception& e) {
                             std::cerr << "Failed to rename " << f.uri << ": " << e.what() << "\n";
                         }
@@ -1504,6 +1514,54 @@ int main(int argc, char** argv) {
                 std::cout << "\n";
             } else {
                 std::cout << "No operations to undo.\n";
+            }
+
+        } else if (command == "audit") {
+            // ─── Forensic Audit Ledger (persistent, Migration 5 table) ──
+            int limit = 50;
+            for (const auto& a : args) {
+                if (a.rfind("--limit=", 0) == 0) {
+                    try { limit = std::stoi(a.substr(8)); } catch (...) {
+                        std::cerr << "Invalid --limit value: " << a << "\n";
+                        return 2;
+                    }
+                    if (limit < 1 || limit > 1000) {
+                        std::cerr << "--limit must be between 1 and 1000\n";
+                        return 2;
+                    }
+                }
+            }
+            auto audit = fo::core::make_audit_logger(engine.database());
+            auto entries = audit->get_history(limit);
+            bool verified = audit->verify_ledger();
+            if (format == "json") {
+                std::cout << "{\"verified\": " << (verified ? "true" : "false")
+                          << ", \"count\": " << entries.size() << ", \"entries\": [";
+                for (size_t i = 0; i < entries.size(); ++i) {
+                    const auto& e = entries[i];
+                    if (i) std::cout << ",";
+                    std::cout << "{\"id\": " << e.id
+                              << ", \"timestamp\": " << e.timestamp
+                              << ", \"operation\": \"" << fo::core::Exporter::json_escape(e.operation) << "\""
+                              << ", \"source\": \"" << fo::core::Exporter::json_escape(e.src.string()) << "\""
+                              << ", \"dest\": \"" << fo::core::Exporter::json_escape(e.dst.string()) << "\""
+                              << ", \"size\": " << e.size
+                              << ", \"checksum\": \"" << fo::core::Exporter::json_escape(e.checksum) << "\""
+                              << ", \"user\": \"" << fo::core::Exporter::json_escape(e.user) << "\""
+                              << ", \"hash\": \"" << fo::core::Exporter::json_escape(e.hash) << "\"}";
+                }
+                std::cout << "]}";
+            } else if (entries.empty()) {
+                std::cout << "Audit ledger is empty (no audited operations recorded yet).\n";
+                std::cout << "Ledger verification: " << (verified ? "OK" : "FAILED") << "\n";
+            } else {
+                std::cout << "Forensic Audit Ledger (most recent first):\n";
+                for (const auto& e : entries) {
+                    std::cout << "  #" << e.id << " " << e.operation << " " << e.src.string();
+                    if (!e.dst.empty()) std::cout << " -> " << e.dst.string();
+                    std::cout << " (" << e.size << " bytes)\n";
+                }
+                std::cout << "Ledger verification: " << (verified ? "OK" : "FAILED") << "\n";
             }
 
         } else if (command == "history") {

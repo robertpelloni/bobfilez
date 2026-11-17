@@ -37,14 +37,13 @@ By default, the UI is served at `http://localhost:3131`.
 - **Full dev loop**: `scripts\dev_all.bat` — headless build → `fo_tests.exe`
   → CLI smoke → dashboard wiring tests (`node --test test\` in `bobui_web`)
   → server. Run heavy builds BelowNormal on shared machines.
-- **Bridge honesty** (as of v6.5.7): `/api/vault/*` call the `vault-*`
+- **Bridge honesty** (as of v6.5.8): `/api/vault/*` call the `vault-*`
   CLI commands (AES-256-GCM), `/api/watch/status` reads the watcher
-  heartbeat via `watch-status`, and Provider Directory / AutoDev / Sync
-  status bridges expose the corresponding CLI surfaces. One deliberate
-  exception remains: `/api/audit` returns 501 because the core
-  `audit_ledger` table has no persistent CLI query yet; it must never
-  fabricate an empty ledger. Genuine provider/build failures return the
-  CLI error and the relevant card is badged from `/api/providers`.
+  heartbeat via `watch-status`, `/api/audit` queries the persistent
+  hash-chained ledger via `fo_cli audit`, and Provider Directory /
+  AutoDev / Sync status bridges expose the corresponding CLI surfaces.
+  No endpoint fabricates results; genuine provider/build failures return
+  the CLI error and the relevant card is badged from `/api/providers`.
 
 ---
 

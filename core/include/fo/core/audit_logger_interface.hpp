@@ -8,9 +8,12 @@
 
 #include <string>
 #include <filesystem>
+#include <memory>
 #include <vector>
 
 namespace fo::core {
+
+class DatabaseManager;
 
 struct AuditEntry {
     uint64_t id;
@@ -41,5 +44,10 @@ public:
     /// Verify the integrity of the ledger
     virtual bool verify_ledger() = 0;
 };
+
+/// Create an audit logger backed by a persistent DatabaseManager (the
+/// Engine's database). This is the production counterpart to the
+/// registry's in-memory "default" factory, which exists only for tests.
+std::unique_ptr<IAuditLogger> make_audit_logger(DatabaseManager& db);
 
 } // namespace fo::core

@@ -126,6 +126,19 @@ test('audit bridge never returns fabricated empty history', () => {
   assert.doesNotMatch(srv, /Stubbed for now/);
 });
 
+test('audit bridge queries the persistent ledger via fo_cli', async () => {
+  const srv = read('server.js');
+  assert.match(srv, /\['audit', '--format=json'/);
+  assert.doesNotMatch(srv, /not exposed by fo_cli yet/);
+  const html = read('public/unified.html');
+  assert.match(html, /Load audit ledger/);
+  const r = await fetch('http://localhost:3199/api/audit');
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.ok(Array.isArray(j.entries));
+  assert.equal(typeof j.verified, 'boolean');
+});
+
 test('watch status is queryable (heartbeat bridge, not 501)', async () => {
   const srv = read('server.js');
   assert.match(srv, /'watch-status', '--format=json'/);

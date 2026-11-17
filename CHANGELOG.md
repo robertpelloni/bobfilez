@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.8] - 2026-11-16 — Persistent Forensic Audit Query
+
+### Added
+- **`fo_cli audit` command**: reads the persistent `audit_ledger` table
+  (Migration 5) via the new `make_audit_logger(DatabaseManager&)` factory,
+  with `--limit=N` (1–1000, validated) and `--format=json`; output includes
+  hash-chain verification (`verified`, computed over every entry).
+- **Audit writing**: applied CLI move (organize), delete-duplicates, and
+  rename operations now also append hash-chained audit entries next to the
+  existing operation journal. Dry-runs write nothing.
+- `/api/audit` now queries the real ledger (optional `?limit=`) and the
+  dashboard card loads entries instead of checking availability.
+
+### Verified
+- Isolated-DB end-to-end: an applied organize move produced one ledger
+  entry; `audit --format=json` returned it with `verified: true` from
+  both the lean and manifest binaries (identical chain hash), and
+  `--limit=0` was rejected with exit 2. Wiring tests 14/14.
+
 ## [6.5.7] - 2026-11-16 — Full Manifest Parity + Dashboard Coverage Completion
 
 ### Added

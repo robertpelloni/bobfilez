@@ -248,14 +248,13 @@ app.post('/api/prune', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Forensic audit ledger ──
-// The core database has an audit_ledger table (Migration 5), but fo_cli does
-// not expose a persistent audit-history query yet. Never fabricate an empty
-// ledger: say so, and point callers at the operation journal that does exist.
+// ── Forensic audit ledger (persistent fo_cli audit query) ──
 app.get('/api/audit', async (req, res) => {
-    return res.status(501).json({
-        error: 'Forensic audit ledger query is not exposed by fo_cli yet. Use /api/history for the operation journal; audit_ledger exists in the core database (Migration 5) but has no CLI query command.'
-    });
+    try {
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 1000);
+        const { stdout } = await runCli(['audit', '--format=json', `--limit=${limit}`], 30000);
+        res.json(JSON.parse(extractJson(stdout) || '{"verified":false,"count":0,"entries":[]}'));
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Flow (OmniFlow Automation) ──

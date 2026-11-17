@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.8 (Persistent Audit Query)
+
+## What landed (2026-11-16, continuation)
+- **Audit is real end-to-end**: `make_audit_logger()` factory over the
+  Engine's persistent DB, `fo_cli audit [--limit=N] [--format=json]` with
+  full hash-chain verification, audit writes at applied organize-move /
+  delete-duplicates / rename sites, `/api/audit` + dashboard card wired.
+  Verified on an isolated DB from both lanes (same chain hash,
+  `verified: true`, `--limit=0` → exit 2). Wiring tests 14/14.
+- Version **6.5.8** (both lane banners rebuilt and checked).
+
+## Next
+1. Opt-in FFmpeg/Chromaprint `media-analysis` decision for vhash/audio.
+2. Restore/recreate tracked C++ `tests/` tree.
+3. `upstream/master` unrelated-history decision (owner).
+
+---
 # Session Handoff - v6.5.7 (Manifest Parity + Coverage Completion)
 
 ## What landed (2026-11-16)

@@ -253,6 +253,10 @@ public:
     }
 };
 
+std::unique_ptr<IAuditLogger> make_audit_logger(DatabaseManager& db) {
+    return std::make_unique<AuditLoggerImpl>(db);
+}
+
 // Registration — requires a DatabaseManager, so we register a factory that
 // takes a DatabaseManager reference. For convenience, also provide a "default"
 // that creates its own in-memory DB.
