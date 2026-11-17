@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.16 (Vault Registry Registration)
+
+## What landed (2026-11-17, continuation)
+- **Vault registry bug fixed**: `IVaultManager` registration was a
+  TU-local static initializer with a never-called `force_register_*()`,
+  so the C API vault (`fo_bobfilez_vault_initialize`) always got
+  `nullptr`. Now explicit `register_vault_manager()` via
+  `register_all_providers()`, plus `ensure_providers_registered()` in
+  the C entry point. New `VaultManagerRegistered` test failed before,
+  passes after. Lean ctest **23/23**, JUCE-tree ctest **20/20**,
+  wiring **17/17**. JUCE demo re-launch-verified at v6.5.16.
+- Version **6.5.16**.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. BobGUI: fix `project()` duplication upstream in bobgui, then retry
+   the Meson lane (unblocks verifying the C API vault direct path).
+3. Audit remaining `(void)reg_*` guard registrations only if a binary
+   shows a missing provider; the pattern works when the register
+   function is actually called from `register_all_providers()`.
+
+---
 # Session Handoff - v6.5.15 (JUCE Demo + Perceptual Registration)
 
 ## What landed (2026-11-17, continuation)

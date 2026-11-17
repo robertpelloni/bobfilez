@@ -1661,6 +1661,7 @@ static bool g_vault_initialized = false;
 extern "C" int fo_bobfilez_vault_initialize(const char* vault_path, const char* password) {
     if (!vault_path || !password) return 0;
     try {
+        ensure_providers_registered();
         if (!g_vault_manager) {
             g_vault_manager = fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm");
             if (!g_vault_manager) return 0;

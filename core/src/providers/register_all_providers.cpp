@@ -65,6 +65,7 @@ namespace fo::core {
         register_hasher_blake3();
         register_metadata_tinyexif();
         register_linter_std();
+        register_vault_manager();
         register_file_watcher_native();
         register_audit_logger();
         register_treemap_engine();

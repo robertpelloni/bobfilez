@@ -55,6 +55,14 @@ TEST_F(RegistryFixture, AudioFingerprinterRegisteredWhenChromaprintPresent) {
 }
 #endif
 
+TEST_F(RegistryFixture, VaultManagerRegistered) {
+    // The C API creates the vault through this registry
+    // (fo_bobfilez_vault_initialize); registration must be explicit via
+    // register_all_providers(), not a TU-local static initializer.
+    EXPECT_TRUE(contains(fo::core::Registry<fo::core::IVaultManager>::instance().names(), "aes256_gcm"));
+    EXPECT_NE(fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm"), nullptr);
+}
+
 TEST_F(RegistryFixture, UnknownProviderCreatesNull) {
     EXPECT_EQ(fo::core::Registry<fo::core::IFileScanner>::instance().create("does-not-exist"), nullptr);
 }

@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.16] - 2026-11-17 — Vault Registry Registration Fixed
+
+### Fixed
+- **C API vault could never initialize**: `Registry<IVaultManager>` was
+  populated only by a TU-local static initializer in
+  `vault_manager_reg.cpp`, whose companion `force_register_vault_manager()`
+  was never called (and lived in the wrong namespace), so
+  `fo_bobfilez_vault_initialize()` received `nullptr` from
+  `create("aes256_gcm")` and always failed for direct C consumers
+  (e.g. BobGUI direct mode). Registration is now the explicit
+  `register_vault_manager()`, declared in `provider_registration.hpp` and
+  called from `register_all_providers()`; `fo_bobfilez_vault_initialize`
+  also now calls `ensure_providers_registered()` before creating.
+  Proven by the new `RegistryFixture.VaultManagerRegistered` test, which
+  failed on both assertions before the fix. The CLI vault path was
+  unaffected (it constructs `VaultManager` directly).
+  Suites: lean ctest **23/23**, JUCE-tree ctest **20/20**, wiring **17/17**.
+
 ## [6.5.15] - 2026-11-17 — JUCE Demo Building, Perceptual Registration Fixed
 
 ### Added
