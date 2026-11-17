@@ -1,5 +1,5 @@
 {
-  "tests": 23,
+  "tests": 24,
   "name": "AllTests",
   "testsuites": [
     {
@@ -113,22 +113,27 @@
     },
     {
       "name": "RegistryFixture",
-      "tests": 3,
+      "tests": 4,
       "testsuite": [
         {
           "name": "CoreProvidersRegistered",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
-          "line": 27
+          "line": 28
         },
         {
           "name": "VaultManagerRegistered",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
-          "line": 58
+          "line": 59
+        },
+        {
+          "name": "OracleDoesNotFabricateAnswers",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
+          "line": 67
         },
         {
           "name": "UnknownProviderCreatesNull",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_provider_registry.cpp",
-          "line": 66
+          "line": 77
         }
       ]
     },

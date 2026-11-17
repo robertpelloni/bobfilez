@@ -131,6 +131,25 @@ TEST_F(CliFixture, RenameWritesAuditEntry) {
     EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
 }
 
+TEST_F(CliFixture, ScrubDetectsCorruptionAfterBaseline) {
+    auto inbox = dir / "guarded";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "guarded.txt") << "original-bytes"; }
+    auto db = (dir / "t.db").string();
+
+    // First run establishes the persistent baseline.
+    auto r1 = run_cli("scrub --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r1.code, 0) << r1.out;
+    EXPECT_NE(r1.out.find("\"corrupted\":0"), std::string::npos) << r1.out;
+
+    // Tamper with the file; a second run (a new process, so only a
+    // persisted baseline can catch this) must report the corruption.
+    { std::ofstream(inbox / "guarded.txt") << "tampered-bytes!!"; }
+    auto r2 = run_cli("scrub --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r2.code, 0) << r2.out;
+    EXPECT_NE(r2.out.find("\"corrupted\":1"), std::string::npos) << r2.out;
+}
+
 TEST_F(CliFixture, RenameBatchDryRunFindsMatches) {
     auto inbox = dir / "inbox";
     std::filesystem::create_directories(inbox);
