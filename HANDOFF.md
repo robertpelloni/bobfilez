@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.21 (Oracle Stops Fabricating Answers)
+
+## What landed (2026-11-17, continuation)
+- **Oracle honesty**: `OmniOracle::ask/summarize` fabricated citations
+  and summaries; both now report "not connected" with no citations,
+  and the dashboard card describes the scaffold truthfully. New
+  registry test pins it. Verified CLI + HTTP. Full POST-endpoint
+  smoke (search/lint/organize/rename/scrub/clerk/oracle/prune/export)
+  all 200 at v6.5.20 before the bump.
+- Version **6.5.21**. Suites: lean **27/27**, JUCE **24/24**,
+  wiring **18/18**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 still lock
+  `build-msvc/tests`; stop them where possible, then rerun
+  `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+- Real Oracle RAG (embedder + local LLM) remains a design, not code.
+
+---
 # Session Handoff - v6.5.20 (Similar-Image Search Fixed)
 
 ## What landed (2026-11-17, continuation)

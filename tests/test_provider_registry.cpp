@@ -7,6 +7,7 @@
 #include "fo/core/interfaces.hpp"
 #include "fo/core/lint_interface.hpp"
 #include "fo/core/ocr_interface.hpp"
+#include "fo/core/omni_oracle_interface.hpp"
 #include "fo/core/perceptual_hash_interface.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
@@ -61,6 +62,16 @@ TEST_F(RegistryFixture, VaultManagerRegistered) {
     // register_all_providers(), not a TU-local static initializer.
     EXPECT_TRUE(contains(fo::core::Registry<fo::core::IVaultManager>::instance().names(), "aes256_gcm"));
     EXPECT_NE(fo::core::Registry<fo::core::IVaultManager>::instance().create("aes256_gcm"), nullptr);
+}
+
+TEST_F(RegistryFixture, OracleDoesNotFabricateAnswers) {
+    // OmniOracle has no local model/index wired up yet; it must say so
+    // instead of inventing file citations and counts.
+    auto oracle = fo::core::Registry<fo::core::IOmniOracle>::instance().create("default");
+    ASSERT_NE(oracle, nullptr);
+    const auto res = oracle->ask("how many files do I have?");
+    EXPECT_TRUE(res.citations.empty());
+    EXPECT_NE(res.answer_text.find("not connected"), std::string::npos);
 }
 
 TEST_F(RegistryFixture, UnknownProviderCreatesNull) {
