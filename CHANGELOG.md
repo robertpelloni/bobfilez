@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.10] - 2026-11-17 — Tracked C++ Test Tree Restored
+
+### Added
+- **`tests/` GTest tree** (was untracked/absent, so `ctest` found no
+  tests): audit-ledger history/limits/tamper-detection, operation-journal
+  logging/ordering/rename-undo, and provider-registry contracts
+  (including FFmpeg/Chromaprint registration when compiled in) —
+  **11 tests, all passing** via `ctest --test-dir build-lean`.
+- Test runtime DLLs are copied beside `fo_tests` automatically
+  (`TARGET_RUNTIME_DLLS`), so gtest discovery works on clean builds.
+
+### Verified
+- Browser-verified dashboard through MS Edge (CDP 9222): page render,
+  Scan, Audit, Provider Directory, and Folder Watcher controls exercised
+  with real results; a stale pre-audit server process was caught by the
+  browser check and restarted. Exhaustive HTTP smoke: all endpoints 200.
+  HyperNexus MCP read-only tools (status/observability/memory/workflows)
+  healthy. Wiring tests remain green.
+
 ## [6.5.9] - 2026-11-17 — Media Providers Live (Video + Audio Fingerprinting)
 
 ### Added

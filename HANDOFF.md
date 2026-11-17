@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.10 (Tracked Tests Restored + Browser Verification)
+
+## What landed (2026-11-17, continuation)
+- **Tracked `tests/` tree restored**: 11 GTest cases (audit ledger incl.
+  tamper detection, operation journal incl. rename undo, provider
+  registry incl. FFmpeg/Chromaprint when compiled in). `ctest` in
+  build-lean: **11/11 passed**. Runtime DLLs auto-copied for discovery.
+- **Browser verification via MS Edge CDP 9222** (agent-browser): 32-card
+  dashboard rendered; Scan/Audit/Providers/Watcher exercised with real
+  results (screenshot inspected). Caught and restarted a stale pre-audit
+  server. Shared-Edge tabs from other apps can steal focus — re-open the
+  dashboard URL in the same command chain when automating.
+- Version **6.5.10**. MCP read-only surface (status, observability,
+  memory, workflows, repograph) healthy.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. Native GUI lanes remain blocked on Qt/BobUI provider surface (docs).
+3. Grow `tests/` coverage toward CLI-level integration (audit --limit,
+   vault round-trip) as the tree matures.
+
+---
 # Session Handoff - v6.5.9 (Media Providers Live — Matrix Complete)
 
 ## What landed (2026-11-17, continuation)
