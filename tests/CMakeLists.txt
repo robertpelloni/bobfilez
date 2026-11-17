@@ -24,5 +24,27 @@ add_custom_command(TARGET fo_tests POST_BUILD
             $<TARGET_RUNTIME_DLLS:fo_tests> $<TARGET_FILE_DIR:fo_tests>
     COMMAND_EXPAND_LISTS)
 
+# TARGET_RUNTIME_DLLS only covers imported targets; providers linked by
+# plain library names (OpenCV's ${OpenCV_LIBS}, lean-prefix staged libs)
+# contribute no DLL paths, and gtest discovery then fails with 0xc0000135
+# in trees that lack them (observed in build-msvc). Copying whole prefix
+# bin dirs instead shadowed good DLLs with debug variants (0xc0000005),
+# so resolve the exact set the loader needs from the linked executable.
+set(_fo_test_search_dirs "")
+foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
+    if(EXISTS "${_prefix}/bin")
+        list(APPEND _fo_test_search_dirs "${_prefix}/bin")
+    endif()
+endforeach()
+if(OpenCV_DIR AND EXISTS "${OpenCV_DIR}/../bin")
+    list(APPEND _fo_test_search_dirs "${OpenCV_DIR}/../bin")
+endif()
+add_custom_command(TARGET fo_tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND}
+            "-DFO_TEST_EXE=$<TARGET_FILE:fo_tests>"
+            "-DFO_TEST_DEST=$<TARGET_FILE_DIR:fo_tests>"
+            "-DFO_TEST_SEARCH_DIRS=${_fo_test_search_dirs}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/copy_runtime_deps.cmake)
+
 include(GoogleTest)
 gtest_discover_tests(fo_tests)
