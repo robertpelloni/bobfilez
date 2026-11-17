@@ -7,3 +7,4 @@
 subdirs("core")
 subdirs("cli")
 subdirs("benchmarks")
+subdirs("tests")
