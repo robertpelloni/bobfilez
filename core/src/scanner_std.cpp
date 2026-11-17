@@ -37,6 +37,18 @@ public:
         for (auto& root : roots) {
             if (!std::filesystem::exists(root)) continue;
             std::error_code ec;
+            // A file root scans as itself (Hash/Metadata accept files).
+            if (std::filesystem::is_regular_file(root, ec)) {
+                if (accept_ext(root)) {
+                    FileInfo fi;
+                    fi.uri = root.string();
+                    fi.size = std::filesystem::file_size(root, ec);
+                    auto ft = std::filesystem::last_write_time(root, ec);
+                    if (!ec) fi.mtime = ft;
+                    out.push_back(std::move(fi));
+                }
+                continue;
+            }
             for (std::filesystem::recursive_directory_iterator it(root, opts, ec), end; it != end; ) {
                 std::filesystem::directory_entry de;
                 try { de = *it; ++it; } catch (...) { ++it; continue; }

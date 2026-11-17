@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QTableWidget>
@@ -678,10 +679,11 @@ private:
                 if (!dir.empty()) roots.push_back(std::filesystem::u8path(dir));
                 fo::core::SearchOptions opts;
                 opts.query = query;
-                auto results = engine.search_engine().search(opts, roots);
+                opts.search_roots = roots;
+                auto results = engine.search_engine().search(opts);
                 result = QStringLiteral("Found %1 results:\n\n").arg(results.size());
                 for (size_t i = 0; i < std::min<size_t>(results.size(), 30); ++i)
-                    result += QString::fromStdString(results[i]) + QLatin1Char('\n');
+                    result += QString::fromStdString(results[i].path.string()) + QLatin1Char('\n');
             } catch (const std::exception &e) {
                 result = QStringLiteral("Error: ") + QString::fromStdString(e.what());
             }
@@ -824,7 +826,7 @@ int main(int argc, char *argv[])
         top->addWidget(btn);
         layout->addLayout(top);
         layout->addWidget(output);
-        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+        QObject::connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
             btn->setEnabled(false);
             const std::string dir = pathEdit->text().toStdString();
             std::thread([btn, dir, output]() {
@@ -862,7 +864,7 @@ int main(int argc, char *argv[])
         top->addWidget(btn);
         layout->addLayout(top);
         layout->addWidget(output);
-        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+        QObject::connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
             btn->setEnabled(false);
             const std::string dir = pathEdit->text().toStdString();
             std::thread([btn, dir, output]() {
@@ -891,7 +893,7 @@ int main(int argc, char *argv[])
         output->setReadOnly(true);
         layout->addWidget(btn);
         layout->addWidget(output);
-        connect(btn, &QPushButton::clicked, btn, [btn, output]() {
+        QObject::connect(btn, &QPushButton::clicked, btn, [btn, output]() {
             btn->setEnabled(false);
             std::thread([btn, output]() {
                 QString result;
@@ -900,7 +902,7 @@ int main(int argc, char *argv[])
                     cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
                     fo::core::Engine engine(cfg);
                     fo::core::OperationRepository op_repo(engine.database());
-                    auto ops = op_repo.list_recent(50);
+                    auto ops = op_repo.get_all(50);
                     result = QStringLiteral("Operation History\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
                     if (ops.empty()) result += QStringLiteral("(no operations recorded)\n");
                     for (const auto &op : ops) {
@@ -933,7 +935,7 @@ int main(int argc, char *argv[])
         top->addWidget(addBtn);
         layout->addLayout(top);
         layout->addWidget(output);
-        connect(listBtn, &QPushButton::clicked, listBtn, [listBtn, output]() {
+        QObject::connect(listBtn, &QPushButton::clicked, listBtn, [listBtn, output]() {
             listBtn->setEnabled(false);
             std::thread([listBtn, output]() {
                 QString result;
@@ -942,8 +944,7 @@ int main(int argc, char *argv[])
                     cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
                     fo::core::Engine engine(cfg);
                     fo::core::IgnoreRepository ignore_repo(engine.database());
-                    ignore_repo.migrate();
-                    auto rules = ignore_repo.list_rules();
+                    auto rules = ignore_repo.get_all();
                     result = QStringLiteral("Ignore Rules\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n");
                     if (rules.empty()) result += QStringLiteral("(no rules)\n");
                     for (const auto &r : rules) result += QString::fromStdString(r.pattern) + "\n";
@@ -952,7 +953,7 @@ int main(int argc, char *argv[])
                 QMetaObject::invokeMethod(listBtn, [listBtn]() { listBtn->setEnabled(true); });
             }).detach();
         });
-        connect(addBtn, &QPushButton::clicked, addBtn, [addBtn, patternEdit, output]() {
+        QObject::connect(addBtn, &QPushButton::clicked, addBtn, [addBtn, patternEdit, output]() {
             auto pattern = patternEdit->text().toStdString();
             if (pattern.empty()) return;
             addBtn->setEnabled(false);
@@ -963,10 +964,7 @@ int main(int argc, char *argv[])
                     cfg.db_path = ":memory:"; cfg.scanner = "std"; cfg.hasher = "fast64";
                     fo::core::Engine engine(cfg);
                     fo::core::IgnoreRepository ignore_repo(engine.database());
-                    ignore_repo.migrate();
-                    fo::core::IgnoreRule rule;
-                    rule.pattern = pattern; rule.reason = "Added from Qt demo";
-                    ignore_repo.add_rule(rule);
+                    ignore_repo.add(pattern, "Added from Qt demo");
                     result = QStringLiteral("Added: %1\n").arg(QString::fromStdString(pattern));
                 } catch (const std::exception &e) { result = QString::fromStdString(e.what()); }
                 QMetaObject::invokeMethod(output, [output, r = result]() { output->setText(r); });
@@ -994,7 +992,7 @@ int main(int argc, char *argv[])
         top->addWidget(btn);
         layout->addLayout(top);
         layout->addWidget(output);
-        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, ruleEdit, output]() {
+        QObject::connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, ruleEdit, output]() {
             auto path = pathEdit->text().toStdString();
             auto rule = ruleEdit->text().toStdString();
             if (path.empty() || rule.empty()) return;
@@ -1036,7 +1034,7 @@ int main(int argc, char *argv[])
         top->addWidget(btn);
         layout->addLayout(top);
         layout->addWidget(output);
-        connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
+        QObject::connect(btn, &QPushButton::clicked, btn, [btn, pathEdit, output]() {
             auto path = pathEdit->text().toStdString();
             if (path.empty()) return;
             btn->setEnabled(false);

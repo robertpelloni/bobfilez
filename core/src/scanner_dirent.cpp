@@ -43,8 +43,44 @@ public:
         std::vector<std::filesystem::path> stack;
         for (auto& r : roots) {
             if (!std::filesystem::exists(r)) continue;
+            // A file root scans as itself (Hash/Metadata accept files).
+            struct stat root_st{};
+            if (stat(r.string().c_str(), &root_st) == 0 && (root_st.st_mode & S_IFREG)) {
+                if (accept_ext(r)) {
+                    FileInfo fi;
+                    fi.uri = r.string();
+                    fi.size = static_cast<std::uintmax_t>(root_st.st_size);
+                    std::error_code ec;
+                    auto ft = std::filesystem::last_write_time(r, ec);
+                    if (!ec) fi.mtime = ft;
+                    out.push_back(std::move(fi));
+                }
+                continue;
+            }
             stack.push_back(r);
         }
+
+#ifdef _WIN32
+        // The vendored dirent shim stores the CRT find handle (pointer-sized
+        // since VS2015) in a 32-bit long, which truncates it and crashes in
+        // readdir with the modern MSVC CRT. Walk with std::filesystem here;
+        // POSIX keeps the real dirent loop below.
+        for (auto& root : stack) {
+            std::error_code ec;
+            for (std::filesystem::recursive_directory_iterator it(root, ec), end; it != end; it.increment(ec)) {
+                if (ec) break;
+                std::error_code fec;
+                if (!it->is_regular_file(fec) || !accept_ext(it->path())) continue;
+                FileInfo fi;
+                fi.uri = it->path().string();
+                fi.size = it->file_size(fec);
+                auto ft = it->last_write_time(fec);
+                if (!fec) fi.mtime = ft;
+                out.push_back(std::move(fi));
+            }
+        }
+        return out;
+#endif
 
         while (!stack.empty()) {
             std::filesystem::path cur = stack.back();

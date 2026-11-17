@@ -134,6 +134,25 @@ test('media providers use explicit registration and link swresample', () => {
   assert.match(cmake, /FFmpeg::swresample/);
 });
 
+test('rename-batch bridge speaks the CLI find/replace grammar', () => {
+  const srv = read('server.js');
+  assert.match(srv, /--find=\$\{find\}/);
+  assert.match(srv, /--replace=\$\{replace\}/);
+  assert.doesNotMatch(srv, /--rules=' \+ rules/);
+  const html = read('public/unified.html');
+  assert.match(html, /Find text/);
+});
+
+test('hash accepts a single file path (scanner file roots)', async () => {
+  const r = await fetch('http://localhost:3199/api/hash', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['C:/Users/hyper/workspace/bobfilez/bobui_web/public/app.js'] }),
+  });
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.ok(Array.isArray(j) && j.length >= 1, 'expected at least one hash result for a file path');
+});
+
 test('audit bridge queries the persistent ledger via fo_cli', async () => {
   const srv = read('server.js');
   assert.match(srv, /\['audit', '--format=json'/);
