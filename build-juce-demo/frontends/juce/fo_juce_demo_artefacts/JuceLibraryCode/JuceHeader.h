@@ -34,7 +34,7 @@ namespace ProjectInfo
 {
     const char* const  projectName    = "bobfilez JUCE Demo";
     const char* const  companyName    = "bobfilez";
-    const char* const  versionString  = "6.0.57";
-    const int          versionNumber  =  0x60039;
+    const char* const  versionString  = "6.5.14";
+    const int          versionNumber  =  0x6050e;
 }
 #endif

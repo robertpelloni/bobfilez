@@ -29,7 +29,7 @@
 
 
 #pragma warning(push)
-#pragma warning(disable:4001) 
+#pragma warning(disable: 4001)
 #line 23 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\winapifamily.h"
 #pragma once
 #line 25 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\winapifamily.h"
@@ -55,7 +55,7 @@
 
 
 #pragma warning(push)
-#pragma warning(disable:4001) 
+#pragma warning(disable: 4001)
 #line 23 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\winpackagefamily.h"
 #pragma once
 #line 25 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\winpackagefamily.h"
@@ -389,9 +389,9 @@
 
 
 #pragma warning(push)
-#pragma warning(disable:4668) 
+#pragma warning(disable: 4668)
 #line 23 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\sdkddkver.h"
-#pragma warning(disable:4001) 
+#pragma warning(disable: 4001)
 #line 25 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\sdkddkver.h"
 
 #pragma once
@@ -1503,14 +1503,12 @@
 
 
 
-
-#line 721 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
-
+#line 720 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
-
+#line 725 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1524,7 +1522,13 @@
 
 
 
-#line 741 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+
+
+
+
+
+
+#line 745 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1534,19 +1538,15 @@
 
 
 
-#line 751 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
-
-
-#line 754 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
-
+#line 755 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 #line 758 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 762 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 763 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1554,10 +1554,10 @@
 
 
 
+#line 771 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
-#line 774 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1565,14 +1565,12 @@
 
 
 
-
-#line 783 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
-
+#line 782 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
-
+#line 787 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1591,7 +1589,9 @@
 
 
 
-#line 808 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+
+
+
 
 
 
@@ -1603,48 +1603,49 @@
 
 
 
+#line 820 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 821 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 825 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
-#line 828 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 832 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 833 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 837 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 838 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 841 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 842 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 845 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
 
-#line 850 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 854 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
-#line 858 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 862 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1662,10 +1663,10 @@
 
 
 
-#line 879 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 883 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1699,10 +1700,10 @@
 
 
 
-#line 916 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 920 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1710,16 +1711,17 @@
 
 
 
-#line 927 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 930 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 932 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+#line 931 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+
 
 #line 934 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 936 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 938 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1734,9 +1736,9 @@
 
 
 
-#line 951 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 955 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1782,11 +1784,11 @@
 
 
 
-#line 999 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1001 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1003 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1005 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1794,19 +1796,19 @@
 
 
 
-#line 1011 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1015 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
-#line 1017 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1020 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 #line 1021 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1024 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+#line 1025 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1869,9 +1871,9 @@
 
 
 
-#line 1086 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1090 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1887,17 +1889,15 @@
 
 
 
-#line 1104 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1108 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1109 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1113 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-
-#line 1114 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1912,10 +1912,11 @@
 #line 1126 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1129 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1130 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1133 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1933,10 +1934,10 @@
 
 
 
-#line 1150 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1154 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -1957,21 +1958,21 @@
 
 
 
-#line 1174 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1177 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1178 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1181 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
-#line 1185 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1189 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2025,20 +2026,20 @@
 
 
 
-#line 1242 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1246 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1247 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1251 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1252 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1256 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2058,10 +2059,10 @@
 
 
 
-#line 1275 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1279 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2085,7 +2086,6 @@
 
 
 
-#line 1302 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2093,6 +2093,7 @@
 
 
 
+#line 1310 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2156,13 +2157,13 @@
 
 
 
-#line 1373 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1376 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1377 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1380 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2172,13 +2173,13 @@
 
 
 
-#line 1389 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1392 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1393 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1396 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2189,13 +2190,13 @@
 
 
 
-#line 1406 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1409 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1410 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1413 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2205,16 +2206,16 @@
 
 
 
-#line 1422 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1426 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1428 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1432 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2227,21 +2228,21 @@
 
 
 
-#line 1444 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1448 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1449 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1453 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1454 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
-#line 1455 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1458 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+#line 1459 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2259,10 +2260,10 @@
 
 
 
-#line 1476 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1480 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2303,12 +2304,11 @@
 
 
 
-#line 1520 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1524 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
-#line 1525 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2316,6 +2316,7 @@
 
 
 
+#line 1533 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2348,10 +2349,10 @@
 
 
 
-#line 1565 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1569 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2365,10 +2366,10 @@
 
 
 
-#line 1582 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1586 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2379,21 +2380,21 @@
 
 
 
-#line 1596 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1599 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1600 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1603 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
 
-#line 1607 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1611 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2416,13 +2417,13 @@
 
 
 
-#line 1633 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
-#line 1636 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
+#line 1637 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
+#line 1640 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2432,10 +2433,10 @@
 
 
 
-#line 1649 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1653 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2458,7 +2459,6 @@
 
 
 
-#line 1675 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2466,6 +2466,7 @@
 
 
 
+#line 1683 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2484,10 +2485,10 @@
 
 
 
-#line 1701 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1705 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2507,10 +2508,10 @@
 
 
 
-#line 1724 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1728 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2524,10 +2525,10 @@
 
 
 
-#line 1741 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
+#line 1745 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 
 
 
@@ -2562,7 +2563,10 @@
 
 
 
-#line 1779 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
+
+
+
+#line 1783 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winuser.rh"
 #line 37 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\winresrc.h"
 #line 1 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\commctrl.rh"
 
@@ -3774,7 +3778,7 @@
 
 
 #pragma warning(push)
-#pragma warning(disable:4668) 
+#pragma warning(disable: 4668)
 #line 24 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\SpecStrings.h"
 
 
@@ -3813,7 +3817,7 @@
 
 
 
-#line 1 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -3963,11 +3967,11 @@
 
 
 
-#line 151 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 151 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
-#line 155 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 155 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -3997,29 +4001,29 @@
 
 
 
-#line 185 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 185 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
-#line 188 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 188 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
-#line 190 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 190 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
 
 
-#line 196 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 196 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
-#line 200 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 200 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
 
 
 
-#line 207 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 207 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -4031,7 +4035,7 @@
 
 
 
-#line 219 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 219 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -4041,7 +4045,7 @@
 
 
 
-#line 229 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 229 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5367,7 +5371,7 @@
 
 
 
-#line 1555 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1555 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5398,7 +5402,7 @@
 
 
 
-#line 1586 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1586 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5423,7 +5427,7 @@
 
 
 
-#line 1611 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1611 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5436,7 +5440,7 @@
 
 
 
-#line 1624 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1624 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5475,7 +5479,7 @@
 
 
 
-#line 1663 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1663 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5587,7 +5591,7 @@
 
 
 
-#line 1775 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1775 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5690,7 +5694,7 @@
 
 
 
-#line 1878 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 1878 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5859,7 +5863,7 @@
 
 
 
-#line 2047 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2047 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -5961,7 +5965,7 @@
 
 
 
-#line 2149 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2149 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6178,8 +6182,8 @@
 
 
 
-#line 2366 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
-#line 2367 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2366 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
+#line 2367 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6407,7 +6411,7 @@
 
 
 
-#line 2595 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2595 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
     
     
     
@@ -6446,7 +6450,7 @@
     
     
 
-#line 2634 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2634 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6680,7 +6684,7 @@
 
 
 
-#line 2868 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2868 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6690,7 +6694,7 @@
 
 
 
-#line 2878 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2878 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6698,24 +6702,24 @@
     
 
 
-#line 2886 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
-#line 2887 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2886 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
+#line 2887 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
 
 
 
-#line 2894 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
-#line 2895 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2894 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
+#line 2895 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
 
 
 
-#line 2902 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
-#line 2903 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2902 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
+#line 2903 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6727,7 +6731,7 @@
 
 
 
-#line 2915 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2915 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6761,7 +6765,7 @@
 
 
 
-#line 2949 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 2949 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 
 
 
@@ -6787,7 +6791,7 @@
 
 
 
-#line 1 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\concurrencysal.h"
+#line 1 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\concurrencysal.h"
 
 
 
@@ -7078,11 +7082,11 @@
 
 
 
-#line 292 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\concurrencysal.h"
+#line 292 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\concurrencysal.h"
 
 
 
-#line 296 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\concurrencysal.h"
+#line 296 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\concurrencysal.h"
 
 
 
@@ -7175,14 +7179,14 @@
 
 
 
-#line 389 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\concurrencysal.h"
+#line 389 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\concurrencysal.h"
 
 
 
 
 
-#line 395 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\concurrencysal.h"
-#line 2975 "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.29.30133\\include\\sal.h"
+#line 395 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\concurrencysal.h"
+#line 2975 "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Tools\\MSVC\\14.52.37025\\include\\sal.h"
 #line 62 "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\shared\\SpecStrings.h"
 
 
@@ -9379,7 +9383,8 @@
 #line 10 "C:\\Users\\hyper\\workspace\\bobfilez\\build-juce-demo\\frontends\\juce\\fo_juce_demo_artefacts\\JuceLibraryCode\\fo_juce_demo_resources.rc"
 
 1 VERSIONINFO
-FILEVERSION  6,0,48,0
+FILEVERSION  6,5,14,0
+PRODUCTVERSION  6,5,14,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -9387,9 +9392,9 @@ BEGIN
     BEGIN
       VALUE "CompanyName",  "bobfilez\0"
       VALUE "FileDescription",  "bobfilez JUCE Demo\0"
-      VALUE "FileVersion",  "6.0.48\0"
+      VALUE "FileVersion",  "6.5.14\0"
       VALUE "ProductName",  "bobfilez JUCE Demo\0"
-      VALUE "ProductVersion",  "6.0.48\0"
+      VALUE "ProductVersion",  "6.5.14\0"
     END
   END
 
@@ -9399,4 +9404,4 @@ BEGIN
   END
 END
 
-#line 33 "C:\\Users\\hyper\\workspace\\bobfilez\\build-juce-demo\\frontends\\juce\\fo_juce_demo_artefacts\\JuceLibraryCode\\fo_juce_demo_resources.rc"
+#line 34 "C:\\Users\\hyper\\workspace\\bobfilez\\build-juce-demo\\frontends\\juce\\fo_juce_demo_artefacts\\JuceLibraryCode\\fo_juce_demo_resources.rc"

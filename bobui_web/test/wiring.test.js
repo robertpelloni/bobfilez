@@ -95,6 +95,8 @@ test('manifest build supplements vcpkg with the verified lean provider prefix', 
   assert.match(build, /OpenCV_DIR/);
   assert.match(build, /build-lean-deps\\x64-windows\\bin\\\*\.dll/);
   assert.match(build, /build-lean-deps\\opencv\\x64\\vc16\\bin\\\*\.dll/);
+  const juce = fs.readFileSync(path.join(root, '..', 'scripts', 'build_juce_gui.bat'), 'utf8');
+  assert.match(juce, /Z_VCPKG_PWSH_PATH/);
 });
 
 test('providers and autonomous service status bridges are wired', () => {

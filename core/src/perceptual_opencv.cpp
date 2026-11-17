@@ -148,39 +148,31 @@ public:
     }
 };
 
-namespace {
-    // Register all perceptual hash providers
-    struct PerceptualHashRegistrar {
-        PerceptualHashRegistrar() {
-            Registry<IPerceptualHasher>::instance().add("dhash", []() {
-                return std::make_unique<DHashPerceptualHasher>();
-            });
-            Registry<IPerceptualHasher>::instance().add("phash", []() {
-                return std::make_unique<PHashPerceptualHasher>();
-            });
-            Registry<IPerceptualHasher>::instance().add("ahash", []() {
-                return std::make_unique<AHashPerceptualHasher>();
-            });
-            // Keep "opencv" as alias for dhash for backward compatibility
-            Registry<IPerceptualHasher>::instance().add("opencv", []() {
-                return std::make_unique<DHashPerceptualHasher>();
-            });
-        }
-    };
-    static PerceptualHashRegistrar registrar;
+// Explicit registration (called from register_all_providers): a static
+// registrar here would never reliably run, because nothing else references
+// this TU and the linker can drop it from fo_core.lib (observed in the JUCE
+// demo tree, where "dhash" was missing from IPerceptualHasher).
+void register_perceptual_opencv() {
+    Registry<IPerceptualHasher>::instance().add("dhash", []() {
+        return std::make_unique<DHashPerceptualHasher>();
+    });
+    Registry<IPerceptualHasher>::instance().add("phash", []() {
+        return std::make_unique<PHashPerceptualHasher>();
+    });
+    Registry<IPerceptualHasher>::instance().add("ahash", []() {
+        return std::make_unique<AHashPerceptualHasher>();
+    });
+    // Keep "opencv" as alias for dhash for backward compatibility
+    Registry<IPerceptualHasher>::instance().add("opencv", []() {
+        return std::make_unique<DHashPerceptualHasher>();
+    });
 }
 
 #endif // FO_HAVE_OPENCV
 
 } // namespace fo::core
 
-// Always provide the registration function
-#ifdef FO_HAVE_OPENCV
-namespace fo::core {
-static bool reg_perceptual_opencv_guard = true;
-void register_perceptual_opencv() { (void)reg_perceptual_opencv_guard; }
-} // namespace fo::core
-#else
+#ifndef FO_HAVE_OPENCV
 namespace fo::core {
 void register_perceptual_opencv() {}
 } // namespace fo::core

@@ -137,7 +137,9 @@ if(Tesseract_FOUND)
 endif()
 
 if(OpenCV_FOUND)
-    target_compile_definitions(fo_core PRIVATE FO_HAVE_OPENCV)
+    # PUBLIC like FO_HAVE_FFMPEG/FO_HAVE_CHROMAPRINT so consumers and tests
+    # can guard provider-dependent code/assertions on the same condition.
+    target_compile_definitions(fo_core PUBLIC FO_HAVE_OPENCV)
     target_link_libraries(fo_core PUBLIC ${OpenCV_LIBS})
     target_include_directories(fo_core PRIVATE ${OpenCV_INCLUDE_DIRS})
 endif()
