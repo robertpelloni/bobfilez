@@ -43,9 +43,12 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/JUCE-8.0.12" TYPE FILE FILES
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/JUCE-8.0.14" TYPE FILE FILES
     "C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/JUCEConfigVersion.cmake"
     "C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/JUCEConfig.cmake"
+    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/FindCppwinrt.cmake"
+    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/FindWebView2.cmake"
+    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/FindWindowsMIDIServices.cmake"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/JUCECheckAtomic.cmake"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/JUCEHelperTargets.cmake"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake"
@@ -58,11 +61,16 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/PIPConsole.cpp.in"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/RecentFilesMenuTemplate.nib"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/UnityPluginGUIScript.cs.in"
+    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/bundleplaceholder.mm"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/checkBundleSigning.cmake"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/copyDir.cmake"
-    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/juce_runtime_arch_detection.cpp"
     "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/juce_LinuxSubprocessHelper.cpp"
+    "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/juce_runtime_arch_detection.cpp"
     )
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/JUCE-8.0.14" TYPE DIRECTORY FILES "C:/Users/hyper/workspace/bobfilez/libs/JUCE/extras/Build/CMake/juce_vst3_helper")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT

@@ -78,7 +78,6 @@ C:/Users/hyper/workspace/bobfilez/build-juce-demo/benchmarks/CMakeFiles/list_ins
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/benchmarks/CMakeFiles/install.dir
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/benchmarks/CMakeFiles/install/local.dir
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/CMakeFiles/fo_tests.dir
-C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/CMakeFiles/fo_c_api_smoke.dir
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/CMakeFiles/package.dir
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/CMakeFiles/package_source.dir
 C:/Users/hyper/workspace/bobfilez/build-juce-demo/tests/CMakeFiles/test.dir

@@ -342,6 +342,8 @@ build-lean/
 build-lean-deps/
 build-qt-mingw/
 build-qt-demo/
+build-juce-demo/
+build-juce-mingw/
 
 core/include/fo/core/version.hpp
 .aider*

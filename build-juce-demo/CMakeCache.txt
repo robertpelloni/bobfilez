@@ -24,14 +24,14 @@ AWSSDK_CORE_LIB_FILE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/
 AWSSDK_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/share/awssdk
 
 //Path to a program.
-CMAKE_AR:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/lib.exe
+CMAKE_AR:FILEPATH=C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/lib.exe
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
 CMAKE_BUILD_TYPE:STRING=Debug
 
 //CXX compiler
-CMAKE_CXX_COMPILER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+CMAKE_CXX_COMPILER:FILEPATH=C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
 
 //Flags used by the CXX compiler during all build types.
 CMAKE_CXX_FLAGS:STRING=/DWIN32 /D_WINDOWS /GR /EHsc
@@ -52,7 +52,7 @@ CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/Zi /O2 /Ob1 /DNDEBUG
 CMAKE_CXX_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
 
 //C compiler
-CMAKE_C_COMPILER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+CMAKE_C_COMPILER:FILEPATH=C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
 
 //Flags used by the C compiler during all build types.
 CMAKE_C_FLAGS:STRING=/DWIN32 /D_WINDOWS
@@ -100,10 +100,10 @@ CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=C:/Users/hyper/workspace/bobfilez/build-
 CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/bobfilezEngine
 
 //Path to a program.
-CMAKE_LINKER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/link.exe
+CMAKE_LINKER:FILEPATH=C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/link.exe
 
 //make program
-CMAKE_MAKE_PROGRAM:FILEPATH=C:/PROGRA~2/MICROS~4/2019/BUILDT~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe
+CMAKE_MAKE_PROGRAM:FILEPATH=C:/PROGRA~1/Meson/ninja.EXE
 
 //Flags used by the linker during the creation of modules during
 // all build types.
@@ -144,7 +144,7 @@ CMAKE_PROJECT_NAME:STATIC=bobfilezEngine
 CMAKE_PROJECT_SPDX_LICENSE:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_VERSION:STATIC=8.0.12
+CMAKE_PROJECT_VERSION:STATIC=8.0.14
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION_MAJOR:STATIC=8
@@ -153,7 +153,7 @@ CMAKE_PROJECT_VERSION_MAJOR:STATIC=8
 CMAKE_PROJECT_VERSION_MINOR:STATIC=0
 
 //Value Computed by CMake
-CMAKE_PROJECT_VERSION_PATCH:STATIC=12
+CMAKE_PROJECT_VERSION_PATCH:STATIC=14
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION_TWEAK:STATIC=
@@ -223,7 +223,9 @@ CMAKE_STATIC_LINKER_FLAGS_RELEASE:STRING=
 // during RELWITHDEBINFO builds.
 CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
-//No help, variable specified on the command line.
+//Path to a CMake toolchain file, read early in the CMake run,
+// that specifies the compilers, toolchain utilities, and target-platform
+// information used when cross-compiling.
 CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=vcpkg/scripts/buildsystems/vcpkg.cmake
 
 //If this value is on, makefiles will be generated without the
@@ -266,9 +268,6 @@ FO_BUILD_CLI:BOOL=ON
 //Build libFuzzer targets
 FO_BUILD_FUZZERS:BOOL=OFF
 
-//Build fuzz tests
-FO_BUILD_FUZZ_TESTS:BOOL=OFF
-
 //Build the BobUI-backed GUI
 FO_BUILD_GUI:BOOL=OFF
 
@@ -305,7 +304,7 @@ JUCE_ENABLE_MODULE_SOURCE_GROUPS:BOOL=OFF
 
 //The location, relative to the install prefix, where the JUCE
 // config file will be installed
-JUCE_INSTALL_DESTINATION:STRING=lib/cmake/JUCE-8.0.12
+JUCE_INSTALL_DESTINATION:STRING=lib/cmake/JUCE-8.0.14
 
 //Value Computed by CMake
 JUCE_IS_TOP_LEVEL:STATIC=OFF
@@ -318,14 +317,32 @@ JUCE_SOURCE_DIR:STATIC=C:/Users/hyper/workspace/bobfilez/libs/JUCE
 
 //The location, relative to the install prefix, where juceaide
 // will be installed
-JUCE_TOOL_INSTALL_DIR:STRING=bin/JUCE-8.0.12
+JUCE_TOOL_INSTALL_DIR:STRING=bin/JUCE-8.0.14
 
 //Location that overrides the default directory where our FindWebView2
 // script is looking for the *Microsoft.Web.WebView2* directory
 JUCE_WEBVIEW2_PACKAGE_LOCATION:BOOL=OFF
 
+//Path to a library.
+LIB_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/debug/lib/libcrypto.lib
+
+//Path to a library.
+LIB_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/lib/libcrypto.lib
+
+//Path to a file.
+OPENSSL_APPLINK_SOURCE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/include/openssl/applink.c
+
+//Path to a file.
+OPENSSL_INCLUDE_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/include
+
 //The directory containing a CMake configuration file for OpenCV.
 OpenCV_DIR:PATH=OpenCV_DIR-NOTFOUND
+
+//Path to a library.
+SSL_EAY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/debug/lib/libssl.lib
+
+//Path to a library.
+SSL_EAY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/lib/libssl.lib
 
 //The directory containing a CMake configuration file for Tesseract.
 Tesseract_DIR:PATH=Tesseract_DIR-NOTFOUND
@@ -398,10 +415,13 @@ ZLIB_LIBRARY_DEBUG:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vc
 ZLIB_LIBRARY_RELEASE:FILEPATH=C:/Users/hyper/workspace/bobfilez/build-juce-demo/vcpkg_installed/x64-windows/lib/zlib.lib
 
 //Path to a program.
-Z_VCPKG_CL:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+Z_VCPKG_CL:FILEPATH=C:/Program Files/Microsoft Visual Studio/18/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
 
-//Path to a program.
-Z_VCPKG_PWSH_PATH:FILEPATH=C:/Program Files/PowerShell/7-preview/pwsh.exe
+//No help, variable specified on the command line.
+Z_VCPKG_POWERSHELL_PATH:UNINITIALIZED=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+//No help, variable specified on the command line.
+Z_VCPKG_PWSH_PATH:UNINITIALIZED=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
 
 //The directory which contains the installed libraries for each
 // triplet
@@ -503,9 +523,9 @@ CMAKE_CACHEFILE_DIR:INTERNAL=c:/Users/hyper/workspace/bobfilez/build-juce-demo
 //Major version of cmake used to create the current loaded cache
 CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4
 //Minor version of cmake used to create the current loaded cache
-CMAKE_CACHE_MINOR_VERSION:INTERNAL=3
+CMAKE_CACHE_MINOR_VERSION:INTERNAL=4
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=1
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=4
 //Path to CMake executable.
 CMAKE_COMMAND:INTERNAL=C:/Program Files/CMake/bin/cmake.exe
 //Path to cpack program executable.
@@ -540,8 +560,13 @@ CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_STANDARD_LIBRARIES
 CMAKE_C_STANDARD_LIBRARIES-ADVANCED:INTERNAL=1
+//Set initial state for CMake diagnostics; used to persist state
+// set by command-line options across invocations.
+CMAKE_DIAGNOSTIC_INIT:INTERNAL=CMD_AUTHOR=WARN;CMD_DEPRECATED=WARN;CMD_EXPERIMENTAL=WARN;CMD_INSTALL_ABSOLUTE_DESTINATION=IGNORE;CMD_POLICY=WARN;CMD_UNINITIALIZED=IGNORE;CMD_UNUSED_CLI=WARN
 //Path to cache edit program executable.
 CMAKE_EDIT_COMMAND:INTERNAL=C:/Program Files/CMake/bin/cmake-gui.exe
+//Deprecated.  Use -W[no-]error=deprecated instead.
+CMAKE_ERROR_DEPRECATED:INTERNAL=OFF
 //Executable file format
 CMAKE_EXECUTABLE_FORMAT:INTERNAL=Unknown
 //ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS
@@ -615,7 +640,7 @@ CMAKE_RC_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RC_FLAGS_RELWITHDEBINFO
 CMAKE_RC_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //Path to CMake installation.
-CMAKE_ROOT:INTERNAL=C:/Program Files/CMake/share/cmake-4.3
+CMAKE_ROOT:INTERNAL=C:/Program Files/CMake/share/cmake-4.4
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS
 CMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG
@@ -644,6 +669,8 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 CMAKE_TOOLCHAIN_FILE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Deprecated.  Use -W[no-]deprecated instead.
+CMAKE_WARN_DEPRECATED:INTERNAL=ON
 //ADVANCED property for variable: CPACK_SOURCE_7Z
 CPACK_SOURCE_7Z-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CPACK_SOURCE_ZIP
@@ -678,6 +705,8 @@ LibCrypto_INCLUDE_DIR:INTERNAL=
 LibCrypto_SHARED_LIBRARY:INTERNAL=
 //The OpenSSL crypto static library
 LibCrypto_STATIC_LIBRARY:INTERNAL=
+//ADVANCED property for variable: OPENSSL_INCLUDE_DIR
+OPENSSL_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: VCPKG_VERBOSE
 VCPKG_VERBOSE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ZLIB_INCLUDE_DIR
@@ -688,8 +717,6 @@ ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //Making sure VCPKG_MANIFEST_MODE doesn't change
 Z_VCPKG_CHECK_MANIFEST_MODE:INTERNAL=ON
-//The path to the PowerShell implementation to use.
-Z_VCPKG_POWERSHELL_PATH:INTERNAL=C:/Program Files/PowerShell/7-preview/pwsh.exe
 //Vcpkg root directory
 Z_VCPKG_ROOT_DIR:INTERNAL=C:/Users/hyper/workspace/bobfilez/vcpkg
 //Result of TRY_COMPILE

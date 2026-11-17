@@ -9,7 +9,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION  6,0,48,0
+FILEVERSION  6,5,14,0
+PRODUCTVERSION  6,5,14,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -17,9 +18,9 @@ BEGIN
     BEGIN
       VALUE "CompanyName",  "bobfilez\0"
       VALUE "FileDescription",  "bobfilez JUCE Demo\0"
-      VALUE "FileVersion",  "6.0.48\0"
+      VALUE "FileVersion",  "6.5.14\0"
       VALUE "ProductName",  "bobfilez JUCE Demo\0"
-      VALUE "ProductVersion",  "6.0.48\0"
+      VALUE "ProductVersion",  "6.5.14\0"
     END
   END
 
