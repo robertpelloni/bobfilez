@@ -242,7 +242,7 @@ CURL_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-w
 CURL_USE_PKGCONFIG:BOOL=ON
 
 //The directory containing a CMake configuration file for FFmpeg.
-FFmpeg_DIR:PATH=FFmpeg_DIR-NOTFOUND
+FFmpeg_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/share/FFmpeg
 
 //Build benchmark tools
 FO_BUILD_BENCH:BOOL=ON
@@ -496,7 +496,7 @@ bobfilezEngine_IS_TOP_LEVEL:STATIC=ON
 bobfilezEngine_SOURCE_DIR:STATIC=C:/Users/hyper/workspace/bobfilez
 
 //The directory containing a CMake configuration file for chromaprint.
-chromaprint_DIR:PATH=chromaprint_DIR-NOTFOUND
+chromaprint_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-lean-deps/x64-windows/lib/cmake/Chromaprint
 
 //The directory containing a CMake configuration file for cpr.
 cpr_DIR:PATH=C:/Users/hyper/workspace/bobfilez/build-msvc/vcpkg_installed/x64-windows/share/cpr

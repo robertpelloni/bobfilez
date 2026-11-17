@@ -1,5 +1,34 @@
 # Changelog
 
+## [6.5.9] - 2026-11-17 — Media Providers Live (Video + Audio Fingerprinting)
+
+### Added
+- **Video hashing (`ffmpeg`) and audio fingerprinting (`chromaprint`)**
+  providers in both MSVC lanes. FFmpeg is staged from the official
+  prebuilt shared release (with a minimal `FFmpegConfig.cmake`) and
+  Chromaprint is built from source against staged FFTW, after the vcpkg
+  FFmpeg source build failed twice on this host (MSYS2 fork exhaustion,
+  then a 90-minute MSVC optimizer spin on `sanm.c`).
+- Dashboard Video/Audio cards declare their provider needs and are badged
+  from `/api/providers` when a build lacks them.
+
+### Fixed
+- Both media providers used TU-local static registrars (linker-dropped
+  from `fo_core.lib`, the same bug class as the classifier); replaced
+  with explicit `register_video_hasher_ffmpeg()` /
+  `register_audio_fingerprinter_chromaprint()` calls. Core now also
+  requests/links `FFmpeg::swresample` (used by the audio provider) and
+  aliases upstream `Chromaprint::chromaprint` to the vcpkg name.
+- Video/Audio card copy now says files, not folders (the CLI hashes
+  individual media files), with a ~10s minimum-audio hint.
+
+### Verified
+- `--list-vhash` → `ffmpeg`, `--list-ahash` → `chromaprint` on both
+  lanes; sample MP4 yields timestamped frame hashes (identical across
+  lanes), 10s WAV yields 59 fingerprint chunks; `/api/vhash` and
+  `/api/afingerprint` return 200 with the same results. Tests 15/15.
+  **Every provider row is now populated in every verified lane.**
+
 ## [6.5.8] - 2026-11-16 — Persistent Forensic Audit Query
 
 ### Added

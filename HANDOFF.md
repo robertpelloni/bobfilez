@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.9 (Media Providers Live — Matrix Complete)
+
+## What landed (2026-11-17, continuation)
+- **Video/audio providers live in both lanes**: prebuilt FFmpeg 9 shared
+  release + Chromaprint 1.6 built against staged FFTW in `build-lean-deps`
+  (vcpkg FFmpeg source build abandoned after fork-exhaustion and a
+  90-minute `sanm.c` optimizer spin). Explicit registration for both
+  providers (static registrars were linker-dropped), `FFmpeg::swresample`
+  linked, `Chromaprint::` alias. Verified: `--list-vhash` ffmpeg,
+  `--list-ahash` chromaprint, identical MP4 frame hashes across lanes,
+  59 chunks on 10s WAV, HTTP 200s, wiring tests 15/15.
+- Version **6.5.9**. **Every provider row is populated in every lane.**
+
+## Next
+1. Restore/recreate tracked C++ `tests/` tree.
+2. `upstream/master` unrelated-history decision (owner).
+3. Native GUI lanes remain blocked on Qt/BobUI provider surface (docs).
+
+---
 # Session Handoff - v6.5.8 (Persistent Audit Query)
 
 ## What landed (2026-11-16, continuation)

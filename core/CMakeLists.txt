@@ -175,6 +175,11 @@ endif()
 
 if(chromaprint_FOUND)
     message(STATUS "Found Chromaprint, enabling audio fingerprint provider")
+    # Upstream installs Chromaprint::chromaprint; vcpkg renames it to
+    # chromaprint::chromaprint. Alias so one link name works for both.
+    if(TARGET Chromaprint::chromaprint AND NOT TARGET chromaprint::chromaprint)
+        add_library(chromaprint::chromaprint ALIAS Chromaprint::chromaprint)
+    endif()
     target_compile_definitions(fo_core PUBLIC FO_HAVE_CHROMAPRINT)
     target_link_libraries(fo_core PUBLIC chromaprint::chromaprint)
 endif()
