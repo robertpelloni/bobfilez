@@ -340,6 +340,8 @@ build/
 build-mingw/
 build-lean/
 build-lean-deps/
+build-qt-mingw/
+build-qt-demo/
 
 core/include/fo/core/version.hpp
 .aider*

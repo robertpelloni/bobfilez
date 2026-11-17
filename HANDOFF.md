@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.14 (Qt Demo Aligned)
+
+## What landed (2026-11-17, continuation)
+- **Qt demo builds + launches**: aligned `frontends/qt/src/main.cpp`
+  with current core APIs; MinGW Qt 6.11 lane (`build-qt-mingw/`,
+  w64devkit GCC) compiles clean and the exe stays alive offscreen.
+  Web dashboard remains the primary verified UI.
+- Version **6.5.14**. Suites at last full run: ctest 21/21, wiring 17/17.
+
+## Next
+1. `upstream/master` unrelated-history decision (owner).
+2. Other native demo lanes (BobUI/JUCE/BTK/BobGUI) still need their
+   framework providers; Qt MinGW is the verified native path today.
+
+---
 # Session Handoff - v6.5.13 (Scanner + Rename-Batch Fixes)
 
 ## What landed (2026-11-17, continuation)

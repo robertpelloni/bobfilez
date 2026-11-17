@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.14] - 2026-11-17 — Qt Demo Aligned and Building
+
+### Fixed
+- **`fo_qt_demo` compiles and launches again** (`frontends/qt`): added
+  the missing `QLineEdit` include, qualified free-scope `connect` calls
+  as `QObject::connect`, and aligned drifted core calls with current
+  APIs (`SearchOptions::search_roots` + `SearchResult::path`,
+  `OperationRepository::get_all`, `IgnoreRepository::get_all`/`add`).
+  Verified with the MinGW Qt 6.11 kit (`build-qt-mingw/`, w64devkit
+  GCC): builds clean and stays alive under the offscreen platform.
+  The MSVC helper script still needs an MSVC Qt kit; the MinGW lane is
+  the verified Qt path (new build dirs gitignored).
+
 ## [6.5.13] - 2026-11-17 — Scanner File Roots, Dirent Crash, Batch-Rename Grammar
 
 ### Fixed
