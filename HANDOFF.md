@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.18 (Dashboard Ignore-Rule Removal)
+
+## What landed (2026-11-17, continuation)
+- **Ignore-rule removal reached the dashboard**: route↔card diff found
+  `/api/ignore/remove` uncalled while the card text promised removal.
+  Added the Remove rule button (+ wiring test, 18/18) and verified the
+  live add → list → remove → gone cycle. `/api/delete` stays for the
+  legacy React UI; unified deletes only via dry-run duplicate-delete.
+- Tray started (PID 53496 this session) and all GET/POST dashboard
+  smokes re-verified at v6.5.17 before the bump.
+- Version **6.5.18**. Suites: lean **23/23**, JUCE **20/20**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 (parents exited; access
+  denied) lock `build-msvc/tests`. Stop them where possible, then
+  rerun `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+
+---
 # Session Handoff - v6.5.17 (Test Runtime-DLL Resolution)
 
 ## What landed (2026-11-17, continuation)

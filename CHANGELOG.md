@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.18] - 2026-11-17 — Dashboard Ignore-Rule Removal
+
+### Added
+- **Remove rule button on the Ignore rules card**: the card copy already
+  promised "or remove it", and `POST /api/ignore/remove` existed
+  server-side, but no dashboard control called it (found by diffing the
+  46 server routes against the dashboard's called endpoints; the only
+  other uncalled route, `/api/delete`, is used by the legacy React UI —
+  the unified page deliberately deletes only via the dry-run
+  duplicate-delete card). New wiring test pins add+remove; verified
+  live: add → listed → remove → gone.
+  Suites: lean ctest **23/23**, JUCE-tree ctest **20/20**, wiring **18/18**.
+
+### Known
+- Two orphaned `fo_tests.exe` processes (PIDs 19124, 63392; parents
+  exited, access denied on stop) still lock `build-msvc/tests/*.dll`;
+  left untouched. The owner/session that can stop them should, then
+  rerun `scripts/build_headless.bat`.
+
 ## [6.5.17] - 2026-11-17 — Test Runtime-DLL Resolution Fixed
 
 ### Fixed

@@ -1,18 +1,18 @@
 # ninja log v6
+33	634	8166179532871555	C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/CMakeFiles/cmake.verify_globs	5cbcb8949a69899d
 376	8028	8166117184022620	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_libjpg_3.c.obj	340e46883e17f67e
-10	213	8166143036594233	C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/CMakeFiles/cmake.verify_globs	5cbcb8949a69899d
+360	60302	8166125664979450	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics.cpp.obj	44bfd441b7780bb3
+413	6684	8166117184394097	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_lunasvg.c.obj	73f47b618ec785a2
 475	948	8166117185017341	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_core/juce_core_CompilationTime.cpp.obj	6b46aee19ef7f3ca
 320	1824	8166117183457939	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_Sheenbidi.c.obj	630e656d114a78ef
 491	9792	8166117185185933	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_core/juce_core_zlib.c.obj	71e75d8317de7814
-360	60302	8166125664979450	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics.cpp.obj	44bfd441b7780bb3
-413	6684	8166117184394097	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_lunasvg.c.obj	73f47b618ec785a2
 359	2304	8166117183861422	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_libjpg_2.c.obj	4b945301d0b0eafb
 338	5670	8166117183647425	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_libjpg_1.c.obj	255cea41af24c2f1
 391	10321	8166117184166619	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_libpng.c.obj	57a49667a0da668a
 329	8243	8166125664669456	extras/Build/juceaide/CMakeFiles/juceaide.dir/Main.cpp.obj	89ed9c61801e5c8
 344	8787	8166125664813540	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/juce_build_tools/juce_build_tools.cpp.obj	288c36dbfa09b79f
-60303	61388	8166126264408454	extras/Build/juceaide/juceaide_artefacts/Custom/juceaide.exe	b7882b822a72638f
 376	9492	8166125665139684	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_events/juce_events.cpp.obj	cf5a50c467b408b8
+60303	61388	8166126264408454	extras/Build/juceaide/juceaide_artefacts/Custom/juceaide.exe	b7882b822a72638f
 395	19588	8166125665331081	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_core/juce_core.cpp.obj	4896d8dce3189074
 302	81447	8166117183287242	extras/Build/juceaide/CMakeFiles/juceaide.dir/__/__/__/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.obj	8fa9b19b050b3693
-14	268	8166154218075984	C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/CMakeFiles/cmake.verify_globs	5cbcb8949a69899d
+18	528	8166193254808169	C:/Users/hyper/workspace/bobfilez/build-juce-demo/libs/JUCE/tools/CMakeFiles/cmake.verify_globs	5cbcb8949a69899d

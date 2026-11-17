@@ -204,6 +204,8 @@ function buildSection(sec) {
   if (sec.extra === 'ignore-add') {
     const b2 = document.createElement('button'); b2.className = 'go'; b2.textContent = 'Add rule'; b2.title = 'Adds the pattern above with the reason to the ignore list.';
     b2.onclick = () => { const v = collectVals(el, sec); api('/api/ignore/add', { pattern: v.pattern, reason: v.reason }, out, b2); }; form.appendChild(b2);
+    const b3 = document.createElement('button'); b3.className = 'go danger'; b3.textContent = 'Remove rule'; b3.title = 'Removes the pattern above from the ignore list (the reason field is not needed).';
+    b3.onclick = () => { const v = collectVals(el, sec); out.textContent = 'Removing rule…'; api('/api/ignore/remove', { pattern: v.pattern }, out, b3); }; form.appendChild(b3);
   }
   if (sec.extra === 'flow-run') {
     const b2 = document.createElement('button'); b2.className = 'go'; b2.textContent = 'Run workflow'; b2.title = 'Runs the workflow id above against the payload path.';
