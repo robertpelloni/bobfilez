@@ -1,5 +1,5 @@
 {
-  "tests": 24,
+  "tests": 25,
   "name": "AllTests",
   "testsuites": [
     {
@@ -30,7 +30,7 @@
     },
     {
       "name": "CliFixture",
-      "tests": 7,
+      "tests": 8,
       "testsuite": [
         {
           "name": "AuditRejectsInvalidLimits",
@@ -58,14 +58,19 @@
           "line": 117
         },
         {
-          "name": "RenameBatchDryRunFindsMatches",
+          "name": "ScrubDetectsCorruptionAfterBaseline",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_cli_integration.cpp",
           "line": 134
         },
         {
+          "name": "RenameBatchDryRunFindsMatches",
+          "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_cli_integration.cpp",
+          "line": 153
+        },
+        {
           "name": "VaultRoundTripRestoresBytes",
           "file": "C:\\Users\\hyper\\workspace\\bobfilez\\tests\\test_cli_integration.cpp",
-          "line": 150
+          "line": 169
         }
       ]
     },
