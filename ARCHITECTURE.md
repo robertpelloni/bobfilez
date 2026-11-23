@@ -1,3 +1,23 @@
+> **SCOPE CUT — Nov 19, 2026: READ THIS FIRST**
+>
+> This document describes a **grand, aspirational architecture**, not the
+> shipped product. As of v6.5.22 (Nov 17, 2026), bobfilez is a
+> **file organizer**: a C++20 core (hashing / dedup, integrity scrub,
+> similar-image search, video hashing, audio fingerprinting, OCR,
+> batch rename, encrypted vault, hash-chained audit ledger) driven by
+> a CLI and a web dashboard, with tests at lean ctest 28/28, JUCE-tree
+> ctest 25/25, and dashboard wiring 18/18.
+>
+> The OmniShell "Windows 11 Replacement" shell, the 35+ Omni-tools,
+> and the 39 QML panels below — including the panels whose "parity
+> targets" name DaVinci Resolve, Ableton Live, Lightroom, IDA Pro,
+> VeraCrypt, GitKraken, and other professional products — are
+> **parked scaffolds, stubs, or plans, not built equivalents of those
+> products**. Do not cite this document as evidence that they exist.
+> The README is the source of truth for current status.
+
+---
+
 # ARCHITECTURE.md — Bobfilez v6.0.0 Grand Architecture
 
 ## Overview
