@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.59 (Similar Names Its Input Expectation)
+
+## What landed (2026-11-24, continuation)
+- **Similar input check**: `similar` rejects non-file targets
+  with a plain message instead of OpenCV warning dumps. CLI test
+  added (accepts provider-missing in hasher-less lanes). Lean
+  ctest **58/58**. Dashboard bridges re-probed live: classify
+  500 names the missing model (v6.5.57 end-to-end), OCR 200,
+  scan/duplicates 200.
+- Version **6.5.59**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.58 (OCR Unavailable Is An Error)
 
 ## What landed (2026-11-24, continuation)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.59] - 2026-11-24 — Similar Names Its Input Expectation
+
+### Fixed
+- **`similar <folder>` dumped raw OpenCV warnings**: the command
+  takes one image file, but a directory went straight to the
+  perceptual hasher and failed as "Failed to compute hash" amid
+  library warnings (the dashboard showed that dump as its error).
+  The CLI now checks the target is a regular file and says so
+  plainly. New `SimilarOnDirectoryIsACleanError` CLI test failed
+  before, passes after. Suites: lean **58/58**; other lanes
+  rebuilt at this version.
+
 ## [6.5.58] - 2026-11-24 — OCR Unavailable Is An Error
 
 ### Fixed

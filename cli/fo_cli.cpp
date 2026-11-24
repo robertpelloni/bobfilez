@@ -1021,6 +1021,15 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
+            {
+                std::error_code ec;
+                if (!std::filesystem::is_regular_file(roots[0], ec)) {
+                    std::cerr << "Error: " << roots[0]
+                              << " is not a file (similar takes one image file, not a folder).\n";
+                    return 1;
+                }
+            }
+
             auto res = provider->compute(roots[0]);
             if (!res) {
                 std::cerr << "Failed to compute hash for " << roots[0] << "\n";

@@ -221,6 +221,22 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, SimilarOnDirectoryIsACleanError) {
+    // `similar` takes one image file; handing it a folder used to
+    // surface raw OpenCV warnings plus "Failed to compute hash".
+    // It must say plainly that a file is expected.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("similar --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    // Provider lanes name the file expectation; lanes without a
+    // perceptual hasher report the missing provider instead.
+    EXPECT_TRUE(r.out.find("not a") != std::string::npos ||
+                r.out.find("not found") != std::string::npos)
+        << r.out;
+}
+
 TEST_F(CliFixture, OcrUnavailableIsAnError) {
     // OCR with no loadable tessdata used to print Tesseract's own
     // errors per file yet exit 0. Unavailability must be a clean
