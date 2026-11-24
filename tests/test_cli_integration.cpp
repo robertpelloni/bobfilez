@@ -221,6 +221,23 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, PlainScanDoesNotStartScaffoldServices) {
+    // Engine used to construct OmniClerk/AutoDev/Sync/Swarm in its
+    // constructor, so every command (even a plain scan) printed
+    // "[OmniClerk] Initializing..." banners and registered a swarm
+    // peer. Those services must start lazily, only when used.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto scan = run_cli("scan --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(scan.code, 0) << scan.out;
+    EXPECT_EQ(scan.out.find("[OmniClerk]"), std::string::npos) << scan.out;
+    EXPECT_EQ(scan.out.find("[AutoDev]"), std::string::npos) << scan.out;
+    EXPECT_EQ(scan.out.find("[SyncService]"), std::string::npos) << scan.out;
+    EXPECT_EQ(scan.out.find("[SwarmHub]"), std::string::npos) << scan.out;
+}
+
 TEST_F(CliFixture, IgnoreGlobFiltersScan) {
     // Ignore patterns are globs ("*.log") as every UI teaches, but
     // is_ignored treated them as regex: "*.log" is an invalid regex

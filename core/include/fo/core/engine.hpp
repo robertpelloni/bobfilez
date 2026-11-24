@@ -53,13 +53,17 @@ public:
     bool use_ads_cache() const { return cfg_.use_ads_cache; }
 
     SearchEngine& search_engine();
-    IOmniFlowEngine& omniflow_engine() { return *omniflow_; }
-    IOmniClerkEngine& omniclerk_engine() { return *omniclerk_; }
-    IOmniOracle& omni_oracle() { return *oracle_; }
-    IAutonomousDevProtocol& autodev_protocol() { return *autodev_; }
-    IAutonomousSyncService& sync_service() { return *sync_; }
-    INexus& nexus() { return *nexus_; }
-    ISwarmEngine& swarm_engine() { return *swarm_; }
+    // Coordination services are constructed lazily on first use:
+    // a plain scan/hash/organize must not spin up OmniClerk, AutoDev,
+    // Sync, or Swarm (their constructors announce themselves and the
+    // swarm registers a peer). Defined out-of-line in engine.cpp.
+    IOmniFlowEngine& omniflow_engine();
+    IOmniClerkEngine& omniclerk_engine();
+    IOmniOracle& omni_oracle();
+    IAutonomousDevProtocol& autodev_protocol();
+    IAutonomousSyncService& sync_service();
+    INexus& nexus();
+    ISwarmEngine& swarm_engine();
 
     struct AutonomousHealth {
         uint64_t total_workflows_executed;

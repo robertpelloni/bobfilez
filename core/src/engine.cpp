@@ -18,37 +18,76 @@ Engine::Engine(EngineConfig cfg)
     , ignore_repo_(db_manager_)
     , session_repo_(db_manager_)
     , search_engine_(new SearchEngine())
-    , omniflow_(Registry<IOmniFlowEngine>::instance().get_shared("default"))
-    , omniclerk_(Registry<IOmniClerkEngine>::instance().create("default"))
-    , oracle_(Registry<IOmniOracle>::instance().create("default"))
-    , autodev_(Registry<IAutonomousDevProtocol>::instance().get_shared("default"))
-    , sync_(Registry<IAutonomousSyncService>::instance().create("default"))
-    , nexus_(Registry<INexus>::instance().get_shared("default"))
-    , swarm_(Registry<ISwarmEngine>::instance().create("default"))
 {
     db_manager_.open(cfg_.db_path);
     db_manager_.migrate();
-
-    if (sync_) {
-        sync_->set_swarm_engine(swarm_);
-        std::filesystem::path main_db(cfg_.db_path);
-        auto sync_db = main_db.parent_path() / (main_db.stem().string() + "_sync.db");
-        sync_->set_storage_path(sync_db);
-    }
-    if (autodev_) {
-        autodev_->set_sync_service(sync_);
-    }
 }
 
 Engine::~Engine() { delete search_engine_; }
 
 SearchEngine& Engine::search_engine() { return *search_engine_; }
 
+// Lazy coordination services: constructed (and cross-wired) only
+// when a caller actually asks for them, so plain file commands stay
+// quiet and fast. Cross-wiring matches the old constructor order:
+// sync gets the swarm + its "<db>_sync.db" storage path, autodev
+// gets the sync service.
+IOmniFlowEngine& Engine::omniflow_engine() {
+    if (!omniflow_) omniflow_ = Registry<IOmniFlowEngine>::instance().get_shared("default");
+    return *omniflow_;
+}
+
+IOmniClerkEngine& Engine::omniclerk_engine() {
+    if (!omniclerk_) omniclerk_ = Registry<IOmniClerkEngine>::instance().create("default");
+    return *omniclerk_;
+}
+
+IOmniOracle& Engine::omni_oracle() {
+    if (!oracle_) oracle_ = Registry<IOmniOracle>::instance().create("default");
+    return *oracle_;
+}
+
+ISwarmEngine& Engine::swarm_engine() {
+    if (!swarm_) swarm_ = Registry<ISwarmEngine>::instance().create("default");
+    return *swarm_;
+}
+
+IAutonomousSyncService& Engine::sync_service() {
+    if (!sync_) {
+        sync_ = Registry<IAutonomousSyncService>::instance().create("default");
+        if (sync_) {
+            (void)swarm_engine();
+            sync_->set_swarm_engine(swarm_);
+            std::filesystem::path main_db(cfg_.db_path);
+            auto sync_db = main_db.parent_path() / (main_db.stem().string() + "_sync.db");
+            sync_->set_storage_path(sync_db);
+        }
+    }
+    return *sync_;
+}
+
+IAutonomousDevProtocol& Engine::autodev_protocol() {
+    if (!autodev_) {
+        autodev_ = Registry<IAutonomousDevProtocol>::instance().get_shared("default");
+        if (autodev_) {
+            (void)sync_service();
+            autodev_->set_sync_service(sync_);
+        }
+    }
+    return *autodev_;
+}
+
+INexus& Engine::nexus() {
+    if (!nexus_) nexus_ = Registry<INexus>::instance().get_shared("default");
+    return *nexus_;
+}
+
 Engine::AutonomousHealth Engine::get_autonomous_health() {
     AutonomousHealth health = {0, 0.0, 0, false, 0};
-    if (!nexus_) return health;
-
-    auto metrics = nexus_->get_performance_snapshot();
+    // Read the Nexus metric hub (cheap, silent) but never construct
+    // scaffold services just to report health: swarm node count only
+    // reflects a swarm that some earlier caller already started.
+    auto metrics = nexus().get_performance_snapshot();
     
     if (metrics.count("OmniFlow.ExecutionCount")) {
         health.total_workflows_executed = static_cast<uint64_t>(metrics["OmniFlow.ExecutionCount"]);

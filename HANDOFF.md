@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.54 (Plain Commands Stay Quiet)
+
+## What landed (2026-11-24, continuation)
+- **Lazy Engine services**: OmniClerk/Oracle/AutoDev/Sync/Swarm/
+  OmniFlow/Nexus no longer constructed in `Engine`'s constructor;
+  lazy accessors in `engine.cpp` preserve cross-wiring. Plain scan
+  stderr 0 bytes; status commands still work on demand. CLI test
+  added. Lean ctest **53/53**.
+- Version **6.5.54**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.53 (Ignore Rules Actually Filter)
 
 ## What landed (2026-11-24, continuation)

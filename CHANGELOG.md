@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.54] - 2026-11-24 — Plain Commands Stay Quiet
+
+### Fixed
+- **Every CLI command started five scaffold services**: `Engine`'s
+  constructor eagerly built OmniClerk, Oracle, AutoDev, Sync, and
+  Swarm, so even a plain `scan` printed `[OmniClerk] Initializing...`
+  banners (stderr) and registered a swarm peer. The coordination
+  services are now constructed lazily behind their accessors, with
+  the same cross-wiring (sync gets swarm + `<db>_sync.db`, autodev
+  gets sync) on first use. Plain scan stderr is now 0 bytes;
+  `clerk/sync/autodev status` still construct on demand. New
+  `PlainScanDoesNotStartScaffoldServices` CLI test failed before,
+  passes after. Suites: lean **53/53**; other lanes rebuilt at
+  this version.
+
 ## [6.5.53] - 2026-11-24 — Ignore Rules Actually Filter
 
 ### Fixed
