@@ -525,6 +525,16 @@ int main(int argc, char** argv) {
         args.reserve(static_cast<size_t>(argc > 1 ? argc - 1 : 0));
         for (int i = 1; i < argc; ++i) args.emplace_back(argv[i]);
 
+        // Positional view (command + non-flag tokens). Handlers that
+        // index positionally must use this: global options such as
+        // --db=<path> may appear anywhere, and raw indexing took
+        // them as values (flow run "executed" on '--db=...').
+        // Handlers scanning for their own --flags keep using args.
+        std::vector<std::string> pargs;
+        for (const auto& a : args) {
+            if (pargs.empty() || a.empty() || a[0] != '-') pargs.push_back(a);
+        }
+
         std::vector<std::string> paths;
         paths.reserve(roots.size());
         for (const auto& root : roots) paths.push_back(root.string());
@@ -1979,7 +1989,7 @@ int main(int argc, char** argv) {
             //        [--wildcard] [--whole-word] [--invert] [--max-results=<N>]
             //        [--ext=<.txt,.log>] [--min-size=<N>] [--max-size=<N>]
             //        [--no-recursive]
-            if (args.size() < 2) {
+            if (pargs.size() < 2) {
                 std::cerr << "Usage: fo search <query> [path...] [--content] [--regex] [--case-sensitive]\n"
                              "              [--wildcard] [--whole-word] [--invert] [--max-results=<N>]\n"
                              "              [--ext=<.txt,.log>] [--min-size=<N>] [--max-size=<N>]\n"
@@ -1987,7 +1997,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            std::string query = args[1];
+            std::string query = pargs[1];
             bool search_content = false;
             bool use_regex = false;
             bool use_wildcard = false;
@@ -2006,8 +2016,8 @@ int main(int argc, char** argv) {
                 else if (a == "--whole-word") whole_word = true;
                 else if (a == "--invert") invert_match = true;
                 else if (a.rfind("--max-results=", 0) == 0) max_results = std::stoi(a.substr(14));
-                else if (a[0] != '-') search_paths.push_back(a);
             }
+            for (size_t i = 2; i < pargs.size(); ++i) search_paths.push_back(pargs[i]);
             if (search_paths.empty()) search_paths.push_back(".");
 
             fo::core::SearchOptions opts;
@@ -2296,7 +2306,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            if (args.size() < 2 || args[1] == "list") {
+            if (pargs.size() < 2 || pargs[1] == "list") {
                 auto workflows = flow_engine->get_workflows();
                 if (format == "json") {
                     std::cout << "{\"workflows\": [";
@@ -2319,9 +2329,9 @@ int main(int argc, char** argv) {
                     }
                     if (workflows.empty()) std::cout << "  (no workflows registered)\n";
                 }
-            } else if (args[1] == "run" && args.size() >= 4) {
-                const auto& workflow_id = args[2];
-                const auto& payload = args[3];
+            } else if (pargs[1] == "run" && pargs.size() >= 4) {
+                const auto& workflow_id = pargs[2];
+                const auto& payload = pargs[3];
                 bool ok = flow_engine->execute_workflow(workflow_id, payload);
                 if (format == "json") {
                     std::cout << "{\"workflow_id\":\"" << workflow_id << "\",";
@@ -2342,20 +2352,20 @@ int main(int argc, char** argv) {
 
         } else if (command == "autodev") {
             // ─── Autonomous Dev Protocol Command ────────────────────────────
-            if (args.size() < 2 || (args[1] != "start" && args[1] != "stop" && args[1] != "status")) {
+            if (pargs.size() < 2 || (pargs[1] != "start" && pargs[1] != "stop" && pargs[1] != "status")) {
                 std::cerr << "Usage: fo autodev [start|stop|status] [repo_root]\n";
                 return 1;
             }
             auto& ad = engine.autodev_protocol();
-            if (args[1] == "start" && args.size() >= 3) {
-                ad.start_autodev_loop(args[2]);
-                std::cout << "Autonomous Development Loop started for " << args[2] << "\n";
+            if (pargs[1] == "start" && pargs.size() >= 3) {
+                ad.start_autodev_loop(pargs[2]);
+                std::cout << "Autonomous Development Loop started for " << pargs[2] << "\n";
                 // Block if it's the main command, or return if it's a daemonized concept
                 // For CLI simplicity, we'll keep it alive in this thread for now
                 while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
-            } else if (args[1] == "stop") {
+            } else if (pargs[1] == "stop") {
                 ad.stop_autodev_loop();
-            } else if (args[1] == "status") {
+            } else if (pargs[1] == "status") {
                 auto status = ad.get_dev_status();
                 std::cout << "Loop Active: " << (status.is_loop_active ? "Yes" : "No") << "\n";
                 for (auto const& [id, res] : status.last_results) {
@@ -2364,23 +2374,23 @@ int main(int argc, char** argv) {
             }
         } else if (command == "sync") {
             // ─── Autonomous Sync Protocol Command ───────────────────────────
-            if (args.size() < 2 || (args[1] != "start" && args[1] != "history" && args[1] != "status")) {
+            if (pargs.size() < 2 || (pargs[1] != "start" && pargs[1] != "history" && pargs[1] != "status")) {
                 std::cerr << "Usage: fo sync [start|history|status] [path]\n";
                 return 1;
             }
             auto& sync = engine.sync_service();
-            if (args[1] == "start" && args.size() >= 3) {
-                sync.start_sync_daemon(args[2]);
-                std::cout << "Autonomous Sync Daemon started for " << args[2] << "\n";
+            if (pargs[1] == "start" && pargs.size() >= 3) {
+                sync.start_sync_daemon(pargs[2]);
+                std::cout << "Autonomous Sync Daemon started for " << pargs[2] << "\n";
                 while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
-            } else if (args[1] == "history" && args.size() >= 3) {
-                auto history = sync.get_version_history(args[2]);
-                std::cout << "Sync History for " << args[2] << ":\n";
+            } else if (pargs[1] == "history" && pargs.size() >= 3) {
+                auto history = sync.get_version_history(pargs[2]);
+                std::cout << "Sync History for " << pargs[2] << ":\n";
                 for (const auto& v : history) {
                     auto t = std::chrono::system_clock::to_time_t(v.timestamp);
                     std::cout << "  " << v.version_id << " | " << std::ctime(&t) << " | " << v.checksum << " | " << v.author << "\n";
                 }
-            } else if (args[1] == "status") {
+            } else if (pargs[1] == "status") {
                 auto status = sync.check_sync_status();
                 if (!status.last_error.empty()) {
                     std::cout << "In Sync: unknown (" << status.last_error << ")\n";
@@ -2394,25 +2404,25 @@ int main(int argc, char** argv) {
             // Grammar: vault-<op> <vaultPath> <password> [op args...]
             // Without OpenSSL, VaultManager stubs return false and every
             // op fails honestly below instead of pretending to encrypt.
-            if (args.size() < 3) {
+            if (pargs.size() < 3) {
                 std::cerr << "Usage: fo " << command << " <vaultPath> <password> [args...]\n";
                 return 1;
             }
             fo::core::VaultManager vault;
-            if (!vault.initialize(args[1], args[2])) {
+            if (!vault.initialize(pargs[1], pargs[2])) {
                 std::cerr << "Error: vault unavailable (built without OpenSSL) or bad vault path.\n";
                 return 1;
             }
             if (command == "vault-init") {
-                std::cout << "Vault initialized at " << args[1] << "\n";
+                std::cout << "Vault initialized at " << pargs[1] << "\n";
             } else if (command == "vault-lock") {
-                if (args.size() < 4) { std::cerr << "Usage: fo vault-lock <vaultPath> <password> <file>\n"; return 1; }
-                if (!vault.lock_file(args[3])) { std::cerr << "Error: failed to lock file into vault.\n"; return 1; }
-                std::cout << "Locked " << args[3] << " into vault.\n";
+                if (pargs.size() < 4) { std::cerr << "Usage: fo vault-lock <vaultPath> <password> <file>\n"; return 1; }
+                if (!vault.lock_file(pargs[3])) { std::cerr << "Error: failed to lock file into vault.\n"; return 1; }
+                std::cout << "Locked " << pargs[3] << " into vault.\n";
             } else if (command == "vault-unlock") {
-                if (args.size() < 5) { std::cerr << "Usage: fo vault-unlock <vaultPath> <password> <vaultId> <dest>\n"; return 1; }
-                if (!vault.unlock_file(args[3], args[4])) { std::cerr << "Error: failed to unlock vault entry.\n"; return 1; }
-                std::cout << "Unlocked " << args[3] << " to " << args[4] << "\n";
+                if (pargs.size() < 5) { std::cerr << "Usage: fo vault-unlock <vaultPath> <password> <vaultId> <dest>\n"; return 1; }
+                if (!vault.unlock_file(pargs[3], pargs[4])) { std::cerr << "Error: failed to unlock vault entry.\n"; return 1; }
+                std::cout << "Unlocked " << pargs[3] << " to " << pargs[4] << "\n";
             } else { // vault-list
                 auto entries = vault.list_contents();
                 std::cout << "Vault contents (" << entries.size() << " entries):\n";
@@ -2422,18 +2432,18 @@ int main(int argc, char** argv) {
             }
         } else if (command == "clerk") {
             // ─── OmniClerk Command ───────────────────────────
-            if (args.size() < 2 || (args[1] != "start" && args[1] != "status")) {
+            if (pargs.size() < 2 || (pargs[1] != "start" && pargs[1] != "status")) {
                 std::cerr << "Usage: fo clerk [start|status] [inbox] [archive]\n";
                 return 1;
             }
             auto& clerk = engine.omniclerk_engine();
-            if (args[1] == "start" && args.size() >= 4) {
-                clerk.start_listener(args[2], args[3]);
+            if (pargs[1] == "start" && pargs.size() >= 4) {
+                clerk.start_listener(pargs[2], pargs[3]);
                 std::cout << "OmniClerk Autonomous Secretary started.\n";
-                std::cout << "Inbox:   " << args[2] << "\n";
-                std::cout << "Archive: " << args[3] << "\n";
+                std::cout << "Inbox:   " << pargs[2] << "\n";
+                std::cout << "Archive: " << pargs[3] << "\n";
                 while (true) std::this_thread::sleep_for(std::chrono::seconds(1));
-            } else if (args[1] == "status") {
+            } else if (pargs[1] == "status") {
                 auto history = clerk.get_processing_history();
                 std::cout << "OmniClerk Status:\n";
                 std::cout << "  Processed documents: " << history.size() << "\n";
@@ -2444,21 +2454,21 @@ int main(int argc, char** argv) {
             }
         } else if (command == "oracle") {
             // ─── OmniOracle Command ───────────────────────────
-            if (args.size() < 2) {
+            if (pargs.size() < 2) {
                 std::cerr << "Usage: fo oracle <query|summarize> [path]\n";
                 return 1;
             }
             auto& oracle = engine.omni_oracle();
-            if (args[1] == "summarize" && args.size() >= 3) {
-                auto res = oracle.summarize(args[2]);
-                std::cout << "Summary of " << args[2] << ":\n";
+            if (pargs[1] == "summarize" && pargs.size() >= 3) {
+                auto res = oracle.summarize(pargs[2]);
+                std::cout << "Summary of " << pargs[2] << ":\n";
                 std::cout << res.answer_text << "\n";
             } else {
                 std::string query;
-                if (args[1] == "ask" && args.size() >= 3) {
-                    query = args[2];
+                if (pargs[1] == "ask" && pargs.size() >= 3) {
+                    query = pargs[2];
                 } else {
-                    query = args[1];
+                    query = pargs[1];
                 }
                 auto res = oracle.ask(query);
                 std::cout << "Oracle: " << res.answer_text << "\n";

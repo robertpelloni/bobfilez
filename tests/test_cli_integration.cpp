@@ -221,6 +221,28 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, GlobalFlagsDoNotHijackPositionalArgs) {
+    // Handlers that index raw argv took the first token after the
+    // subcommand literally: `flow run flow-01 --db=x payload`
+    // "executed" the workflow on the string '--db=x', and
+    // `search --db=x query` searched for the flag. Positional
+    // parsing must skip --flag tokens anywhere in the line.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto payload = inbox.string();
+
+    auto flow = run_cli("flow run flow-01 --db=" + db + " \"" + payload + "\"", dir);
+    ASSERT_EQ(flow.code, 0) << flow.out;
+    EXPECT_NE(flow.out.find(payload), std::string::npos) << flow.out;
+    EXPECT_EQ(flow.out.find("--db="), std::string::npos) << flow.out;
+
+    auto search = run_cli("search --db=" + db + " a.txt \"" + payload + "\"", dir);
+    ASSERT_EQ(search.code, 0) << search.out;
+    EXPECT_NE(search.out.find("a.txt"), std::string::npos) << search.out;
+}
+
 TEST_F(CliFixture, SimilarOnDirectoryIsACleanError) {
     // `similar` takes one image file; handing it a folder used to
     // surface raw OpenCV warnings plus "Failed to compute hash".

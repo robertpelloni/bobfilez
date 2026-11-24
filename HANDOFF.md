@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.60 (Global Flags No Longer Hijack Positional Args)
+
+## What landed (2026-11-24, continuation)
+- **Positional parsing**: `pargs` view added in `fo_cli.cpp`;
+  search/flow/autodev/sync/vault/clerk/oracle positional indexes
+  no longer consume `--flag` tokens as values. CLI test added.
+  Lean ctest **59/59**.
+- Version **6.5.60**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.59 (Similar Names Its Input Expectation)
 
 ## What landed (2026-11-24, continuation)

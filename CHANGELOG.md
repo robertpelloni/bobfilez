@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.60] - 2026-11-24 — Global Flags No Longer Hijack Positional Args
+
+### Fixed
+- **Handlers indexing raw argv took flags as values**: `flow run
+  flow-01 --db=x payload` reported executing the workflow on the
+  string `--db=x`, and `search --db=x query` searched for the
+  flag text. A positional view (`pargs`: command + non-flag
+  tokens) now feeds every positional index in search, flow,
+  autodev, sync, vault, clerk, and oracle handlers; handlers
+  scanning for their own `--flags` still use raw args. New
+  `GlobalFlagsDoNotHijackPositionalArgs` CLI test failed before,
+  passes after. Suites: lean **59/59**; other lanes rebuilt at
+  this version.
+
 ## [6.5.59] - 2026-11-24 — Similar Names Its Input Expectation
 
 ### Fixed
