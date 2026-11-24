@@ -150,9 +150,13 @@ TEST_F(CliFixture, OrganizeExtensionAliasExpands) {
 }
 
 TEST_F(CliFixture, DeleteDoesNotBlockUndoOfMove) {
-    // A journaled Delete (not reversible) must not block undoing an
-    // earlier Move: undo_last used to pick the Delete, fail silently,
-    // and report "No operations to undo" forever.
+    // Contract (revised v6.5.72, Muse review): a delete batch
+    // must not *permanently* block undoing an earlier Move, but
+    // undo must not silently reverse that Move when the user
+    // asked to undo the delete either. Undo refuses the delete
+    // batch by name; `undo --dismiss` acknowledges it, and only
+    // then does undo reach the Move. (Pre-v6.5.72 this test pinned
+    // the silent fall-through that Claude flagged as the bug.)
     auto inbox = dir / "inbox";
     auto dups = dir / "dups";
     std::filesystem::create_directories(inbox);
@@ -169,8 +173,14 @@ TEST_F(CliFixture, DeleteDoesNotBlockUndoOfMove) {
     ASSERT_EQ(run_cli("delete-duplicates --db=" + db + " \"" + dups.string() + "\"", dir).code, 0);
 
     auto undo = run_cli("undo --db=" + db, dir);
-    ASSERT_EQ(undo.code, 0) << undo.out;
-    EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+    EXPECT_NE(undo.code, 0) << undo.out;
+    EXPECT_NE(undo.out.find("cannot be undone"), std::string::npos) << undo.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+
+    ASSERT_EQ(run_cli("undo --dismiss --db=" + db, dir).code, 0);
+    auto undo2 = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo2.code, 0) << undo2.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo2.out;
 }
 
 TEST_F(CliFixture, UndoSkipsStaleRecords) {
@@ -384,6 +394,66 @@ TEST_F(CliFixture, SearchFlagsBeforeQueryAndBareQueryWork) {
     std::filesystem::current_path(original_cwd);
     ASSERT_EQ(bare.code, 0) << bare.out;
     EXPECT_NE(bare.out.find("note.txt"), std::string::npos) << bare.out;
+}
+
+TEST_F(CliFixture, UndoAfterDeleteDuplicatesRefusesThenDismisses) {
+    // Muse review: after delete-duplicates, undo used to
+    // silently reverse the previous command. It must refuse the
+    // irreversible delete batch, and only `undo --dismiss` may
+    // unblock the older batch.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "same"; }
+    { std::ofstream(inbox / "b.txt") << "same"; }
+    { std::ofstream(inbox / "c.txt") << "unique"; }
+    auto db = (dir / "t.db").string();
+
+    auto ren = run_cli("rename --pattern=\"{name}_v2.{ext}\" --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(ren.code, 0) << ren.out;
+    ASSERT_TRUE(std::filesystem::exists(inbox / "a_v2.txt"));
+
+    // delete-duplicates acts on groups persisted by `duplicates`.
+    ASSERT_EQ(run_cli("duplicates --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    auto del = run_cli("delete-duplicates --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(del.code, 0) << del.out;
+    ASSERT_NE(del.out.find("Deleted 1"), std::string::npos) << del.out;
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    EXPECT_NE(undo.code, 0) << undo.out;
+    EXPECT_NE(undo.out.find("cannot be undone"), std::string::npos) << undo.out;
+    // The older rename batch must NOT have been reversed (c was
+    // unique, so c_v2.txt is certainly still there under its
+    // renamed name).
+    EXPECT_TRUE(std::filesystem::exists(inbox / "c_v2.txt")) << undo.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "c.txt"));
+
+    auto dismiss = run_cli("undo --dismiss --db=" + db, dir);
+    ASSERT_EQ(dismiss.code, 0) << dismiss.out;
+
+    auto undo2 = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo2.code, 0) << undo2.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "c.txt")) << undo2.out;
+}
+
+TEST_F(CliFixture, UndoReportsSkippedRecordsWithReasons) {
+    // Muse review: partial undo was silent. A batch member
+    // whose destination vanished must be reported as skipped
+    // with a reason while the rest of the batch restores.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    { std::ofstream(inbox / "b.txt") << "b"; }
+    auto db = (dir / "t.db").string();
+
+    auto ren = run_cli("rename --pattern=\"{name}_v2.{ext}\" --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(ren.code, 0) << ren.out;
+    std::filesystem::remove(inbox / "b_v2.txt");
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << undo.out;
+    EXPECT_NE(undo.out.find("Skipped"), std::string::npos) << undo.out;
+    EXPECT_NE(undo.out.find("no longer exists"), std::string::npos) << undo.out;
 }
 
 TEST_F(CliFixture, UndoRestoresWholeRenameBatch) {

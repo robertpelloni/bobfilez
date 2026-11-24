@@ -493,6 +493,8 @@ int main(int argc, char** argv) {
             // Parsed by the convert command handler below; accept silently here.
         } else if (a.rfind("--limit=", 0) == 0 || a == "--verify") {
             // Parsed by the audit command handler below; accept silently here.
+        } else if (a == "--dismiss") {
+            // Parsed by the undo command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
@@ -1795,10 +1797,30 @@ int main(int argc, char** argv) {
 
         } else if (command == "undo") {
             fo::core::OperationRepository op_repo(engine.database());
+
+            // `fo undo --dismiss`: acknowledge the newest batch
+            // (e.g. an irreversible delete batch) without reversing
+            // it, so older batches become undoable again.
+            bool dismiss = false;
+            for (const auto& a : args) if (a == "--dismiss") dismiss = true;
+            if (dismiss) {
+                int n = op_repo.dismiss_newest_batch();
+                if (format == "json") {
+                    std::cout << "{\"success\": true, \"dismissed\": " << n << "}\n";
+                } else if (n > 0) {
+                    std::cout << "Dismissed the last operation batch (" << n
+                              << " record(s) marked acknowledged; nothing was restored).\n";
+                } else {
+                    std::cout << "Nothing to dismiss.\n";
+                }
+                return 0;
+            }
+
             // Undo restores the most recent command's whole batch
             // (one rename/organize invocation = one undo), not just
             // its newest file.
-            auto undone = op_repo.undo_last_batch();
+            auto outcome = op_repo.undo_last_batch();
+            const auto& undone = outcome.undone;
 
             auto type_name = [](fo::core::OperationType t) {
                 switch (t) {
@@ -1809,6 +1831,19 @@ int main(int argc, char** argv) {
                 }
                 return "unknown";
             };
+
+            if (outcome.refused_delete_batch) {
+                std::string msg = "The last operation deleted " +
+                    std::to_string(outcome.delete_batch_records) +
+                    " file(s). Deletions cannot be undone; run `fo undo --dismiss` "
+                    "to acknowledge it and make older operations undoable again.";
+                if (format == "json") {
+                    std::cout << "{\"success\": false, \"message\": \"" << msg << "\"}\n";
+                } else {
+                    std::cerr << "Error: " << msg << "\n";
+                }
+                return 1;
+            }
 
             if (format == "json") {
                 if (!undone.empty()) {
@@ -1824,11 +1859,17 @@ int main(int argc, char** argv) {
                                   << ", \"source\": \"" << fo::core::Exporter::json_escape(undone[i].source_path) << "\""
                                   << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone[i].dest_path) << "\"}";
                     }
+                    std::cout << "], \"skipped\": [";
+                    for (size_t i = 0; i < outcome.skipped.size(); ++i) {
+                        if (i) std::cout << ", ";
+                        std::cout << "{\"dest\": \"" << fo::core::Exporter::json_escape(outcome.skipped[i].first.dest_path)
+                                  << "\", \"reason\": \"" << fo::core::Exporter::json_escape(outcome.skipped[i].second) << "\"}";
+                    }
                     std::cout << "]}\n";
                 } else {
                     std::cout << "{\"success\": false, \"message\": \"No operations to undo\"}\n";
                 }
-            } else if (!undone.empty()) {
+            } else if (!undone.empty() || !outcome.skipped.empty()) {
                 for (const auto& rec : undone) {
                     std::cout << "Undone: ";
                     switch (rec.type) {
@@ -1850,6 +1891,16 @@ int main(int argc, char** argv) {
                 if (undone.size() > 1) {
                     std::cout << "Undone " << undone.size() << " operations (last command batch).\n";
                 }
+                for (const auto& [rec, reason] : outcome.skipped) {
+                    std::cout << "Skipped: " << rec.dest_path << " (" << reason << ")\n";
+                }
+                if (outcome.skipped_batches > 0) {
+                    std::cout << "Note: " << outcome.skipped_batches
+                              << " newer batch(es) could not be restored and were skipped.\n";
+                }
+                // Skipped-only still exits 0: undo is a reported
+                // best-effort (the pre-batch contract), and every
+                // skip above names its reason.
             } else {
                 std::cout << "No operations to undo.\n";
             }

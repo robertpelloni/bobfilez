@@ -55,11 +55,32 @@ public:
     // Undo the most recent undoable operation
     std::optional<OperationRecord> undo_last();
 
-    // Undo every undoable record in the most recent batch (the
-    // batch of the newest undoable record), newest first. Stale
-    // records are skipped; a batch that yields nothing falls
+    // Outcome of one batch-undo attempt. `skipped` carries a
+    // human-readable reason per record that could not be reversed
+    // (callers must surface these; silent partial undo is how
+    // users lose track of files). `refused_delete_batch` is set
+    // when the newest batch is a deletion batch: deletions are
+    // irreversible, and quietly reversing an *older* batch
+    // instead would be a lie — callers must refuse loudly and
+    // offer dismiss_newest_batch() as the explicit way past it.
+    struct UndoOutcome {
+        std::vector<OperationRecord> undone;
+        std::vector<std::pair<OperationRecord, std::string>> skipped;
+        int skipped_batches = 0;
+        bool refused_delete_batch = false;
+        int delete_batch_records = 0;
+    };
+
+    // Undo every undoable record in the most recent batch,
+    // newest first, with no record-count cap. Stale records are
+    // reported in `skipped`; a batch that yields nothing falls
     // through to the next older batch, mirroring undo_last.
-    std::vector<OperationRecord> undo_last_batch();
+    UndoOutcome undo_last_batch();
+
+    // Mark the newest non-undone batch as acknowledged without
+    // reversing it (the explicit escape after a delete batch).
+    // Returns the number of records dismissed.
+    int dismiss_newest_batch();
 
     // Get operation by ID
     std::optional<OperationRecord> get_by_id(int64_t id);
@@ -67,11 +88,12 @@ public:
     // Clear old operations (older than days)
     void clear_old(int days = 30);
 
+    static OperationType string_to_operation_type(const std::string& str);
+
 private:
     DatabaseManager& db_;
-    
+
     static std::string operation_type_to_string(OperationType type);
-    static OperationType string_to_operation_type(const std::string& str);
 };
 
 } // namespace fo::core

@@ -90,15 +90,114 @@ TEST_F(OperationFixture, UndoLastBatchRestoresWholeBatch) {
     auto p2 = mk("b.txt", "b-new.txt", batch + 1);
 
     auto undone = repo->undo_last_batch();
-    ASSERT_EQ(undone.size(), 2u);
+    ASSERT_EQ(undone.undone.size(), 2u);
     EXPECT_TRUE(std::filesystem::exists(p1.first));
     EXPECT_TRUE(std::filesystem::exists(p2.first));
     EXPECT_TRUE(std::filesystem::exists(older.second)); // older batch untouched
 
     auto undone2 = repo->undo_last_batch();
-    ASSERT_EQ(undone2.size(), 1u);
+    ASSERT_EQ(undone2.undone.size(), 1u);
     EXPECT_TRUE(std::filesystem::exists(older.first));
-    EXPECT_FALSE(repo->undo_last_batch().size() > 0);
+    EXPECT_TRUE(repo->undo_last_batch().undone.empty());
+}
+
+TEST_F(OperationFixture, UndoBatchOver500UndoneInOneCall) {
+    // Muse review: get_undoable(500) truncated big batches, so
+    // one undo of a 520-file organize restored only 500 and
+    // reported success. The batch must come back whole.
+    auto batch = repo->allocate_batch_id();
+    const int n = 520;
+    for (int i = 0; i < n; ++i) {
+        auto src = dir / ("f" + std::to_string(i) + ".txt");
+        auto dst = dir / ("f" + std::to_string(i) + ".new");
+        { std::ofstream(src) << "abc"; } // 3 bytes = record()'s file_size
+        std::filesystem::rename(src, dst);
+        auto rec = record(fo::core::OperationType::Rename, src.string(), dst.string());
+        rec.batch_id = batch;
+        repo->log_operation(rec);
+    }
+    auto outcome = repo->undo_last_batch();
+    EXPECT_EQ(outcome.undone.size(), static_cast<size_t>(n));
+    EXPECT_TRUE(outcome.skipped.empty());
+    EXPECT_TRUE(std::filesystem::exists(dir / "f0.txt"));
+    EXPECT_TRUE(std::filesystem::exists(dir / "f519.txt"));
+}
+
+TEST_F(OperationFixture, UndoRefusesDeleteBatchAndDismissUnblocks) {
+    // Muse review: after delete-duplicates, undo used to
+    // silently reverse the *previous* batch. It must refuse the
+    // irreversible delete batch; only an explicit dismiss may
+    // move past it.
+    auto move_src = dir / "keep.txt";
+    auto move_dst = dir / "keep-moved.txt";
+    { std::ofstream(move_src) << "abc"; }
+    std::filesystem::rename(move_src, move_dst);
+    auto mv = record(fo::core::OperationType::Rename, move_src.string(), move_dst.string());
+    mv.batch_id = repo->allocate_batch_id();
+    repo->log_operation(mv);
+
+    auto del = record(fo::core::OperationType::Delete, (dir / "dup.txt").string());
+    del.batch_id = repo->allocate_batch_id();
+    repo->log_operation(del);
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.refused_delete_batch);
+    EXPECT_EQ(outcome.delete_batch_records, 1);
+    EXPECT_TRUE(outcome.undone.empty());
+    EXPECT_TRUE(std::filesystem::exists(move_dst)); // older batch untouched
+
+    EXPECT_EQ(repo->dismiss_newest_batch(), 1);
+    auto outcome2 = repo->undo_last_batch();
+    ASSERT_EQ(outcome2.undone.size(), 1u);
+    EXPECT_TRUE(std::filesystem::exists(move_src));
+}
+
+TEST_F(OperationFixture, UndoRefusesTamperedDestination) {
+    // Muse review: undo moved back whatever sat at dest. A file
+    // modified after the move (size differs from the journal)
+    // must be refused and reported, never overwritten/moved.
+    auto src = dir / "orig.txt";
+    auto dst = dir / "moved.txt";
+    { std::ofstream(src) << "abc"; }
+    std::filesystem::rename(src, dst);
+    repo->log_operation(record(fo::core::OperationType::Rename, src.string(), dst.string()));
+    { std::ofstream(dst, std::ios::app) << "tampered"; }
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.undone.empty());
+    ASSERT_EQ(outcome.skipped.size(), 1u);
+    EXPECT_NE(outcome.skipped[0].second.find("changed"), std::string::npos);
+    EXPECT_TRUE(std::filesystem::exists(dst));
+    EXPECT_FALSE(std::filesystem::exists(src));
+}
+
+TEST_F(OperationFixture, UndoCreatesMissingSourceParent) {
+    // Muse review: if the source's parent directory was removed
+    // after the move, undo must recreate it, not report stale.
+    auto sub = dir / "sub";
+    std::filesystem::create_directories(sub);
+    auto src = sub / "a.txt";
+    auto dst = dir / "a-moved.txt";
+    { std::ofstream(src) << "abc"; }
+    std::filesystem::rename(src, dst);
+    repo->log_operation(record(fo::core::OperationType::Rename, src.string(), dst.string()));
+    std::filesystem::remove_all(sub);
+
+    auto outcome = repo->undo_last_batch();
+    ASSERT_EQ(outcome.undone.size(), 1u);
+    EXPECT_TRUE(std::filesystem::exists(src));
+}
+
+TEST_F(OperationFixture, GetByIdFindsOldRecords) {
+    // Muse review: get_by_id scanned the newest 1000 by
+    // timestamp. It must find any record by primary key.
+    int64_t first_id = repo->log_operation(record(fo::core::OperationType::Move, "a.txt", "b.txt"));
+    for (int i = 0; i < 1005; ++i) {
+        repo->log_operation(record(fo::core::OperationType::Move, "x.txt", "y.txt"));
+    }
+    auto found = repo->get_by_id(first_id);
+    ASSERT_TRUE(found.has_value());
+    EXPECT_EQ(found->id, first_id);
 }
 
 TEST_F(OperationFixture, UndoWithEmptyJournalReturnsNullopt) {

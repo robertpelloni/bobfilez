@@ -1,3 +1,26 @@
+# Session Handoff - v6.5.72 (Undo Core Rework)
+
+## What landed (2026-11-24, continuation)
+- **Muse code review acted on** (operation_repository.cpp):
+  uncapped batch undo; delete-batch refusal + `undo --dismiss`;
+  size-identity check before undo touches a file; per-record
+  skip reasons surfaced in CLI/C API; source-parent recreation;
+  `get_by_id` primary-key lookup. Contract change documented in
+  CHANGELOG (DeleteDoesNotBlockUndoOfMove re-pinned to
+  refuse→dismiss→undo). ctest per-test TIMEOUT 120s added.
+  Lean ctest **77/77**.
+- Queued for v6.5.73 (Muse findings, second half): atomic
+  batch-id allocation (MAX+1 race), journal-failure rollback in
+  organize/rename, CJK filename probe.
+- Version **6.5.72**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 2 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.71 (Matrix Completeness Guard + mtime Invariant)
 
 ## What landed (2026-11-24, continuation)

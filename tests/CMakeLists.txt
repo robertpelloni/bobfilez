@@ -53,4 +53,9 @@ add_custom_command(TARGET fo_tests POST_BUILD
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/copy_runtime_deps.cmake)
 
 include(GoogleTest)
-gtest_discover_tests(fo_tests)
+# A hung test must fail, not stall the suite forever: two
+# RegistryFixture flow tests were observed blocked at ~0 CPU for
+# 20+ minutes under heavy parallel machine load (standalone they
+# pass in ~15 ms; not reproducible in isolation). 120s is far
+# above the slowest legitimate test (520-file batch undo).
+gtest_discover_tests(fo_tests PROPERTIES TIMEOUT 120)

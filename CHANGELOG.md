@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.5.72] - 2026-11-24 — Undo Core Rework (Muse Code Review)
+
+### Fixed
+- **Batches over 500 records were undone in chunks** (the
+  `get_undoable(500)` cap): one undo of a 520-file organize
+  restored 500 and reported success. Batch undo now walks the
+  whole journal uncapped.
+- **Undo after delete-duplicates reversed the wrong batch**:
+  deletes were filtered out, so undo silently reversed the
+  *previous* command. Undo now refuses an irreversible delete
+  batch by name (exit 1) and only `fo undo --dismiss`
+  acknowledges it to reach older batches. **Contract change**:
+  `DeleteDoesNotBlockUndoOfMove` previously pinned the silent
+  fall-through; it now pins refuse → dismiss → undo.
+- **Undo never verified identity**: it moved/deleted whatever
+  sat at the destination. Destinations whose size differs from
+  the journal are now refused ("file changed since the
+  operation"), skips are reported per record with reasons,
+  missing source parents are recreated, and `get_by_id` uses a
+  primary-key lookup (was: newest-1000 scan). Per-test ctest
+  timeout (120s) added after two load-related suite hangs.
+  Suites: lean **77/77**; other lanes rebuilt at this version.
+
 ## [6.5.71] - 2026-11-24 — Matrix Completeness Guard + mtime Invariant
 
 ### Tests
