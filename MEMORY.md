@@ -1,5 +1,12 @@
 # Memory: Observations & Design Preferences
 
+## Observations (2026-11-24, v6.5.45)
+- **Provider matrix is complete in the lean lane**: scanners gdrive/std/win32/dirent/s3/azure, hashers fast64/sha256/xxhash/blake3/dhash, tinyexif, tesseract OCR, onnx classifier, dhash/phash/ahash/opencv perceptual, ffmpeg video, chromaprint audio — all live via `/api/providers`. Provider registration must be explicit `register_*()` calls; TU-local static registrars get linker-dropped (bit us three times: perceptual, vault, classifiers).
+- **Destructive ops are now failure-honest**: organize/delete-duplicates/rename/rename-batch report only successes, count failures, exit nonzero on failure, refuse existing destinations (MSVC rename replaces!), skip the live DB files, and scope delete-duplicates to the given folder. Undo skips irreversible/stale records instead of blocking forever.
+- **Native lanes that actually work**: Qt MinGW (`build-qt-mingw`) and JUCE VS18 (`build-juce-demo`) demos build + launch; BobUI/BTK lanes remain blocked on their framework provider surfaces; BobGUI's own `meson.build` is corrupt in its repo. The web dashboard is the primary UI.
+- **Runtime DLL discipline**: executables that link `fo_core` need the exact loader set beside them (`tests/copy_runtime_deps.cmake`); glob-copying prefix bins shadows good DLLs with debug variants.
+- **Docs sell the scope cut**: README/ARCHITECTURE/ROADMAP all carry it — bobfilez is a file organizer; OmniShell material is parked aspiration. `docs/SUBMODULE_INVENTORY.md`: 12 of 173 `libs/` trees are build-referenced.
+
 ## Observations (2026-11-16, v6.5.7)
 - **Newest binary is not automatically the best binary**: the dashboard picks the newest `fo_cli.exe`, so a fresh cloud-only manifest build can shadow the provider-complete lean build. `build_headless.bat` now supplements the manifest with `build-lean-deps` and sidecars its DLLs; verify `--modules`, not timestamps alone.
 - **Provider completeness is a configure-time matrix**: cloud scanners come from the vcpkg manifest, while OCR/OpenCV/ONNX can come from the lean prefix in the same binary. Video/audio hash providers remain behind the opt-in `media-analysis` feature and must be badged until enabled.
