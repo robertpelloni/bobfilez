@@ -570,8 +570,14 @@ int main(int argc, char** argv) {
             } else if (format == "json") {
                 std::cout << "[\n";
                 for (size_t i = 0; i < files.size(); ++i) {
+                    // mtime (unix seconds): the classic dashboard's
+                    // date column reads it; it was missing, which
+                    // rendered "Invalid Date" for every row.
+                    auto mtime_unix = std::chrono::system_clock::to_time_t(
+                        std::chrono::clock_cast<std::chrono::system_clock>(files[i].mtime));
                     std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
-                              << "\", \"size\": " << files[i].size << "}";
+                              << "\", \"size\": " << files[i].size
+                              << ", \"mtime\": " << mtime_unix << "}";
                     if (i + 1 < files.size()) std::cout << ",";
                     std::cout << "\n";
                 }

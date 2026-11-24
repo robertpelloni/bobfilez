@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.5.48] - 2026-11-24 — Scan JSON Carries mtime
+
+### Fixed
+- **Scan JSON omitted `mtime`**: the classic dashboard's date
+  column reads `f.mtime` and rendered "Invalid Date" for every
+  row. Scan JSON now includes `"mtime"` (unix seconds). New
+  `ScanJsonIncludesMtime` CLI test failed before, passes after.
+  Suites: lean **46/46**; other lanes rebuilt at this version.
+
 ## [6.5.47] - 2026-11-24 — Raw Delete Endpoint Retired
 
 ### Removed

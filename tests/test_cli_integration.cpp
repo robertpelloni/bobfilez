@@ -340,6 +340,19 @@ TEST_F(CliFixture, RenameReportsFailureWhenDestDirMissing) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "old.txt")) << r.out;
 }
 
+TEST_F(CliFixture, ScanJsonIncludesMtime) {
+    // The classic dashboard's date column reads f.mtime from scan
+    // JSON; the field was missing, rendering "Invalid Date".
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "x"; }
+    auto db = (dir / "t.db").string();
+
+    auto r = run_cli("scan --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("\"mtime\":"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, SearchWholeWordContentRespected) {
     // --whole-word was silently ignored for literal content search
     // (only the regex path honored it): "wor" must not match "word".
