@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.71 (Matrix Completeness Guard + mtime Invariant)
+
+## What landed (2026-11-24, continuation)
+- **Muse pushback acted on**: `--help`-driven completeness
+  guard for the conformance matrix (caught `similar`); mtime
+  added to the undo invariant; cross-volume transitions argued
+  from journal-after-rename ordering in the thread reply;
+  `operation_repository.cpp` pasted for Muse's deep review
+  (chat `fd6d6d5b`). Lean ctest **70/70**.
+- Version **6.5.71**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse code review reply awaited in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.70 (Conformance Matrix + Undo Invariant)
 
 ## What landed (2026-11-24, continuation)

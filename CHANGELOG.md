@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.71] - 2026-11-24 — Matrix Completeness Guard + mtime Invariant
+
+### Tests
+- **Muse's pushback round**: the conformance matrix can no
+  longer go stale — `HelpCoversEveryPathCommand` parses
+  `--help` and fails when any command lacks a matrix row or a
+  named exemption (it immediately caught `similar` missing;
+  matrix now 18 rows incl. `search`/`convert`). The organize→
+  undo invariant now also compares mtimes, not just paths and
+  bytes. `operation_repository.cpp` sent to the Muse thread
+  for the deep review it requested. Suites: lean **70/70**;
+  other lanes rebuilt at this version.
+
 ## [6.5.70] - 2026-11-24 — Conformance Matrix + Undo Invariant (Claude Roast)
 
 ### Tests
