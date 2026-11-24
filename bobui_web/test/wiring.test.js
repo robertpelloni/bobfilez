@@ -36,6 +36,13 @@ test('ignore card can add and remove rules', () => {
   assert.match(srv, /app\.post\('\/api\/ignore\/remove'/);
 });
 
+test('audit card states the truncation limit honestly', () => {
+  const html = read('public/unified.html');
+  // Hash chains detect edits to remaining entries, not deletion of
+  // the newest ones; the card must not overpromise tamper evidence.
+  assert.match(html, /Deleting the newest entries outright is not detectable/);
+});
+
 test('vault card warns that lock removes the original', () => {
   const html = read('public/unified.html');
   // VaultManager::lock_file deletes the plaintext source after a

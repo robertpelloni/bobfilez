@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.35 (Audit Tamper Evidence, Honestly Bounded)
+
+## What landed (2026-11-23, continuation)
+- **Audit tamper probe**: forged entry detected (`verified:false`);
+  tail truncation is a hash-chain design limit, now stated on the
+  Audit card (wiring 20/20). 
+- ChatGPT verdict in: interruption test credited; recommends the
+  owner authorize a lean production checkout (not deletion).
+- Version **6.5.35**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.34 (Undo Skips Stale Records)
 
 ## What landed (2026-11-23, continuation)

@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.35] - 2026-11-23 — Audit Tamper Evidence, Honestly Bounded
+
+### Verified
+- **Audit ledger tamper test**: forging a recorded entry's
+  `src_path` flips `/api/audit` to `verified: false` (chain
+  recomputation catches edits and reordering; the forged-operation
+  case was already unit-tested). Deleting the newest entries
+  outright is *not* detectable by hash-chain design — the Audit
+  card now says so instead of implying total tamper evidence
+  (wiring test pins the wording, 20/20).
+- ChatGPT's verdict on the fix reports landed: it credits the
+  600-file interruption test as meaningful (not comprehensive),
+  recommends authorizing a lean production checkout instead of
+  deleting reference repos, and repeats: prove reliability, reduce
+  complexity, state exactly what bobfilez can promise.
+
 ## [6.5.34] - 2026-11-23 — Undo Skips Stale Records
 
 ### Fixed
