@@ -221,6 +221,56 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+// Writes a 64x64 24-bit BMP whose gray value depends on x:
+// mode 0/1 increasing gradients (perceptually near-identical),
+// mode 2 the reversed gradient (perceptually opposite).
+void write_gradient_bmp(const std::filesystem::path& path, int mode) {
+    const int w = 64, h = 64;
+    std::ofstream out(path, std::ios::binary);
+    auto u32 = [&](uint32_t v) { out.write(reinterpret_cast<const char*>(&v), 4); };
+    auto u16 = [&](uint16_t v) { out.write(reinterpret_cast<const char*>(&v), 2); };
+    const uint32_t data_size = static_cast<uint32_t>(w * h * 3);
+    out << 'B' << 'M';
+    u32(54 + data_size); u16(0); u16(0); u32(54);
+    u32(40); u32(w); u32(h); u16(1); u16(24); u32(0); u32(data_size);
+    u32(2835); u32(2835); u32(0); u32(0);
+    for (int y = h - 1; y >= 0; --y) {
+        for (int x = 0; x < w; ++x) {
+            int v = (mode == 2) ? (255 - x * 4) : (x * 4 + (mode == 1 ? 2 : 0));
+            if (v > 255) v = 255;
+            char px[3] = {static_cast<char>(v), static_cast<char>(v), static_cast<char>(v)};
+            out.write(px, 3);
+        }
+    }
+}
+
+TEST_F(CliFixture, SimilarFindsNearIdenticalImages) {
+    // Positive path for the similar-image workflow: dhash the set,
+    // then `similar` on one member must return its near-identical
+    // sibling and not the reversed-gradient opposite.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_gradient_bmp(inbox / "imgA.bmp", 0);
+    write_gradient_bmp(inbox / "imgB.bmp", 1);
+    write_gradient_bmp(inbox / "imgC.bmp", 2);
+    auto db = (dir / "t.db").string();
+
+    auto hashed = run_cli("hash --hasher=dhash --db=" + db + " \"" + inbox.string() + "\"", dir);
+    if (hashed.out.find("hasher not found") != std::string::npos) {
+        GTEST_SKIP() << "dhash hasher not registered in this lane";
+    }
+    ASSERT_EQ(hashed.code, 0) << hashed.out;
+
+    auto sim = run_cli("similar --db=" + db + " \"" + (inbox / "imgA.bmp").string() + "\"", dir);
+    if (sim.out.find("Perceptual hasher") != std::string::npos &&
+        sim.out.find("not found") != std::string::npos) {
+        GTEST_SKIP() << "perceptual hasher not registered in this lane";
+    }
+    ASSERT_EQ(sim.code, 0) << sim.out;
+    EXPECT_NE(sim.out.find("imgB.bmp"), std::string::npos) << sim.out;
+    EXPECT_EQ(sim.out.find("imgC.bmp"), std::string::npos) << sim.out;
+}
+
 TEST_F(CliFixture, HashReportsFilesItCouldNotHash) {
     // Hashers return "" on failure (dhash on a non-image, fast64 on
     // an unreadable file); the hash command used to print and store
