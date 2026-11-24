@@ -2278,7 +2278,11 @@ int main(int argc, char** argv) {
                 }
             } else if (args[1] == "status") {
                 auto status = sync.check_sync_status();
-                std::cout << "In Sync: " << (status.is_in_sync ? "Yes" : "No") << "\n";
+                if (!status.last_error.empty()) {
+                    std::cout << "In Sync: unknown (" << status.last_error << ")\n";
+                } else {
+                    std::cout << "In Sync: " << (status.is_in_sync ? "Yes" : "No") << "\n";
+                }
             }
         } else if (command == "vault-init" || command == "vault-lock" ||
                    command == "vault-unlock" || command == "vault-list") {

@@ -9,6 +9,9 @@
 #include "fo/core/ocr_interface.hpp"
 #include "fo/core/omni_oracle_interface.hpp"
 #include "fo/core/omniflow_engine_interface.hpp"
+#include "fo/core/autonomous_sync_interface.hpp"
+
+#include <cstdlib>
 
 #include <filesystem>
 #include <fstream>
@@ -106,6 +109,26 @@ TEST_F(RegistryFixture, FlowFailurePropagates) {
     EXPECT_TRUE(std::filesystem::exists(payload));
     std::error_code ec;
     std::filesystem::remove_all(dir, ec);
+}
+
+TEST_F(RegistryFixture, SyncStatusUnknownWithoutActivity) {
+    // A fresh sync service used to unconditionally report
+    // "In Sync: Yes". With nothing tracked it must say unknown.
+#ifdef _WIN32
+    _putenv_s("BOBFILEZ_SYNC_DB", "bobfilez-sync-test-nonexistent.db");
+#else
+    setenv("BOBFILEZ_SYNC_DB", "bobfilez-sync-test-nonexistent.db", 1);
+#endif
+    auto sync = fo::core::Registry<fo::core::IAutonomousSyncService>::instance().create("default");
+    ASSERT_NE(sync, nullptr);
+    const auto status = sync->check_sync_status();
+    EXPECT_FALSE(status.is_in_sync);
+    EXPECT_FALSE(status.last_error.empty());
+#ifdef _WIN32
+    _putenv_s("BOBFILEZ_SYNC_DB", "");
+#else
+    unsetenv("BOBFILEZ_SYNC_DB");
+#endif
 }
 
 TEST_F(RegistryFixture, UnknownProviderCreatesNull) {

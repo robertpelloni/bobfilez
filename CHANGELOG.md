@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.38] - 2026-11-23 — Sync Status Stops Claiming "In Sync"
+
+### Fixed
+- **`sync status` always said Yes**: `check_sync_status`
+  unconditionally returned `is_in_sync = true`. It now consults
+  persisted sync history when a sync DB already exists (without
+  creating one for a status query) and answers "unknown" with the
+  reason when nothing is tracked. New
+  `SyncStatusUnknownWithoutActivity` test failed before, passes
+  after. Suites: lean **42/42**; other lanes rebuilt at this version.
+
 ## [6.5.37] - 2026-11-23 — Whole-Word Content Search Honored
 
 ### Fixed

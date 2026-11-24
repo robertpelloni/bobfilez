@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.38 (Sync Status Stops Claiming "In Sync")
+
+## What landed (2026-11-23, continuation)
+- **Sync status honesty**: `check_sync_status` hardcoded
+  `is_in_sync = true`; now history-aware with an explicit
+  "unknown" answer (reason surfaced by CLI + dashboard). Registry
+  test pins it. Lean ctest **42/42**.
+- Version **6.5.38**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.37 (Whole-Word Content Search Honored)
 
 ## What landed (2026-11-23, continuation)

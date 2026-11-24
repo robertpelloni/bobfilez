@@ -182,8 +182,23 @@ public:
 
     SyncStatus check_sync_status() override {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
+        // Consult persisted history if a sync DB already exists, but
+        // never create one just to answer a status query. With
+        // nothing tracked, the honest answer is "unknown": this used
+        // to unconditionally report is_in_sync = true.
+        if (!db_) {
+            std::string db_path = storage_path_.empty() ? "sync.db" : storage_path_.string();
+            if (const char* env_db = std::getenv("BOBFILEZ_SYNC_DB")) db_path = env_db;
+            if (std::filesystem::exists(db_path)) ensure_db_ready();
+        }
         SyncStatus status;
-        status.is_in_sync = true;
+        if (version_history_.empty()) {
+            status.is_in_sync = false;
+            status.last_error = "no tracked sync activity; status is process-local "
+                                "(start the daemon in a terminal: fo sync start <path>)";
+        } else {
+            status.is_in_sync = status.pending_uploads.empty() && status.pending_downloads.empty();
+        }
         return status;
     }
 
