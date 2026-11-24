@@ -12,8 +12,10 @@
   a duplicate unclosed `project()` in the bobgui repo itself; fix
   there, then retry `scripts/build_bobgui_gui.bat` (GTK wrap chain next).
 - [ ] **Muse roast pending** - Gemini + ChatGPT roasts received and
-  triaged (v6.5.25-6.5.46 fix train); Muse's own roast still owed
-  in the coordination thread.
+  triaged (v6.5.25-6.5.46 fix train). Muse signed in 2026-11-24;
+  the v6.5.53-v6.5.69 summary + roast request was posted to the
+  claude.ai thread (self-identified); reply awaited — read the
+  `claude.ai/chat` tab in Edge CDP 9222 next session and triage.
 - [x] Fuzz campaigns: lane fixed (v6.5.42); 14.5M-run RuleEngine
   campaign clean. Longer/multi-target campaigns remain open-ended.
 - [x] Packaging: MSI parameterized on VERSION.md (v6.5.44); producing
