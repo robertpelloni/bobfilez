@@ -307,6 +307,23 @@ TEST_F(CliFixture, AfingerprintProcessesEveryInput) {
     EXPECT_NE(good.out.find("two.wav"), std::string::npos) << good.out;
 }
 
+TEST_F(CliFixture, SimilarRejectsNonDhashAlgorithm) {
+    // The stored index only ever holds 'dhash' values (written by
+    // `hash --hasher=dhash`), but `similar --phash=phash` used to
+    // compare a phash against them and confidently return the
+    // perceptual opposite as a match. Non-dhash queries must be
+    // refused with the reason.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_gradient_bmp(inbox / "imgA.bmp", 0);
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("similar --phash=phash --db=" + db + " \"" + (inbox / "imgA.bmp").string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_TRUE(r.out.find("dhash") != std::string::npos ||
+                r.out.find("not found") != std::string::npos)
+        << r.out;
+}
+
 TEST_F(CliFixture, SimilarFindsNearIdenticalImages) {
     // Positive path for the similar-image workflow: dhash the set,
     // then `similar` on one member must return its near-identical

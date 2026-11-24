@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.66] - 2026-11-24 — Similar Refuses Cross-Algorithm Queries
+
+### Fixed
+- **`similar --phash=phash` returned confident nonsense**: the
+  stored index only ever holds `dhash` values (the hash
+  command's sole perceptual hasher), but a phash query hash was
+  compared against them — on the regression images it returned
+  the perceptual *opposite* as the only match. Non-dhash
+  providers are now refused with the reason (checked via the
+  provider's own `name()`, so the `opencv` dhash alias still
+  works). New `SimilarRejectsNonDhashAlgorithm` CLI test failed
+  before, passes after. Suites: lean **64/64**; other lanes
+  rebuilt at this version.
+
 ## [6.5.65] - 2026-11-24 — Organize Card Teaches {filename}
 
 ### Fixed

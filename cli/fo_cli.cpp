@@ -1049,6 +1049,21 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
+            // The stored index only ever holds 'dhash' values (the
+            // hash command's sole perceptual hasher). Comparing a
+            // phash/ahash query hash against them returns confident
+            // nonsense (the perceptual opposite "matched"), so
+            // refuse providers whose algorithm is not dhash. The
+            // provider's own name() is the check: "opencv" is a
+            // dhash alias and stays allowed.
+            if (provider->name() != "dhash") {
+                std::cerr << "Error: the similarity index stores only 'dhash' hashes "
+                             "(written by `hash --hasher=dhash`); --phash=" << phash_algo
+                          << " (" << provider->name() << ") cannot be compared against them. "
+                             "Re-run with the default dhash.\n";
+                return 1;
+            }
+
             {
                 std::error_code ec;
                 if (!std::filesystem::is_regular_file(roots[0], ec)) {

@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.66 (Similar Refuses Cross-Algorithm Queries)
+
+## What landed (2026-11-24, continuation)
+- **Similar algorithm guard**: providers whose `name()` is not
+  `dhash` are refused against the dhash-only stored index
+  (`opencv` alias still allowed). CLI test added. Lean ctest
+  **64/64**.
+- Version **6.5.66**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.65 (Organize Card Teaches {filename})
 
 ## What landed (2026-11-24, continuation)
