@@ -37,6 +37,14 @@ test('fuzzer script disables the default-on Omni shell', () => {
   assert.match(bat, /FO_BUILD_FUZZERS=ON/);
 });
 
+test('dashboard launch scripts set the OCR tessdata env', () => {
+  // A server started from start-server.bat (or a tray spawned by
+  // tray.bat) must inherit TESSDATA_PREFIX or OCR silently fails.
+  const bat = fs.readFileSync(path.join(root, 'start-server.bat'), 'utf8');
+  assert.match(bat, /TESSDATA_PREFIX/);
+  assert.match(bat, /build-lean-deps/);
+});
+
 test('tray cannot double-spawn or race the port on restart', () => {
   const tray = read('tray.py');
   // An externally started server must not get a duplicate spawn

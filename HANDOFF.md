@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.46 (Dashboard Launch Scripts Set OCR Env)
+
+## What landed (2026-11-24, continuation)
+- **start-server.bat tessdata**: direct script launch now sets
+  `TESSDATA_PREFIX` like the tray spawn does; proven on port 3132.
+  MEMORY.md observations refreshed to current state (docs commit).
+- Version **6.5.46**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.45 (Benchmark Executables Can Start)
 
 ## What landed (2026-11-24, continuation)

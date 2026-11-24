@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.5.46] - 2026-11-24 — Dashboard Launch Scripts Set OCR Env
+
+### Fixed
+- **`start-server.bat` lost OCR**: it never set `TESSDATA_PREFIX`,
+  so a dashboard launched the documented way had silently failing
+  OCR (the tray spawn path was fixed in v6.5.41; the direct script
+  wasn't). Both entry points now point at the staged tessdata
+  when present. Proven by launching the script on a side port.
+  Wiring **24/24**; suites at this version's code below.
+
 ## [6.5.45] - 2026-11-24 — Benchmark Executables Can Start
 
 ### Fixed
