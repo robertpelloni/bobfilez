@@ -371,6 +371,12 @@ build-linux/
 # readable; several also have historically tracked files, which this
 # does not untrack.
 build-msvc/
+# Live dashboard working databases (regenerable scan indexes; the
+# server/CLI rewrite them on every run, so tracking them is pure churn)
+bobui_web/fo.db
+bobui_web/fo.db-wal
+bobui_web/fo.db-shm
+bobui_web/fo_sync.db
 temp_btk_probe/
 build-bobui-gui/
 build-bobui-gui-mingw-probe/
