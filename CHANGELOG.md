@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.23] - 2026-11-17 — Convert Command Unbroken
+
+### Fixed
+- **`convert` never worked**: the global option parser rejected
+  `--to=`/`--quality=` with exit 2 before the handler ran (the
+  dashboard bridge sends `--to=`), and the handler itself stripped
+  4 chars instead of 5, turning `flac` into `=flac` ("Unknown
+  format"). Both fixed, mirroring the rename-batch/audit parser
+  pattern. Verified with real conversions (wav→flac via CLI,
+  wav→ogg via `/api/convert`, output files created) and a new CLI
+  integration test that failed on both defects. Also spot-checked:
+  `classify` without a model fails honestly ("Model file not
+  found: model.onnx"); `flow list` still shows the built-in
+  scaffold workflow (Omni mock family, unchanged).
+  Suites: lean ctest **29/29**, JUCE-tree ctest **26/26**, wiring **18/18**.
+
 ## [6.5.22] - 2026-11-17 — Scrub Actually Detects Corruption
 
 ### Fixed

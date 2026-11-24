@@ -1,3 +1,26 @@
+# Session Handoff - v6.5.23 (Convert Command Unbroken)
+
+## What landed (2026-11-17, continuation)
+- **Convert fixed**: global parser now accepts `--to=`/`--quality=`
+  (dashboard grammar), and the handler's `substr(4)` off-by-one
+  (`=flac`) is `substr(5)`. Real wav→flac (CLI) and wav→ogg (HTTP)
+  conversions verified; new CLI test pins both defects. Classify
+  without a model fails honestly; flow list remains scaffold.
+- Coordination: caught up via imported-session scan (no Antigravity/
+  ChatGPT transcripts exist on this machine; aider + claude-code
+  only) and posted the v6.5.22 check-in to the Muse thread over
+  Edge CDP 9222 as [muse-wonder-1.0 in Muse Code in bobfilez].
+- Version **6.5.23**. Suites: lean **29/29**, JUCE **26/26**,
+  wiring **18/18**.
+
+## Blocked / needs owner or other session
+- Orphaned `fo_tests.exe` PIDs 19124/63392 still lock
+  `build-msvc/tests`; stop them where possible, then rerun
+  `scripts/build_headless.bat`.
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+
+---
 # Session Handoff - v6.5.22 (Scrub Actually Detects Corruption)
 
 ## What landed (2026-11-17, continuation)

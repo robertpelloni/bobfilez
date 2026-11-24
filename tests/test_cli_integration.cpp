@@ -150,6 +150,24 @@ TEST_F(CliFixture, ScrubDetectsCorruptionAfterBaseline) {
     EXPECT_NE(r2.out.find("\"corrupted\":1"), std::string::npos) << r2.out;
 }
 
+TEST_F(CliFixture, ConvertAcceptsToOption) {
+    // The global option parser must accept the convert handler's
+    // --to=/--quality= options (the dashboard bridge sends --to=);
+    // it used to reject them with exit 2 before the handler ran.
+    auto inbox = dir / "media";
+    std::filesystem::create_directories(inbox);
+    auto wav = inbox / "tone.wav";
+    { std::ofstream(wav, std::ios::binary) << "RIFF\x24\x00\x00\x00WAVEfmt "; }
+    auto db = (dir / "t.db").string();
+
+    auto r = run_cli("convert --to=flac --db=" + db + " \"" + wav.string() + "\"", dir);
+    EXPECT_NE(r.code, 2) << r.out;
+    EXPECT_EQ(r.out.find("Unknown option"), std::string::npos) << r.out;
+    // The handler must also parse the value correctly (substr off-by-one
+    // used to yield "=flac" and "Unknown format").
+    EXPECT_EQ(r.out.find("Unknown format"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, RenameBatchDryRunFindsMatches) {
     auto inbox = dir / "inbox";
     std::filesystem::create_directories(inbox);

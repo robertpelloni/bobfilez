@@ -481,6 +481,8 @@ int main(int argc, char** argv) {
             // Parsed by the search command handler below; accept silently here.
         } else if (a.rfind("--find=", 0) == 0 || a.rfind("--replace=", 0) == 0 || a == "--regex") {
             // Parsed by the rename-batch command handler below; accept silently here.
+        } else if (a.rfind("--to=", 0) == 0 || a.rfind("--quality=", 0) == 0) {
+            // Parsed by the convert command handler below; accept silently here.
         } else if (a.rfind("--limit=", 0) == 0 || a == "--verify") {
             // Parsed by the audit command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {
@@ -1697,7 +1699,7 @@ int main(int argc, char** argv) {
             int quality = -1;
 
             for (auto& a : args) {
-                if (a.rfind("--to=", 0) == 0) target_format = a.substr(4);
+                if (a.rfind("--to=", 0) == 0) target_format = a.substr(5);
                 else if (a.rfind("--output=", 0) == 0) requested_output_path = a.substr(9);
                 else if (a.rfind("--quality=", 0) == 0) quality = std::stoi(a.substr(10));
             }
