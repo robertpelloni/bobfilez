@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.69] - 2026-11-24 — Submodule Dashboard Stops Fabricating Commits
+
+### Fixed
+- **`scripts/generate_dashboard.py` stamped uninitialized
+  submodules with the superproject's HEAD**: an empty submodule
+  directory makes git walk up to the parent repo, so rows for
+  never-checked-out libraries showed the parent commit, date,
+  and build count as if they were the library's own. The
+  generator now requires the submodule's own `.git` and reports
+  "not checked out" otherwise; `docs/SUBMODULES.md` regenerated
+  (7 rows corrected). Suites: lean/JUCE/MSVC rebuilt at this
+  version.
+
 ## [6.5.68] - 2026-11-24 — Search Grammar Works In Any Order
 
 ### Fixed

@@ -1,6 +1,6 @@
 # Submodule Dashboard
 
-**Last Updated:** 2026-11-24 05:21:37
+**Last Updated:** 2026-11-24 16:02:50
 
 ## Project Structure
 
@@ -18,13 +18,13 @@ The project is organized as follows:
 
 | Name | Path | Version (Tag) | Commit | Date | Build # | URL |
 |---|---|---|---|---|---|---|
-| libs/fstlib | `libs/fstlib` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/fstpackage/fstlib) |
+| libs/fstlib | `libs/fstlib` | - | `not checked out` | - | - | [Link](https://github.com/fstpackage/fstlib) |
 | libs/hash-library | `libs/hash-library` | hash_library_v8 | `d389d18` | 2021-09-29 | 11 | [Link](https://github.com/stbrumme/hash-library) |
-| libs/libheif | `libs/libheif` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/strukturag/libheif) |
-| libs/heif | `libs/heif` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/nokiatech/heif) |
-| libs/imageinfo | `libs/imageinfo` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/xiaozhuai/imageinfo) |
-| libs/image_info | `libs/image_info` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/gottfrois/image_info) |
-| libs/Windows | `libs/Windows` | - | `3a698e1f3` | 2026-11-24 | 138 | [Link](https://github.com/ImageMagick/Windows) |
+| libs/libheif | `libs/libheif` | - | `not checked out` | - | - | [Link](https://github.com/strukturag/libheif) |
+| libs/heif | `libs/heif` | - | `not checked out` | - | - | [Link](https://github.com/nokiatech/heif) |
+| libs/imageinfo | `libs/imageinfo` | - | `not checked out` | - | - | [Link](https://github.com/xiaozhuai/imageinfo) |
+| libs/image_info | `libs/image_info` | - | `not checked out` | - | - | [Link](https://github.com/gottfrois/image_info) |
+| libs/Windows | `libs/Windows` | - | `not checked out` | - | - | [Link](https://github.com/ImageMagick/Windows) |
 | libs/Dependencies | `libs/Dependencies` | 2026.07.03.1508 | `2cc16a3` | 2026-07-17 | 237 | [Link](https://github.com/ImageMagick/Dependencies) |
 | libs/ImageMagick | `libs/ImageMagick` | 7.1.2-27 | `3105066a1` | 2026-07-17 | 24411 | [Link](https://github.com/ImageMagick/ImageMagick) |
 | libs/gdk-pixbuf | `libs/gdk-pixbuf` | - | `1284323` | 2026-07-11 | 114 | [Link](https://github.com/ImageMagick/gdk-pixbuf) |

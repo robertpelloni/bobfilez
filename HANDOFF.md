@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.69 (Submodule Dashboard Stops Fabricating Commits)
+
+## What landed (2026-11-24, continuation)
+- **Dashboard generator honesty**:
+  `scripts/generate_dashboard.py` no longer stamps uninitialized
+  submodules with superproject HEAD data; regenerated
+  `docs/SUBMODULES.md`. Also verified this turn: Qt MinGW demo
+  rebuilds/launches on current core; scanners std/win32/dirent
+  agree file-for-file; /api/quit downs the server (restarted);
+  one duplicate tray icon (not mine) left running; 161 drifted
+  submodule gitlinks + ~15k daemon-tracked ignored files are an
+  owner hygiene decision (reported, not fought).
+- Version **6.5.69**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.68 (Search Grammar Works In Any Order)
 
 ## What landed (2026-11-24, continuation)

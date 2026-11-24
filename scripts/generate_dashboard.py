@@ -19,6 +19,13 @@ def get_submodules():
     return submodules
 
 def get_git_info(path):
+    # An uninitialized submodule is an empty directory: git commands
+    # run inside it walk up and resolve the SUPERPROJECT's HEAD,
+    # which used to stamp the parent repo's commit/date/count onto
+    # libraries that were never checked out. Refuse to fabricate:
+    # only trust git output when the path carries its own .git.
+    if not os.path.exists(os.path.join(path, '.git')):
+        return "not checked out", "-", "-", "-"
     try:
         # Get commit hash
         commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=path).decode('utf-8').strip()
