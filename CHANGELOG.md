@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.52] - 2026-11-24 — Undo Works From Any Directory
+
+### Fixed
+- **Undo silently did nothing from another directory**: organize
+  and rename journaled CWD-relative source/destination paths, so
+  `undo` run anywhere else found no destination file and reported
+  "No operations to undo" (the crash-probe caveat from v6.5.31).
+  Both handlers now perform and journal absolute paths; undo
+  works from any working directory. (Journals written before this
+  fix keep their relative records and still need the original
+  CWD.) New `UndoWorksFromDifferentCwd` test — which initially
+  passed vacuously because the test helper never really changed
+  directory; it now chdirs for real and failed pre-fix.
+  Suites: lean **51/51**; other lanes rebuilt at this version.
+
 ## [6.5.51] - 2026-11-24 — Vault Unlock Refuses Existing Destinations
 
 ### Fixed

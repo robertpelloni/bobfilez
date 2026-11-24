@@ -221,6 +221,28 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, UndoWorksFromDifferentCwd) {
+    // Organize destinations were journaled CWD-relative, so undo
+    // only worked when run from the same directory as the organize.
+    // Destinations are now recorded absolute; undo works anywhere.
+    auto inbox = dir / "inbox";
+    auto elsewhere = dir / "elsewhere";
+    std::filesystem::create_directories(inbox);
+    std::filesystem::create_directories(elsewhere);
+    { std::ofstream(inbox / "photo.txt") << "organize me"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    ASSERT_FALSE(std::filesystem::exists(inbox / "photo.txt"));
+
+    // run_cli inherits this process's CWD, so really move elsewhere.
+    std::filesystem::current_path(elsewhere);
+    auto undo = run_cli("undo --db=" + db, elsewhere);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+}
+
 TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
     // The database may live inside the organized folder; organize must
     // never try to move its own live database (or its -wal/-shm).

@@ -1180,6 +1180,14 @@ int main(int argc, char** argv) {
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
+                    // Journal (and perform) the move with an absolute
+                    // destination: CWD-relative records made undo
+                    // silently do nothing from any other directory.
+                    if (new_path.is_relative()) {
+                        std::error_code aec;
+                        auto abs_path = std::filesystem::absolute(new_path, aec);
+                        if (!aec) new_path = abs_path;
+                    }
                     if (dry_run) {
                         moves.push_back({f.uri, new_path.string()});
                     }
@@ -1201,7 +1209,8 @@ int main(int argc, char** argv) {
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
                             rec.type = fo::core::OperationType::Move;
-                            rec.source_path = f.uri;
+                            rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                ? std::filesystem::absolute(f.uri).string() : f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);
@@ -1432,6 +1441,12 @@ int main(int argc, char** argv) {
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
+                    // Absolute destination for the journal, as in organize.
+                    if (new_path.is_relative()) {
+                        std::error_code aec;
+                        auto abs_path = std::filesystem::absolute(new_path, aec);
+                        if (!aec) new_path = abs_path;
+                    }
                     if (dry_run) {
                         renames.push_back({f.uri, new_path.string()});
                     }
@@ -1449,7 +1464,8 @@ int main(int argc, char** argv) {
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
                             rec.type = fo::core::OperationType::Rename;
-                            rec.source_path = f.uri;
+                            rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                ? std::filesystem::absolute(f.uri).string() : f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
                             op_repo.log_operation(rec);

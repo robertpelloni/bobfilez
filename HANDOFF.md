@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.52 (Undo Works From Any Directory)
+
+## What landed (2026-11-24, continuation)
+- **Absolute journaling**: organize/rename record absolute
+  source+destination, so undo works from any CWD. Old journals
+  stay CWD-bound (documented). Test initially vacuous (helper
+  never chdir'd) — corrected to fail pre-fix, pass post-fix.
+  Lean ctest **51/51**.
+- Version **6.5.52**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.51 (Vault Unlock Refuses Existing Destinations)
 
 ## What landed (2026-11-24, continuation)
