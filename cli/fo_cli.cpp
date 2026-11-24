@@ -1105,32 +1105,54 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            auto res = provider->hash_video(roots[0], 16); // sample 16 frames for speed
-
-            if (format == "json") {
-                std::cout << "{\n";
-                std::cout << "  \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
-                std::cout << "  \"duration\": " << res.duration_sec << ",\n";
-                std::cout << "  \"width\": " << res.width << ",\n";
-                std::cout << "  \"height\": " << res.height << ",\n";
-                std::cout << "  \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
-                std::cout << "  \"fps\": " << res.fps << ",\n";
-                std::cout << "  \"frames\": [\n";
-                for (size_t i = 0; i < res.frame_hashes.size(); ++i) {
-                    std::cout << "    {\"timestamp\": " << res.frame_hashes[i].timestamp_sec 
-                              << ", \"hash\": " << res.frame_hashes[i].hash << "}"
-                              << (i + 1 < res.frame_hashes.size() ? "," : "") << "\n";
+            // Every input is hashed (the dashboard cards promise
+            // comma-separated files); failures are named and counted
+            // instead of silently dropping inputs after the first.
+            size_t failed_media = 0;
+            if (format == "json") std::cout << "[\n";
+            bool first_json = true;
+            for (const auto& root : roots) {
+                fo::core::VideoHashResult res;
+                try {
+                    res = provider->hash_video(root, 16); // sample 16 frames for speed
+                } catch (const std::exception& e) {
+                    ++failed_media;
+                    std::cerr << "Warning: could not hash video " << root << ": " << e.what() << "\n";
+                    continue;
                 }
-                std::cout << "  ]\n";
-                std::cout << "}\n";
-            } else {
-                std::cout << "Video: " << res.path << "\n";
-                std::cout << "  Codec: " << res.codec << " (" << res.width << "x" << res.height << " @ " << res.fps << " fps)\n";
-                std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
-                std::cout << "  Hashes (" << res.frame_hashes.size() << " samples):\n";
-                for (const auto& fh : res.frame_hashes) {
-                    std::cout << "    [" << std::fixed << std::setprecision(2) << fh.timestamp_sec << "s] " << fh.hash << "\n";
+                if (format == "json") {
+                    if (!first_json) std::cout << ",\n";
+                    first_json = false;
+                    std::cout << "  {\n";
+                    std::cout << "    \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
+                    std::cout << "    \"duration\": " << res.duration_sec << ",\n";
+                    std::cout << "    \"width\": " << res.width << ",\n";
+                    std::cout << "    \"height\": " << res.height << ",\n";
+                    std::cout << "    \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
+                    std::cout << "    \"fps\": " << res.fps << ",\n";
+                    std::cout << "    \"frames\": [\n";
+                    for (size_t i = 0; i < res.frame_hashes.size(); ++i) {
+                        std::cout << "      {\"timestamp\": " << res.frame_hashes[i].timestamp_sec
+                                  << ", \"hash\": " << res.frame_hashes[i].hash << "}"
+                                  << (i + 1 < res.frame_hashes.size() ? "," : "") << "\n";
+                    }
+                    std::cout << "    ]\n";
+                    std::cout << "  }";
+                } else {
+                    std::cout << "Video: " << res.path << "\n";
+                    std::cout << "  Codec: " << res.codec << " (" << res.width << "x" << res.height << " @ " << res.fps << " fps)\n";
+                    std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
+                    std::cout << "  Hashes (" << res.frame_hashes.size() << " samples):\n";
+                    for (const auto& fh : res.frame_hashes) {
+                        std::cout << "    [" << std::fixed << std::setprecision(2) << fh.timestamp_sec << "s] " << fh.hash << "\n";
+                    }
                 }
+            }
+            if (format == "json") std::cout << "\n]\n";
+            if (failed_media > 0) {
+                std::cerr << "Error: failed to hash " << failed_media << " of "
+                          << roots.size() << " file(s).\n";
+                return 1;
             }
 
         } else if (command == "afingerprint") {
@@ -1145,23 +1167,44 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            auto res = provider->fingerprint(roots[0], 120.0); // max 120s
-
-            if (format == "json") {
-                std::cout << "{\n";
-                std::cout << "  \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
-                std::cout << "  \"duration\": " << res.duration_sec << ",\n";
-                std::cout << "  \"sample_rate\": " << res.sample_rate << ",\n";
-                std::cout << "  \"channels\": " << res.channels << ",\n";
-                std::cout << "  \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
-                std::cout << "  \"bitrate\": " << res.bitrate << ",\n";
-                std::cout << "  \"fingerprint_chunks\": " << res.fingerprints.size() << "\n";
-                std::cout << "}\n";
-            } else {
-                std::cout << "Audio: " << res.path << "\n";
-                std::cout << "  Codec: " << res.codec << " (" << res.sample_rate << "Hz, " << res.channels << "ch, " << (res.bitrate/1000) << "kbps)\n";
-                std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
-                std::cout << "  Fingerprint: Generated " << res.fingerprints.size() << " 32-bit chunks.\n";
+            // Every input is fingerprinted (see vhash); failures
+            // are named and counted instead of silently dropped.
+            size_t failed_media = 0;
+            if (format == "json") std::cout << "[\n";
+            bool first_json = true;
+            for (const auto& root : roots) {
+                fo::core::AudioFingerprint res;
+                try {
+                    res = provider->fingerprint(root, 120.0); // max 120s
+                } catch (const std::exception& e) {
+                    ++failed_media;
+                    std::cerr << "Warning: could not fingerprint " << root << ": " << e.what() << "\n";
+                    continue;
+                }
+                if (format == "json") {
+                    if (!first_json) std::cout << ",\n";
+                    first_json = false;
+                    std::cout << "  {\n";
+                    std::cout << "    \"path\": \"" << fo::core::Exporter::json_escape(res.path.string()) << "\",\n";
+                    std::cout << "    \"duration\": " << res.duration_sec << ",\n";
+                    std::cout << "    \"sample_rate\": " << res.sample_rate << ",\n";
+                    std::cout << "    \"channels\": " << res.channels << ",\n";
+                    std::cout << "    \"codec\": \"" << fo::core::Exporter::json_escape(res.codec) << "\",\n";
+                    std::cout << "    \"bitrate\": " << res.bitrate << ",\n";
+                    std::cout << "    \"fingerprint_chunks\": " << res.fingerprints.size() << "\n";
+                    std::cout << "  }";
+                } else {
+                    std::cout << "Audio: " << res.path << "\n";
+                    std::cout << "  Codec: " << res.codec << " (" << res.sample_rate << "Hz, " << res.channels << "ch, " << (res.bitrate/1000) << "kbps)\n";
+                    std::cout << "  Duration: " << std::fixed << std::setprecision(2) << res.duration_sec << "s\n";
+                    std::cout << "  Fingerprint: Generated " << res.fingerprints.size() << " 32-bit chunks.\n";
+                }
+            }
+            if (format == "json") std::cout << "\n]\n";
+            if (failed_media > 0) {
+                std::cerr << "Error: failed to fingerprint " << failed_media << " of "
+                          << roots.size() << " file(s).\n";
+                return 1;
             }
         } else if (command == "classify") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);

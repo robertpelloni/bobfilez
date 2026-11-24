@@ -3,6 +3,7 @@
 // command surface: audit --limit validation and the vault round-trip.
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #ifdef _WIN32
@@ -242,6 +243,53 @@ void write_gradient_bmp(const std::filesystem::path& path, int mode) {
             out.write(px, 3);
         }
     }
+}
+
+// Writes a minimal 1s 440Hz PCM WAV (canonical 44-byte header).
+void write_tone_wav(const std::filesystem::path& path) {
+    std::ofstream out(path, std::ios::binary);
+    const int rate = 44100, seconds = 1;
+    const uint32_t data_size = static_cast<uint32_t>(rate * seconds * 2);
+    auto u32 = [&](uint32_t v) { out.write(reinterpret_cast<const char*>(&v), 4); };
+    auto u16 = [&](uint16_t v) { out.write(reinterpret_cast<const char*>(&v), 2); };
+    out << "RIFF"; u32(36 + data_size); out << "WAVEfmt ";
+    u32(16); u16(1); u16(1); u32(rate); u32(rate * 2); u16(2); u16(16);
+    out << "data"; u32(data_size);
+    for (int i = 0; i < rate * seconds; ++i) {
+        int16_t s = static_cast<int16_t>(8000.0 * std::sin(6.2831853 * 440.0 * i / rate));
+        out.write(reinterpret_cast<const char*>(&s), 2);
+    }
+}
+
+TEST_F(CliFixture, AfingerprintProcessesEveryInput) {
+    // vhash/afingerprint used to process only the first path and
+    // silently drop the rest, though the dashboard cards promise
+    // comma-separated files. Every input must be processed, and
+    // unfingerprintable ones must be named and counted.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_tone_wav(inbox / "one.wav");
+    write_tone_wav(inbox / "two.wav");
+    { std::ofstream(inbox / "bad.txt") << "not audio"; }
+    auto db = (dir / "t.db").string();
+
+    auto mixed = run_cli("afingerprint --db=" + db + " \"" + (inbox / "one.wav").string() +
+                         "\" \"" + (inbox / "bad.txt").string() + "\" \"" +
+                         (inbox / "two.wav").string() + "\"", dir);
+    if (mixed.out.find("not found") != std::string::npos &&
+        mixed.out.find("Audio:") == std::string::npos) {
+        GTEST_SKIP() << "audio fingerprinter not registered in this lane";
+    }
+    EXPECT_NE(mixed.code, 0) << mixed.out;
+    EXPECT_NE(mixed.out.find("one.wav"), std::string::npos) << mixed.out;
+    EXPECT_NE(mixed.out.find("two.wav"), std::string::npos) << mixed.out;
+    EXPECT_NE(mixed.out.find("bad.txt"), std::string::npos) << mixed.out;
+
+    auto good = run_cli("afingerprint --db=" + db + " \"" + (inbox / "one.wav").string() +
+                        "\" \"" + (inbox / "two.wav").string() + "\"", dir);
+    ASSERT_EQ(good.code, 0) << good.out;
+    EXPECT_NE(good.out.find("one.wav"), std::string::npos) << good.out;
+    EXPECT_NE(good.out.find("two.wav"), std::string::npos) << good.out;
 }
 
 TEST_F(CliFixture, SimilarFindsNearIdenticalImages) {

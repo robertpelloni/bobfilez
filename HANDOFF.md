@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.62 (Media Commands Process Every Input)
+
+## What landed (2026-11-24, continuation)
+- **Media multi-input**: `vhash`/`afingerprint` loop over all
+  roots with per-file failure accounting (was first-input-only).
+  CLI test added (WAV fixtures; skips in fingerprinter-less
+  lanes). Lean ctest **62/62**. Similar positive path also
+  covered by a test-only commit (`3dc4cc64a`, no version bump).
+- Version **6.5.62**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.61 (Hash Reports Files It Could Not Hash)
 
 ## What landed (2026-11-24, continuation)

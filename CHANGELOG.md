@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.62] - 2026-11-24 — Media Commands Process Every Input
+
+### Fixed
+- **`vhash`/`afingerprint` silently dropped every input after
+  the first**: both handlers processed only `roots[0]` while the
+  dashboard cards (and bridge) pass comma-separated file lists.
+  Both now loop over all inputs, emit a JSON array in JSON mode,
+  name per-file failures on stderr, and exit 1 with a
+  "failed ... N of M file(s)" summary when any input fails. New
+  `AfingerprintProcessesEveryInput` CLI test (generated WAV
+  fixtures) failed before, passes after. Suites: lean **62/62**;
+  other lanes rebuilt at this version.
+
 ## [6.5.61] - 2026-11-24 — Hash Reports Files It Could Not Hash
 
 ### Fixed
