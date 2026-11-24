@@ -1,5 +1,28 @@
 # filez TODO List
 
+## Current Open (2026-11-24) - the live list; everything below is history
+
+- [ ] **Owner: lean production checkout authorization** - ChatGPT/Gemini
+  recommend authorizing prep of a lean checkout (12 build-referenced +
+  5 framework `libs/` trees per `docs/SUBMODULE_INVENTORY.md`); no
+  pruning or deletion without that call.
+- [ ] **Owner: `upstream/master` decision** - unrelated histories
+  (73/62, no merge base): keep separate / import selected / replace.
+- [ ] **Owner/upstream: BobGUI build** - `libs/bobgui/meson.build` has
+  a duplicate unclosed `project()` in the bobgui repo itself; fix
+  there, then retry `scripts/build_bobgui_gui.bat` (GTK wrap chain next).
+- [ ] **Muse roast pending** - Gemini + ChatGPT roasts received and
+  triaged (v6.5.25-6.5.46 fix train); Muse's own roast still owed
+  in the coordination thread.
+- [x] Fuzz campaigns: lane fixed (v6.5.42); 14.5M-run RuleEngine
+  campaign clean. Longer/multi-target campaigns remain open-ended.
+- [x] Packaging: MSI parameterized on VERSION.md (v6.5.44); producing
+  an actual .msi still needs WiX v3.11 installed.
+- [ ] **Legacy `/api/delete`** - raw unlink endpoint used only by the
+  legacy React UI (no journal/audit). Unified page deliberately
+  deletes only via dry-run duplicate-delete; retire or journal the
+  legacy path when the React lane is next touched.
+
 ## Immediate (Short Term)
 - [x] **Autonomous Sync**: Implement real-time file synchronization across nodes.
 - [x] **Distributed Coordination**: Integrate version tracking into the core Engine.
