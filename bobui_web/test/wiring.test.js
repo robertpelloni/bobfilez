@@ -143,6 +143,14 @@ before(async () => {
 });
 after(() => { if (child) child.kill(); });
 
+test('organize card teaches the extension-preserving template', () => {
+  const html = read('public/unified.html');
+  // {name} drops the extension; the card must teach {filename} so
+  // users following its example don't strip extensions off files.
+  assert.match(html, /\{ext\}\/\{filename\}/);
+  assert.match(html, /\{name\} \(drops extension!\)/);
+});
+
 test('CLI failures surface as HTTP 500, not empty successes', async () => {
   // runCli used to resolve whenever stdout was non-empty, so a
   // failed run that printed a partial "[]" payload looked like an

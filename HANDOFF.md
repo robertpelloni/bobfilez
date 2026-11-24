@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.65 (Organize Card Teaches {filename})
+
+## What landed (2026-11-24, continuation)
+- **Organize guidance**: dashboard card now teaches
+  `{ext}/{filename}` and warns `{name}` drops extensions
+  (engine behavior unchanged; literal `{ext}` folder for
+  extension-less files left as a considered, visible behavior).
+  Wiring **27/27**.
+- Version **6.5.65**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.64 (Convert Failures Exit Nonzero)
 
 ## What landed (2026-11-24, continuation)

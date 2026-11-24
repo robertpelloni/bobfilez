@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.65] - 2026-11-24 — Organize Card Teaches {filename}
+
+### Fixed
+- **Dashboard Organize card taught an extension-stripping
+  template**: its example `{ext}/{year}/{name}` uses `{name}`
+  (stem only), so files organized by the card's own guidance
+  lost their extensions, and `{filename}` was never mentioned.
+  The card now teaches `{ext}/{filename}`, lists `{filename}`
+  first, and warns that `{name}` drops the extension. Pinned by
+  a new wiring test; wiring **27/27**. Suites: lean/JUCE/MSVC
+  rebuilt at this version.
+
 ## [6.5.64] - 2026-11-24 — Convert Failures Exit Nonzero
 
 ### Fixed
