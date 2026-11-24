@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.56] - 2026-11-24 — Bogus Hasher Crashed The CLI
+
+### Fixed
+- **`hash --hasher=<unknown>` segfaulted** (0xC0000005): the hash
+  command dereferenced `Engine::hasher()` whose provider pointer
+  is null for unregistered names. `Engine::hasher()` now throws
+  `hasher not found: <name>` (same convention as the scanner),
+  producing a clean exit-3 error. `--keep=<unknown>` was silently
+  treated as `oldest`; it is now a usage error (exit 2) at parse
+  time, like `--mode`. New `BogusHasherAndKeepAreErrorsNotCrashes`
+  CLI test failed (crashed) before, passes after. Suites: lean
+  **55/55**; other lanes rebuilt at this version.
+
 ## [6.5.55] - 2026-11-24 — Missing Paths Are Errors
 
 ### Fixed

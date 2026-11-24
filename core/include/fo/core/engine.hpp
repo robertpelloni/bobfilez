@@ -43,7 +43,9 @@ public:
 
     std::vector<DuplicateGroup> find_duplicates(const std::vector<FileInfo>& files);
 
-    IHasher& hasher() { return *hasher_; }
+    // Throws std::runtime_error when the configured hasher name is
+    // not registered, instead of dereferencing a null provider.
+    IHasher& hasher();
     FileRepository& file_repository() { return file_repo_; }
     DuplicateRepository& duplicate_repository() { return duplicate_repo_; }
     IgnoreRepository& ignore_repository() { return ignore_repo_; }

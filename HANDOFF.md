@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.56 (Bogus Hasher Crashed The CLI)
+
+## What landed (2026-11-24, continuation)
+- **Crash fix**: `Engine::hasher()` throws instead of returning a
+  null provider reference; `hash --hasher=bogus` is now a clean
+  exit-3 error (was 0xC0000005). `--keep` validated at parse
+  (exit 2). CLI test added. Lean ctest **55/55**.
+- Note: the pre-fix crash left one orphaned `fo_cli.exe` (PID
+  57100, access denied) holding `build-lean/cli/fo_cli.exe`
+  renamed aside as `fo_cli.exe.orphan-57100`; delete it once the
+  hung process clears (generated artifact, untracked).
+- Version **6.5.56**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.55 (Missing Paths Are Errors)
 
 ## What landed (2026-11-24, continuation)

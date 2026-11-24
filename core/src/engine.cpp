@@ -27,6 +27,11 @@ Engine::~Engine() { delete search_engine_; }
 
 SearchEngine& Engine::search_engine() { return *search_engine_; }
 
+IHasher& Engine::hasher() {
+    if (!hasher_) throw std::runtime_error("hasher not found: " + cfg_.hasher);
+    return *hasher_;
+}
+
 // Lazy coordination services: constructed (and cross-wired) only
 // when a caller actually asks for them, so plain file commands stay
 // quiet and fast. Cross-wiring matches the old constructor order:

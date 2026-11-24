@@ -433,7 +433,15 @@ int main(int argc, char** argv) {
         else if (a.rfind("--rule=", 0) == 0) rule_template = a.substr(7);
         else if (a.rfind("--rules=", 0) == 0) rules_file = a.substr(8);
         else if (a.rfind("--pattern=", 0) == 0) rename_pattern = a.substr(10);
-        else if (a.rfind("--keep=", 0) == 0) keep_strategy = a.substr(7);
+        else if (a.rfind("--keep=", 0) == 0) {
+            keep_strategy = a.substr(7);
+            if (keep_strategy != "oldest" && keep_strategy != "newest" &&
+                keep_strategy != "shortest" && keep_strategy != "longest") {
+                std::cerr << "Unknown keep strategy: " << keep_strategy
+                          << " (use oldest, newest, shortest, or longest)\n";
+                return 2;
+            }
+        }
         else if (a.rfind("--output=", 0) == 0) output_path = a.substr(9);
         else if (a == "--dry-run") dry_run = true;
         else if (a == "--prune" || a == "--incremental") prune = true;

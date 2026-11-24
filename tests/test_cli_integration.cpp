@@ -221,6 +221,24 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, BogusHasherAndKeepAreErrorsNotCrashes) {
+    // `hash --hasher=bogus` used to dereference the null hasher and
+    // crash (0xC0000005); `--keep=bogus` was silently treated as
+    // "oldest". Both must be clean, named errors.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+
+    auto hash = run_cli("hash --hasher=bogus --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(hash.code, 0) << hash.out;
+    EXPECT_NE(hash.out.find("hasher not found"), std::string::npos) << hash.out;
+
+    auto keep = run_cli("duplicates --keep=bogus --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(keep.code, 0) << keep.out;
+    EXPECT_NE(keep.out.find("keep"), std::string::npos) << keep.out;
+}
+
 TEST_F(CliFixture, MissingRootIsAnErrorNotEmptySuccess) {
     // A nonexistent path used to produce empty output and exit 0
     // (the std scanner silently skips missing roots), so scripts
