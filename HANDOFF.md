@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.28 (Delete-Duplicates Scoped and Honest)
+
+## What landed (2026-11-23, continuation)
+- **Delete-duplicates scoped**: it acted on all DB groups regardless
+  of the requested folder (cross-folder deletion proven by test).
+  Now filtered to the given roots; failed removals are no longer
+  counted/journaled as deletions (`failed` count, exit 1).
+  Lean ctest **34/34**.
+- Version **6.5.28**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT reply to the fix report still pending.
+
+---
 # Session Handoff - v6.5.27 (Organize Never Moves Its Own Database)
 
 ## What landed (2026-11-23, continuation)

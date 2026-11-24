@@ -1233,21 +1233,45 @@ int main(int argc, char** argv) {
         } else if (command == "delete-duplicates") {
             auto groups = engine.duplicate_repository().get_all_groups();
 
+            // Scope to the given roots: groups in the DB come from the
+            // last `duplicates` run, which may have covered a different
+            // folder. Acting on them blindly deleted files outside the
+            // folder the user pointed at.
+            std::vector<std::string> scope_prefixes;
+            for (const auto& r : roots) {
+                std::error_code ec;
+                auto abs_root = std::filesystem::absolute(r, ec).lexically_normal().generic_string();
+                if (!ec) scope_prefixes.push_back(abs_root);
+            }
+            auto in_scope = [&](const std::string& uri) {
+                if (scope_prefixes.empty()) return true;
+                std::error_code ec;
+                auto p = std::filesystem::absolute(uri, ec).lexically_normal().generic_string();
+                if (ec) return false;
+                for (const auto& pre : scope_prefixes) {
+                    if (p == pre || p.rfind(pre + "/", 0) == 0) return true;
+                }
+                return false;
+            };
+
             int deleted_count = 0;
+            int failed_count = 0;
             int kept_count = 0;
+            int scoped_groups = 0;
             std::vector<std::pair<std::string, std::vector<std::string>>> results; // kept, deleted[]
 
             for (const auto& g : groups) {
                 std::vector<fo::core::FileInfo> members;
                 auto p = engine.file_repository().get_by_id(g.primary_file_id);
-                if (p) members.push_back(*p);
+                if (p && in_scope(p->uri)) members.push_back(*p);
                 for (auto mid : g.member_ids) {
                     if (mid == g.primary_file_id) continue;
                     auto m = engine.file_repository().get_by_id(mid);
-                    if (m) members.push_back(*m);
+                    if (m && in_scope(m->uri)) members.push_back(*m);
                 }
 
                 if (members.size() < 2) continue;
+                ++scoped_groups;
 
                 std::sort(members.begin(), members.end(), [&](const fo::core::FileInfo& a, const fo::core::FileInfo& b) {
                     if (keep_strategy == "newest") return a.mtime > b.mtime;
@@ -1262,10 +1286,23 @@ int main(int argc, char** argv) {
 
                 for (size_t i = 1; i < members.size(); ++i) {
                     const auto& del = members[i];
-                    deleted_paths.push_back(del.uri);
-                    if (!dry_run) {
+                    if (dry_run) {
+                        deleted_paths.push_back(del.uri);
+                        continue;
+                    }
+                    {
+                        // std::filesystem::remove reports failure via its
+                        // return value, not an exception: only count (and
+                        // journal) deletions that actually happened.
+                        std::error_code rec_ec;
+                        if (!std::filesystem::remove(del.uri, rec_ec)) {
+                            ++failed_count;
+                            std::cerr << "Failed to delete " << del.uri
+                                      << ": " << rec_ec.message() << "\n";
+                            continue;
+                        }
                         try {
-                            std::filesystem::remove(del.uri);
+                            deleted_paths.push_back(del.uri);
                             deleted_count++;
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
@@ -1287,9 +1324,10 @@ int main(int argc, char** argv) {
             if (format == "json") {
                 std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"strategy\": \"" << keep_strategy << "\""
-                          << ", \"groups\": " << groups.size()
+                          << ", \"groups\": " << scoped_groups
                           << ", \"kept\": " << kept_count
                           << ", \"deleted\": " << deleted_count
+                          << ", \"failed\": " << failed_count
                           << ", \"results\": [\n";
                 for (size_t i = 0; i < results.size(); ++i) {
                     const auto& [kept_path, deleted_paths] = results[i];
@@ -1303,7 +1341,7 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "  ]\n}\n";
             } else {
-                std::cout << "Found " << groups.size() << " duplicate groups.\n";
+                std::cout << "Found " << scoped_groups << " duplicate groups.\n";
                 if (dry_run) std::cout << "(Dry run - no files will be deleted)\n";
                 for (const auto& [kept_path, deleted_paths] : results) {
                     std::cout << "Keeping: " << kept_path << "\n";
@@ -1312,7 +1350,11 @@ int main(int argc, char** argv) {
                     }
                 }
                 std::cout << "Deleted " << deleted_count << " files. Kept " << kept_count << " files.\n";
+                if (failed_count > 0) {
+                    std::cerr << failed_count << " deletion(s) failed.\n";
+                }
             }
+            if (failed_count > 0) return 1;
 
         } else if (command == "rename") {
             if (rename_pattern.empty()) {

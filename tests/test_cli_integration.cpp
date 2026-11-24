@@ -234,6 +234,29 @@ TEST_F(CliFixture, RenameBatchDryRunFindsMatches) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "IMG_001.txt"));
 }
 
+TEST_F(CliFixture, DeleteDuplicatesScopedToGivenRoot) {
+    // delete-duplicates must act only inside the folder it is given.
+    // Groups in the DB come from the last `duplicates` run (here:
+    // folder A); pointing delete-duplicates at folder B must not
+    // touch A's files. It used to ignore its path argument entirely.
+    auto dir_a = dir / "a";
+    auto dir_b = dir / "b";
+    std::filesystem::create_directories(dir_a);
+    std::filesystem::create_directories(dir_b);
+    { std::ofstream(dir_a / "x.txt") << "same-content"; }
+    { std::ofstream(dir_a / "y.txt") << "same-content"; }
+    { std::ofstream(dir_b / "x.txt") << "same-content"; }
+    { std::ofstream(dir_b / "y.txt") << "same-content"; }
+    auto db = (dir / "t.db").string();
+
+    ASSERT_EQ(run_cli("duplicates --db=" + db + " \"" + dir_a.string() + "\"", dir).code, 0);
+    auto del = run_cli("delete-duplicates --db=" + db + " \"" + dir_b.string() + "\"", dir);
+    ASSERT_EQ(del.code, 0) << del.out;
+    // A's pair is out of scope and must be untouched.
+    EXPECT_TRUE(std::filesystem::exists(dir_a / "x.txt")) << del.out;
+    EXPECT_TRUE(std::filesystem::exists(dir_a / "y.txt")) << del.out;
+}
+
 #ifdef FO_HAVE_OPENSSL
 TEST_F(CliFixture, VaultRoundTripRestoresBytes) {
     auto vault = (dir / "vault").string();

@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.28] - 2026-11-23 — Delete-Duplicates Scoped and Honest
+
+### Fixed
+- **Delete-duplicates ignored its folder argument**: it deleted
+  from every duplicate group in the DB — groups recorded by the
+  last `duplicates` run, whatever folder that covered — so pointing
+  it at folder B deleted folder A's files (proven by a failing-first
+  CLI test). Groups are now filtered to the given roots. Also,
+  `std::filesystem::remove` failures were counted (and journaled)
+  as deletions; only removals that actually happen are counted,
+  journaled, and audited now, with `failed` in the JSON and a
+  nonzero exit on any failure. Suites: lean **34/34**; other lanes
+  rebuilt at this version.
+
 ## [6.5.27] - 2026-11-23 — Organize Never Moves Its Own Database
 
 ### Fixed
