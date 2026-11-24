@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.39 (C API Vault Declared and Consumer-Tested)
+
+## What landed (2026-11-23, continuation)
+- **C API vault declared**: the four vault entry points existed in
+  the .cpp but not the public header. Declared now, and
+  `tests/test_c_api.cpp` proves the consumer chain (round-trip
+  byte-identical + scan JSON). Lean ctest **44/44**.
+- Version **6.5.39**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.38 (Sync Status Stops Claiming "In Sync")
 
 ## What landed (2026-11-23, continuation)

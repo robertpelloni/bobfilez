@@ -10,6 +10,7 @@ endif()
 
 add_executable(fo_tests
     test_audit_logger.cpp
+    test_c_api.cpp
     test_cli_integration.cpp
     test_file_repository.cpp
     test_operation_repository.cpp
@@ -17,6 +18,9 @@ add_executable(fo_tests
     test_scanners.cpp
 )
 target_link_libraries(fo_tests PRIVATE fo_core GTest::gtest_main)
+if(TARGET fo_c_api)
+    target_link_libraries(fo_tests PRIVATE fo_c_api)
+endif()
 
 # fo_core links many shared provider libraries; gtest discovery executes
 # fo_tests at build time, so the runtime DLLs must sit beside it first.

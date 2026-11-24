@@ -59,6 +59,15 @@ char* fo_bobfilez_organize_dry_run_summary_text(const char* root_path, const cha
 char* fo_bobfilez_flow_list_json(void);
 int  fo_bobfilez_flow_execute(const char* workflow_id, const char* payload_path);
 
+// ── Vault (AES-256-GCM; requires a build with OpenSSL) ─────────────
+// State is process-global: initialize once with vault path + password,
+// then lock/unlock/list. Lock removes the plaintext original after a
+// successful encrypt; unlock restores it and removes the vault copy.
+int  fo_bobfilez_vault_initialize(const char* vault_path, const char* password);
+int  fo_bobfilez_vault_lock(const char* file_path);
+int  fo_bobfilez_vault_unlock(const char* vault_id, const char* dest_path);
+char* fo_bobfilez_vault_list(void); // JSON array; free with fo_bobfilez_free_string
+
 void fo_bobfilez_free_string(char* value);
 
 #ifdef __cplusplus

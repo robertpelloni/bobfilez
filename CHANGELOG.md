@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.39] - 2026-11-23 — C API Vault Declared and Consumer-Tested
+
+### Fixed
+- **C API vault was unreachable**: `fo_bobfilez_vault_initialize/
+  lock/unlock/list` were defined in the implementation but never
+  declared in the public `bobfilez_c_api.h`, so header-following C
+  consumers could not call them. Declarations added (with the
+  lock-removes-original warning), and a new `test_c_api.cpp`
+  exercises the real consumer chain — initialize → lock → list →
+  unlock with byte-identical restore — proving the v6.5.16
+  registry fix end-to-end. Suites: lean **44/44**; other lanes
+  rebuilt at this version.
+
 ## [6.5.38] - 2026-11-23 — Sync Status Stops Claiming "In Sync"
 
 ### Fixed
