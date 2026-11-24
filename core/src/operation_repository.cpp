@@ -27,13 +27,29 @@ OperationType OperationRepository::string_to_operation_type(const std::string& s
 
 int64_t OperationRepository::allocate_batch_id() {
     sqlite3* db = db_.get_db();
+    // Atomic increment inside a write transaction (Migration 9's
+    // counter table): the old MAX+1 read let two concurrent
+    // invocations receive the same id before either logged a row,
+    // silently merging two commands into one undo batch.
+    sqlite3_exec(db, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr);
+    sqlite3_exec(db,
+        "INSERT INTO batch_counter (id, value) VALUES (1, 1) "
+        "ON CONFLICT(id) DO UPDATE SET value = value + 1;",
+        nullptr, nullptr, nullptr);
+    int64_t next = 0;
     sqlite3_stmt* stmt;
-    int64_t next = 1;
+    if (sqlite3_prepare_v2(db, "SELECT value FROM batch_counter WHERE id = 1;", -1, &stmt, nullptr) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) next = sqlite3_column_int64(stmt, 0);
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
+    if (next > 0) return next;
+    // Counter unavailable (unmigrated database): legacy fallback.
     if (sqlite3_prepare_v2(db, "SELECT COALESCE(MAX(batch_id), 0) + 1 FROM operation_log;", -1, &stmt, nullptr) == SQLITE_OK) {
         if (sqlite3_step(stmt) == SQLITE_ROW) next = sqlite3_column_int64(stmt, 0);
         sqlite3_finalize(stmt);
     }
-    return next;
+    return next > 0 ? next : 1;
 }
 
 int64_t OperationRepository::log_operation(const OperationRecord& record) {

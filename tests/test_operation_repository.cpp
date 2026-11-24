@@ -200,6 +200,20 @@ TEST_F(OperationFixture, GetByIdFindsOldRecords) {
     EXPECT_EQ(found->id, first_id);
 }
 
+TEST_F(OperationFixture, BatchIdsAreUniqueAcrossInterleavedAllocations) {
+    // Muse review: allocate_batch_id was MAX+1 with no
+    // transaction, so two invocations allocating before either
+    // logged a row received the SAME id and their records merged
+    // into one batch. Allocation must be atomic.
+    fo::core::OperationRepository other(*db);
+    auto a = repo->allocate_batch_id();
+    auto b = other.allocate_batch_id();
+    EXPECT_NE(a, b);
+    auto c = repo->allocate_batch_id();
+    EXPECT_NE(c, a);
+    EXPECT_NE(c, b);
+}
+
 TEST_F(OperationFixture, UndoWithEmptyJournalReturnsNullopt) {
     EXPECT_FALSE(repo->undo_last().has_value());
 }

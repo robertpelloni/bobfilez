@@ -344,23 +344,28 @@ TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
     { std::ofstream(inbox / "a.txt") << "alpha"; }
     { std::ofstream(inbox / "sub" / "b.log") << "bravo"; }
     { std::ofstream(inbox / L"t\xebst-\xfc.txt") << "unicode"; }
+    // CJK is outside cp1252: if the path plumbing ANSI-mangles
+    // names, this file's round-trip breaks visibly (Muse review).
+    { std::ofstream(inbox / L"\x4e2d\x6587\x6587\x4ef6.txt") << "cjk"; }
     auto db = (dir / "t.db").string();
 
     auto snapshot = [&]() {
         // Contents AND mtimes: an undo that restores bytes but
         // rewrites timestamps would be a quiet lie (Muse roast).
-        std::map<std::string, std::pair<std::string, std::filesystem::file_time_type>> files;
+        // Wide keys: generic_string() would ANSI-mangle (and throw
+        // on) the CJK fixture name before the product even runs.
+        std::map<std::wstring, std::pair<std::string, std::filesystem::file_time_type>> files;
         for (auto& e : std::filesystem::recursive_directory_iterator(inbox)) {
             if (!e.is_regular_file()) continue;
             std::ifstream in(e.path(), std::ios::binary);
             std::stringstream ss; ss << in.rdbuf();
-            files[std::filesystem::relative(e.path(), inbox).generic_string()] =
+            files[std::filesystem::relative(e.path(), inbox).generic_wstring()] =
                 {ss.str(), e.last_write_time()};
         }
         return files;
     };
     auto before = snapshot();
-    ASSERT_EQ(before.size(), 3u);
+    ASSERT_EQ(before.size(), 4u);
 
     std::filesystem::current_path(dir);
     auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);

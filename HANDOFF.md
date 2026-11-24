@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.73 (Atomic Batch IDs, Journal Rollback, CJK)
+
+## What landed (2026-11-24, continuation)
+- **Muse review, second half**: Migration 9 atomic batch
+  counter (`BEGIN IMMEDIATE` upsert); organize/rename roll the
+  move back when journaling fails (loud residue naming when
+  rollback fails too); UTF-8 process locale from `Engine` so
+  CJK/emoji filenames round-trip (invariant test extended).
+  Lean ctest **78/78**.
+- Version **6.5.73**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 3 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.72 (Undo Core Rework)
 
 ## What landed (2026-11-24, continuation)

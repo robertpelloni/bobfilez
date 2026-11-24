@@ -6,8 +6,26 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
+#include <locale>
+#include <mutex>
 
 namespace fo::core {
+
+namespace {
+// FileInfo paths travel as std::string. On Windows the default
+// ANSI code page cannot represent names outside it (CJK, emoji):
+// path.string() then throws "No mapping for the Unicode
+// character exists", taking down whole commands for one file.
+// Opt the process into the UTF-8 locale so narrow path
+// conversions are UTF-8 (SQLite's native encoding) instead.
+// Idempotent; failures keep the platform default.
+void ensure_utf8_path_locale() {
+    static std::once_flag once;
+    std::call_once(once, []() {
+        try { std::locale::global(std::locale(".UTF-8")); } catch (...) {}
+    });
+}
+} // namespace
 
 Engine::Engine(EngineConfig cfg)
     : cfg_(std::move(cfg))
@@ -19,6 +37,7 @@ Engine::Engine(EngineConfig cfg)
     , session_repo_(db_manager_)
     , search_engine_(new SearchEngine())
 {
+    ensure_utf8_path_locale();
     db_manager_.open(cfg_.db_path);
     db_manager_.migrate();
 }

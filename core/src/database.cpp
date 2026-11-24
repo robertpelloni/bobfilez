@@ -196,6 +196,18 @@ static const char* MIGRATION_8 = R"(
 ALTER TABLE operation_log ADD COLUMN batch_id INTEGER NOT NULL DEFAULT 0;
 )";
 
+/// Migration 9: atomic batch-id counter. MAX(batch_id)+1 raced
+/// between concurrent invocations (both read the same max before
+/// either inserted), merging two commands into one undo batch.
+static const char* MIGRATION_9 = R"(
+CREATE TABLE IF NOT EXISTS batch_counter (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    value INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO batch_counter (id, value)
+    SELECT 1, COALESCE(MAX(batch_id), 0) FROM operation_log;
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -318,6 +330,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 8) {
         apply_migration(8, MIGRATION_8);
+    }
+    if (current_ver < 9) {
+        apply_migration(9, MIGRATION_9);
     }
 }
 

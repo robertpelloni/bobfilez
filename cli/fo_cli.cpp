@@ -1351,21 +1351,47 @@ int main(int argc, char** argv) {
                                 throw std::runtime_error("destination exists: " + new_path.string());
                             }
                             std::filesystem::rename(f.uri, new_path);
-                            // Only successful moves are reported as moves.
+                            // Journal immediately after the move. If
+                            // journaling fails (locked/full DB), roll
+                            // the rename back so tree and journal can
+                            // never silently disagree; if rollback
+                            // also fails, name the residue loudly —
+                            // undo will not know that file.
+                            try {
+                                fo::core::OperationRepository op_repo(engine.database());
+                                fo::core::OperationRecord rec;
+                                rec.timestamp = std::chrono::system_clock::now();
+                                rec.type = fo::core::OperationType::Move;
+                                rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                    ? std::filesystem::absolute(f.uri).string() : f.uri;
+                                rec.dest_path = new_path.string();
+                                rec.file_size = f.size;
+                                rec.batch_id = op_batch_id;
+                                op_repo.log_operation(rec);
+                            } catch (const std::exception& je) {
+                                ++failed_moves;
+                                try {
+                                    std::filesystem::rename(new_path, f.uri);
+                                    std::cerr << "Failed to move " << f.uri
+                                              << ": journal write failed (" << je.what()
+                                              << "); move rolled back\n";
+                                } catch (const std::exception& re) {
+                                    std::cerr << "ERROR: " << f.uri << " was moved to " << new_path
+                                              << " but could not be journaled (" << je.what()
+                                              << ") or rolled back (" << re.what()
+                                              << "). Undo will not know about this file.\n";
+                                }
+                                continue;
+                            }
+                            // Only journaled moves are reported as moves.
                             moves.push_back({f.uri, new_path.string()});
-
-                            fo::core::OperationRepository op_repo(engine.database());
-                            fo::core::OperationRecord rec;
-                            rec.timestamp = std::chrono::system_clock::now();
-                            rec.type = fo::core::OperationType::Move;
-                            rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                ? std::filesystem::absolute(f.uri).string() : f.uri;
-                            rec.dest_path = new_path.string();
-                            rec.file_size = f.size;
-                            rec.batch_id = op_batch_id;
-                            op_repo.log_operation(rec);
-                            fo::core::make_audit_logger(engine.database())
-                                ->log("move", f.uri, new_path.string(), f.size, rec.file_hash);
+                            try {
+                                fo::core::make_audit_logger(engine.database())
+                                    ->log("move", f.uri, new_path.string(), f.size, "");
+                            } catch (const std::exception& ae) {
+                                std::cerr << "Warning: audit write failed for " << f.uri
+                                          << ": " << ae.what() << "\n";
+                            }
                         } catch (const std::exception& e) {
                             ++failed_moves;
                             std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
@@ -1613,20 +1639,43 @@ int main(int argc, char** argv) {
                                 throw std::runtime_error("destination exists: " + new_path.string());
                             }
                             std::filesystem::rename(f.uri, new_path);
-                            // Only successful renames are reported.
+                            // Journal immediately; roll back on
+                            // journal failure (see organize).
+                            try {
+                                fo::core::OperationRepository op_repo(engine.database());
+                                fo::core::OperationRecord rec;
+                                rec.timestamp = std::chrono::system_clock::now();
+                                rec.type = fo::core::OperationType::Rename;
+                                rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                    ? std::filesystem::absolute(f.uri).string() : f.uri;
+                                rec.dest_path = new_path.string();
+                                rec.file_size = f.size;
+                                rec.batch_id = op_batch_id;
+                                op_repo.log_operation(rec);
+                            } catch (const std::exception& je) {
+                                ++failed_renames;
+                                try {
+                                    std::filesystem::rename(new_path, f.uri);
+                                    std::cerr << "Failed to rename " << f.uri
+                                              << ": journal write failed (" << je.what()
+                                              << "); rename rolled back\n";
+                                } catch (const std::exception& re) {
+                                    std::cerr << "ERROR: " << f.uri << " was renamed to " << new_path
+                                              << " but could not be journaled (" << je.what()
+                                              << ") or rolled back (" << re.what()
+                                              << "). Undo will not know about this file.\n";
+                                }
+                                continue;
+                            }
+                            // Only journaled renames are reported.
                             renames.push_back({f.uri, new_path.string()});
-                            fo::core::OperationRepository op_repo(engine.database());
-                            fo::core::OperationRecord rec;
-                            rec.timestamp = std::chrono::system_clock::now();
-                            rec.type = fo::core::OperationType::Rename;
-                            rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                ? std::filesystem::absolute(f.uri).string() : f.uri;
-                            rec.dest_path = new_path.string();
-                            rec.file_size = f.size;
-                            rec.batch_id = op_batch_id;
-                            op_repo.log_operation(rec);
-                            fo::core::make_audit_logger(engine.database())
-                                ->log("rename", f.uri, new_path.string(), f.size, rec.file_hash);
+                            try {
+                                fo::core::make_audit_logger(engine.database())
+                                    ->log("rename", f.uri, new_path.string(), f.size, "");
+                            } catch (const std::exception& ae) {
+                                std::cerr << "Warning: audit write failed for " << f.uri
+                                          << ": " << ae.what() << "\n";
+                            }
                         } catch (const std::exception& e) {
                             ++failed_renames;
                             std::cerr << "Failed to rename " << f.uri << ": " << e.what() << "\n";

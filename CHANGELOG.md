@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.73] - 2026-11-24 — Atomic Batch IDs, Journal Rollback, CJK Names
+
+### Fixed
+- **Batch-id allocation raced** (Muse review): MAX+1 let two
+  concurrent invocations share an id and merge batches.
+  Migration 9 adds a counter table; allocation is an atomic
+  increment inside `BEGIN IMMEDIATE`. **Moved-but-unjournaled**:
+  if the journal insert fails after a successful organize/
+  rename move (locked/full DB), the move is now rolled back,
+  and if rollback also fails the residue is named loudly
+  ("Undo will not know about this file") instead of the old
+  silent mismatch. **CJK filenames crashed whole commands**:
+  `path.string()` throws on names outside the ANSI code page;
+  Engine construction now opts the process into the UTF-8
+  locale (idempotent), making narrow path conversions UTF-8
+  end-to-end — the organize→undo invariant now covers a CJK
+  fixture. Suites: lean **78/78**; other lanes rebuilt here.
+
 ## [6.5.72] - 2026-11-24 — Undo Core Rework (Muse Code Review)
 
 ### Fixed
