@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.32 (Submodule Inventory)
+
+## What landed (2026-11-23, continuation)
+- **`docs/SUBMODULE_INVENTORY.md`** (ChatGPT's requested read-only
+  inventory): 173 libs dirs = 12 build-referenced, 5 framework
+  trees, 159 unreferenced. Pruning remains owner-gated.
+- Version **6.5.32** (docs-only code-wise; lanes rebuilt for parity).
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT verdict on the fix reports still pending.
+
+---
 # Session Handoff - v6.5.31 ({extension} Alias; Crash Consistency)
 
 ## What landed (2026-11-23, continuation)

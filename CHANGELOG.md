@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.32] - 2026-11-23 — Submodule Inventory (Read-Only)
+
+### Added
+- **`docs/SUBMODULE_INVENTORY.md`**: the read-only categorization
+  reviewers asked for — of 173 directories under `libs/`, **12 are
+  referenced by the build** (core vendored sources + JUCE/BobUI/BTK
+  provider trees), **5 are frontend framework trees**, and **159 are
+  not referenced by any build file** (reference/parity/parked
+  evaluation trees). No pruning is implied or authorized; that
+  remains an owner decision. Suites unchanged at this version
+  (lean **37/37**, JUCE **34/34**, MSVC **37/37**, wiring **19/19**
+  at v6.5.31 code).
+
 ## [6.5.31] - 2026-11-23 — {extension} Template Alias; Crash Consistency Proven
 
 ### Fixed
