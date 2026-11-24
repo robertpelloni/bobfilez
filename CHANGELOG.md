@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.27] - 2026-11-23 — Organize Never Moves Its Own Database
+
+### Fixed
+- **Organize could move its own live database**: when `--db` pointed
+  inside the organized folder, the scan included `fo.db`/`t.db` and
+  its `-wal`/`-shm` sidecars as ordinary files to move (observed in
+  the interruption probe). The organize handler now excludes the
+  active database files (new `DatabaseManager::db_path()` accessor).
+  New `OrganizeSkipsOwnDatabaseFiles` test failed before, passes
+  after. Suites: lean **33/33**; other lanes rebuilt at this version.
+
 ## [6.5.26] - 2026-11-23 — Organize Reports Failed Moves
 
 ### Fixed

@@ -131,6 +131,21 @@ TEST_F(CliFixture, OrganizeReportsFailureWhenMovesFail) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << r.out;
 }
 
+TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
+    // The database may live inside the organized folder; organize must
+    // never try to move its own live database (or its -wal/-shm).
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "aaa"; }
+    auto db = (inbox / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    auto r = run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "t.db")) << r.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "a.txt")) << r.out;
+}
+
 TEST_F(CliFixture, DeleteDuplicatesWritesAuditEntry) {
     auto dups = dir / "dups";
     std::filesystem::create_directories(dups);

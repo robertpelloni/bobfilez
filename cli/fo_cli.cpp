@@ -1132,6 +1132,22 @@ int main(int argc, char** argv) {
 
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
+            // Never move our own live database files: the --db path may
+            // sit inside the organized folder, and renaming an open
+            // SQLite database (or its -wal/-shm) corrupts state.
+            {
+                const auto db_abs = std::filesystem::absolute(engine.database().db_path());
+                auto is_own_db = [&](const std::string& uri) {
+                    std::error_code ec;
+                    auto p = std::filesystem::absolute(uri, ec);
+                    if (ec) return false;
+                    return p == db_abs || p == db_abs.string() + "-wal" ||
+                           p == db_abs.string() + "-shm" || p == db_abs.string() + "-journal";
+                };
+                files.erase(std::remove_if(files.begin(), files.end(),
+                                           [&](const fo::core::FileInfo& fi) { return is_own_db(fi.uri); }),
+                            files.end());
+            }
             fo::core::RuleEngine rule_engine;
 
             if (!rule_template.empty()) {

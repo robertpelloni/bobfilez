@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.27 (Organize Never Moves Its Own Database)
+
+## What landed (2026-11-23, continuation)
+- **Self-database protection**: organize excludes the active DB and
+  its `-wal`/`-shm`/`-journal` files when `--db` lives inside the
+  organized tree (`DatabaseManager::db_path()` added). New CLI test
+  proves the DB stays put while other files move. Lean **33/33**.
+- Roast replies: Gemini + ChatGPT in; ChatGPT was still composing
+  on the fix report, Muse's roast still pending (nudged).
+- Version **6.5.27**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+
+---
 # Session Handoff - v6.5.26 (Organize Reports Failed Moves)
 
 ## What landed (2026-11-23, continuation)

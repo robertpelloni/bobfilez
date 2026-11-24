@@ -26,6 +26,10 @@ public:
     // Close the database connection.
     void close();
 
+    // Path passed to open() (empty before open). Destructive commands
+    // use this to never move/delete the live database files.
+    const std::filesystem::path& db_path() const { return db_path_; }
+
     // Apply pending migrations to bring the schema up to date.
     void migrate();
 
