@@ -21,10 +21,13 @@ This roadmap synthesizes the full analysis, library evaluation, and your require
 > host (`bobui_web/tray.py`, Quit via `/api/quit`). Both verified MSVC lanes
 > now report the source version: `build-lean` for the provider-complete local
 > lane and `build-msvc` for the full vcpkg/cloud lane supplemented by the
-> lean provider prefix. Remaining structural work is a persistent forensic
-> audit query, optional FFmpeg/Chromaprint media-analysis providers, a
-> tracked C++ `tests/` tree, and a dedicated unrelated-history decision for
-> `upstream/master` (it has no merge base with `main`).
+> lean provider prefix. Shipped since this paragraph was first written:
+> persistent forensic audit query (v6.5.8), FFmpeg/Chromaprint
+> media-analysis providers (v6.5.9), tracked C++ `tests/` tree (v6.5.10),
+> and the v6.5.25-v6.5.53 roast-fix train (see `CHANGELOG.md`). Remaining
+> structural work is owner-gated: a lean production checkout, the
+> `upstream/master` unrelated-history decision (no merge base with
+> `main`), and the BobGUI upstream meson fix.
 
 ## Current Status (v2.4.2, historical)
 
