@@ -488,6 +488,34 @@ TEST_F(CliFixture, VaultWrongPasswordLeavesNoOutput) {
     EXPECT_EQ(ss.str(), "vault wrong-pass payload");
 }
 
+TEST_F(CliFixture, VaultUnlockRefusesExistingDestination) {
+    // Unlocking onto an existing file must refuse rather than
+    // silently replace its bytes, and the vault entry must survive.
+    auto vault = (dir / "vault").string();
+    auto src = dir / "secret.txt";
+    auto dst = dir / "restored.txt";
+    { std::ofstream(src) << "vault payload"; }
+    { std::ofstream(dst) << "pre-existing precious bytes"; }
+
+    ASSERT_EQ(run_cli("vault-init " + vault + " right-pass", dir).code, 0);
+    ASSERT_EQ(run_cli("vault-lock " + vault + " right-pass \"" + src.string() + "\"", dir).code, 0);
+    auto list = run_cli("vault-list " + vault + " right-pass", dir);
+    ASSERT_EQ(list.code, 0) << list.out;
+    auto pos = list.out.find("vault_");
+    ASSERT_NE(pos, std::string::npos) << list.out;
+    auto id = list.out.substr(pos, list.out.find(' ', pos) - pos);
+
+    auto bad = run_cli("vault-unlock " + vault + " right-pass " + id + " \"" + dst.string() + "\"", dir);
+    EXPECT_NE(bad.code, 0) << bad.out;
+    std::ifstream in(dst);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "pre-existing precious bytes") << bad.out;
+    // Entry still in the vault afterward.
+    auto list2 = run_cli("vault-list " + vault + " right-pass", dir);
+    EXPECT_NE(list2.out.find(id), std::string::npos) << list2.out;
+}
+
 TEST_F(CliFixture, VaultRoundTripRestoresBytes) {
     auto vault = (dir / "vault").string();
     auto src = dir / "secret.txt";

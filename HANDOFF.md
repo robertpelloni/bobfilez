@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.51 (Vault Unlock Refuses Existing Destinations)
+
+## What landed (2026-11-24, continuation)
+- **Vault unlock guard**: existing destinations are refused
+  (entry survives); the v6.5.36 atomic rename no longer doubles
+  as a silent overwrite. CLI test added. Lean ctest **50/50**.
+- Version **6.5.51**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.50 (Flow Actions Refuse to Overwrite)
 
 ## What landed (2026-11-24, continuation)

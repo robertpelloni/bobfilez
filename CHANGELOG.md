@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.51] - 2026-11-24 — Vault Unlock Refuses Existing Destinations
+
+### Fixed
+- **Unlock silently replaced an existing file**: the atomic
+  decrypt rename from v6.5.36 would overwrite whatever already
+  sat at the unlock destination. `unlock_file` now refuses when
+  the destination exists; the vault entry survives for a retry
+  with a free path. New `VaultUnlockRefusesExistingDestination`
+  test failed before (bytes replaced), passes after.
+  Suites: lean **50/50**; other lanes rebuilt at this version.
+
 ## [6.5.50] - 2026-11-24 — Flow Actions Refuse to Overwrite
 
 ### Fixed

@@ -273,6 +273,11 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
         }
     }
 
+    // Never silently replace an existing destination file: the
+    // decrypt rename would overwrite its bytes. Refuse instead;
+    // the vault entry survives for a retry with a free path.
+    if (std::filesystem::exists(actual_dest)) return false;
+
     if (decrypt_file(src_path, actual_dest)) {
         std::filesystem::remove(src_path);
 
