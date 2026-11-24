@@ -6,6 +6,13 @@
   in `IgnoreRepository::is_ignored`. CLI test added.
   Lean ctest **52/52**.
 - Version **6.5.53**.
+- Follow-ups this turn: TODO `/api/delete` entry corrected (retired
+  v6.5.47), ROADMAP status refreshed, side branches verified fully
+  contained in `main` (0 unique commits), dashboard coverage audited
+  (every CLI command has a route; daemon start honestly status-only),
+  wiring **25/25**, bounded fuzz campaign **59.5M runs clean** (241s,
+  BelowNormal). Muse coordination blocked: claude.ai is logged out
+  in Edge CDP 9222 — owner sign-in requested.
 
 ## Still open (roast triage)
 - Lean production checkout: owner authorization needed.
