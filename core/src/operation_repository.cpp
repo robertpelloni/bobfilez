@@ -158,8 +158,12 @@ std::optional<OperationRecord> OperationRepository::undo_last() {
             switch (rec.type) {
                 case OperationType::Move:
                 case OperationType::Rename:
-                    // Move the file back
-                    if (std::filesystem::exists(rec.dest_path)) {
+                    // Move the file back — but never over a source
+                    // path that was recreated externally meanwhile
+                    // (MSVC rename replaces, which would destroy the
+                    // new file). Such records are stale: skip them.
+                    if (std::filesystem::exists(rec.dest_path) &&
+                        !std::filesystem::exists(rec.source_path)) {
                         std::filesystem::rename(rec.dest_path, rec.source_path);
                         success = true;
                     }

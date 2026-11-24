@@ -1267,8 +1267,14 @@ int main(int argc, char** argv) {
 
             int deleted_count = 0;
             int failed_count = 0;
+            int skipped_count = 0;
             int kept_count = 0;
             int scoped_groups = 0;
+            // Stale-authorization guard: group membership comes from
+            // the last `duplicates` run and may be obsolete by delete
+            // time. Each candidate is re-hashed against the kept file
+            // immediately before deletion (applied mode only).
+            auto recheck_hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             std::vector<std::pair<std::string, std::vector<std::string>>> results; // kept, deleted[]
 
             for (const auto& g : groups) {
@@ -1294,11 +1300,22 @@ int main(int argc, char** argv) {
                 const auto& keep = members[0];
                 kept_count++;
                 std::vector<std::string> deleted_paths;
+                std::string keep_hash;
+                if (!dry_run && recheck_hasher && std::filesystem::exists(keep.uri)) {
+                    keep_hash = recheck_hasher->fast64(keep.uri);
+                }
 
                 for (size_t i = 1; i < members.size(); ++i) {
                     const auto& del = members[i];
                     if (dry_run) {
                         deleted_paths.push_back(del.uri);
+                        continue;
+                    }
+                    if (keep_hash.empty() || !recheck_hasher ||
+                        recheck_hasher->fast64(del.uri) != keep_hash) {
+                        ++skipped_count;
+                        std::cerr << "Skipped (content changed since duplicates run): "
+                                  << del.uri << "\n";
                         continue;
                     }
                     {
@@ -1339,6 +1356,7 @@ int main(int argc, char** argv) {
                           << ", \"kept\": " << kept_count
                           << ", \"deleted\": " << deleted_count
                           << ", \"failed\": " << failed_count
+                          << ", \"skipped\": " << skipped_count
                           << ", \"results\": [\n";
                 for (size_t i = 0; i < results.size(); ++i) {
                     const auto& [kept_path, deleted_paths] = results[i];
@@ -1361,6 +1379,10 @@ int main(int argc, char** argv) {
                     }
                 }
                 std::cout << "Deleted " << deleted_count << " files. Kept " << kept_count << " files.\n";
+                if (skipped_count > 0) {
+                    std::cout << "Skipped " << skipped_count
+                              << " file(s) whose content changed since the duplicates run.\n";
+                }
                 if (failed_count > 0) {
                     std::cerr << failed_count << " deletion(s) failed.\n";
                 }

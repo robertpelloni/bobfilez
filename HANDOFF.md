@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.49 (Stale-Authorization Guards)
+
+## What landed (2026-11-24, continuation)
+- **Reviewers' challenge answered**: delete-duplicates re-hashes
+  candidates against the kept file at delete time (stale groups
+  skipped, reported); undo never renames over an externally
+  recreated source. Two failing-first CLI tests. Lean **48/48**.
+- Gemini + ChatGPT both replied to the fix summary with this
+  stale-authorization / external-drift challenge class.
+- Version **6.5.49**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.48 (Scan JSON Carries mtime)
 
 ## What landed (2026-11-24, continuation)

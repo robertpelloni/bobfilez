@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.49] - 2026-11-24 — Stale-Authorization Guards (Reviewers' Challenge)
+
+### Fixed
+- **Delete-duplicates trusted obsolete groups**: membership came
+  from the last `duplicates` run; a file that changed content
+  afterward was still deleted as a "duplicate". Each candidate is
+  now re-hashed against the kept file immediately before deletion;
+  mismatches are skipped and reported (`skipped` count, stderr
+  line), never deleted.
+- **Undo could overwrite a recreated file**: if the original path
+  was recreated externally after a move, undo renamed over it
+  (MSVC rename replaces). Undo now skips such records, leaving
+  both files intact.
+  Both were the reviewers' named next challenge ("prove bobfilez
+  never destroys data because the information it used to authorize
+  a destructive operation became obsolete"); both new CLI tests
+  failed before (files destroyed) and pass after.
+  Suites: lean **48/48**; other lanes rebuilt at this version.
+
 ## [6.5.48] - 2026-11-24 — Scan JSON Carries mtime
 
 ### Fixed

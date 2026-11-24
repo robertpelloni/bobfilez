@@ -389,6 +389,52 @@ TEST_F(CliFixture, RenameBatchReportsFailureOnCollision) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "Photo_1.txt")) << r.out;
 }
 
+TEST_F(CliFixture, DeleteDuplicatesRechecksContentBeforeDeleting) {
+    // Stale-authorization guard: if a "duplicate" changes content
+    // after the duplicates run, delete-duplicates must not delete it
+    // based on the obsolete group. It re-hashes against the kept
+    // file at delete time.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "same-content"; }
+    { std::ofstream(inbox / "b.txt") << "same-content"; }
+    auto db = (dir / "t.db").string();
+
+    ASSERT_EQ(run_cli("duplicates --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    // b.txt stops being a duplicate (same length, different bytes).
+    { std::ofstream(inbox / "b.txt") << "diff-content"; }
+
+    auto del = run_cli("delete-duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(del.code, 0) << del.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << del.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "b.txt")) << del.out;
+    EXPECT_NE(del.out.find("\"skipped\": 1"), std::string::npos) << del.out;
+}
+
+TEST_F(CliFixture, UndoDoesNotOverwriteRecreatedSource) {
+    // External drift during recovery: if the original path was
+    // recreated after the move, undo must not rename over it
+    // (MSVC rename replaces), destroying the new file.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "photo.txt") << "original"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    ASSERT_FALSE(std::filesystem::exists(inbox / "photo.txt"));
+    { std::ofstream(inbox / "photo.txt") << "recreated-externally"; }
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    std::ifstream in(inbox / "photo.txt");
+    std::stringstream ss;
+    ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "recreated-externally") << undo.out;
+    // The moved original is still at its destination, not lost.
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "photo")) << undo.out;
+}
+
 TEST_F(CliFixture, DeleteDuplicatesScopedToGivenRoot) {
     // delete-duplicates must act only inside the folder it is given.
     // Groups in the DB come from the last `duplicates` run (here:
