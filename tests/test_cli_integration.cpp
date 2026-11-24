@@ -95,6 +95,24 @@ TEST_F(CliFixture, OrganizeMoveWritesAuditEntry) {
     EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
 }
 
+TEST_F(CliFixture, OrganizeThenUndoRestoresFile) {
+    // Data-safety gate for destructive ops: an applied organize move
+    // must be recoverable through the journal undo path.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "photo.txt") << "recover me"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(org.code, 0) << org.out;
+    ASSERT_FALSE(std::filesystem::exists(inbox / "photo.txt")) << org.out;
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+}
+
 TEST_F(CliFixture, DeleteDuplicatesWritesAuditEntry) {
     auto dups = dir / "dups";
     std::filesystem::create_directories(dups);

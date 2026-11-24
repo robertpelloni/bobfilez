@@ -1,5 +1,32 @@
 # Changelog
 
+## [6.5.25] - 2026-11-23 — Roast Fixes: Flow Failures, Stdout Banners, Doc Truth
+
+### Fixed
+- **Workflows always reported success**: `execute_workflow` discarded
+  `execute_action` results. A failed action (e.g. MoveTo into an
+  uncreatable directory) now fails the run. New
+  `FlowFailurePropagates` test failed before, passes after.
+- **CLI stdout polluted by engine banners**: every invocation printed
+  `[OmniClerk]/[AutoDev]/[SyncService]/[SwarmHub]` init lines to
+  stdout, forcing JSON-extraction hacks in every consumer. All
+  bracket-log lines in those engines (+ OmniOracle) now go to
+  stderr; verified: `fo_cli hash` on stdout alone is one clean line.
+- **Docs-vs-reality**: `ROADMAP.md` gained the scope-cut banner
+  (shell-replacement/Omni phases are parked, not scheduled) and its
+  stale v6.5.7 status pin was removed; `README.md` no longer
+  hardcodes a version (truth stays in `VERSION.md`).
+- **Repo hygiene**: 174 generated files under the ignored build
+  trees (`build-juce-demo`, `build-qt-demo`, `build-btk`,
+  `build-headless`, `build-bobui-gui`, `build_output`) untracked;
+  artifacts remain on disk. `build-msvc` left tracked for now
+  (the daemon sweeps it; separate deliberate change).
+- **Data-safety recovery test** (from the roast triage): applied
+  organize moves are now proven recoverable via journal undo in
+  `OrganizeThenUndoRestoresFile`.
+  Suites: lean **31/31**, JUCE-tree **28/28**, msvc **30/30**,
+  wiring **18/18** (100% each; totals differ by lane discovery).
+
 ## [6.5.24] - 2026-11-17 — build-msvc Lane Green Again
 
 ### Fixed

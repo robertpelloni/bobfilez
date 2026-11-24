@@ -68,7 +68,7 @@ public:
         if (!hasher_) {
             hasher_ = Registry<IHasher>::instance().create("fast64");
         }
-        std::cout << "[SyncService] Initializing Autonomous Sync Protocol...\n";
+        std::cerr << "[SyncService] Initializing Autonomous Sync Protocol...\n";
     }
 
     void set_swarm_engine(std::shared_ptr<ISwarmEngine> swarm) override {
@@ -98,23 +98,23 @@ public:
             db_path = env_db;
         }
 
-        std::cout << "[SyncService] Opening sync database at: " << db_path << "\n";
+        std::cerr << "[SyncService] Opening sync database at: " << db_path << "\n";
         db_ = std::make_unique<DatabaseManager>();
         db_->open(db_path);
         db_->migrate();
         load_from_db();
-        std::cout << "[SyncService] Database ready.\n";
+        std::cerr << "[SyncService] Database ready.\n";
     }
 
     bool upload_file(const std::filesystem::path& local_path, const std::string& remote_dest) override {
         bool broadcast_needed = false;
         {
             std::lock_guard<std::recursive_mutex> lock(mutex_);
-            std::cout << "[SyncService] upload_file start: " << local_path << " -> " << remote_dest << "\n";
+            std::cerr << "[SyncService] upload_file start: " << local_path << " -> " << remote_dest << "\n";
             ensure_db_ready();
             
             if (!std::filesystem::exists(local_path)) {
-                std::cout << "[SyncService] Local path does not exist: " << local_path << "\n";
+                std::cerr << "[SyncService] Local path does not exist: " << local_path << "\n";
                 return false;
             }
 
@@ -127,7 +127,7 @@ public:
 
             auto& history = version_history_[remote_dest];
             if (!history.empty() && history.back().checksum == current_checksum) {
-                std::cout << "[SyncService] Already in sync: " << remote_dest << "\n";
+                std::cerr << "[SyncService] Already in sync: " << remote_dest << "\n";
                 return true;
             }
 
@@ -140,7 +140,7 @@ public:
             history.push_back(v);
             save_to_db(remote_dest, v);
             broadcast_needed = true;
-            std::cout << "[SyncService] Version " << v.version_id << " tracked for " << remote_dest << "\n";
+            std::cerr << "[SyncService] Version " << v.version_id << " tracked for " << remote_dest << "\n";
         }
 
         if (broadcast_needed && swarm_engine_) {
@@ -157,7 +157,7 @@ public:
 
     bool download_file(const std::string& remote_path, const std::filesystem::path& local_dest) override {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        std::cout << "[SyncService] download_file: " << remote_path << "\n";
+        std::cerr << "[SyncService] download_file: " << remote_path << "\n";
         ensure_db_ready();
 
         auto& history = version_history_[remote_path];
@@ -175,7 +175,7 @@ public:
 
     std::vector<FileVersion> get_version_history(const std::string& file_id) override {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        std::cout << "[SyncService] get_version_history: " << file_id << "\n";
+        std::cerr << "[SyncService] get_version_history: " << file_id << "\n";
         ensure_db_ready();
         return version_history_[file_id];
     }

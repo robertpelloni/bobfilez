@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.25 (Roast Fixes)
+
+## What landed (2026-11-23, continuation)
+- Roast requested from Muse+Gemini+ChatGPT via the Muse thread
+  (CDP 9222); replies pending there. Self-roast fixes shipped now:
+  flow action failures propagate (`FlowFailurePropagates`), engine
+  init banners moved stdout→stderr (clean CLI stdout), ROADMAP
+  scope-cut banner + unpinned status, README version unpinned,
+  174 generated build files untracked (artifacts kept on disk).
+- Version **6.5.25**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 130+ submodules, most not linked by any build: pruning is an
+  owner decision (destructive); `docs/SUBMODULES.md` lists them.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+
+---
 # Session Handoff - v6.5.24 (build-msvc Lane Green Again)
 
 ## What landed (2026-11-17, continuation)

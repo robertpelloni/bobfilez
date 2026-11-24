@@ -25,7 +25,7 @@ public:
     AutonomousDevProtocolImpl() {
         watcher_ = Registry<IFileWatcher>::instance().create("native");
         status_.is_loop_active = false;
-        std::cout << "[AutoDev] Protocol Initialized.\n";
+        std::cerr << "[AutoDev] Protocol Initialized.\n";
     }
 
     void set_sync_service(std::shared_ptr<IAutonomousSyncService> sync) override {
@@ -36,7 +36,7 @@ public:
     void register_task(const DevTask& task) override {
         std::lock_guard<std::mutex> lock(mtx_);
         tasks_[task.id] = task;
-        std::cout << "[AutoDev] Registered Task: " << task.name << " (" << task.id << ")\n";
+        std::cerr << "[AutoDev] Registered Task: " << task.name << " (" << task.id << ")\n";
     }
 
     void trigger_task(const std::string& task_id) override {
@@ -47,20 +47,20 @@ public:
             // 1. Resolve dependencies
             for (const auto& dep_id : t.dependencies) {
                 if (status_.last_results[dep_id] != "Success") {
-                    std::cout << "[AutoDev] Task " << task_id << " blocked by dependency: " << dep_id << "\n";
+                    std::cerr << "[AutoDev] Task " << task_id << " blocked by dependency: " << dep_id << "\n";
                     return;
                 }
             }
 
             // 2. Checkpointing: Sync current state before task
             if (sync_service_ && !repo_root_.empty()) {
-                std::cout << "[AutoDev] Creating state checkpoint before task: " << t.id << "\n";
+                std::cerr << "[AutoDev] Creating state checkpoint before task: " << t.id << "\n";
                 // In simulation, we just upload the root to represent a checkpoint
                 sync_service_->upload_file(repo_root_, "checkpoints/" + t.id + "/pre_run");
                 status_.last_checkpoint_id = "checkpoint-" + t.id;
             }
 
-            std::cout << "[AutoDev] Triggering: " << t.name << " [" << t.command << "]\n";
+            std::cerr << "[AutoDev] Triggering: " << t.name << " [" << t.command << "]\n";
             auto t0 = std::chrono::steady_clock::now();
 
             // 3. Actual execution
@@ -90,7 +90,7 @@ public:
 
         repo_root_ = repo_root;
         status_.is_loop_active = true;
-        std::cout << "[AutoDev] Starting autonomous loop for: " << repo_root_ << "\n";
+        std::cerr << "[AutoDev] Starting autonomous loop for: " << repo_root_ << "\n";
 
         WatcherConfig cfg;
         cfg.watch_paths = { repo_root_ };
@@ -98,7 +98,7 @@ public:
         cfg.debounce_ms = 500; // Build after 5s of quiet
 
         watcher_->start(cfg, [this](const std::vector<FileChangeEvent>& events) {
-            std::cout << "[AutoDev] Source change detected (" << events.size() << " files).\n";
+            std::cerr << "[AutoDev] Source change detected (" << events.size() << " files).\n";
             this->trigger_task("build-primary");
             this->trigger_task("test-primary");
         });
@@ -108,12 +108,12 @@ public:
         std::lock_guard<std::mutex> lock(mtx_);
         if (watcher_) watcher_->stop();
         status_.is_loop_active = false;
-        std::cout << "[AutoDev] Stopped loop.\n";
+        std::cerr << "[AutoDev] Stopped loop.\n";
     }
 
     void provide_feedback(const std::string& task_id, bool approved, const std::string& comment = "") override {
         std::lock_guard<std::mutex> lock(mtx_);
-        std::cout << "[AutoDev] Feedback received for " << task_id << ": " 
+        std::cerr << "[AutoDev] Feedback received for " << task_id << ": " 
                   << (approved ? "APPROVED" : "REJECTED") << " (" << comment << ")\n";
         
         if (!approved) {

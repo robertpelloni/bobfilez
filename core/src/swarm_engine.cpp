@@ -31,13 +31,13 @@ public:
     void register_peer(ISwarmEngine* p) {
         std::lock_guard<std::recursive_mutex> lock(mtx_);
         peers_.insert(p);
-        std::cout << "[SwarmHub] Registered peer " << p << ". Total peers: " << peers_.size() << "\n";
+        std::cerr << "[SwarmHub] Registered peer " << p << ". Total peers: " << peers_.size() << "\n";
     }
 
     void unregister_peer(ISwarmEngine* p) {
         std::lock_guard<std::recursive_mutex> lock(mtx_);
         peers_.erase(p);
-        std::cout << "[SwarmHub] Unregistered peer " << p << ". Remaining peers: " << peers_.size() << "\n";
+        std::cerr << "[SwarmHub] Unregistered peer " << p << ". Remaining peers: " << peers_.size() << "\n";
     }
 
     void broadcast(ISwarmEngine* sender, const std::string& file_id) {
@@ -49,7 +49,7 @@ public:
                 sent_count++;
             }
         }
-        std::cout << "[SwarmHub] Broadcasted update for " << file_id << " to " << sent_count << " peers (Total in hub: " << peers_.size() << ", Sender: " << sender << ")\n";
+        std::cerr << "[SwarmHub] Broadcasted update for " << file_id << " to " << sent_count << " peers (Total in hub: " << peers_.size() << ", Sender: " << sender << ")\n";
     }
 };
 
@@ -79,7 +79,7 @@ public:
     void start_discovery() override {
         if (is_discovering_) return;
         is_discovering_ = true;
-        std::cout << "[Swarm] Discovery service started (mDNS/UDP). Looking for peers...\n";
+        std::cerr << "[Swarm] Discovery service started (mDNS/UDP). Looking for peers...\n";
         
         // Mock discovery
         SwarmNode n;
@@ -89,13 +89,13 @@ public:
     }
 
     bool connect_to_peer(const std::string& address) override {
-        std::cout << "[Swarm] Connecting to peer: " << address << "\n";
+        std::cerr << "[Swarm] Connecting to peer: " << address << "\n";
         return true;
     }
 
     void broadcast_index_update(const std::string& file_id) override {
         if (file_id.empty()) {
-            std::cout << "[Swarm] Broadcasting full local index updates to " << nodes_.size() << " peers.\n";
+            std::cerr << "[Swarm] Broadcasting full local index updates to " << nodes_.size() << " peers.\n";
         } else {
             // In simulation, we broadcast to the hub even if local node discovery isn't active
             SwarmHub::instance().broadcast(this, file_id);
@@ -103,7 +103,7 @@ public:
     }
 
     void sync_ledger() override {
-        std::cout << "[Swarm] Synchronizing Forensic Audit Ledger with the swarm.\n";
+        std::cerr << "[Swarm] Synchronizing Forensic Audit Ledger with the swarm.\n";
     }
 
     std::vector<SwarmNode> get_active_nodes() override {

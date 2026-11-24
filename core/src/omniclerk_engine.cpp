@@ -25,7 +25,7 @@ class OmniClerkImpl : public IOmniClerkEngine {
 
 public:
     OmniClerkImpl() {
-        std::cout << "[OmniClerk] Initializing Autonomous AI Secretary Pipeline...\n";
+        std::cerr << "[OmniClerk] Initializing Autonomous AI Secretary Pipeline...\n";
         watcher_ = Registry<IFileWatcher>::instance().create("native");
     }
 
@@ -41,7 +41,7 @@ public:
         if (watcher_->is_running()) return;
 
         archive_dir_ = archive_dir;
-        std::cout << "[OmniClerk] Starting autonomous listener on: " << inbox_dir << "\n";
+        std::cerr << "[OmniClerk] Starting autonomous listener on: " << inbox_dir << "\n";
 
         WatcherConfig config;
         config.watch_paths = { inbox_dir };
@@ -62,12 +62,12 @@ public:
     void stop_listener() override {
         if (watcher_ && watcher_->is_running()) {
             watcher_->stop();
-            std::cout << "[OmniClerk] Stopped listening.\n";
+            std::cerr << "[OmniClerk] Stopped listening.\n";
         }
     }
 
     IngestionReceipt process_document(const std::filesystem::path& file) override {
-        std::cout << "[OmniClerk] Processing Document: " << file.filename() << "\n";
+        std::cerr << "[OmniClerk] Processing Document: " << file.filename() << "\n";
         auto t0 = std::chrono::steady_clock::now();
 
         IngestionReceipt rec;
@@ -127,7 +127,7 @@ public:
             nexus->report_metric("OmniClerk", "DocumentProcessed", 1.0);
         }
 
-        std::cout << "[OmniClerk] Filed document successfully: " << rec.filed_path.filename() << "\n";
+        std::cerr << "[OmniClerk] Filed document successfully: " << rec.filed_path.filename() << "\n";
         return rec;
     }
 

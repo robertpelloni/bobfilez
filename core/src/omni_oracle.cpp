@@ -18,7 +18,7 @@ public:
     }
 
     bool initialize(const std::filesystem::path& model_path) override {
-        std::cout << "[OmniOracle] Loading Local LLM into VRAM: " << model_path << "\n";
+        std::cerr << "[OmniOracle] Loading Local LLM into VRAM: " << model_path << "\n";
         is_ready_ = true;
         return true;
     }
@@ -26,7 +26,7 @@ public:
     bool is_ready() const override { return is_ready_; }
 
     OracleResponse ask(const std::string& query) override {
-        std::cout << "[OmniOracle] Received Query: " << query << "\n";
+        std::cerr << "[OmniOracle] Received Query: " << query << "\n";
         
         auto t0 = std::chrono::steady_clock::now();
 
@@ -56,7 +56,7 @@ public:
     }
 
     OracleResponse summarize(const std::filesystem::path& file) override {
-        std::cout << "[OmniOracle] Summarizing file: " << file << "\n";
+        std::cerr << "[OmniOracle] Summarizing file: " << file << "\n";
         OracleResponse res;
         // Same honesty rule as ask(): no model is loaded, so do not
         // invent a summary of a file that was never read.

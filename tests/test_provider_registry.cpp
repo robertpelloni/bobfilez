@@ -8,6 +8,10 @@
 #include "fo/core/lint_interface.hpp"
 #include "fo/core/ocr_interface.hpp"
 #include "fo/core/omni_oracle_interface.hpp"
+#include "fo/core/omniflow_engine_interface.hpp"
+
+#include <filesystem>
+#include <fstream>
 #include "fo/core/perceptual_hash_interface.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
@@ -72,6 +76,36 @@ TEST_F(RegistryFixture, OracleDoesNotFabricateAnswers) {
     const auto res = oracle->ask("how many files do I have?");
     EXPECT_TRUE(res.citations.empty());
     EXPECT_NE(res.answer_text.find("not connected"), std::string::npos);
+}
+
+TEST_F(RegistryFixture, FlowFailurePropagates) {
+    // A workflow whose action fails (here: target_dir is under a regular
+    // file, so it can never be created) must report failure, not success.
+    auto flow = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(flow, nullptr);
+    const auto dir = std::filesystem::temp_directory_path() /
+                     ("bobfilez-flow-test-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+    std::filesystem::create_directories(dir);
+    const auto payload = dir / "payload.txt";
+    { std::ofstream(payload) << "x"; }
+    const auto blocker = dir / "blocker";
+    { std::ofstream(blocker) << "not a directory"; }
+
+    fo::core::Workflow wf;
+    wf.id = "test-flow-fail";
+    wf.name = "Failing move";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", fo::core::FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"a1", "Action.MoveTo", fo::core::FlowNodeType::Action,
+                        {{"target_dir", (blocker / "sub").string()}}});
+    wf.connections.push_back({"t1", "out", "a1", "in"});
+    flow->register_workflow(wf);
+
+    EXPECT_FALSE(flow->execute_workflow("test-flow-fail", payload));
+    // The payload must not have been moved by the failed action.
+    EXPECT_TRUE(std::filesystem::exists(payload));
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
 }
 
 TEST_F(RegistryFixture, UnknownProviderCreatesNull) {

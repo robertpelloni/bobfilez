@@ -1,6 +1,6 @@
 # bobfilez
 
-> **Status: v6.5.22 — Nov 17, 2026 — ALPHA**
+> **Status: ALPHA — version truth is `VERSION.md` (not pinned here; it changes too often to hardcode)**
 > **Scope cut, Nov 19, 2026:** bobfilez is a **file organizer**. That is the product.
 > It is not an operating system, not a Windows replacement, and not 39
 > professional applications in one. The "Grand Architecture" / OmniShell

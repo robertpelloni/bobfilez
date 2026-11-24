@@ -1,10 +1,20 @@
 # filez Roadmap (Consolidated)
 
+> **SCOPE CUT — Nov 2026: READ THIS FIRST**
+>
+> bobfilez is a **file organizer** (see README "What actually works").
+> The phases below that describe an OS shell replacement, a desktop
+> environment, or Omni-tool parity with professional products are
+> **parked aspirations, not scheduled work**. The active roadmap is:
+> keep the CLI/dashboard/provider surface correct and honestly
+> labeled, fix scaffold behavior that reaches users, and grow tests.
+> Version truth: `VERSION.md`; granular work: `TODO.md`.
+
 This roadmap synthesizes the full analysis, library evaluation, and your requirements into a phased implementation plan. All tasks support the goals of **extreme robustness, plugin architecture, cross-platform CLI-first design, and empirical benchmarking**.
 
 ---
 
-## Current Status (v6.5.7, 2026-11-16)
+## Current Status (see `VERSION.md` — this section is not version-pinned)
 
 > Version truth: `VERSION.md`. The dashboard is consolidated on one page
 > (`bobui_web/public/unified.html`, groups A–E by value) with a system-tray

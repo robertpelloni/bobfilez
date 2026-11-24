@@ -201,6 +201,7 @@ public:
         if (trigger_ids.empty()) return false;
 
         // 2. BFS from each trigger, evaluating filters/conditions along the way
+        bool actions_ok = true;
         std::set<std::string> visited;
         std::vector<std::string> queue;
         for (const auto& tid : trigger_ids) queue.push_back(tid);
@@ -227,7 +228,10 @@ public:
                 if (true_next.empty()) true_next = find_next_nodes(wf, current_id, "out");
                 for (const auto& nid : true_next) queue.push_back(nid);
             } else if (node->category == FlowNodeType::Action) {
-                execute_action(*node, input_payload);
+                // A failed action (e.g. MoveTo into an uncreatable
+                // directory) must fail the run; the result used to be
+                // discarded, so every workflow reported success.
+                if (!execute_action(*node, input_payload)) actions_ok = false;
                 // Continue to next nodes via "out" pin
                 auto next = find_next_nodes(wf, current_id, "out");
                 for (const auto& nid : next) queue.push_back(nid);
@@ -247,7 +251,7 @@ public:
             nexus->report_metric("OmniFlow", "LastExecutionDuration", duration);
         }
 
-        return true;
+        return actions_ok;
     }
 
     std::vector<Workflow> get_workflows() override {
