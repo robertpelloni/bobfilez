@@ -19,9 +19,9 @@
 - [x] Packaging: MSI parameterized on VERSION.md (v6.5.44); producing
   an actual .msi still needs WiX v3.11 installed.
 - [x] **Legacy `/api/delete`** - raw unlink endpoint used only by the
-  legacy React UI (no journal/audit). Unified page deliberately
-  deletes only via dry-run duplicate-delete; retire or journal the
-  legacy path when the React lane is next touched.
+  legacy React UI (no journal/audit). RETIRED v6.5.47: removed from
+  `server.js`; deletion only via dry-run-first
+  `/api/delete-duplicates`, pinned by `wiring.test.js`.
 
 ## Immediate (Short Term)
 - [x] **Autonomous Sync**: Implement real-time file synchronization across nodes.
