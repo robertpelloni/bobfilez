@@ -162,23 +162,11 @@ app.post('/api/metadata', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Delete files ──
-app.post('/api/delete', async (req, res) => {
-    try {
-        const { files = [] } = req.body;
-        if (!files.length) return res.status(400).json({ error: 'No files provided' });
-        const results = [];
-        for (const f of files) {
-            try {
-                fs.unlinkSync(f);
-                results.push({ path: f, success: true });
-            } catch (e) {
-                results.push({ path: f, success: false, error: e.message });
-            }
-        }
-        res.json({ deleted: results.filter(r => r.success).length, results });
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
+// NOTE: there is deliberately no raw /api/delete endpoint. It used to
+// unlink arbitrary paths from the request body with no journal or
+// audit record, and no frontend called it (the unified page deletes
+// only via the dry-run-first /api/delete-duplicates). Retired in
+// v6.5.47; do not re-add without journaling through fo_cli.
 
 // ── History ──
 app.get('/api/history', async (req, res) => {

@@ -18,7 +18,7 @@
   campaign clean. Longer/multi-target campaigns remain open-ended.
 - [x] Packaging: MSI parameterized on VERSION.md (v6.5.44); producing
   an actual .msi still needs WiX v3.11 installed.
-- [ ] **Legacy `/api/delete`** - raw unlink endpoint used only by the
+- [x] **Legacy `/api/delete`** - raw unlink endpoint used only by the
   legacy React UI (no journal/audit). Unified page deliberately
   deletes only via dry-run duplicate-delete; retire or journal the
   legacy path when the React lane is next touched.

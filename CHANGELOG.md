@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.5.47] - 2026-11-24 — Raw Delete Endpoint Retired
+
+### Removed
+- **`POST /api/delete`**: it unlinked arbitrary paths from the
+  request body with no journal or audit record, and no frontend
+  called it (the only textual hit was `/api/delete-duplicates`).
+  The unified page deletes solely via the scoped, journaled,
+  dry-run-first `/api/delete-duplicates`. Verified live: the route
+  now 404s; a wiring test keeps it retired (25/25).
+
 ## [6.5.46] - 2026-11-24 — Dashboard Launch Scripts Set OCR Env
 
 ### Fixed

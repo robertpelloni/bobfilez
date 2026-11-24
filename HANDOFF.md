@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.47 (Raw Delete Endpoint Retired)
+
+## What landed (2026-11-24, continuation)
+- **`/api/delete` retired**: dead (no caller), dangerous (raw
+  unlink, no journal/audit). Route removed, 404 verified live,
+  wiring-pinned. TODO live list updated.
+- Version **6.5.47**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.46 (Dashboard Launch Scripts Set OCR Env)
 
 ## What landed (2026-11-24, continuation)

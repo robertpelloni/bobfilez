@@ -37,6 +37,15 @@ test('fuzzer script disables the default-on Omni shell', () => {
   assert.match(bat, /FO_BUILD_FUZZERS=ON/);
 });
 
+test('no raw delete endpoint remains on the server', () => {
+  const srv = read('server.js');
+  // /api/delete unlinked arbitrary request paths with no journal or
+  // audit, and no frontend called it. It must stay retired; the
+  // scoped, journaled delete-duplicates route is the only deleter.
+  assert.doesNotMatch(srv, /app\.post\('\/api\/delete'/);
+  assert.match(srv, /app\.post\('\/api\/delete-duplicates'/);
+});
+
 test('dashboard launch scripts set the OCR tessdata env', () => {
   // A server started from start-server.bat (or a tray spawned by
   // tray.bat) must inherit TESSDATA_PREFIX or OCR silently fails.
