@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.5.40] - 2026-11-23 — C API Header Deduplicated
+
+### Changed
+- Removed the duplicated Lint/Organize declaration blocks from
+  `bobfilez_c_api.h` (identical redeclarations). A declaration vs
+  definition sweep of the C API now shows no mismatches in either
+  direction. Suites: lean **44/44** at this version's code; other
+  lanes rebuilt for parity.
+
 ## [6.5.39] - 2026-11-23 — C API Vault Declared and Consumer-Tested
 
 ### Fixed

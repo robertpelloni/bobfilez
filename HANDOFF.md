@@ -1,3 +1,16 @@
+# Session Handoff - v6.5.40 (C API Header Deduplicated)
+
+## What landed (2026-11-23, continuation)
+- C API header deduplicated; declaration/definition sweep clean
+  both directions. Version **6.5.40**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.39 (C API Vault Declared and Consumer-Tested)
 
 ## What landed (2026-11-23, continuation)
