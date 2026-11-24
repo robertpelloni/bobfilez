@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.61 (Hash Reports Files It Could Not Hash)
+
+## What landed (2026-11-24, continuation)
+- **Hash failure honesty**: empty-hash results are named
+  (stderr), skipped in output/storage, counted, and exit 1.
+  CLI test added. Lean ctest **60/60**.
+- Version **6.5.61**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.60 (Global Flags No Longer Hijack Positional Args)
 
 ## What landed (2026-11-24, continuation)

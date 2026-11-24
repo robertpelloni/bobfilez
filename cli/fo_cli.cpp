@@ -922,26 +922,44 @@ int main(int argc, char** argv) {
                 }
             }
 
-            // Output results (always on main thread)
+            // Output results (always on main thread). Hashers signal
+            // failure with an empty hash (dhash on a non-image,
+            // fast64 on an unreadable file): never print or store
+            // blanks as if they were hashes — name and count them.
+            size_t failed_hashes = 0;
+            for (size_t i = 0; i < results.size(); ++i) {
+                if (results[i].hash.empty()) {
+                    ++failed_hashes;
+                    std::cerr << "Warning: could not hash " << files[i].uri << "\n";
+                }
+            }
             if (format == "json") {
                 std::cout << "[\n";
+                bool first = true;
                 for (size_t i = 0; i < results.size(); ++i) {
+                    if (results[i].hash.empty()) continue;
+                    if (!first) std::cout << ",\n";
+                    first = false;
                     std::cout << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
                               << "\", \"hash\": \"" << results[i].hash << "\"}";
-                    if (i + 1 < results.size()) std::cout << ",";
-                    std::cout << "\n";
                     if (files[i].id != 0) {
                         engine.file_repository().add_hash(files[i].id, hasher.name(), results[i].hash);
                     }
                 }
-                std::cout << "]\n";
+                std::cout << "\n]\n";
             } else {
                 for (size_t i = 0; i < results.size(); ++i) {
+                    if (results[i].hash.empty()) continue;
                     std::cout << results[i].hash << "  " << files[i].uri << "\n";
                     if (files[i].id != 0) {
                         engine.file_repository().add_hash(files[i].id, hasher.name(), results[i].hash);
                     }
                 }
+            }
+            if (failed_hashes > 0) {
+                std::cerr << "Error: failed to hash " << failed_hashes << " of "
+                          << results.size() << " file(s).\n";
+                return 1;
             }
         } else if (command == "metadata") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);

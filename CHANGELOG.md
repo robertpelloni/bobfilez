@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.61] - 2026-11-24 — Hash Reports Files It Could Not Hash
+
+### Fixed
+- **`hash` printed and stored blank hashes as successes**:
+  hashers signal failure with an empty string (dhash on a
+  non-image, fast64 on an unreadable file), and the hash command
+  emitted those blanks in text/JSON output, stored them in the
+  database, and exited 0. Failures are now named per file on
+  stderr, skipped in output and storage, summarized
+  ("failed to hash N of M file(s)"), and exit 1. New
+  `HashReportsFilesItCouldNotHash` CLI test failed before,
+  passes after. Suites: lean **60/60**; other lanes rebuilt at
+  this version.
+
 ## [6.5.60] - 2026-11-24 — Global Flags No Longer Hijack Positional Args
 
 ### Fixed

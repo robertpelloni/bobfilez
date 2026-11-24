@@ -221,6 +221,26 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, HashReportsFilesItCouldNotHash) {
+    // Hashers return "" on failure (dhash on a non-image, fast64 on
+    // an unreadable file); the hash command used to print and store
+    // those blanks and exit 0. Failures must be named and counted.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "definitely not an image"; }
+    auto db = (dir / "t.db").string();
+
+    auto bad = run_cli("hash --hasher=dhash --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(bad.code, 0) << bad.out;
+    EXPECT_TRUE(bad.out.find("failed to hash") != std::string::npos ||
+                bad.out.find("hasher not found") != std::string::npos)
+        << bad.out;
+
+    auto good = run_cli("hash --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(good.code, 0) << good.out;
+    EXPECT_NE(good.out.find("a.txt"), std::string::npos) << good.out;
+}
+
 TEST_F(CliFixture, GlobalFlagsDoNotHijackPositionalArgs) {
     // Handlers that index raw argv took the first token after the
     // subcommand literally: `flow run flow-01 --db=x payload`
