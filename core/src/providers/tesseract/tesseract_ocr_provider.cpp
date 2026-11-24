@@ -19,6 +19,20 @@ namespace fo::providers::tesseract {
 
     TesseractOCRProvider::~TesseractOCRProvider() = default;
 
+    std::optional<std::string> TesseractOCRProvider::unavailable_reason(const std::string& lang) {
+        if (impl_->ready && impl_->lang == lang) return std::nullopt;
+        impl_->api.End();
+        const char* datapath = std::getenv("TESSDATA_PREFIX");
+        if (impl_->api.Init(datapath, lang.c_str())) {
+            return std::string("Tesseract could not load language '") + lang + "' tessdata" +
+                   (datapath ? std::string(" from TESSDATA_PREFIX=") + datapath
+                             : std::string(" (TESSDATA_PREFIX is not set; point it at a tessdata directory)"));
+        }
+        impl_->lang = lang;
+        impl_->ready = true;
+        return std::nullopt;
+    }
+
     std::optional<core::OCRResult> TesseractOCRProvider::recognize(const std::filesystem::path& image_path, const std::string& lang) {
         // Tesseract needs tessdata (e.g. eng.traineddata). Discovery:
         // TESSDATA_PREFIX env wins; nullptr lets Tesseract use its own

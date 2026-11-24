@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.58] - 2026-11-24 — OCR Unavailable Is An Error
+
+### Fixed
+- **`ocr` exited 0 when Tesseract could not initialize** (no
+  loadable tessdata): the engine's own load errors printed per
+  file and the CLI still reported success. `IOCRProvider` gains
+  an `unavailable_reason(lang)` readiness query (same pattern as
+  the classifier in v6.5.57); the Tesseract provider initializes
+  on query and names the missing language data and
+  `TESSDATA_PREFIX`, and the CLI exits 1 before OCR-ing. New
+  `OcrUnavailableIsAnError` CLI test failed before, passes after.
+  Suites: lean **57/57**; other lanes rebuilt at this version.
+
 ## [6.5.57] - 2026-11-24 — Classify Without A Model Is An Error
 
 ### Fixed

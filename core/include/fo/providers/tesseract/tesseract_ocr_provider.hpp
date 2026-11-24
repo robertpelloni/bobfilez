@@ -14,6 +14,7 @@ namespace fo::providers::tesseract {
         TesseractOCRProvider();
         ~TesseractOCRProvider();
         std::optional<core::OCRResult> recognize(const std::filesystem::path& image_path, const std::string& lang = "eng") override;
+        std::optional<std::string> unavailable_reason(const std::string& lang = "eng") override;
         std::string name() const override { return "tesseract"; }
 
       private:

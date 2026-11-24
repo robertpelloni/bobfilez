@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.58 (OCR Unavailable Is An Error)
+
+## What landed (2026-11-24, continuation)
+- **OCR honesty**: `IOCRProvider::unavailable_reason(lang)` added;
+  Tesseract provider reports missing tessdata/`TESSDATA_PREFIX`;
+  CLI `ocr` exits 1 when unavailable. CLI test added (accepts the
+  provider-missing message in lanes without Tesseract). Lean
+  ctest **57/57**.
+- Version **6.5.58**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.57 (Classify Without A Model Is An Error)
 
 ## What landed (2026-11-24, continuation)

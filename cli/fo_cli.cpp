@@ -998,6 +998,10 @@ int main(int argc, char** argv) {
                 std::cerr << "OCR provider 'tesseract' not found.\n";
                 return 1;
             }
+            if (auto reason = provider->unavailable_reason(lang)) {
+                std::cerr << "OCR provider 'tesseract' unavailable: " << *reason << "\n";
+                return 1;
+            }
             for (const auto& f : files) {
                 auto result = provider->recognize(std::filesystem::path(f.uri), lang);
                 if (result) {

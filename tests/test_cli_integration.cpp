@@ -221,6 +221,19 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, OcrUnavailableIsAnError) {
+    // OCR with no loadable tessdata used to print Tesseract's own
+    // errors per file yet exit 0. Unavailability must be a clean
+    // CLI error (provider missing in some lanes is also accepted).
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("ocr --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("tesseract"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, ClassifyWithoutModelIsAnError) {
     // Without model.onnx in the working directory, classify used
     // to print "Model file not found" per file yet exit 0. The CLI
