@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.24 (build-msvc Lane Green Again)
+
+## What landed (2026-11-17, continuation)
+- **build-msvc unblocked**: the orphaned `fo_tests.exe` processes
+  cleared; the remaining failure was the runtime-DLL resolver
+  hard-erroring on conflicting DLL paths. Conflicts are now
+  collected (`CONFLICTING_DEPENDENCIES_PREFIX`), script declared as
+  a post-build `DEPENDS`. `build_headless.bat` completes; msvc
+  ctest **29/29** alongside lean **29/29**, JUCE **26/26**,
+  wiring **18/18**. All three CLI lanes at one version.
+- Version **6.5.24**.
+
+## Blocked / needs owner
+- `upstream/master` unrelated-history decision (owner).
+- BobGUI `meson.build` corruption is in the bobgui repo itself.
+- Real Oracle RAG (embedder + local LLM) remains a design.
+
+---
 # Session Handoff - v6.5.23 (Convert Command Unbroken)
 
 ## What landed (2026-11-17, continuation)

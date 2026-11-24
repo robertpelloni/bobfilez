@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.24] - 2026-11-17 — build-msvc Lane Green Again
+
+### Fixed
+- **Runtime-dependency resolver died on conflicts**:
+  `file(GET_RUNTIME_DEPENDENCIES)` hard-errors when the same DLL
+  name exists in two search dirs (here: the exe-dir copy from
+  `TARGET_RUNTIME_DLLS` vs the lean-prefix build of
+  `libcrypto-3-x64.dll`). The script now collects conflicts via
+  `CONFLICTING_DEPENDENCIES_PREFIX` instead of failing the build,
+  and the script is a declared `DEPENDS` of its post-build step.
+  With the two orphaned `fo_tests.exe` processes (PIDs 19124/63392)
+  finally gone, `scripts/build_headless.bat` completes and the
+  VS2019 `build-msvc` lane passes **29/29** — the first full pass
+  since the tree was poisoned. Suites: lean **29/29**, JUCE-tree
+  **26/26**, msvc **29/29**, wiring **18/18**. Search name/content
+  modes also re-verified via CLI this session.
+
 ## [6.5.23] - 2026-11-17 — Convert Command Unbroken
 
 ### Fixed

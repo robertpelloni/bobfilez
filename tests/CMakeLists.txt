@@ -45,7 +45,8 @@ add_custom_command(TARGET fo_tests POST_BUILD
             "-DFO_TEST_EXE=$<TARGET_FILE:fo_tests>"
             "-DFO_TEST_DEST=$<TARGET_FILE_DIR:fo_tests>"
             "-DFO_TEST_SEARCH_DIRS=${_fo_test_search_dirs}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/copy_runtime_deps.cmake)
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/copy_runtime_deps.cmake
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/copy_runtime_deps.cmake)
 
 include(GoogleTest)
 gtest_discover_tests(fo_tests)
