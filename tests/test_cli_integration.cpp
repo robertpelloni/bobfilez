@@ -221,6 +221,34 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, MissingRootIsAnErrorNotEmptySuccess) {
+    // A nonexistent path used to produce empty output and exit 0
+    // (the std scanner silently skips missing roots), so scripts
+    // could not tell "no files" from "wrong path".
+    auto db = (dir / "t.db").string();
+    auto missing = (dir / "no-such-dir").string();
+
+    auto scan = run_cli("scan --db=" + db + " \"" + missing + "\"", dir);
+    EXPECT_NE(scan.code, 0) << scan.out;
+    EXPECT_NE(scan.out.find("does not exist"), std::string::npos) << scan.out;
+
+    auto hash = run_cli("hash --db=" + db + " \"" + missing + "\"", dir);
+    EXPECT_NE(hash.code, 0) << hash.out;
+
+    // Mixed roots: warn about the missing one, still process the rest.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "keep.txt") << "k"; }
+    auto mixed = run_cli("scan --db=" + db + " \"" + inbox.string() + "\" \"" + missing + "\"", dir);
+    EXPECT_EQ(mixed.code, 0) << mixed.out;
+    EXPECT_NE(mixed.out.find("keep.txt"), std::string::npos) << mixed.out;
+    EXPECT_NE(mixed.out.find("does not exist"), std::string::npos) << mixed.out;
+
+    // Unknown export formats must not silently fall back to JSON.
+    auto bogus = run_cli("export --format=bogus --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(bogus.code, 0) << bogus.out;
+}
+
 TEST_F(CliFixture, PlainScanDoesNotStartScaffoldServices) {
     // Engine used to construct OmniClerk/AutoDev/Sync/Swarm in its
     // constructor, so every command (even a plain scan) printed

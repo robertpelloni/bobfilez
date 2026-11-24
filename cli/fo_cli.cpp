@@ -562,6 +562,36 @@ int main(int argc, char** argv) {
             }
         };
 
+        // Honest paths: the std scanner silently skips nonexistent
+        // roots, so a typo'd path used to produce empty output and
+        // exit 0. Warn about every missing root, and fail when a
+        // path-consuming command has nothing existing to process.
+        {
+            static const std::string kPathCommands[] = {
+                "scan", "duplicates", "hash", "metadata", "ocr", "similar",
+                "vhash", "afingerprint", "classify", "organize",
+                "delete-duplicates", "rename", "stats", "export", "convert",
+                "search", "rename-batch", "watch", "scrub", "lint",
+            };
+            bool path_command = std::find(std::begin(kPathCommands), std::end(kPathCommands),
+                                          command) != std::end(kPathCommands);
+            if (path_command && !roots.empty()) {
+                size_t existing = 0;
+                for (const auto& r : roots) {
+                    std::error_code ec;
+                    if (std::filesystem::exists(r, ec)) {
+                        ++existing;
+                    } else {
+                        std::cerr << "Warning: path does not exist: " << r.string() << "\n";
+                    }
+                }
+                if (existing == 0) {
+                    std::cerr << "Error: no existing paths to process.\n";
+                    return 1;
+                }
+            }
+        }
+
         if (command == "scan") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
             apply_filters(files);
@@ -1610,10 +1640,15 @@ int main(int argc, char** argv) {
             auto groups = engine.find_duplicates(files);
             auto stats = fo::core::Exporter::compute_stats(files, groups);
 
-            // Determine format
+            // Determine format (unknown formats are a usage error,
+            // not a silent JSON fallback)
             fo::core::ExportFormat exp_format = fo::core::ExportFormat::JSON;
             if (format == "csv") exp_format = fo::core::ExportFormat::CSV;
             else if (format == "html") exp_format = fo::core::ExportFormat::HTML;
+            else if (format != "json" && !format.empty()) {
+                std::cerr << "Unknown export format: " << format << " (use json, csv, or html)\n";
+                return 2;
+            }
 
             if (output_path.empty()) {
                 // Output to stdout

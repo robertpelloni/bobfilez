@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.55] - 2026-11-24 — Missing Paths Are Errors
+
+### Fixed
+- **Nonexistent paths silently "succeeded"**: the std scanner
+  skips missing roots without a word, so `scan`/`hash`/`metadata`
+  on a typo'd path printed nothing and exited 0. Path-consuming
+  commands now warn `path does not exist: ...` per missing root
+  and exit 1 when no root exists; mixed root lists still process
+  the existing ones. `export --format=<unknown>` no longer falls
+  back to JSON silently (usage error, exit 2). New
+  `MissingRootIsAnErrorNotEmptySuccess` CLI test failed before,
+  passes after. Suites: lean **54/54**; other lanes rebuilt at
+  this version.
+
 ## [6.5.54] - 2026-11-24 — Plain Commands Stay Quiet
 
 ### Fixed

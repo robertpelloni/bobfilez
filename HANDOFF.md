@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.55 (Missing Paths Are Errors)
+
+## What landed (2026-11-24, continuation)
+- **Honest paths**: CLI warns per nonexistent root and exits 1
+  when a path-consuming command has no existing root (was empty
+  output + exit 0); bogus export formats exit 2 instead of
+  silently writing JSON. CLI test added. Lean ctest **54/54**.
+- Version **6.5.55**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.54 (Plain Commands Stay Quiet)
 
 ## What landed (2026-11-24, continuation)
