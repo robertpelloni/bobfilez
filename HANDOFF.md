@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.53 (Ignore Rules Actually Filter)
+
+## What landed (2026-11-24, continuation)
+- **Ignore globs work**: regex treatment made "*.log" unmatchable;
+  glob matching (filename + path, brace alternation) implemented
+  in `IgnoreRepository::is_ignored`. CLI test added.
+  Lean ctest **52/52**.
+- Version **6.5.53**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.52 (Undo Works From Any Directory)
 
 ## What landed (2026-11-24, continuation)

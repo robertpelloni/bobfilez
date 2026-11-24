@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.53] - 2026-11-24 — Ignore Rules Actually Filter
+
+### Fixed
+- **Ignore rules silently did nothing**: `is_ignored` treated
+  patterns as regex, so the glob patterns every UI teaches
+  (`*.log`) were invalid regexes whose substring fallback could
+  never match. Patterns are now matched as case-insensitive
+  globs (with `{a,b,c}` alternation) against filename and full
+  path; plain patterns keep substring semantics. New
+  `IgnoreGlobFiltersScan` CLI test failed before (the .log file
+  was scanned), passes after. Suites: lean **52/52**; other lanes
+  rebuilt at this version.
+
 ## [6.5.52] - 2026-11-24 — Undo Works From Any Directory
 
 ### Fixed

@@ -221,6 +221,23 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, IgnoreGlobFiltersScan) {
+    // Ignore patterns are globs ("*.log") as every UI teaches, but
+    // is_ignored treated them as regex: "*.log" is an invalid regex
+    // and fell back to substring search, so it never matched.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "keep.txt") << "k"; }
+    { std::ofstream(inbox / "skip.log") << "l"; }
+    auto db = (dir / "t.db").string();
+
+    ASSERT_EQ(run_cli("ignore add \"*.log\" testreason --db=" + db, dir).code, 0);
+    auto scan = run_cli("scan --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(scan.code, 0) << scan.out;
+    EXPECT_NE(scan.out.find("keep.txt"), std::string::npos) << scan.out;
+    EXPECT_EQ(scan.out.find("skip.log"), std::string::npos) << scan.out;
+}
+
 TEST_F(CliFixture, UndoWorksFromDifferentCwd) {
     // Organize destinations were journaled CWD-relative, so undo
     // only worked when run from the same directory as the organize.
