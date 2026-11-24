@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.68 (Search Grammar Works In Any Order)
+
+## What landed (2026-11-24, continuation)
+- **Search grammar**: flags parsed anywhere on the line; bare
+  `search <q>` works again (guard exempts search; handler
+  validates its own roots). CLI test added. Lean ctest **67/67**.
+- Version **6.5.68**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.67 (Undo Restores The Whole Command)
 
 ## What landed (2026-11-24, continuation)

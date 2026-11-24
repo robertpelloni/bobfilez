@@ -585,11 +585,13 @@ int main(int argc, char** argv) {
         // exit 0. Warn about every missing root, and fail when a
         // path-consuming command has nothing existing to process.
         {
+            // "search" is exempt: its first positional is a query,
+            // not a path, and the handler validates its own roots.
             static const std::string kPathCommands[] = {
                 "scan", "duplicates", "hash", "metadata", "ocr", "similar",
                 "vhash", "afingerprint", "classify", "organize",
                 "delete-duplicates", "rename", "stats", "export", "convert",
-                "search", "rename-batch", "watch", "scrub", "lint",
+                "rename-batch", "watch", "scrub", "lint",
             };
             bool path_command = std::find(std::begin(kPathCommands), std::end(kPathCommands),
                                           command) != std::end(kPathCommands);
@@ -2120,7 +2122,10 @@ int main(int argc, char** argv) {
             int max_results = 0;
 
             std::vector<std::string> search_paths;
-            for (size_t i = 2; i < args.size(); ++i) {
+            // Scan every arg for flags, not just those after the
+            // query slot: `search --content needle <dir>` used to
+            // miss --content entirely and degrade to filename search.
+            for (size_t i = 1; i < args.size(); ++i) {
                 auto& a = args[i];
                 if (a == "--content") search_content = true;
                 else if (a == "--regex") use_regex = true;
@@ -2131,6 +2136,20 @@ int main(int argc, char** argv) {
                 else if (a.rfind("--max-results=", 0) == 0) max_results = std::stoi(a.substr(14));
             }
             for (size_t i = 2; i < pargs.size(); ++i) search_paths.push_back(pargs[i]);
+            {
+                // Search validates its own roots (the generic path
+                // guard exempts it: the first positional is a query).
+                size_t existing = 0;
+                for (const auto& sp : search_paths) {
+                    std::error_code ec;
+                    if (std::filesystem::exists(sp, ec)) ++existing;
+                    else std::cerr << "Warning: path does not exist: " << sp << "\n";
+                }
+                if (!search_paths.empty() && existing == 0) {
+                    std::cerr << "Error: no existing paths to search.\n";
+                    return 1;
+                }
+            }
             if (search_paths.empty()) search_paths.push_back(".");
 
             fo::core::SearchOptions opts;

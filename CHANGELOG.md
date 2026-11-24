@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.68] - 2026-11-24 — Search Grammar Works In Any Order
+
+### Fixed
+- **`search --content <q> <dir>` silently searched filenames**:
+  the flag scan started after the query slot, so flags placed
+  before the query were never parsed. All args are now scanned.
+  And a bare `search <q>` (current-directory search) was
+  rejected by the v6.5.55 missing-path guard, which mistook the
+  query for a path: search is exempt from that guard and
+  validates its own roots instead (warn per missing path, error
+  when none exist). New `SearchFlagsBeforeQueryAndBareQueryWork`
+  CLI test failed before, passes after. Suites: lean **67/67**;
+  other lanes rebuilt at this version.
+
 ## [6.5.67] - 2026-11-24 — Undo Restores The Whole Command
 
 ### Fixed

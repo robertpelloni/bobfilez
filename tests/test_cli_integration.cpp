@@ -261,6 +261,29 @@ void write_tone_wav(const std::filesystem::path& path) {
     }
 }
 
+TEST_F(CliFixture, SearchFlagsBeforeQueryAndBareQueryWork) {
+    // Two search-grammar breaks: (1) `--content` placed before
+    // the query was never parsed (the flag scan started after the
+    // query slot), silently degrading to a filename search;
+    // (2) a bare `search <query>` (search the current directory)
+    // was rejected by the missing-path guard, which mistook the
+    // query for a path.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "note.txt") << "a needle here"; }
+    auto db = (dir / "t.db").string();
+
+    auto flagged = run_cli("search --content needle --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(flagged.code, 0) << flagged.out;
+    EXPECT_NE(flagged.out.find("note.txt"), std::string::npos) << flagged.out;
+
+    std::filesystem::current_path(inbox);
+    auto bare = run_cli("search needle --content --db=" + db, dir);
+    std::filesystem::current_path(original_cwd);
+    ASSERT_EQ(bare.code, 0) << bare.out;
+    EXPECT_NE(bare.out.find("note.txt"), std::string::npos) << bare.out;
+}
+
 TEST_F(CliFixture, UndoRestoresWholeRenameBatch) {
     // One rename command touching two files used to need two
     // undo invocations (per-record undo). A single undo must
