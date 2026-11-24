@@ -27,7 +27,8 @@
 - [x] **Autonomous Sync**: Implement real-time file synchronization across nodes.
 - [x] **Distributed Coordination**: Integrate version tracking into the core Engine.
 - [x] **Robust Error Handling**: retry mechanism implemented for file operations.
-- [ ] **BobTK Go Port**: Stabilize the initial Go port scaffolding and documentation.
+- [ ] **BobTK Go Port**: PARKED (Nov 2026 scope cut — no Go port is
+  maintained in-tree; see ROADMAP scope-cut banner).
 - [x] **OmniUI Transition**: Transition the native GUI (`fo_gui`) to the **OmniUI** framework (Qt + JUCE + WASM).
 - [x] **Windows 11 Explorer Clone**: Implement a high-fidelity Windows 11 Explorer UI in QML/TypeScript.
 - [x] **`FileModel` Integration**: Bridge `fo_core` deduplication engine into the new Explorer UI.
@@ -37,7 +38,8 @@
 - [x] **Start Menu**: Design and implement the AI-powered Start Menu.
 - [x] **Desktop Environment**: Implement Desktop Icons and a System Dashboard.
 - [x] **Nexus Integration**: Implement the C++ master clock unification across all modules.
-- [ ] **Ultimate++ Refactoring**: Begin refactoring and planning to utilize Ultimate++'s utility toolkit classes across the core.
+- [ ] **Ultimate++ Refactoring**: PARKED (scope cut; core stays
+  C++20 std/vcpkg, no toolkit migration planned).
 - [x] **BobUI Web**: Update web UI to reflect the native functionality. — Done: single-page unified dashboard (A–E by value, ⓘ tooltips, activity log) + tray with Quit; wiring bugs fixed in v6.5.1 (history-undo-on-load, dead tray routes, clerk/oracle grammar, swallowed HTTP errors) with `node --test` coverage.
 - [x] **rebuild-cli**: rebuilt `fo_cli` from current source — DONE 2026-11-14: MinGW lane (`build-mingw/`, w64devkit gcc 15.2, BelowNormal) after restoring `libs/hash-library` + `libs/xxHash` pins; fresh binary reports **v6.5.1**, `clerk status` exit 0, dashboard health/scan/clerk/oracle/modules/history all HTTP 200. Server now prefers the newest-built CLI (`pickCli` mtime) so stale `build-msvc` (v6.3.0) no longer shadows it. C++ `fo_tests` could not be rebuilt (no `tests/` tree in this checkout); stale MSVC binary still passes 436/437 (1 skipped, no models).
 - [x] **Vector-Semantic Search**: Integrate local Clip/BERT for AI-driven file discovery in Explorer.
@@ -45,10 +47,14 @@
 ## In Progress
 - [x] **Advanced Media Analysis**: Video Perceptual Hashing and Audio Fingerprinting implemented.
 - [x] **Real-time File Watcher (Shadow Sorter)**: Kernel-level directory monitoring with debounce.
-- [ ] **Shell Replacement (`bob_shell`)**: Transforming the app into a full desktop environment.
-- [ ] **Java 21 Port Refinement**: Update the Java version with latest CLI parity for `stats` and `--mode`.
+- [ ] **Shell Replacement (`bob_shell`)**: PARKED (scope cut —
+  OmniShell QML stays a demo surface, not a product target).
+- [ ] **Java 21 Port Refinement**: PARKED (scope cut — the Java
+  port was removed from the tree in v6.0.7).
 - [ ] **Fuzz Testing Campaigns**: Continuous libFuzzer execution on the `RuleEngine`.
 - [ ] **Packaging**: AppImage and DMG generation for each build.
+  (Windows MSI is the live lane; AppImage/DMG need Linux/macOS
+  hosts — owner infrastructure, not scheduled here.)
 
 ## Bug Fixes
 - [ ] Resolve any remaining linker issues with `vcpkg` and cloud SDKs in non-standard environments.
