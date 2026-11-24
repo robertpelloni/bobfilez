@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.34 (Undo Skips Stale Records)
+
+## What landed (2026-11-23, continuation)
+- **Undo robustness**: `undo_last` walks up to 50 recent records and
+  undoes the first still-reversible one; stale records (destination
+  gone, move-back throws) are skipped instead of blocking the whole
+  journal. New CLI test. Lean ctest **39/39**.
+- Version **6.5.34**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT verdict on the fix reports still pending.
+
+---
 # Session Handoff - v6.5.33 (Deletes No Longer Block Undo)
 
 ## What landed (2026-11-23, continuation)

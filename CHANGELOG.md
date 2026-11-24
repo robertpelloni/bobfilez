@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.34] - 2026-11-23 — Undo Skips Stale Records
+
+### Fixed
+- **One stale record blocked every older undo**: `undo_last` only
+  ever tried the newest record; if its destination had been deleted
+  externally, it reported "No operations to undo" forever. It now
+  walks the recent journal newest-first and undoes the first record
+  that is still reversible. New `UndoSkipsStaleRecords` CLI test
+  (two organizes, newest destination removed, undo restores the
+  older file) failed before, passes after.
+  Suites: lean **39/39**; other lanes rebuilt at this version.
+
 ## [6.5.33] - 2026-11-23 — Deletes No Longer Block Undo
 
 ### Fixed

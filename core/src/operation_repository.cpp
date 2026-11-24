@@ -148,44 +148,42 @@ void OperationRepository::clear_old(int days) {
 }
 
 std::optional<OperationRecord> OperationRepository::undo_last() {
-    auto undoable = get_undoable(1);
-    if (undoable.empty()) {
-        return std::nullopt;
-    }
-
-    const auto& rec = undoable[0];
-    bool success = false;
-
-    try {
-        switch (rec.type) {
-            case OperationType::Move:
-            case OperationType::Rename:
-                // Move the file back
-                if (std::filesystem::exists(rec.dest_path)) {
-                    std::filesystem::rename(rec.dest_path, rec.source_path);
-                    success = true;
-                }
-                break;
-            case OperationType::Copy:
-                // Delete the copy
-                if (std::filesystem::exists(rec.dest_path)) {
-                    std::filesystem::remove(rec.dest_path);
-                    success = true;
-                }
-                break;
-            case OperationType::Delete:
-                // Cannot undo delete without backup
-                // In a full implementation, we'd restore from a trash/backup location
-                break;
+    // Walk recent records newest-first and undo the first one that is
+    // still reversible. A record whose destination vanished externally
+    // (or whose move-back fails) is stale: skipping it keeps one bad
+    // record from blocking every older undo forever.
+    for (const auto& rec : get_undoable(50)) {
+        bool success = false;
+        try {
+            switch (rec.type) {
+                case OperationType::Move:
+                case OperationType::Rename:
+                    // Move the file back
+                    if (std::filesystem::exists(rec.dest_path)) {
+                        std::filesystem::rename(rec.dest_path, rec.source_path);
+                        success = true;
+                    }
+                    break;
+                case OperationType::Copy:
+                    // Delete the copy
+                    if (std::filesystem::exists(rec.dest_path)) {
+                        std::filesystem::remove(rec.dest_path);
+                        success = true;
+                    }
+                    break;
+                case OperationType::Delete:
+                    // Cannot undo delete without backup (filtered out
+                    // by get_undoable; kept for exhaustiveness).
+                    break;
+            }
+        } catch (const std::exception&) {
+            continue; // stale record: try the next older one
         }
-    } catch (const std::exception&) {
-        // Undo failed
-        return std::nullopt;
-    }
 
-    if (success) {
-        mark_undone(rec.id);
-        return rec;
+        if (success) {
+            mark_undone(rec.id);
+            return rec;
+        }
     }
 
     return std::nullopt;

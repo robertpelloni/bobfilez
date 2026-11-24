@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace {
 
@@ -168,6 +169,32 @@ TEST_F(CliFixture, DeleteDoesNotBlockUndoOfMove) {
     auto undo = run_cli("undo --db=" + db, dir);
     ASSERT_EQ(undo.code, 0) << undo.out;
     EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+}
+
+TEST_F(CliFixture, UndoSkipsStaleRecords) {
+    // If the newest move's destination was deleted externally, undo
+    // must skip that stale record and undo the older move instead of
+    // reporting "No operations to undo" forever. Two runs separated
+    // by >1s so journal timestamps order unambiguously.
+    auto inbox_a = dir / "inbox-a";
+    auto inbox_b = dir / "inbox-b";
+    std::filesystem::create_directories(inbox_a);
+    std::filesystem::create_directories(inbox_b);
+    { std::ofstream(inbox_a / "first.txt") << "first"; }
+    { std::ofstream(inbox_b / "second.txt") << "second"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox_a.string() + "\"", dir).code, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+    ASSERT_EQ(run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox_b.string() + "\"", dir).code, 0);
+    ASSERT_TRUE(std::filesystem::exists(dir / "txt" / "first"));
+    ASSERT_TRUE(std::filesystem::exists(dir / "txt" / "second"));
+
+    std::filesystem::remove(dir / "txt" / "second");
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox_a / "first.txt")) << undo.out;
 }
 
 TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
