@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.26] - 2026-11-23 — Organize Reports Failed Moves
+
+### Fixed
+- **Organize lied about failed moves**: planned moves were listed
+  as done regardless of outcome and the exit code was always 0,
+  even when every move failed (found probing ChatGPT's
+  destructive-op interruption challenge). Only successful moves are
+  now listed; JSON gains `moved`/`failed` counts; any failed move
+  exits 1 so scripts and the dashboard bridge see the failure.
+  Successful moves remain individually journaled, so undo still
+  recovers exactly what actually moved. New
+  `OrganizeReportsFailureWhenMovesFail` test failed before, passes
+  after; manual partial-failure probe confirms the accounting.
+  Suites: lean **32/32**; other lanes rebuilt at this version.
+
 ## [6.5.25] - 2026-11-23 — Roast Fixes: Flow Failures, Stdout Banners, Doc Truth
 
 ### Fixed

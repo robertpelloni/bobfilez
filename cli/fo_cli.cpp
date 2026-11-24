@@ -1146,6 +1146,7 @@ int main(int argc, char** argv) {
             }
 
             std::vector<std::pair<std::string, std::string>> moves;
+            int failed_moves = 0;
 
             for (const auto& f : files) {
                 std::vector<std::string> tags;
@@ -1157,11 +1158,17 @@ int main(int argc, char** argv) {
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
-                    moves.push_back({f.uri, new_path.string()});
+                    if (dry_run) {
+                        moves.push_back({f.uri, new_path.string()});
+                    }
                     if (!dry_run) {
                         try {
-                            std::filesystem::create_directories(new_path.parent_path());
+                            if (!new_path.parent_path().empty()) {
+                                std::filesystem::create_directories(new_path.parent_path());
+                            }
                             std::filesystem::rename(f.uri, new_path);
+                            // Only successful moves are reported as moves.
+                            moves.push_back({f.uri, new_path.string()});
 
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
@@ -1174,6 +1181,7 @@ int main(int argc, char** argv) {
                             fo::core::make_audit_logger(engine.database())
                                 ->log("move", f.uri, new_path.string(), f.size, rec.file_hash);
                         } catch (const std::exception& e) {
+                            ++failed_moves;
                             std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
                         }
                     }
@@ -1183,6 +1191,8 @@ int main(int argc, char** argv) {
             if (format == "json") {
                 std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"total_files\": " << files.size()
+                          << ", \"moved\": " << (dry_run ? 0 : static_cast<int>(moves.size()))
+                          << ", \"failed\": " << failed_moves
                           << ", \"moves\": [\n";
                 for (size_t i = 0; i < moves.size(); ++i) {
                     std::cout << "    {\"source\": \"" << fo::core::Exporter::json_escape(moves[i].first) << "\""
@@ -1196,7 +1206,14 @@ int main(int argc, char** argv) {
                 for (const auto& m : moves) {
                     std::cout << m.first << " -> " << m.second << "\n";
                 }
+                if (failed_moves > 0) {
+                    std::cerr << failed_moves << " move(s) failed; "
+                              << moves.size() << " succeeded.\n";
+                }
             }
+            // A run where moves failed must not report success to
+            // scripts or the dashboard bridge.
+            if (failed_moves > 0) return 1;
         } else if (command == "delete-duplicates") {
             auto groups = engine.duplicate_repository().get_all_groups();
 

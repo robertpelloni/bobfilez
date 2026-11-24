@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.26 (Organize Reports Failed Moves)
+
+## What landed (2026-11-23, continuation)
+- **Organize failure honesty**: failed moves were reported as done
+  with exit 0. Now only successful moves are listed, JSON reports
+  `moved`/`failed`, any failure exits 1. Proven by new CLI test +
+  manual blocked-destination probe. Lean ctest **32/32**.
+- Roasts: Gemini + ChatGPT delivered (posted to their threads +
+  Muse thread; Muse's own roast pending). Fix reports posted
+  back to all three.
+- Version **6.5.26**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+
+---
 # Session Handoff - v6.5.25 (Roast Fixes)
 
 ## What landed (2026-11-23, continuation)

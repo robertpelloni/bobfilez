@@ -113,6 +113,24 @@ TEST_F(CliFixture, OrganizeThenUndoRestoresFile) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
 }
 
+TEST_F(CliFixture, OrganizeReportsFailureWhenMovesFail) {
+    // Every destination is under a regular file, so every move fails.
+    // Organize must say so (nonzero exit) and leave files in place;
+    // it used to exit 0 and list the planned moves as if they happened.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "aaa"; }
+    // Destinations are CWD-relative: rule "blocker/{name}" resolves
+    // under this regular file, so directory creation must fail.
+    { std::ofstream(dir / "blocker") << "not a directory"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    auto r = run_cli("organize --rule=blocker/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << r.out;
+}
+
 TEST_F(CliFixture, DeleteDuplicatesWritesAuditEntry) {
     auto dups = dir / "dups";
     std::filesystem::create_directories(dups);
