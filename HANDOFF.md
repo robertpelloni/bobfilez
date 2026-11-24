@@ -1,3 +1,17 @@
+# Session Handoff - v6.5.45 (Benchmark Executables Can Start)
+
+## What landed (2026-11-24, continuation)
+- **Benchmarks fixed**: `fo_benchmarks`/`fo_bench_dhash` got the
+  runtime-DLL post-build copy; suite runs with real numbers
+  (see CHANGELOG). Version **6.5.45**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.44 (MSI Packaging Uses VERSION.md)
 
 ## What landed (2026-11-24, continuation)

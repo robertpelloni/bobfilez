@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.45] - 2026-11-24 — Benchmark Executables Can Start
+
+### Fixed
+- **`fo_benchmarks.exe` died instantly (0xc0000135)**: the
+  benchmark executables link `fo_core`'s shared providers but,
+  unlike `fo_tests`, are never executed at build time, so their
+  missing runtime DLLs went unnoticed. They now get the same
+  exact-loader-set post-build copy (`tests/copy_runtime_deps.cmake`).
+  Verified: the suite lists and runs — ScanStd 1.8 ms/200 files,
+  fast64 4.3 GiB/s, BLAKE3 435 MiB/s, content search 54 ms,
+  std linter 38 ms (VS2019 lane, 0.2s min-time).
+
 ## [6.5.44] - 2026-11-24 — MSI Packaging Uses VERSION.md
 
 ### Fixed
