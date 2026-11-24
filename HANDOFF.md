@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.50 (Flow Actions Refuse to Overwrite)
+
+## What landed (2026-11-24, continuation)
+- **Flow overwrite guards**: `Action.MoveTo`/`Action.Rename` in
+  the OmniFlow engine refuse existing destinations (run fails,
+  bytes intact); CopyTo keeps explicit overwrite semantics.
+  Registry test added. Lean ctest **49/49**.
+- Version **6.5.50**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.49 (Stale-Authorization Guards)
 
 ## What landed (2026-11-24, continuation)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.50] - 2026-11-24 — Flow Actions Refuse to Overwrite
+
+### Fixed
+- **OmniFlow MoveTo/Rename silently overwrote destinations**:
+  the same MSVC-rename-replaces hazard fixed for the CLI in
+  v6.5.29 lived on in `execute_action`. Both actions now fail
+  (which, since v6.5.25, fails the run) when the destination
+  exists, leaving both files' bytes intact. `Action.CopyTo`
+  keeps its explicit `overwrite_existing` semantics. New
+  `FlowMoveToRefusesExistingDestination` test failed before,
+  passes after. Suites: lean **49/49**; other lanes rebuilt.
+
 ## [6.5.49] - 2026-11-24 — Stale-Authorization Guards (Reviewers' Challenge)
 
 ### Fixed

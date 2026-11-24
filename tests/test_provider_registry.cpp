@@ -111,6 +111,39 @@ TEST_F(RegistryFixture, FlowFailurePropagates) {
     std::filesystem::remove_all(dir, ec);
 }
 
+TEST_F(RegistryFixture, FlowMoveToRefusesExistingDestination) {
+    // Action.MoveTo must not silently overwrite an existing file at
+    // the destination (MSVC rename replaces). The run fails and both
+    // files keep their bytes.
+    auto flow = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
+    ASSERT_NE(flow, nullptr);
+    const auto dir = std::filesystem::temp_directory_path() /
+                     ("bobfilez-flow-guard-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+    std::filesystem::create_directories(dir / "dest");
+    const auto payload = dir / "report.txt";
+    { std::ofstream(payload) << "new-bytes"; }
+    { std::ofstream(dir / "dest" / "report.txt") << "old-bytes"; }
+
+    fo::core::Workflow wf;
+    wf.id = "test-flow-guard";
+    wf.name = "Guarded move";
+    wf.is_active = true;
+    wf.nodes.push_back({"t1", "Trigger.Manual", fo::core::FlowNodeType::Trigger, {}});
+    wf.nodes.push_back({"a1", "Action.MoveTo", fo::core::FlowNodeType::Action,
+                        {{"target_dir", (dir / "dest").string()}}});
+    wf.connections.push_back({"t1", "out", "a1", "in"});
+    flow->register_workflow(wf);
+
+    EXPECT_FALSE(flow->execute_workflow("test-flow-guard", payload));
+    EXPECT_TRUE(std::filesystem::exists(payload));
+    std::ifstream in(dir / "dest" / "report.txt");
+    std::stringstream ss;
+    ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "old-bytes");
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+}
+
 TEST_F(RegistryFixture, SyncStatusUnknownWithoutActivity) {
     // A fresh sync service used to unconditionally report
     // "In Sync: Yes". With nothing tracked it must say unknown.

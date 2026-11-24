@@ -145,6 +145,9 @@ public:
             if (it != node.config.end() && std::filesystem::exists(payload)) {
                 try {
                     auto dest = std::filesystem::path(it->second) / payload.filename();
+                    // Never silently overwrite an existing destination
+                    // (MSVC rename replaces); fail the action instead.
+                    if (std::filesystem::exists(dest)) return false;
                     std::filesystem::create_directories(it->second);
                     std::filesystem::rename(payload, dest);
                     return true;
@@ -173,6 +176,7 @@ public:
                 try {
                     auto new_name = it->second;
                     auto dest = payload.parent_path() / new_name;
+                    if (std::filesystem::exists(dest)) return false;
                     std::filesystem::rename(payload, dest);
                     return true;
                 } catch (...) { return false; }
