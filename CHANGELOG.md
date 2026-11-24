@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.42] - 2026-11-23 — Fuzz Lane Builds; 14.5M-Run Campaign Clean
+
+### Fixed
+- **`scripts/build_fuzzer.bat` could not configure**: it never
+  disabled `FO_BUILD_OMNI` (default ON), whose BobUI/Qt probe
+  fails configuration on this host before the fuzzer target is
+  reached. The script now passes `-DFO_BUILD_OMNI=OFF`
+  (wiring-pinned).
+
+### Verified
+- **RuleEngine fuzz campaign**: `fuzz_rule_engine` built with
+  MSVC `/fsanitize=fuzzer` and ran **14,525,854 inputs in 61s**
+  (238k exec/s, seeded with real templates) with no crash or
+  sanitizer finding.
+- Qt demo rebuilt + JUCE demo launch-verified at v6.5.41 code.
+  Suites: lean **44/44**, JUCE **41/41**, MSVC **44/44**,
+  wiring **22/22**; lanes rebuilt at this version for parity.
+
 ## [6.5.41] - 2026-11-23 — Tray Restart Race and Double-Spawn Fixed
 
 ### Fixed

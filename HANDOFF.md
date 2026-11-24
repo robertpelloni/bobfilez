@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.42 (Fuzz Lane Builds; Campaign Clean)
+
+## What landed (2026-11-23, continuation)
+- **Fuzz lane fixed**: `build_fuzzer.bat` now disables the
+  default-ON Omni shell that broke its configure. 60s libFuzzer
+  campaign on RuleEngine templates: 14.5M runs, no crash.
+- JUCE + Qt demos launch-verified at current core. Wiring **22/22**.
+- Version **6.5.42**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.41 (Tray Restart Race Fixed)
 
 ## What landed (2026-11-23, continuation)

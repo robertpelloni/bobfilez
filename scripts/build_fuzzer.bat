@@ -23,7 +23,7 @@ echo [INFO] Initializing environment...
 call "%VCVARS%"
 
 echo [INFO] Running CMake Configure for Fuzzers...
-cmake -S . -B build_fuzz -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_CLI=OFF -DFO_BUILD_BENCH=OFF -DFO_BUILD_TESTS=OFF -DFO_BUILD_FUZZERS=ON
+cmake -S . -B build_fuzz -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -DFO_BUILD_GUI=OFF -DFO_BUILD_OMNI=OFF -DFO_BUILD_CLI=OFF -DFO_BUILD_BENCH=OFF -DFO_BUILD_TESTS=OFF -DFO_BUILD_FUZZERS=ON
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] CMake Configure failed with code %ERRORLEVEL%
     exit /b %ERRORLEVEL%

@@ -17,6 +17,14 @@ test('tray polls the real health/quit routes', () => {
   assert.doesNotMatch(tray, /api\("\/quit"/);
 });
 
+test('fuzzer script disables the default-on Omni shell', () => {
+  const bat = fs.readFileSync(path.join(root, '..', 'scripts', 'build_fuzzer.bat'), 'utf8');
+  // FO_BUILD_OMNI defaults ON and its BobUI/Qt probe fails any
+  // configure on this host; the fuzz lane must opt out explicitly.
+  assert.match(bat, /FO_BUILD_OMNI=OFF/);
+  assert.match(bat, /FO_BUILD_FUZZERS=ON/);
+});
+
 test('tray cannot double-spawn or race the port on restart', () => {
   const tray = read('tray.py');
   // An externally started server must not get a duplicate spawn
