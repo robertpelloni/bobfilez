@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.5.74] - 2026-11-24 — Root Hygiene + Copy-Undo Guard (Claude Round 3)
+
+### Fixed
+- **Root clutter untracked** (Muse verified on main): release
+  zips, `.bak` files, a 126 MB AppImage, build logs, agent
+  session files, and the live `fo.db`/`index.db`/`metamcp.db`
+  databases were tracked in git. They are now `git rm --cached`
+  (files stay on disk) with matching `.gitignore` rules.
+  History is deliberately NOT rewritten; old copies remain in
+  prior commits — a history purge is a separate owner decision.
+- **README hardcoded stale test counts** (28/25/18 from Nov 17):
+  replaced with the commands to run; counts live in this file.
+- **Copy undo deleted edited copies**: same-size edits slipped
+  past the size check; a copy whose mtime postdates its journal
+  entry is now refused. Moved-but-unjournaled residue (journal
+  failure + rollback failure) is also appended to
+  `<db>.residue.log`, not just stderr. The organize→undo
+  invariant now includes a CJK directory on the path.
+  Suites: lean **79/79**; other lanes rebuilt at this version.
+
 ## [6.5.73] - 2026-11-24 — Atomic Batch IDs, Journal Rollback, CJK Names
 
 ### Fixed

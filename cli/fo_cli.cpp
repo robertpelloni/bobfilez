@@ -78,6 +78,18 @@ static void write_watch_status(long long started, const std::vector<std::string>
     out << "]}";
 }
 
+// Durable residue record for moved-but-unjournaled files (journal
+// write failed AND rollback failed). Appended next to the database
+// so the residue survives the session and can be reconciled by
+// hand; stderr alone evaporates (Muse review).
+static void record_journal_residue(const std::string& db_path, const std::string& src,
+                                   const std::string& dst, const std::string& why) {
+    try {
+        std::ofstream out(db_path + ".residue.log", std::ios::app);
+        out << src << " -> " << dst << " (" << why << ")\n";
+    } catch (...) {}
+}
+
 // Simple glob matching (supports * and ? wildcards against filename only)
 static bool glob_match(const std::string& pattern, const std::string& text) {
     size_t pi = 0, ti = 0;
@@ -1380,6 +1392,9 @@ int main(int argc, char** argv) {
                                               << " but could not be journaled (" << je.what()
                                               << ") or rolled back (" << re.what()
                                               << "). Undo will not know about this file.\n";
+                                    record_journal_residue(cfg.db_path, f.uri, new_path.string(),
+                                        std::string("journal failed: ") + je.what() +
+                                        "; rollback failed: " + re.what());
                                 }
                                 continue;
                             }
@@ -1664,6 +1679,9 @@ int main(int argc, char** argv) {
                                               << " but could not be journaled (" << je.what()
                                               << ") or rolled back (" << re.what()
                                               << "). Undo will not know about this file.\n";
+                                    record_journal_residue(cfg.db_path, f.uri, new_path.string(),
+                                        std::string("journal failed: ") + je.what() +
+                                        "; rollback failed: " + re.what());
                                 }
                                 continue;
                             }

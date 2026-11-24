@@ -200,6 +200,23 @@ TEST_F(OperationFixture, GetByIdFindsOldRecords) {
     EXPECT_EQ(found->id, first_id);
 }
 
+TEST_F(OperationFixture, CopyUndoRefusesCopyEditedAfterCopying) {
+    // Muse review: same-size edits slip past the size check,
+    // and Copy undo deletes the destination. A copy whose mtime
+    // postdates the journal entry must be refused.
+    auto dst = dir / "copy.txt";
+    { std::ofstream(dst) << "abc"; }
+    auto rec = record(fo::core::OperationType::Copy, (dir / "src.txt").string(), dst.string());
+    rec.timestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
+    repo->log_operation(rec);
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.undone.empty());
+    ASSERT_EQ(outcome.skipped.size(), 1u);
+    EXPECT_NE(outcome.skipped[0].second.find("modified after"), std::string::npos);
+    EXPECT_TRUE(std::filesystem::exists(dst));
+}
+
 TEST_F(OperationFixture, BatchIdsAreUniqueAcrossInterleavedAllocations) {
     // Muse review: allocate_batch_id was MAX+1 with no
     // transaction, so two invocations allocating before either

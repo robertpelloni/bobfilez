@@ -243,6 +243,19 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     std::filesystem::file_size(dest, ec) != static_cast<std::uintmax_t>(rec.file_size)) {
                     return "file changed since the operation (size differs)";
                 }
+                // Same-size edits are invisible to the size check,
+                // and Copy undo DELETES the destination: refuse
+                // when the copy's mtime postdates the journal
+                // entry (rename-back preserves mtime, so this
+                // guard is Copy-only).
+                std::error_code mec;
+                auto mt = std::filesystem::last_write_time(dest, mec);
+                if (!mec) {
+                    auto mt_sys = std::chrono::clock_cast<std::chrono::system_clock>(mt);
+                    if (mt_sys > rec.timestamp + std::chrono::seconds(2)) {
+                        return "file changed since the operation (modified after it was copied)";
+                    }
+                }
                 std::filesystem::remove(dest);
                 return std::nullopt;
             }

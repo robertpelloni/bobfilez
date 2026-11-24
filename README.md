@@ -27,11 +27,15 @@ OmniOracle is a **scaffold, not a working RAG assistant**: as of v6.5.21 it
 says so plainly instead of fabricating answers with invented citations.
 No model or index is wired up yet.
 
-## Tests (Nov 17, 2026)
+## Tests
 
-- Lean ctest: **28/28**
-- JUCE-tree ctest: **25/25**
-- Dashboard wiring: **18/18**
+Counts change every release, so they are not hardcoded here
+(they live in `CHANGELOG.md` per version). Run them yourself:
+
+- Lean ctest: `ctest --test-dir build-lean`
+- JUCE-tree ctest: `ctest --test-dir build-juce-demo`
+- MSVC ctest: `ctest --test-dir build-msvc`
+- Dashboard wiring: `node --test bobui_web/test/`
 
 ## What is NOT built / parked
 

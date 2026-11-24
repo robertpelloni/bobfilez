@@ -385,3 +385,28 @@ build-btk/
 build-headless/
 undefined/
 {extension}/
+
+# Root runtime/state artifacts (regenerable scan DBs, release
+# leftovers, build logs, agent session state). Several were swept
+# into tracking by automation; untracked in v6.5.74 (Muse review)
+# — files stay on disk, history is NOT rewritten, so old copies
+# remain reachable in prior commits.
+/fo.db
+/fo.db-wal
+/fo.db-shm
+/fo_sync.db
+/index.db
+/metamcp.db
+/test_incremental.db
+/*.zip
+/*.AppImage
+/*.bak
+/*.bak2
+/build_log*.txt
+/build_fuzz_log.txt
+/fuzzer_gcc_output.txt
+/.build_success
+/.tormentnexus_startup_marker
+/.hypercode-session.json
+/.tormentnexus-session.json
+/aider.save

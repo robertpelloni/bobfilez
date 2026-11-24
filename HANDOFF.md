@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.74 (Root Hygiene + Copy-Undo Guard)
+
+## What landed (2026-11-24, continuation)
+- **Muse round 3 acted on**: 18 root clutter files untracked
+  (+ ignore rules; history intentionally untouched — purge is
+  an owner call since the DBs sit in public history); README
+  test counts replaced with run-commands; Copy undo refuses
+  copies modified after copying (mtime vs journal timestamp);
+  journal residue appended to `<db>.residue.log`; CJK directory
+  added to the undo invariant. Lean ctest **79/79**.
+- Version **6.5.74**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- History purge decision for root DBs in old commits (owner).
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 4 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.73 (Atomic Batch IDs, Journal Rollback, CJK)
 
 ## What landed (2026-11-24, continuation)

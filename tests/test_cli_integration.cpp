@@ -347,6 +347,9 @@ TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
     // CJK is outside cp1252: if the path plumbing ANSI-mangles
     // names, this file's round-trip breaks visibly (Muse review).
     { std::ofstream(inbox / L"\x4e2d\x6587\x6587\x4ef6.txt") << "cjk"; }
+    // And a CJK directory on the path itself, not just a filename.
+    std::filesystem::create_directories(inbox / L"\x4e2d\x6587\x76ee\x5f55");
+    { std::ofstream(inbox / L"\x4e2d\x6587\x76ee\x5f55" / "inner.txt") << "inner"; }
     auto db = (dir / "t.db").string();
 
     auto snapshot = [&]() {
@@ -365,7 +368,7 @@ TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
         return files;
     };
     auto before = snapshot();
-    ASSERT_EQ(before.size(), 4u);
+    ASSERT_EQ(before.size(), 5u);
 
     std::filesystem::current_path(dir);
     auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);
