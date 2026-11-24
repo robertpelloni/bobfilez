@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.37 (Whole-Word Content Search Honored)
+
+## What landed (2026-11-23, continuation)
+- **Whole-word content search fixed**: literal mode ignored
+  `content_whole_word` entirely. Boundary-scanning literal match
+  added; CLI test pins "wor" ≠ "word", "word" matches.
+  Lean ctest **41/41**.
+- Version **6.5.37**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.36 (Vault Writes Are Atomic)
 
 ## What landed (2026-11-23, continuation)

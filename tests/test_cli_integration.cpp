@@ -316,6 +316,26 @@ TEST_F(CliFixture, RenameReportsFailureWhenDestDirMissing) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "old.txt")) << r.out;
 }
 
+TEST_F(CliFixture, SearchWholeWordContentRespected) {
+    // --whole-word was silently ignored for literal content search
+    // (only the regex path honored it): "wor" must not match "word".
+    auto inbox = dir / "docs";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "the word is here"; }
+    auto db = (dir / "t.db").string();
+
+    auto partial = run_cli("search wor --content --whole-word --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(partial.code, 0) << partial.out;
+    EXPECT_NE(partial.out.find("file(s) found"), std::string::npos) << partial.out;
+    EXPECT_EQ(partial.out.find("a.txt"), std::string::npos) << partial.out;
+
+    auto whole = run_cli("search word --content --whole-word --db=" + db +
+                         " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(whole.code, 0) << whole.out;
+    EXPECT_NE(whole.out.find("a.txt"), std::string::npos) << whole.out;
+}
+
 TEST_F(CliFixture, RenameBatchReportsFailureOnCollision) {
     // Renaming onto an existing filename would silently overwrite it
     // (MSVC rename replaces); the batch must refuse and exit nonzero.

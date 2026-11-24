@@ -162,10 +162,31 @@ std::vector<ContentMatch> SearchEngine::search_content(const std::filesystem::pa
         size_t match_len = 0;
 
         if (opts.content_match_mode == SearchOptions::MatchMode::Literal) {
-            match_pos = search_line.find(q);
-            if (match_pos != std::string::npos) {
-                matched = true;
-                match_len = q.length();
+            // Honor content_whole_word in literal mode too (only the
+            // regex path embedded \b, so --whole-word was silently
+            // ignored for the default literal content search). Scan
+            // occurrences until one sits on word boundaries.
+            auto is_word_char = [](char c) {
+                return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+            };
+            size_t search_from = 0;
+            while (search_from <= search_line.size()) {
+                size_t pos = search_line.find(q, search_from);
+                if (pos == std::string::npos) break;
+                bool boundary_ok = true;
+                if (opts.content_whole_word) {
+                    bool left_ok = (pos == 0 || !is_word_char(search_line[pos - 1]));
+                    bool right_ok = (pos + q.length() == search_line.length() ||
+                                     !is_word_char(search_line[pos + q.length()]));
+                    boundary_ok = left_ok && right_ok;
+                }
+                if (boundary_ok) {
+                    matched = true;
+                    match_pos = pos;
+                    match_len = q.length();
+                    break;
+                }
+                search_from = pos + 1;
             }
         } else if (opts.content_match_mode == SearchOptions::MatchMode::Regex) {
             std::smatch sm;

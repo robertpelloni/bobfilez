@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.37] - 2026-11-23 — Whole-Word Content Search Honored
+
+### Fixed
+- **`--whole-word` was silently ignored** for literal content
+  search (the default): only the regex path embedded `\b`, so
+  `search wor --content --whole-word` matched "word". Literal
+  matching now scans occurrences until one sits on word
+  boundaries. New `SearchWholeWordContentRespected` CLI test
+  failed before, passes after. Suites: lean **41/41**; other lanes
+  rebuilt at this version.
+
 ## [6.5.36] - 2026-11-23 — Vault Writes Are Atomic
 
 ### Fixed
