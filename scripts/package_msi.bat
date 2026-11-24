@@ -1,6 +1,10 @@
 @echo off
 setlocal
 
+REM Version truth is VERSION.md (single source; never hardcode here).
+set /p VERSION=<VERSION.md
+set VERSION=%VERSION: =%
+
 echo [INFO] Checking for WiX Toolset...
 where candle >nul 2>nul
 if %ERRORLEVEL% EQU 0 goto :wix_found
@@ -22,19 +26,25 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-if not exist "build\cli\fo_cli.exe" (
-    echo [ERROR] fo_cli.exe not found. Please build the project first.
+REM Find a built CLI in any current lane (newest layout first).
+set "CLI="
+for %%D in (build-msvc build-lean build-juce-demo build) do (
+    if not defined CLI if exist "%%D\cli\fo_cli.exe" set "CLI=%CD%\%%D\cli\fo_cli.exe"
+)
+if not defined CLI (
+    echo [ERROR] fo_cli.exe not found in build-msvc/build-lean/build-juce-demo/build. Please build the project first.
     exit /b 1
 )
+echo [INFO] Packaging %CLI% as version %VERSION%
 
 if not exist "wix\output" mkdir wix\output
 
 echo [INFO] Compiling WiX project...
-candle wix\main.wxs -out wix\output\main.wixobj -arch x64
+candle wix\main.wxs -out wix\output\main.wixobj -arch x64 -dProductVersion=%VERSION% -dCliSource="%CLI%"
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
 echo [INFO] Linking MSI...
-light wix\output\main.wixobj -out filez-2.2.0-win64.msi -b wix
+light wix\output\main.wixobj -out filez-%VERSION%-win64.msi -b wix
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
-echo [SUCCESS] MSI package created: filez-2.2.0-win64.msi
+echo [SUCCESS] MSI package created: filez-%VERSION%-win64.msi

@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.44 (MSI Packaging Uses VERSION.md)
+
+## What landed (2026-11-24, continuation)
+- **MSI lane parameterized** on `VERSION.md` + current build lanes
+  (was hardcoded 2.2.1/2.2.0 and the dead `build/` tree). WiX is
+  not installed here, so only the script logic is verified.
+- Version **6.5.44**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.43 (Persona Example Rules Actually Load)
 
 ## What landed (2026-11-24, continuation)

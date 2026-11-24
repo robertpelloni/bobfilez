@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.44] - 2026-11-24 — MSI Packaging Uses VERSION.md
+
+### Fixed
+- **MSI lane hardcoded ancient versions**: `wix/main.wxs` carried
+  `Version="2.2.1"`, the script named its output
+  `filez-2.2.0-win64.msi`, and both expected the legacy `build/`
+  tree. The template now takes `$(var.ProductVersion)` and
+  `$(var.CliSource)`; `package_msi.bat` reads `VERSION.md` and
+  finds the CLI in any current lane (build-msvc/lean/juce/build).
+  Wiring-pinned (23/23). WiX is not installed on this host, so the
+  script's honest "WiX not found" abort is the verified behavior
+  here; an actual `.msi` build needs WiX v3.11.
+
 ## [6.5.43] - 2026-11-24 — Persona Example Rules Actually Load
 
 ### Fixed

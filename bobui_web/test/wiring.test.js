@@ -17,6 +17,18 @@ test('tray polls the real health/quit routes', () => {
   assert.doesNotMatch(tray, /api\("\/quit"/);
 });
 
+test('MSI packaging takes its version from VERSION.md', () => {
+  const bat = fs.readFileSync(path.join(root, '..', 'scripts', 'package_msi.bat'), 'utf8');
+  const wxs = fs.readFileSync(path.join(root, '..', 'wix', 'main.wxs'), 'utf8');
+  // Version truth is VERSION.md; the .wxs used to hardcode 2.2.1 and
+  // the script named the output 2.2.0 from a legacy build/ tree.
+  assert.match(bat, /VERSION\.md/);
+  assert.match(bat, /ProductVersion=%VERSION%/);
+  assert.match(bat, /filez-%VERSION%-win64\.msi/);
+  assert.match(wxs, /Version="\$\(var\.ProductVersion\)"/);
+  assert.doesNotMatch(wxs, /Version="2\./);
+});
+
 test('fuzzer script disables the default-on Omni shell', () => {
   const bat = fs.readFileSync(path.join(root, '..', 'scripts', 'build_fuzzer.bat'), 'utf8');
   // FO_BUILD_OMNI defaults ON and its BobUI/Qt probe fails any
