@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.30] - 2026-11-23 — Vault Lock Warning; Watcher Re-Verified
+
+### Fixed
+- **Vault card hid a destructive detail**: `VaultManager::lock_file`
+  deletes the plaintext original after a successful encrypt (by
+  design for a vault), but the Lock button said only "Encrypts the
+  file into the vault". The button and field tooltips now state the
+  original is removed and unlock restores it (pinned by a wiring
+  test, 19/19).
+
+### Verified
+- **Watcher end-to-end at this version**: `fo_cli watch` heartbeat
+  goes from 0 to 2 events on file creation, `watch-status` and
+  `/api/watch/status` agree, watcher stopped cleanly afterward.
+
 ## [6.5.29] - 2026-11-23 — Rename Safety: No Silent Overwrites, Honest Failures
 
 ### Fixed

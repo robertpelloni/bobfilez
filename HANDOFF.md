@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.30 (Vault Lock Warning; Watcher Verified)
+
+## What landed (2026-11-23, continuation)
+- **Vault lock warning**: dashboard now states lock removes the
+  plaintext original (unlock restores), pinned by wiring test 19/19.
+- **Watcher re-verified live**: heartbeat + event counting + HTTP
+  bridge at this version.
+- Version **6.5.30**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT reply to the fix report still pending.
+
+---
 # Session Handoff - v6.5.29 (Rename Safety)
 
 ## What landed (2026-11-23, continuation)

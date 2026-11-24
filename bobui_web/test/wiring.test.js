@@ -36,6 +36,13 @@ test('ignore card can add and remove rules', () => {
   assert.match(srv, /app\.post\('\/api\/ignore\/remove'/);
 });
 
+test('vault card warns that lock removes the original', () => {
+  const html = read('public/unified.html');
+  // VaultManager::lock_file deletes the plaintext source after a
+  // successful encrypt; the UI must say so before the click.
+  assert.match(html, /REMOVES the original plaintext/);
+});
+
 test('clerk/oracle bridges match the real CLI grammar', () => {
   const srv = read('server.js');
   assert.match(srv, /\['clerk', 'status'\]/);
