@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.29] - 2026-11-23 — Rename Safety: No Silent Overwrites, Honest Failures
+
+### Fixed
+- **Renames could silently overwrite files**: MSVC's
+  `std::filesystem::rename` replaces an existing destination, so
+  organize, rename, and rename-batch could destroy a file that
+  happened to sit at the computed destination. All three now refuse
+  existing destinations and count them as failures.
+- **Rename/rename-batch reported false success** like organize did:
+  planned renames were listed regardless of outcome and the exit
+  code was always 0. Only successful renames are listed now, JSON
+  carries `renamed`/`failed` (rename), failures exit 1, and both
+  handlers skip the live database files. Two new CLI tests
+  (`RenameReportsFailureWhenDestDirMissing`,
+  `RenameBatchReportsFailureOnCollision`) failed before, pass after.
+  Suites: lean **36/36**; other lanes rebuilt at this version.
+
 ## [6.5.28] - 2026-11-23 — Delete-Duplicates Scoped and Honest
 
 ### Fixed

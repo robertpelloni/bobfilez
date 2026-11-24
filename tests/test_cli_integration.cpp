@@ -234,6 +234,38 @@ TEST_F(CliFixture, RenameBatchDryRunFindsMatches) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "IMG_001.txt"));
 }
 
+TEST_F(CliFixture, RenameReportsFailureWhenDestDirMissing) {
+    // The destination directory does not exist and rename does not
+    // create it: the rename fails, so the run must exit nonzero and
+    // leave the file in place. It used to exit 0 and list the rename
+    // as if it had happened.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "old.txt") << "rename me"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    auto r = run_cli("rename --pattern=no-such-dir/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "old.txt")) << r.out;
+}
+
+TEST_F(CliFixture, RenameBatchReportsFailureOnCollision) {
+    // Renaming onto an existing filename would silently overwrite it
+    // (MSVC rename replaces); the batch must refuse and exit nonzero.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "IMG_1.txt") << "x"; }
+    { std::ofstream(inbox / "Photo_1.txt") << "y"; }
+    auto db = (dir / "t.db").string();
+
+    auto r = run_cli("rename-batch --find=IMG_ --replace=Photo_ --db=" + db +
+                     " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "IMG_1.txt")) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "Photo_1.txt")) << r.out;
+}
+
 TEST_F(CliFixture, DeleteDuplicatesScopedToGivenRoot) {
     // delete-duplicates must act only inside the folder it is given.
     // Groups in the DB come from the last `duplicates` run (here:

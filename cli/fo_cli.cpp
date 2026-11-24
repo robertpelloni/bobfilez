@@ -1182,6 +1182,11 @@ int main(int argc, char** argv) {
                             if (!new_path.parent_path().empty()) {
                                 std::filesystem::create_directories(new_path.parent_path());
                             }
+                            // MSVC's rename replaces existing files:
+                            // never silently overwrite a destination.
+                            if (std::filesystem::exists(new_path)) {
+                                throw std::runtime_error("destination exists: " + new_path.string());
+                            }
                             std::filesystem::rename(f.uri, new_path);
                             // Only successful moves are reported as moves.
                             moves.push_back({f.uri, new_path.string()});
@@ -1369,10 +1374,25 @@ int main(int argc, char** argv) {
             }
 
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
+            // Never rename our own live database files (see organize).
+            {
+                const auto db_abs = std::filesystem::absolute(engine.database().db_path());
+                auto is_own_db = [&](const std::string& uri) {
+                    std::error_code ec;
+                    auto p = std::filesystem::absolute(uri, ec);
+                    if (ec) return false;
+                    return p == db_abs || p == db_abs.string() + "-wal" ||
+                           p == db_abs.string() + "-shm" || p == db_abs.string() + "-journal";
+                };
+                files.erase(std::remove_if(files.begin(), files.end(),
+                                           [&](const fo::core::FileInfo& fi) { return is_own_db(fi.uri); }),
+                            files.end());
+            }
             fo::core::RuleEngine rule_engine;
             rule_engine.add_rule({"rename_rule", "", rename_pattern});
 
             std::vector<std::pair<std::string, std::string>> renames;
+            int failed_renames = 0;
 
             for (const auto& f : files) {
                 std::vector<std::string> tags;
@@ -1384,10 +1404,19 @@ int main(int argc, char** argv) {
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (new_path_opt && new_path_opt->string() != f.uri) {
                     auto new_path = *new_path_opt;
-                    renames.push_back({f.uri, new_path.string()});
+                    if (dry_run) {
+                        renames.push_back({f.uri, new_path.string()});
+                    }
                     if (!dry_run) {
                         try {
+                            // MSVC's rename replaces existing files:
+                            // never silently overwrite a destination.
+                            if (std::filesystem::exists(new_path)) {
+                                throw std::runtime_error("destination exists: " + new_path.string());
+                            }
                             std::filesystem::rename(f.uri, new_path);
+                            // Only successful renames are reported.
+                            renames.push_back({f.uri, new_path.string()});
                             fo::core::OperationRepository op_repo(engine.database());
                             fo::core::OperationRecord rec;
                             rec.timestamp = std::chrono::system_clock::now();
@@ -1399,6 +1428,7 @@ int main(int argc, char** argv) {
                             fo::core::make_audit_logger(engine.database())
                                 ->log("rename", f.uri, new_path.string(), f.size, rec.file_hash);
                         } catch (const std::exception& e) {
+                            ++failed_renames;
                             std::cerr << "Failed to rename " << f.uri << ": " << e.what() << "\n";
                         }
                     }
@@ -1409,6 +1439,8 @@ int main(int argc, char** argv) {
                 std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"pattern\": \"" << fo::core::Exporter::json_escape(rename_pattern) << "\""
                           << ", \"total_files\": " << files.size()
+                          << ", \"renamed\": " << (dry_run ? 0 : static_cast<int>(renames.size()))
+                          << ", \"failed\": " << failed_renames
                           << ", \"renames\": [\n";
                 for (size_t i = 0; i < renames.size(); ++i) {
                     std::cout << "    {\"source\": \"" << fo::core::Exporter::json_escape(renames[i].first) << "\""
@@ -1422,7 +1454,12 @@ int main(int argc, char** argv) {
                 for (const auto& r : renames) {
                     std::cout << r.first << " -> " << r.second << "\n";
                 }
+                if (failed_renames > 0) {
+                    std::cerr << failed_renames << " rename(s) failed; "
+                              << renames.size() << " succeeded.\n";
+                }
             }
+            if (failed_renames > 0) return 1;
 
         } else if (command == "stats") {
             auto files = engine.scan(roots, exts, follow_symlinks, prune);
@@ -1970,10 +2007,21 @@ int main(int argc, char** argv) {
             }
 
             int renamed_count = 0;
+            int failed_count = 0;
+            // Never rename our own live database files (see organize).
+            const auto db_abs = std::filesystem::absolute(engine.database().db_path());
+            auto is_own_db = [&](const std::filesystem::path& p) {
+                std::error_code ec2;
+                auto ap = std::filesystem::absolute(p, ec2);
+                if (ec2) return false;
+                return ap == db_abs || ap == db_abs.string() + "-wal" ||
+                       ap == db_abs.string() + "-shm" || ap == db_abs.string() + "-journal";
+            };
             for (auto& sp : paths) {
                 std::error_code ec;
                 for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
                     if (!entry.is_regular_file()) continue;
+                    if (is_own_db(entry.path())) continue;
 
                     if (!exts.empty()) {
                         auto e = entry.path().extension().string();
@@ -2003,12 +2051,19 @@ int main(int argc, char** argv) {
                         auto new_path = entry.path().parent_path() / new_name;
                         if (dry_run) {
                             std::cout << "[DRY] " << old_name << " -> " << new_name << "\n";
+                        } else if (std::filesystem::exists(new_path)) {
+                            // MSVC's rename replaces existing files:
+                            // never silently overwrite a destination.
+                            ++failed_count;
+                            std::cerr << "Failed: " << old_name
+                                      << ": destination exists: " << new_name << "\n";
                         } else {
                             std::filesystem::rename(entry.path(), new_path, ec);
                             if (!ec) {
                                 std::cout << old_name << " -> " << new_name << "\n";
                                 renamed_count++;
                             } else {
+                                ++failed_count;
                                 std::cerr << "Failed: " << old_name << ": " << ec.message() << "\n";
                             }
                         }
@@ -2016,6 +2071,10 @@ int main(int argc, char** argv) {
                 }
             }
             std::cerr << "\n" << renamed_count << " file(s) renamed\n";
+            if (failed_count > 0) {
+                std::cerr << failed_count << " file(s) failed to rename\n";
+                return 1;
+            }
 
         } else if (command == "watch") {
             // ─── Watch Command (Shadow Sorter) ──────────────────────────────

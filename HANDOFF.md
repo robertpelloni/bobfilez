@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.29 (Rename Safety)
+
+## What landed (2026-11-23, continuation)
+- **No silent overwrites**: organize/rename/rename-batch refuse
+  existing destinations (MSVC rename replaces). Rename handlers
+  also got the organize treatment: only successful renames are
+  reported, `renamed`/`failed` counts, exit 1 on failure, live-DB
+  files skipped. Two new CLI tests. Lean ctest **36/36**.
+- Version **6.5.29**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT reply to the fix report still pending.
+
+---
 # Session Handoff - v6.5.28 (Delete-Duplicates Scoped and Honest)
 
 ## What landed (2026-11-23, continuation)
