@@ -119,6 +119,10 @@ std::string RuleEngine::expand_template(const std::string& tmpl, const FileInfo&
     std::filesystem::path uri_path(file.uri);
     if (uri_path.has_extension()) {
         replace_all(result, "{ext}", uri_path.extension().string().substr(1));
+        // "{extension}" is the long form the dashboard and docs taught
+        // for years; without this alias it silently stayed a literal
+        // folder name in destinations.
+        replace_all(result, "{extension}", uri_path.extension().string().substr(1));
     }
     replace_all(result, "{name}", uri_path.stem().string());
     replace_all(result, "{parent}", uri_path.parent_path().string());

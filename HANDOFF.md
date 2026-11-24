@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.31 ({extension} Alias; Crash Consistency)
+
+## What landed (2026-11-23, continuation)
+- **`{extension}` alias**: dashboard taught a placeholder the
+  RuleEngine didn't know (literal `{extension}` folders). Aliased
+  to `{ext}`, card corrected, CLI test added. Lean **37/37**.
+- **Crash probe (ChatGPT challenge)**: killed organize mid-run on
+  600 files — 600/600 accounted for, audit chain verified, undo
+  works. Note: destinations are CWD-relative; undo needs same CWD.
+- HTTP smoke batch 2 all 200; `/api/quit` proven end-to-end
+  (server stops, restarted after).
+- Version **6.5.31**.
+
+## Still open (roast triage)
+- Version churn (a bump per fix) is a standing user rule, not a bug.
+- 173 submodule dirs: inventory/pruning is an owner decision.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast + ChatGPT verdict on the fix reports still pending.
+
+---
 # Session Handoff - v6.5.30 (Vault Lock Warning; Watcher Verified)
 
 ## What landed (2026-11-23, continuation)

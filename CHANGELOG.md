@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.31] - 2026-11-23 — {extension} Template Alias; Crash Consistency Proven
+
+### Fixed
+- **`{extension}` was a literal folder**: the dashboard taught
+  `{extension}/{year}/{name}` but the RuleEngine only knew `{ext}`,
+  so dashboard-guided organizes planned moves into a folder
+  literally named `{extension}`. `{extension}` is now an alias of
+  `{ext}`, the card teaches `{ext}` and lists all placeholders
+  (`{ext} {name} {parent} {year} {month} {day}`), and a CLI test
+  pins the expansion.
+
+### Verified (ChatGPT's "try to destroy it" challenge)
+- **Crash consistency**: `fo_cli organize` on 600 files was killed
+  mid-run; all 600 files existed exactly once afterward (364 at
+  source, 236 moved), the audit hash chain verified, and journal
+  undo restored a moved file. Caveat: organize destinations are
+  CWD-relative, so undo must run from the same working directory.
+  Suites: lean **37/37**; other lanes rebuilt at this version.
+
 ## [6.5.30] - 2026-11-23 — Vault Lock Warning; Watcher Re-Verified
 
 ### Fixed

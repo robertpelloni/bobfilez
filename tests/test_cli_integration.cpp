@@ -131,6 +131,21 @@ TEST_F(CliFixture, OrganizeReportsFailureWhenMovesFail) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << r.out;
 }
 
+TEST_F(CliFixture, OrganizeExtensionAliasExpands) {
+    // "{extension}" is the long form the dashboard taught; it must
+    // expand like {ext}, not become a literal "{extension}" folder.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "photo.txt") << "organize me"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(org.code, 0) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "photo")) << org.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "{extension}")) << org.out;
+}
+
 TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
     // The database may live inside the organized folder; organize must
     // never try to move its own live database (or its -wal/-shm).
