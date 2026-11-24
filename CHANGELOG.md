@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.5.36] - 2026-11-23 — Vault Writes Are Atomic
+
+### Fixed
+- **Failed unlock left garbage behind**: `decrypt_file` streamed
+  unauthenticated plaintext straight to the destination, so a wrong
+  password (GCM tag failure at the end) left a bogus "restored"
+  file. Encrypt and decrypt now write to a `.part` sibling and
+  rename into place only on success; failures remove the temp.
+  New `VaultWrongPasswordLeavesNoOutput` CLI test failed before,
+  passes after (right password still restores byte-identically).
+  Suites: lean **40/40**; other lanes rebuilt at this version.
+
 ## [6.5.35] - 2026-11-23 — Audit Tamper Evidence, Honestly Bounded
 
 ### Verified

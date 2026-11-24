@@ -356,6 +356,35 @@ TEST_F(CliFixture, DeleteDuplicatesScopedToGivenRoot) {
 }
 
 #ifdef FO_HAVE_OPENSSL
+TEST_F(CliFixture, VaultWrongPasswordLeavesNoOutput) {
+    // A failed decrypt must not leave a bogus "restored" file behind:
+    // decrypt_file streamed unauthenticated plaintext to the dest
+    // before the GCM tag check failed (wrong password).
+    auto vault = (dir / "vault").string();
+    auto src = dir / "secret.txt";
+    auto dst = dir / "restored.txt";
+    { std::ofstream(src) << "vault wrong-pass payload"; }
+
+    ASSERT_EQ(run_cli("vault-init " + vault + " right-pass", dir).code, 0);
+    ASSERT_EQ(run_cli("vault-lock " + vault + " right-pass \"" + src.string() + "\"", dir).code, 0);
+    auto list = run_cli("vault-list " + vault + " right-pass", dir);
+    ASSERT_EQ(list.code, 0) << list.out;
+    auto pos = list.out.find("vault_");
+    ASSERT_NE(pos, std::string::npos) << list.out;
+    auto id = list.out.substr(pos, list.out.find(' ', pos) - pos);
+
+    auto bad = run_cli("vault-unlock " + vault + " WRONG-pass " + id + " \"" + dst.string() + "\"", dir);
+    EXPECT_NE(bad.code, 0) << bad.out;
+    EXPECT_FALSE(std::filesystem::exists(dst)) << bad.out;
+
+    // The entry must still unlock with the right password afterward.
+    ASSERT_EQ(run_cli("vault-unlock " + vault + " right-pass " + id + " \"" + dst.string() + "\"", dir).code, 0);
+    std::ifstream in(dst);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "vault wrong-pass payload");
+}
+
 TEST_F(CliFixture, VaultRoundTripRestoresBytes) {
     auto vault = (dir / "vault").string();
     auto src = dir / "secret.txt";

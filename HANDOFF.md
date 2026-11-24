@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.36 (Vault Writes Are Atomic)
+
+## What landed (2026-11-23, continuation)
+- **Vault atomicity**: encrypt/decrypt write via `.part` temp +
+  rename on success; wrong-password unlock no longer leaves a
+  garbage output file. New CLI test. Lean ctest **40/40**.
+- Version **6.5.36**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.35 (Audit Tamper Evidence, Honestly Bounded)
 
 ## What landed (2026-11-23, continuation)

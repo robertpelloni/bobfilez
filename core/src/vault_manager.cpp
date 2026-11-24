@@ -60,32 +60,42 @@ bool VaultManager::encrypt_file(const std::filesystem::path& input, const std::f
     std::ifstream in(input, std::ios::binary);
     if (!in) return false;
 
-    std::ofstream out(output, std::ios::binary);
+    // Write to a temp sibling and rename into place only on success,
+    // so a failed encrypt never leaves a partial vault entry behind.
+    std::filesystem::path tmp = output;
+    tmp += ".part";
+    auto fail = [&]() {
+        std::error_code ec;
+        std::filesystem::remove(tmp, ec);
+        return false;
+    };
+
+    std::ofstream out(tmp, std::ios::binary);
     if (!out) return false;
 
     unsigned char salt[SALT_SIZE];
     unsigned char iv[GCM_IV_SIZE];
     unsigned char key[AES_256_KEY_SIZE];
 
-    if (RAND_bytes(salt, sizeof(salt)) != 1) return false;
-    if (RAND_bytes(iv, sizeof(iv)) != 1) return false;
+    if (RAND_bytes(salt, sizeof(salt)) != 1) return fail();
+    if (RAND_bytes(iv, sizeof(iv)) != 1) return fail();
 
-    if (!derive_key(password_, salt, key)) return false;
+    if (!derive_key(password_, salt, key)) return fail();
 
     out.write(reinterpret_cast<char*>(salt), sizeof(salt));
     out.write(reinterpret_cast<char*>(iv), sizeof(iv));
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return false;
+    if (!ctx) return fail();
 
     if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
 
     if (1 != EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
 
     unsigned char in_buf[CHUNK_SIZE];
@@ -95,25 +105,30 @@ bool VaultManager::encrypt_file(const std::filesystem::path& input, const std::f
     while (in.read(reinterpret_cast<char*>(in_buf), CHUNK_SIZE) || in.gcount() > 0) {
         if (1 != EVP_EncryptUpdate(ctx, out_buf, &out_len, in_buf, in.gcount())) {
             EVP_CIPHER_CTX_free(ctx);
-            return false;
+            return fail();
         }
         out.write(reinterpret_cast<char*>(out_buf), out_len);
     }
 
     if (1 != EVP_EncryptFinal_ex(ctx, out_buf, &out_len)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
     out.write(reinterpret_cast<char*>(out_buf), out_len);
 
     unsigned char tag[GCM_TAG_SIZE];
     if (1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, GCM_TAG_SIZE, tag)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
     out.write(reinterpret_cast<char*>(tag), sizeof(tag));
 
     EVP_CIPHER_CTX_free(ctx);
+    out.close();
+
+    std::error_code rec_ec;
+    std::filesystem::rename(tmp, output, rec_ec);
+    if (rec_ec) return fail();
 
     // Save metadata
     std::filesystem::path meta_path = output;
@@ -154,20 +169,32 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
 
     in.seekg(SALT_SIZE + GCM_IV_SIZE);
 
-    std::ofstream out(output, std::ios::binary);
+    // Decrypt to a temp sibling and rename into place only after the
+    // GCM tag verifies: the old code streamed unauthenticated
+    // plaintext straight to the destination, so a wrong password
+    // left a garbage "restored" file behind.
+    std::filesystem::path tmp = output;
+    tmp += ".part";
+    auto fail = [&]() {
+        std::error_code ec;
+        std::filesystem::remove(tmp, ec);
+        return false;
+    };
+
+    std::ofstream out(tmp, std::ios::binary);
     if (!out) return false;
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return false;
+    if (!ctx) return fail();
 
     if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
 
     if (1 != EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
 
     unsigned char in_buf[CHUNK_SIZE];
@@ -179,11 +206,11 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
         std::streamsize to_read = (remaining > static_cast<std::streampos>(CHUNK_SIZE)) ? CHUNK_SIZE : static_cast<std::streamsize>(remaining);
         if (!in.read(reinterpret_cast<char*>(in_buf), to_read)) {
              EVP_CIPHER_CTX_free(ctx);
-             return false;
+             return fail();
         }
         if (1 != EVP_DecryptUpdate(ctx, out_buf, &out_len, in_buf, to_read)) {
             EVP_CIPHER_CTX_free(ctx);
-            return false;
+            return fail();
         }
         out.write(reinterpret_cast<char*>(out_buf), out_len);
         remaining -= to_read;
@@ -191,7 +218,7 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
 
     if (1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, GCM_TAG_SIZE, tag)) {
         EVP_CIPHER_CTX_free(ctx);
-        return false;
+        return fail();
     }
 
     int ret = EVP_DecryptFinal_ex(ctx, out_buf, &out_len);
@@ -199,9 +226,14 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
 
     if (ret > 0) {
         out.write(reinterpret_cast<char*>(out_buf), out_len);
+        out.close();
+        std::error_code rec_ec;
+        std::filesystem::rename(tmp, output, rec_ec);
+        if (rec_ec) return fail();
         return true;
     } else {
-        return false; // Decryption failed (e.g. wrong password or corrupted data)
+        out.close();
+        return fail(); // Decryption failed (e.g. wrong password or corrupted data)
     }
 }
 
