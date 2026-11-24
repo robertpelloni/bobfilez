@@ -1309,6 +1309,10 @@ int main(int argc, char** argv) {
             }
 
             std::vector<std::pair<std::string, std::string>> moves;
+            // One journal batch for the whole command, so a single
+            // undo restores every move this invocation made.
+            fo::core::OperationRepository batch_repo(engine.database());
+            const int64_t op_batch_id = batch_repo.allocate_batch_id();
             int failed_moves = 0;
 
             for (const auto& f : files) {
@@ -1354,6 +1358,7 @@ int main(int argc, char** argv) {
                                 ? std::filesystem::absolute(f.uri).string() : f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
+                            rec.batch_id = op_batch_id;
                             op_repo.log_operation(rec);
                             fo::core::make_audit_logger(engine.database())
                                 ->log("move", f.uri, new_path.string(), f.size, rec.file_hash);
@@ -1415,6 +1420,8 @@ int main(int argc, char** argv) {
                 return false;
             };
 
+            fo::core::OperationRepository batch_repo(engine.database());
+            const int64_t op_batch_id = batch_repo.allocate_batch_id();
             int deleted_count = 0;
             int failed_count = 0;
             int skipped_count = 0;
@@ -1488,6 +1495,7 @@ int main(int argc, char** argv) {
                             rec.type = fo::core::OperationType::Delete;
                             rec.source_path = del.uri;
                             rec.file_size = del.size;
+                            rec.batch_id = op_batch_id;
                             op_repo.log_operation(rec);
                             fo::core::make_audit_logger(engine.database())
                                 ->log("delete", del.uri, "", del.size, rec.file_hash);
@@ -1570,6 +1578,8 @@ int main(int argc, char** argv) {
             rule_engine.add_rule({"rename_rule", "", rename_pattern});
 
             std::vector<std::pair<std::string, std::string>> renames;
+            fo::core::OperationRepository batch_repo(engine.database());
+            const int64_t op_batch_id = batch_repo.allocate_batch_id();
             int failed_renames = 0;
 
             for (const auto& f : files) {
@@ -1609,6 +1619,7 @@ int main(int argc, char** argv) {
                                 ? std::filesystem::absolute(f.uri).string() : f.uri;
                             rec.dest_path = new_path.string();
                             rec.file_size = f.size;
+                            rec.batch_id = op_batch_id;
                             op_repo.log_operation(rec);
                             fo::core::make_audit_logger(engine.database())
                                 ->log("rename", f.uri, new_path.string(), f.size, rec.file_hash);
@@ -1782,42 +1793,61 @@ int main(int argc, char** argv) {
 
         } else if (command == "undo") {
             fo::core::OperationRepository op_repo(engine.database());
-            auto undone = op_repo.undo_last();
+            // Undo restores the most recent command's whole batch
+            // (one rename/organize invocation = one undo), not just
+            // its newest file.
+            auto undone = op_repo.undo_last_batch();
+
+            auto type_name = [](fo::core::OperationType t) {
+                switch (t) {
+                    case fo::core::OperationType::Move: return "move";
+                    case fo::core::OperationType::Copy: return "copy";
+                    case fo::core::OperationType::Rename: return "rename";
+                    case fo::core::OperationType::Delete: return "delete";
+                }
+                return "unknown";
+            };
 
             if (format == "json") {
-                if (undone) {
-                    std::string type_str;
-                    switch (undone->type) {
-                        case fo::core::OperationType::Move: type_str = "move"; break;
-                        case fo::core::OperationType::Copy: type_str = "copy"; break;
-                        case fo::core::OperationType::Rename: type_str = "rename"; break;
-                        case fo::core::OperationType::Delete: type_str = "delete"; break;
-                    }
+                if (!undone.empty()) {
                     std::cout << "{\"success\": true"
-                              << ", \"type\": \"" << type_str << "\""
-                              << ", \"source\": \"" << fo::core::Exporter::json_escape(undone->source_path) << "\""
-                              << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone->dest_path) << "\""
-                              << "}\n";
+                              << ", \"count\": " << undone.size()
+                              << ", \"type\": \"" << type_name(undone[0].type) << "\""
+                              << ", \"source\": \"" << fo::core::Exporter::json_escape(undone[0].source_path) << "\""
+                              << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone[0].dest_path) << "\""
+                              << ", \"operations\": [";
+                    for (size_t i = 0; i < undone.size(); ++i) {
+                        if (i) std::cout << ", ";
+                        std::cout << "{\"type\": \"" << type_name(undone[i].type) << "\""
+                                  << ", \"source\": \"" << fo::core::Exporter::json_escape(undone[i].source_path) << "\""
+                                  << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone[i].dest_path) << "\"}";
+                    }
+                    std::cout << "]}\n";
                 } else {
                     std::cout << "{\"success\": false, \"message\": \"No operations to undo\"}\n";
                 }
-            } else if (undone) {
-                std::cout << "Undone: ";
-                switch (undone->type) {
-                    case fo::core::OperationType::Move:
-                        std::cout << "move " << undone->dest_path << " -> " << undone->source_path;
-                        break;
-                    case fo::core::OperationType::Copy:
-                        std::cout << "copy (deleted " << undone->dest_path << ")";
-                        break;
-                    case fo::core::OperationType::Rename:
-                        std::cout << "rename " << undone->dest_path << " -> " << undone->source_path;
-                        break;
-                    case fo::core::OperationType::Delete:
-                        std::cout << "delete (cannot restore)";
-                        break;
+            } else if (!undone.empty()) {
+                for (const auto& rec : undone) {
+                    std::cout << "Undone: ";
+                    switch (rec.type) {
+                        case fo::core::OperationType::Move:
+                            std::cout << "move " << rec.dest_path << " -> " << rec.source_path;
+                            break;
+                        case fo::core::OperationType::Copy:
+                            std::cout << "copy (deleted " << rec.dest_path << ")";
+                            break;
+                        case fo::core::OperationType::Rename:
+                            std::cout << "rename " << rec.dest_path << " -> " << rec.source_path;
+                            break;
+                        case fo::core::OperationType::Delete:
+                            std::cout << "delete (cannot restore)";
+                            break;
+                    }
+                    std::cout << "\n";
                 }
-                std::cout << "\n";
+                if (undone.size() > 1) {
+                    std::cout << "Undone " << undone.size() << " operations (last command batch).\n";
+                }
             } else {
                 std::cout << "No operations to undo.\n";
             }

@@ -70,6 +70,37 @@ TEST_F(OperationFixture, UndoRenameRestoresOriginalPath) {
     EXPECT_FALSE(std::filesystem::exists(dst));
 }
 
+TEST_F(OperationFixture, UndoLastBatchRestoresWholeBatch) {
+    // One command that renames several files journals them under
+    // one batch id; a single undo must restore the whole batch,
+    // not just the newest file.
+    auto batch = repo->allocate_batch_id();
+    auto mk = [&](const char* a, const char* b, int64_t bid) {
+        auto src = dir / a;
+        auto dst = dir / b;
+        { std::ofstream(src) << "abc"; }
+        std::filesystem::rename(src, dst);
+        auto rec = record(fo::core::OperationType::Rename, src.string(), dst.string());
+        rec.batch_id = bid;
+        repo->log_operation(rec);
+        return std::pair{src, dst};
+    };
+    auto older = mk("old1.txt", "old1-new.txt", batch);
+    auto p1 = mk("a.txt", "a-new.txt", batch + 1);
+    auto p2 = mk("b.txt", "b-new.txt", batch + 1);
+
+    auto undone = repo->undo_last_batch();
+    ASSERT_EQ(undone.size(), 2u);
+    EXPECT_TRUE(std::filesystem::exists(p1.first));
+    EXPECT_TRUE(std::filesystem::exists(p2.first));
+    EXPECT_TRUE(std::filesystem::exists(older.second)); // older batch untouched
+
+    auto undone2 = repo->undo_last_batch();
+    ASSERT_EQ(undone2.size(), 1u);
+    EXPECT_TRUE(std::filesystem::exists(older.first));
+    EXPECT_FALSE(repo->undo_last_batch().size() > 0);
+}
+
 TEST_F(OperationFixture, UndoWithEmptyJournalReturnsNullopt) {
     EXPECT_FALSE(repo->undo_last().has_value());
 }

@@ -26,6 +26,11 @@ struct OperationRecord {
     std::string file_hash;
     std::string status = "completed";
     bool undone = false;
+    // Command batch this record belongs to (Migration 8). Records
+    // from one multi-file command share a batch; 0 = legacy row,
+    // treated as its own batch. Last field on purpose: aggregate
+    // initializers elsewhere must not shift.
+    int64_t batch_id = 0;
 };
 
 class OperationRepository {
@@ -44,8 +49,17 @@ public:
     // Mark an operation as undone
     void mark_undone(int64_t id);
 
+    // Allocate a fresh batch id for one multi-file command.
+    int64_t allocate_batch_id();
+
     // Undo the most recent undoable operation
     std::optional<OperationRecord> undo_last();
+
+    // Undo every undoable record in the most recent batch (the
+    // batch of the newest undoable record), newest first. Stale
+    // records are skipped; a batch that yields nothing falls
+    // through to the next older batch, mirroring undo_last.
+    std::vector<OperationRecord> undo_last_batch();
 
     // Get operation by ID
     std::optional<OperationRecord> get_by_id(int64_t id);

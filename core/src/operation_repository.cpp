@@ -25,12 +25,23 @@ OperationType OperationRepository::string_to_operation_type(const std::string& s
     return OperationType::Move; // default
 }
 
+int64_t OperationRepository::allocate_batch_id() {
+    sqlite3* db = db_.get_db();
+    sqlite3_stmt* stmt;
+    int64_t next = 1;
+    if (sqlite3_prepare_v2(db, "SELECT COALESCE(MAX(batch_id), 0) + 1 FROM operation_log;", -1, &stmt, nullptr) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) next = sqlite3_column_int64(stmt, 0);
+        sqlite3_finalize(stmt);
+    }
+    return next;
+}
+
 int64_t OperationRepository::log_operation(const OperationRecord& record) {
     sqlite3* db = db_.get_db();
 
     const char* sql = R"(
-        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     )";
 
     sqlite3_stmt* stmt;
@@ -54,6 +65,9 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     sqlite3_bind_text(stmt, 6, fh.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 7, st.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 8, record.undone ? 1 : 0);
+    // Unbatched writes (legacy callers, single ops) each become
+    // their own batch so undo_last_batch treats them singly.
+    sqlite3_bind_int64(stmt, 9, record.batch_id > 0 ? record.batch_id : allocate_batch_id());
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
@@ -69,7 +83,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
     sqlite3* db = db_.get_db();
     std::vector<OperationRecord> results;
 
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone "
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id "
                       "FROM operation_log ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
@@ -88,6 +102,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
         if (sqlite3_column_text(stmt, 6)) rec.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
         if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
+        rec.batch_id = sqlite3_column_int64(stmt, 9);
         results.push_back(rec);
     }
 
@@ -103,8 +118,11 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
     // cannot be reversed (no backup), and returning it here made
     // undo_last pick it, fail silently, and block undoing every
     // earlier Move/Rename forever.
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone "
-                      "FROM operation_log WHERE undone = 0 AND status = 'completed' AND operation_type != 'delete' ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
+    // id order, not timestamp: timestamps are second-resolution, so
+    // same-second records of different batches could interleave and
+    // break undo_last_batch's contiguous grouping.
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id "
+                      "FROM operation_log WHERE undone = 0 AND status = 'completed' AND operation_type != 'delete' ORDER BY id DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -122,6 +140,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
         if (sqlite3_column_text(stmt, 6)) rec.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
         if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
+        rec.batch_id = sqlite3_column_int64(stmt, 9);
         results.push_back(rec);
     }
 
@@ -147,50 +166,84 @@ void OperationRepository::clear_old(int days) {
     db_.execute("DELETE FROM operation_log WHERE timestamp < " + std::to_string(ts));
 }
 
+namespace {
+// Attempt to reverse one journal record. Returns false for stale
+// records (destination vanished, or the source path was recreated
+// externally — MSVC rename would replace and destroy the new file).
+bool try_undo_record(const OperationRecord& rec) {
+    try {
+        switch (rec.type) {
+            case OperationType::Move:
+            case OperationType::Rename:
+                if (std::filesystem::exists(rec.dest_path) &&
+                    !std::filesystem::exists(rec.source_path)) {
+                    std::filesystem::rename(rec.dest_path, rec.source_path);
+                    return true;
+                }
+                return false;
+            case OperationType::Copy:
+                if (std::filesystem::exists(rec.dest_path)) {
+                    std::filesystem::remove(rec.dest_path);
+                    return true;
+                }
+                return false;
+            case OperationType::Delete:
+                // Cannot undo delete without backup (filtered out
+                // by get_undoable; kept for exhaustiveness).
+                return false;
+        }
+    } catch (const std::exception&) {
+        return false; // stale record
+    }
+    return false;
+}
+} // namespace
+
 std::optional<OperationRecord> OperationRepository::undo_last() {
     // Walk recent records newest-first and undo the first one that is
     // still reversible. A record whose destination vanished externally
     // (or whose move-back fails) is stale: skipping it keeps one bad
     // record from blocking every older undo forever.
     for (const auto& rec : get_undoable(50)) {
-        bool success = false;
-        try {
-            switch (rec.type) {
-                case OperationType::Move:
-                case OperationType::Rename:
-                    // Move the file back — but never over a source
-                    // path that was recreated externally meanwhile
-                    // (MSVC rename replaces, which would destroy the
-                    // new file). Such records are stale: skip them.
-                    if (std::filesystem::exists(rec.dest_path) &&
-                        !std::filesystem::exists(rec.source_path)) {
-                        std::filesystem::rename(rec.dest_path, rec.source_path);
-                        success = true;
-                    }
-                    break;
-                case OperationType::Copy:
-                    // Delete the copy
-                    if (std::filesystem::exists(rec.dest_path)) {
-                        std::filesystem::remove(rec.dest_path);
-                        success = true;
-                    }
-                    break;
-                case OperationType::Delete:
-                    // Cannot undo delete without backup (filtered out
-                    // by get_undoable; kept for exhaustiveness).
-                    break;
-            }
-        } catch (const std::exception&) {
-            continue; // stale record: try the next older one
-        }
-
-        if (success) {
+        if (try_undo_record(rec)) {
             mark_undone(rec.id);
             return rec;
         }
     }
 
     return std::nullopt;
+}
+
+std::vector<OperationRecord> OperationRepository::undo_last_batch() {
+    // Group undoable records by batch, newest batch first (records
+    // arrive newest-first). Legacy batch_id 0 rows each form their
+    // own single-record batch, keyed by record id to keep them
+    // distinct. A batch whose members are all stale falls through
+    // to the next older batch, mirroring undo_last's walk.
+    auto undoable = get_undoable(500);
+    std::vector<OperationRecord> undone;
+    size_t i = 0;
+    while (i < undoable.size() && undone.empty()) {
+        const int64_t batch = undoable[i].batch_id;
+        size_t j = i;
+        std::vector<OperationRecord> members;
+        while (j < undoable.size()) {
+            bool same = (batch != 0) ? (undoable[j].batch_id == batch)
+                                     : (undoable[j].batch_id == 0);
+            if (!same) break;
+            members.push_back(undoable[j]);
+            ++j;
+            if (batch == 0) break; // legacy rows are singletons
+        }
+        for (const auto& rec : members) {
+            if (try_undo_record(rec)) {
+                mark_undone(rec.id);
+                undone.push_back(rec);
+            }
+        }
+        i = j;
+    }
+    return undone;
 }
 
 } // namespace fo::core

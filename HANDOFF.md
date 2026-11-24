@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.67 (Undo Restores The Whole Command)
+
+## What landed (2026-11-24, continuation)
+- **Batch undo**: Migration 8 `batch_id` on `operation_log`;
+  organize/rename/delete-duplicates stamp one batch per command;
+  `undo_last_batch()` (id-ordered grouping, stale fall-through)
+  wired into CLI undo and C API undo (JSON keeps type/source/
+  dest of newest record, adds count). Unit + CLI tests added.
+  Lean ctest **66/66**.
+- Version **6.5.67**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.66 (Similar Refuses Cross-Algorithm Queries)
 
 ## What landed (2026-11-24, continuation)

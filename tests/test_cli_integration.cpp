@@ -261,6 +261,28 @@ void write_tone_wav(const std::filesystem::path& path) {
     }
 }
 
+TEST_F(CliFixture, UndoRestoresWholeRenameBatch) {
+    // One rename command touching two files used to need two
+    // undo invocations (per-record undo). A single undo must
+    // restore the whole command's batch.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    { std::ofstream(inbox / "b.txt") << "b"; }
+    auto db = (dir / "t.db").string();
+
+    auto ren = run_cli("rename --pattern=\"{name}_v2.{ext}\" --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(ren.code, 0) << ren.out;
+    ASSERT_TRUE(std::filesystem::exists(inbox / "a_v2.txt"));
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "b.txt")) << undo.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "a_v2.txt"));
+    EXPECT_FALSE(std::filesystem::exists(inbox / "b_v2.txt"));
+}
+
 TEST_F(CliFixture, ConvertFailureExitsNonzero) {
     // A failed conversion (backend missing, or input it cannot
     // read) printed "Conversion failed" yet exited 0, so bridges

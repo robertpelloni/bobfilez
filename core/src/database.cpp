@@ -188,6 +188,14 @@ CREATE TABLE IF NOT EXISTS sync_history (
 CREATE INDEX IF NOT EXISTS idx_sync_path ON sync_history(remote_path);
 )";
 
+/// Migration 8: operation batches. One command that moves/renames
+/// many files journals one record per file; batch_id groups them
+/// so a single undo restores the whole command (0 = legacy rows,
+/// each treated as its own batch).
+static const char* MIGRATION_8 = R"(
+ALTER TABLE operation_log ADD COLUMN batch_id INTEGER NOT NULL DEFAULT 0;
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -307,6 +315,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 7) {
         apply_migration(7, MIGRATION_7);
+    }
+    if (current_ver < 8) {
+        apply_migration(8, MIGRATION_8);
     }
 }
 

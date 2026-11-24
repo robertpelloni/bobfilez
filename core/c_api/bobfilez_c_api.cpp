@@ -1017,14 +1017,18 @@ extern "C" char* fo_bobfilez_undo_json(const char* reserved)
         config.db_path = current_c_api_db_path();
         fo::core::Engine engine(config);
         fo::core::OperationRepository op_repo(engine.database());
-        auto undone = op_repo.undo_last();
-        
+        // Batch undo: one consumer "undo" restores the whole last
+        // command. type/source/dest keep describing the newest
+        // record for existing consumers; count is additive.
+        auto undone = op_repo.undo_last_batch();
+
         std::ostringstream out;
-        if (undone) {
+        if (!undone.empty()) {
             out << "{\"success\": true"
-                << ", \"type\": \"" << operation_type_name(undone->type) << "\""
-                << ", \"source\": \"" << fo::core::Exporter::json_escape(undone->source_path) << "\""
-                << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone->dest_path) << "\""
+                << ", \"count\": " << undone.size()
+                << ", \"type\": \"" << operation_type_name(undone[0].type) << "\""
+                << ", \"source\": \"" << fo::core::Exporter::json_escape(undone[0].source_path) << "\""
+                << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone[0].dest_path) << "\""
                 << "}";
         } else {
             out << "{\"success\": false, \"message\": \"No operations to undo\"}";
@@ -1178,14 +1182,16 @@ extern "C" char* fo_bobfilez_undo_summary_text(const char* reserved)
         config.db_path = current_c_api_db_path();
         fo::core::Engine engine(config);
         fo::core::OperationRepository op_repo(engine.database());
-        auto undone = op_repo.undo_last();
+        auto undone = op_repo.undo_last_batch();
 
         std::ostringstream out;
-        if (undone) {
+        if (!undone.empty()) {
             out << "Undo Successful\n"
                 << "===============\n"
-                << "Action: " << operation_type_name(undone->type) << "\n"
-                << "Reverted: " << undone->dest_path << " -> " << undone->source_path << "\n";
+                << "Operations reverted: " << undone.size() << "\n";
+            for (const auto& rec : undone) {
+                out << "Reverted: " << rec.dest_path << " -> " << rec.source_path << "\n";
+            }
         } else {
             out << "Nothing to undo.\n";
         }

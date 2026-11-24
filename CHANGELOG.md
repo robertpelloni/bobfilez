@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.67] - 2026-11-24 — Undo Restores The Whole Command
+
+### Fixed
+- **Undo reverted one file per invocation**: a rename/organize
+  command touching N files journaled N records, and undo walked
+  them one at a time, leaving batches half-undone. Migration 8
+  adds `operation_log.batch_id`; organize, rename, and
+  delete-duplicates stamp all their records with one batch per
+  invocation, and `undo` (CLI + C API) now restores the whole
+  most-recent batch, falling through stale batches like the old
+  per-record walk. New `UndoLastBatchRestoresWholeBatch` unit
+  test and `UndoRestoresWholeRenameBatch` CLI test failed
+  before, pass after. Suites: lean **66/66**; other lanes
+  rebuilt at this version.
+
 ## [6.5.66] - 2026-11-24 — Similar Refuses Cross-Algorithm Queries
 
 ### Fixed
