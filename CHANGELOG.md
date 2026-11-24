@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.41] - 2026-11-23 — Tray Restart Race and Double-Spawn Fixed
+
+### Fixed
+- **Tray could kill the dashboard on Restart**: `stop_server`
+  fired `/api/quit` and `start_server` respawned immediately,
+  racing the old process for the port (EADDRINUSE), and tray
+  startup auto-spawned a duplicate server even when one was
+  already running externally. Start now health-checks first
+  ("already running (external)"), stop waits for the port to
+  actually free, and tray-spawned servers inherit
+  `TESSDATA_PREFIX` so OCR keeps working. Proven live through the
+  full lifecycle (guard → stop → start → restart → stop).
+  Wiring **21/21**.
+
 ## [6.5.40] - 2026-11-23 — C API Header Deduplicated
 
 ### Changed

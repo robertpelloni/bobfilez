@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.41 (Tray Restart Race Fixed)
+
+## What landed (2026-11-23, continuation)
+- **Tray lifecycle hardened**: no duplicate spawn against an
+  externally running server, stop waits for port release before
+  restart, tray-spawned servers get `TESSDATA_PREFIX` for OCR.
+  Full lifecycle proven live; tray restarted on the new code.
+  Wiring **21/21**.
+- Version **6.5.41**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.40 (C API Header Deduplicated)
 
 ## What landed (2026-11-23, continuation)

@@ -17,6 +17,16 @@ test('tray polls the real health/quit routes', () => {
   assert.doesNotMatch(tray, /api\("\/quit"/);
 });
 
+test('tray cannot double-spawn or race the port on restart', () => {
+  const tray = read('tray.py');
+  // An externally started server must not get a duplicate spawn
+  // (EADDRINUSE), stop must wait for the port to free before any
+  // restart, and tray-spawned servers get the OCR tessdata env.
+  assert.match(tray, /already running \(external\)/);
+  assert.match(tray, /Wait for the port to actually free up/);
+  assert.match(tray, /TESSDATA_PREFIX/);
+});
+
 test('history primary button never undoes', () => {
   const html = read('public/unified.html');
   // The GET-branch must not fire the destructive undo endpoint.

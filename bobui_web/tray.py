@@ -44,14 +44,29 @@ def status_summary():
 
 server_proc = None
 
+def server_env():
+    """Environment for the spawned server. OCR needs TESSDATA_PREFIX
+    pointing at the staged tessdata, or a tray-spawned server (e.g.
+    launched from Explorer) silently loses OCR."""
+    env = dict(os.environ)
+    tessdata = os.path.join(os.path.dirname(ROOT), "build-lean-deps",
+                            "x64-windows", "share", "tessdata")
+    if os.path.isdir(tessdata):
+        env.setdefault("TESSDATA_PREFIX", tessdata)
+    return env
+
 def start_server():
     global server_proc
     if server_proc and server_proc.poll() is None:
         return "already running"
+    # Never spawn a duplicate: an externally started server may
+    # already own the port (the spawn would die on EADDRINUSE).
+    if health().get("ok"):
+        return "already running (external)"
     os.makedirs(LOGDIR, exist_ok=True)
     log = open(os.path.join(LOGDIR, "tray-server.log"), "a")
     server_proc = subprocess.Popen(["node", "server.js"], cwd=ROOT,
-        stdout=log, stderr=subprocess.STDOUT)
+        stdout=log, stderr=subprocess.STDOUT, env=server_env())
     return f"started pid={server_proc.pid}"
 
 def stop_server():
@@ -66,6 +81,12 @@ def stop_server():
             server_proc.terminate()
         except Exception:
             pass
+    # Wait for the port to actually free up, so a following
+    # start_server() cannot race the old process on EADDRINUSE.
+    for _ in range(25):
+        if not health().get("ok"):
+            break
+        time.sleep(0.2)
     return "stopped"
 
 def open_logs():
