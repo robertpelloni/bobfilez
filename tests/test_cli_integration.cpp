@@ -146,6 +146,30 @@ TEST_F(CliFixture, OrganizeExtensionAliasExpands) {
     EXPECT_FALSE(std::filesystem::exists(dir / "{extension}")) << org.out;
 }
 
+TEST_F(CliFixture, DeleteDoesNotBlockUndoOfMove) {
+    // A journaled Delete (not reversible) must not block undoing an
+    // earlier Move: undo_last used to pick the Delete, fail silently,
+    // and report "No operations to undo" forever.
+    auto inbox = dir / "inbox";
+    auto dups = dir / "dups";
+    std::filesystem::create_directories(inbox);
+    std::filesystem::create_directories(dups);
+    { std::ofstream(inbox / "photo.txt") << "organize me"; }
+    { std::ofstream(dups / "a.txt") << "same-content"; }
+    { std::ofstream(dups / "b.txt") << "same-content"; }
+    auto db = (dir / "t.db").string();
+
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={extension}/{name} --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    ASSERT_FALSE(std::filesystem::exists(inbox / "photo.txt"));
+    ASSERT_EQ(run_cli("duplicates --db=" + db + " \"" + dups.string() + "\"", dir).code, 0);
+    ASSERT_EQ(run_cli("delete-duplicates --db=" + db + " \"" + dups.string() + "\"", dir).code, 0);
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "photo.txt")) << undo.out;
+}
+
 TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
     // The database may live inside the organized folder; organize must
     // never try to move its own live database (or its -wal/-shm).

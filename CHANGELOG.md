@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.33] - 2026-11-23 — Deletes No Longer Block Undo
+
+### Fixed
+- **A journaled Delete permanently blocked undo**: `get_undoable`
+  returned every completed operation, so `undo_last` picked the
+  newest Delete (irreversible, no backup), failed silently with
+  "No operations to undo", and could never reach earlier
+  Move/Rename records. Undoable now means reversible
+  (`operation_type != 'delete'`); the repository fixture's
+  expectation was updated to the corrected contract, and a new CLI
+  test (`DeleteDoesNotBlockUndoOfMove`) proves organize → delete →
+  undo restores the moved file. Suites: lean **38/38**; other lanes
+  rebuilt at this version.
+
 ## [6.5.32] - 2026-11-23 — Submodule Inventory (Read-Only)
 
 ### Added

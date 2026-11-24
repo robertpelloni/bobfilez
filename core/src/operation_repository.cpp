@@ -99,8 +99,12 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
     sqlite3* db = db_.get_db();
     std::vector<OperationRecord> results;
 
+    // Only reversible operations are undoable: a journaled Delete
+    // cannot be reversed (no backup), and returning it here made
+    // undo_last pick it, fail silently, and block undoing every
+    // earlier Move/Rename forever.
     std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone "
-                      "FROM operation_log WHERE undone = 0 AND status = 'completed' ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
+                      "FROM operation_log WHERE undone = 0 AND status = 'completed' AND operation_type != 'delete' ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {

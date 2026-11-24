@@ -52,7 +52,9 @@ TEST_F(OperationFixture, LogAndReadBackMostRecentFirst) {
     ASSERT_EQ(all.size(), 2u);
     EXPECT_EQ(all[0].type, fo::core::OperationType::Delete);
     EXPECT_EQ(all[1].type, fo::core::OperationType::Move);
-    EXPECT_EQ(repo->get_undoable(50).size(), 2u);
+    // Deletes are journaled but not reversible, so only the Move is
+    // undoable (a Delete here must not block undoing the Move).
+    EXPECT_EQ(repo->get_undoable(50).size(), 1u);
 }
 
 TEST_F(OperationFixture, UndoRenameRestoresOriginalPath) {
