@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.70] - 2026-11-24 — Conformance Matrix + Undo Invariant (Claude Roast)
+
+### Tests
+- **Muse's roast landed** (fresh claude.ai thread; the
+  original wedged mid-generation) and its two surviving points
+  are now pinned: a conformance matrix
+  (`MissingRootFailsEveryPathCommand`) runs 16 path-consuming
+  commands against a missing root asserting nonzero exit +
+  named path, replacing one-bug-one-test coverage for that
+  class; and `OrganizeUndoPreservesTreeExactly` asserts the
+  data-loss invariant — organize then undo restores the tree
+  byte-for-byte (nested dirs, non-ASCII filename). Triage reply
+  posted to the thread (Go-port and scaffold-rot points were
+  stale/already handled; submodule pruning stays owner-gated).
+  Suites: lean **69/69**; other lanes rebuilt at this version.
+
 ## [6.5.69] - 2026-11-24 — Submodule Dashboard Stops Fabricating Commits
 
 ### Fixed

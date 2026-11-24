@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.70 (Conformance Matrix + Undo Invariant)
+
+## What landed (2026-11-24, continuation)
+- **Muse roast received and triaged**: original claude.ai
+  thread wedged mid-generation (server-side queue); a fresh
+  thread answered from the repo description + stale snapshot.
+  Surviving points acted on: conformance matrix across 16
+  path commands; organize→undo byte-identical invariant test.
+  Triage reply posted (chat `fd6d6d5b`). Lean ctest **69/69**.
+- Version **6.5.70**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse may reply further in chat `fd6d6d5b`; read + triage.
+
+---
 # Session Handoff - v6.5.69 (Submodule Dashboard Stops Fabricating Commits)
 
 ## What landed (2026-11-24, continuation)

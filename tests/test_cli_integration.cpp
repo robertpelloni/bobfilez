@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
+#include <map>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -259,6 +260,62 @@ void write_tone_wav(const std::filesystem::path& path) {
         int16_t s = static_cast<int16_t>(8000.0 * std::sin(6.2831853 * 440.0 * i / rate));
         out.write(reinterpret_cast<const char*>(&s), 2);
     }
+}
+
+TEST_F(CliFixture, MissingRootFailsEveryPathCommand) {
+    // Conformance (per Muse's roast): the missing-path contract
+    // — nonzero exit naming the path — must hold for every
+    // path-consuming command, not just the ones a bug report
+    // happened to name.
+    auto missing = (dir / "no-such-place").string();
+    auto db = (dir / "t.db").string();
+    const std::string cmds[] = {
+        "scan", "duplicates", "hash", "metadata", "stats", "lint",
+        "export", "organize --rule={ext}/{filename}",
+        "classify", "ocr", "vhash", "afingerprint",
+        "delete-duplicates", "rename --pattern={name}_x",
+        "rename-batch --find=a --replace=b", "scrub",
+    };
+    for (const auto& c : cmds) {
+        auto r = run_cli(c + " --db=" + db + " \"" + missing + "\"", dir);
+        EXPECT_NE(r.code, 0) << c << ": " << r.out;
+        EXPECT_NE(r.out.find("does not exist"), std::string::npos) << c << ": " << r.out;
+    }
+}
+
+TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
+    // The data-loss invariant: organize followed by undo must
+    // restore the exact tree — same paths, same bytes — including
+    // nested dirs and a non-ASCII filename.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox / "sub");
+    { std::ofstream(inbox / "a.txt") << "alpha"; }
+    { std::ofstream(inbox / "sub" / "b.log") << "bravo"; }
+    { std::ofstream(inbox / L"t\xebst-\xfc.txt") << "unicode"; }
+    auto db = (dir / "t.db").string();
+
+    auto snapshot = [&]() {
+        std::map<std::string, std::string> files;
+        for (auto& e : std::filesystem::recursive_directory_iterator(inbox)) {
+            if (!e.is_regular_file()) continue;
+            std::ifstream in(e.path(), std::ios::binary);
+            std::stringstream ss; ss << in.rdbuf();
+            files[std::filesystem::relative(e.path(), inbox).generic_string()] = ss.str();
+        }
+        return files;
+    };
+    auto before = snapshot();
+    ASSERT_EQ(before.size(), 3u);
+
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    std::filesystem::current_path(original_cwd);
+    ASSERT_EQ(org.code, 0) << org.out;
+    ASSERT_FALSE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+
+    auto undo = run_cli("undo --db=" + db, dir);
+    ASSERT_EQ(undo.code, 0) << undo.out;
+    EXPECT_EQ(snapshot(), before);
 }
 
 TEST_F(CliFixture, SearchFlagsBeforeQueryAndBareQueryWork) {
