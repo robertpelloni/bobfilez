@@ -1996,6 +1996,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
+            int failed_conversions = 0;
             for (auto& input_file : paths) {
                 std::filesystem::path inp(input_file);
                 std::filesystem::path outp;
@@ -2038,9 +2039,15 @@ int main(int argc, char** argv) {
                 if (rc == 0) {
                     std::cout << inp.string() << " -> " << outp.string() << " [OK]\n";
                 } else {
+                    ++failed_conversions;
                     std::cerr << "Conversion failed for: " << inp.string()
                               << " (exit code " << rc << ")\n";
                 }
+            }
+            if (failed_conversions > 0) {
+                std::cerr << "Error: failed to convert " << failed_conversions << " of "
+                          << paths.size() << " file(s).\n";
+                return 1;
             }
 
         } else if (command == "search") {

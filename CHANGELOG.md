@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.64] - 2026-11-24 — Convert Failures Exit Nonzero
+
+### Fixed
+- **`convert` printed failures but exited 0**: each backend
+  failure ("Conversion failed for: ...") was reported on stderr
+  but the command still succeeded, so the dashboard bridge
+  answered HTTP 200 for failed conversions. Failures are now
+  counted with a "failed to convert N of M file(s)" summary and
+  exit 1 (successful files still report [OK]). New
+  `ConvertFailureExitsNonzero` CLI test failed before, passes
+  after. Suites: lean **63/63**; other lanes rebuilt at this
+  version.
+
 ## [6.5.63] - 2026-11-24 — Dashboard Surfaces CLI Failures
 
 ### Fixed

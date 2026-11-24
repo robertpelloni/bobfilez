@@ -261,6 +261,21 @@ void write_tone_wav(const std::filesystem::path& path) {
     }
 }
 
+TEST_F(CliFixture, ConvertFailureExitsNonzero) {
+    // A failed conversion (backend missing, or input it cannot
+    // read) printed "Conversion failed" yet exited 0, so bridges
+    // reported HTTP 200. Failures must be counted and exit 1,
+    // with successes still reported per file.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "not media at all"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("convert --to=mp4 --db=" + db + " \"" + (inbox / "a.txt").string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("Conversion failed"), std::string::npos) << r.out;
+    EXPECT_NE(r.out.find("failed"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, AfingerprintProcessesEveryInput) {
     // vhash/afingerprint used to process only the first path and
     // silently drop the rest, though the dashboard cards promise

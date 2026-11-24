@@ -1,3 +1,18 @@
+# Session Handoff - v6.5.64 (Convert Failures Exit Nonzero)
+
+## What landed (2026-11-24, continuation)
+- **Convert honesty**: failed conversions are counted and exit
+  1 (was stderr-only, exit 0, dashboard 200). CLI test added.
+  Lean ctest **63/63**.
+- Version **6.5.64**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.63 (Dashboard Surfaces CLI Failures)
 
 ## What landed (2026-11-24, continuation)
