@@ -35,7 +35,14 @@ function runCli(args, timeout = 120000) {
     return new Promise((resolve, reject) => {
         execFile(CLI, args, { maxBuffer: 50 * 1024 * 1024, timeout }, (err, stdout, stderr) => {
             if (err && err.killed) return reject(new Error('Command timed out'));
-            if (err && !stdout) return reject(new Error(stderr || err.message));
+            if (err) {
+                // Nonzero exit: surface the CLI's own error text. The
+                // old resolve-on-any-stdout made failed runs that
+                // printed a partial "[]" payload look like empty
+                // successes (e.g. vhash on a folder -> HTTP 200 []).
+                const detail = (stderr || '').trim() || (stdout || '').trim() || err.message;
+                return reject(new Error(detail));
+            }
             resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
         });
     });

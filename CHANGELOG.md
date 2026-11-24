@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.63] - 2026-11-24 — Dashboard Surfaces CLI Failures
+
+### Fixed
+- **Dashboard bridges turned CLI failures into empty
+  successes**: `runCli` resolved whenever stdout was non-empty,
+  so a failed run printing a partial `[]` payload returned HTTP
+  200 (e.g. `/api/vhash` on a folder). Nonzero exits now reject
+  with the CLI's own stderr text, so bridges answer HTTP 500
+  with the real error. New functional wiring test
+  (`CLI failures surface as HTTP 500...`) failed before, passes
+  after; wiring **26/26**, live dashboard re-verified (media
+  folder probes now 500 with the CLI message; OCR still 200).
+  Suites: lean/JUCE/MSVC rebuilt at this version.
+
 ## [6.5.62] - 2026-11-24 — Media Commands Process Every Input
 
 ### Fixed

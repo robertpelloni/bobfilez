@@ -143,6 +143,21 @@ before(async () => {
 });
 after(() => { if (child) child.kill(); });
 
+test('CLI failures surface as HTTP 500, not empty successes', async () => {
+  // runCli used to resolve whenever stdout was non-empty, so a
+  // failed run that printed a partial "[]" payload looked like an
+  // empty success (e.g. vhash on a folder). Nonzero exits must
+  // reject with the CLI's own error text.
+  const r = await fetch('http://localhost:3199/api/vhash', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(r.status, 500);
+  const j = await r.json();
+  assert.match(j.error, /failed/i);
+});
+
 test('health endpoint answers over HTTP', async () => {
   const r = await fetch('http://localhost:3199/api/health');
   assert.equal(r.status, 200);

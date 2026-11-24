@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.63 (Dashboard Surfaces CLI Failures)
+
+## What landed (2026-11-24, continuation)
+- **Bridge honesty**: `runCli` in `bobui_web/server.js` rejects
+  on any nonzero CLI exit with the CLI's stderr (was:
+  resolve-on-any-stdout). Dashboard restarted on the new server;
+  live probes: vhash/afingerprint folders -> 500 with real
+  message, OCR 200, classify 500 honest. Wiring **26/26**.
+- Version **6.5.63**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.62 (Media Commands Process Every Input)
 
 ## What landed (2026-11-24, continuation)
