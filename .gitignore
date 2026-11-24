@@ -370,6 +370,7 @@ build-linux/
 # in frontends/, gui/, libs/). Added 2026-11-17 so git status stays
 # readable; several also have historically tracked files, which this
 # does not untrack.
+build-msvc/
 temp_btk_probe/
 build-bobui-gui/
 build-bobui-gui-mingw-probe/
