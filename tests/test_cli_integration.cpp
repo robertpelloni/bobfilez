@@ -197,6 +197,30 @@ TEST_F(CliFixture, UndoSkipsStaleRecords) {
     EXPECT_TRUE(std::filesystem::exists(inbox_a / "first.txt")) << undo.out;
 }
 
+TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
+    // The shipped persona examples (pattern/target schema) must load
+    // and plan moves; three of four example files used to fail with
+    // "Failed to load rules" because the loader only understood the
+    // rules:/destination schema.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "photo.jpg") << "fakejpg"; }
+    auto db = (dir / "t.db").string();
+    auto examples = std::filesystem::path(__FILE__).parent_path().parent_path() / "examples";
+
+    for (const char* file : {"rules.yaml", "rules_developer.yaml",
+                             "rules_photographer.yaml", "rules_sysadmin.yaml"}) {
+        auto r = run_cli("organize --rules=\"" + (examples / file).string() +
+                         "\" --dry-run --db=" + db + " \"" + inbox.string() + "\"", dir);
+        ASSERT_EQ(r.code, 0) << file << ": " << r.out;
+    }
+
+    auto photo = run_cli("organize --rules=\"" + (examples / "rules_photographer.yaml").string() +
+                         "\" --dry-run --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(photo.code, 0) << photo.out;
+    EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
+}
+
 TEST_F(CliFixture, OrganizeSkipsOwnDatabaseFiles) {
     // The database may live inside the organized folder; organize must
     // never try to move its own live database (or its -wal/-shm).

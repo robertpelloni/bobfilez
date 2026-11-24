@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.43 (Persona Example Rules Actually Load)
+
+## What landed (2026-11-24, continuation)
+- **Persona rules work**: dual-schema YAML loader (rules:/destination
+  and persona pattern/target), filename glob patterns with brace
+  alternation, `{filename}` placeholder, persona examples rewritten
+  to supported placeholders with safe review-folder purge targets.
+  Caught and fixed a self-inflicted regression (new struct field
+  broke aggregate initializers; field now last + hazard noted).
+  Lean ctest **45/45**.
+- Version **6.5.43**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending in its thread.
+
+---
 # Session Handoff - v6.5.42 (Fuzz Lane Builds; Campaign Clean)
 
 ## What landed (2026-11-23, continuation)

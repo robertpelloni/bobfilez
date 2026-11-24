@@ -12,6 +12,10 @@ struct OrganizationRule {
     std::string name;
     std::string filter_tag; // Simple filter: requires this tag
     std::string destination_template; // e.g. "/Photos/{year}/{month}/"
+    // Optional filename glob (e.g. "*.{cr2,nef}" or "access*.log");
+    // empty = all files. Declared last so existing aggregate
+    // initializers {name, filter_tag, destination} keep meaning.
+    std::string pattern;
 };
 
 class RuleEngine {

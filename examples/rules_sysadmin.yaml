@@ -1,22 +1,25 @@
 # System Administrator Rules
 # Automates the sorting of system logs, database backups, and server configurations.
+# Dates come from the file modification time ({year}/{month}).
 
 - name: Group MySQL Dumps by Year and Month
   pattern: "*.sql.gz"
-  target: "Backups/Database/{mtime:yyyy}/{mtime:MM}/{filename}"
+  target: "Backups/Database/{year}/{month}/{filename}"
 
 - name: Archive Old Web Logs
   pattern: "access*.log"
-  target: "Archives/Web_Logs/{mtime:yyyy}-{mtime:MM}/{filename}"
+  target: "Archives/Web_Logs/{year}-{month}/{filename}"
 
 - name: Isolate Application Error Logs
   pattern: "*error*.log"
-  target: "Archives/Error_Logs/{mtime:yyyy}/{filename}"
+  target: "Archives/Error_Logs/{year}/{filename}"
 
 - name: Organize Configuration Backups
   pattern: "*.conf.bak"
   target: "Backups/Configs/{filename}"
 
-- name: Purge Temporary PID Files
+# bobfilez never deletes via organization rules. PID files are routed
+# to a review folder; delete them manually after checking.
+- name: Isolate Temporary PID Files for review
   pattern: "*.pid"
-  target: "/dev/null"
+  target: "Review/PID_Files/{filename}"

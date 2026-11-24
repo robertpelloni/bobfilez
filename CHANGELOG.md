@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.43] - 2026-11-24 — Persona Example Rules Actually Load
+
+### Fixed
+- **Three of four shipped example rule files could not load**:
+  the persona examples use a `pattern`/`target` schema (top-level
+  list) that the YAML loader never understood (it only read
+  `rules:` + `destination`). The loader now accepts both schemas;
+  OrganizationRule gained a case-insensitive filename `pattern`
+  glob (`*`, `?`, `{a,b,c}`) and the `{filename}` placeholder.
+  Persona files were rewritten to supported placeholders
+  (`{exif:...}`/`{mtime:...}` → `{year}`/`{month}`/`{day}`, with a
+  comment that EXIF-date routing is not implemented) and their
+  `/dev/null` "purge" targets became review folders — bobfilez
+  never deletes via organization rules. New CLI test loads all
+  four examples and plans a photographer move. (Regression watch:
+  the new field initially broke aggregate rule initializers
+  codebase-wide; it is now declared last, with the hazard noted
+  in the header.) Suites: lean **45/45**; other lanes rebuilt.
+
 ## [6.5.42] - 2026-11-23 — Fuzz Lane Builds; 14.5M-Run Campaign Clean
 
 ### Fixed

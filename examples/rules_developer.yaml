@@ -5,10 +5,6 @@
   pattern: "*.{cpp,c,h,hpp,py,js,ts,go,rs,java}"
   target: "Workspace/Source_Code/{ext}/{filename}"
 
-- name: Purge build artifacts
-  pattern: "*.{o,obj,a,lib,so,dll,dylib,class,pyc}"
-  target: "/dev/null"
-
 - name: Organize Dependency Locks
   pattern: "*{lock.json,.lock}"
   target: "Workspace/Lockfiles/{filename}"
@@ -16,3 +12,9 @@
 - name: Documentation and Markdown
   pattern: "*.{md,txt,rst}"
   target: "Workspace/Docs/{filename}"
+
+# bobfilez never deletes via organization rules. Build artifacts are
+# routed to a review folder; delete them manually after checking.
+- name: Isolate build artifacts for review
+  pattern: "*.{o,obj,a,lib,so,dll,dylib,class,pyc}"
+  target: "Workspace/Review_Artifacts/{filename}"

@@ -1,22 +1,26 @@
 # Photographer and Media Professional Rules
-# Automates the categorization of raw photos, exported JPEGs, and video clips based on metadata and dates.
+# Routes by filename pattern into date folders. Dates come from the
+# file modification time ({year}/{month}/{day}); EXIF-date routing is
+# not implemented, so {exif:...} templates are intentionally not used.
 
 - name: Raw Image Organization
   pattern: "*.{cr2,cr3,nef,arw,dng}"
-  target: "Photography/{exif:CreateDate:yyyy}/{exif:CreateDate:MM-dd}_RAW_Shoots/{filename}"
+  target: "Photography/{year}/{month}-{day}_RAW_Shoots/{filename}"
 
 - name: Processed JPEG Exports
   pattern: "*.jpg"
-  target: "Photography/{exif:CreateDate:yyyy}/Final_Exports/{filename}"
+  target: "Photography/{year}/Final_Exports/{filename}"
 
 - name: High Quality Video Renders
   pattern: "*.{mp4,mov,mkv}"
-  target: "Video_Projects/{exif:CreateDate:yyyy}/{exif:CreateDate:MM-dd}/{filename}"
+  target: "Video_Projects/{year}/{month}-{day}/{filename}"
 
 - name: Isolate Audio Stems
   pattern: "*.{wav,flac,mp3}"
-  target: "Audio_Stems/{exif:CreateDate:yyyy}/{filename}"
+  target: "Audio_Stems/{year}/{filename}"
 
-- name: Delete temporary sidecar files
+# bobfilez never deletes via organization rules. Sidecars are routed
+# to a review folder; delete them manually after checking.
+- name: Isolate temporary sidecar files for review
   pattern: "*.{xmp,crd}"
-  target: "/dev/null"
+  target: "Review/Sidecars/{filename}"
