@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.57] - 2026-11-24 — Classify Without A Model Is An Error
+
+### Fixed
+- **`classify` exited 0 with no model present**: the ONNX provider
+  printed "Model file not found" per file and returned no labels,
+  which the CLI treated as success. `IImageClassifier` gains an
+  `unavailable_reason()` readiness query (default: ready); the
+  ONNX provider records its load failure once and reports it, and
+  the CLI exits 1 with the reason before classifying. New
+  `ClassifyWithoutModelIsAnError` CLI test failed before, passes
+  after. Suites: lean **56/56**; other lanes rebuilt at this
+  version.
+
 ## [6.5.56] - 2026-11-24 — Bogus Hasher Crashed The CLI
 
 ### Fixed

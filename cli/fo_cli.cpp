@@ -1130,6 +1130,10 @@ int main(int argc, char** argv) {
                 std::cerr << "Classifier 'onnx' not found.\n";
                 return 1;
             }
+            if (auto reason = provider->unavailable_reason()) {
+                std::cerr << "Classifier 'onnx' unavailable: " << *reason << "\n";
+                return 1;
+            }
 
             if (format == "json") {
                 std::cout << "[\n";

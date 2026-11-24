@@ -24,6 +24,12 @@ public:
 
     std::string name() const override { return "onnx"; }
 
+    std::optional<std::string> unavailable_reason() override {
+        if (session_) return std::nullopt;
+        if (!load_model()) return load_error_;
+        return std::nullopt;
+    }
+
     std::vector<ClassificationResult> classify(const std::filesystem::path& image_path, int top_k) override {
         // Lazy load model if not loaded
         if (!session_) {
@@ -117,6 +123,8 @@ private:
     std::string input_name_;
     std::string output_name_;
     std::vector<std::string> labels_;
+    std::string load_error_;
+    bool load_attempted_ = false;
 
     bool load_model() {
         // Look for model.onnx and labels.txt in current dir or executable dir
@@ -125,9 +133,15 @@ private:
         std::string labels_path = "labels.txt";
 
         if (!std::filesystem::exists(model_path)) {
-            std::cerr << "Model file not found: " << model_path << std::endl;
+            // Record (and report once): classify() retries per file,
+            // and availability checks reuse the same failure.
+            load_error_ = "Model file not found: " + model_path +
+                          " (place model.onnx in the working directory)";
+            if (!load_attempted_) std::cerr << load_error_ << std::endl;
+            load_attempted_ = true;
             return false;
         }
+        load_attempted_ = true;
 
         try {
             // Load labels
@@ -152,7 +166,8 @@ private:
 
             return true;
         } catch (const std::exception& e) {
-            std::cerr << "Failed to load model: " << e.what() << std::endl;
+            load_error_ = std::string("Failed to load model: ") + e.what();
+            std::cerr << load_error_ << std::endl;
             return false;
         }
     }

@@ -221,6 +221,23 @@ TEST_F(CliFixture, OrganizeLoadsPersonaExampleRules) {
     EXPECT_NE(photo.out.find("Final_Exports"), std::string::npos) << photo.out;
 }
 
+TEST_F(CliFixture, ClassifyWithoutModelIsAnError) {
+    // Without model.onnx in the working directory, classify used
+    // to print "Model file not found" per file yet exit 0. The CLI
+    // must surface the unavailable classifier as a clean error.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("classify --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(r.code, 0) << r.out;
+    // Provider lanes name the missing model; lanes built without
+    // ONNX report the missing classifier instead. Both are honest.
+    EXPECT_TRUE(r.out.find("Model file not found") != std::string::npos ||
+                r.out.find("Classifier 'onnx' not found") != std::string::npos)
+        << r.out;
+}
+
 TEST_F(CliFixture, BogusHasherAndKeepAreErrorsNotCrashes) {
     // `hash --hasher=bogus` used to dereference the null hasher and
     // crash (0xC0000005); `--keep=bogus` was silently treated as

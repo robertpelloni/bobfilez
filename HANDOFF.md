@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.57 (Classify Without A Model Is An Error)
+
+## What landed (2026-11-24, continuation)
+- **Classify honesty**: `IImageClassifier::unavailable_reason()`
+  added; ONNX provider reports its model-load failure (once, not
+  per file); CLI `classify` exits 1 when unavailable. CLI test
+  added. Lean ctest **56/56**.
+- Version **6.5.57**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse roast still pending (claude.ai logged out in Edge).
+
+---
 # Session Handoff - v6.5.56 (Bogus Hasher Crashed The CLI)
 
 ## What landed (2026-11-24, continuation)
