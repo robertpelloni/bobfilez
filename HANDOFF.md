@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.122 (Partial-Batch Accuracy)
+
+## What landed (2026-11-25, continuation)
+- **Partial-batch accuracy pinned**: locked-file test
+  now asserts journal+audit contain only what ran.
+  Test-only change.
+- Version **6.5.122**: lean **130 + 1 skip**, wiring
+  **32/32**; MSVC/JUCE same code at ship.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.121 (Locked Convert)
 
 ## What landed (2026-11-25, continuation)

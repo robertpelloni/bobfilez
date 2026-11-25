@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.122] - 2026-11-25 — Partial-Batch Journal/Audit Accuracy Pinned
+
+### Added
+- **Did-vs-didn't-run accuracy**: the locked-file
+  organize test now also asserts the journal and audit
+  sides of a partial batch — the moved file is
+  journaled and audited as completed, the locked file
+  appears in neither. Test-only; behavior was already
+  correct. Suites: lean **130 + 1 skip**, wiring
+  **32/32**.
+
 ## [6.5.121] - 2026-11-25 — Locked Convert Source Fails Cleanly
 
 ### Added

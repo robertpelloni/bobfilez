@@ -1429,6 +1429,17 @@ TEST_F(CliFixture, LockedFileAndReadOnlyDestFailCleanly) {
         EXPECT_EQ(c, "locked-bytes");
     }
     EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "free.txt")) << org.out;
+    // Journal/audit accuracy for the partial batch: the
+    // moved file is journaled and audited; the locked one
+    // appears in neither as a completed move.
+    {
+        auto hist = run_cli("history --format=json --db=" + db, dir);
+        EXPECT_NE(hist.out.find("free.txt"), std::string::npos) << hist.out;
+        EXPECT_EQ(hist.out.find("locked.txt"), std::string::npos) << hist.out;
+        auto audit = run_cli("audit --format=json --db=" + db, dir);
+        EXPECT_NE(audit.out.find("free.txt"), std::string::npos) << audit.out;
+        EXPECT_EQ(audit.out.find("locked.txt"), std::string::npos) << audit.out;
+    }
 
     // Read-only destination directory (ACL deny write).
     auto sealed = dir / "sealed";
