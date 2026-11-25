@@ -147,13 +147,7 @@ static bool destination_name_is_unsafe(const std::filesystem::path& dest) {
     return false;
 }
 
-static void record_journal_residue(const std::string& db_path, const std::string& src,
-                                   const std::string& dst, const std::string& why) {
-    try {
-        std::ofstream out(db_path + ".residue.log", std::ios::app);
-        out << src << " -> " << dst << " (" << why << ")\n";
-    } catch (...) {}
-}
+// record_journal_residue was removed in v6.5.111: its last callers (move/rename completion rollbacks) were replaced by pending-intent reconciliation, which is strictly stronger - residue is now a journal state, not a side log.
 
 // Simple glob matching (supports * and ? wildcards against filename only)
 static bool glob_match(const std::string& pattern, const std::string& text) {
@@ -1877,118 +1871,129 @@ int main(int argc, char** argv) {
             auto journal_hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             int failed_renames = 0;
 
-            for (const auto& f : files) {
+            struct RenamePlan {
+                const fo::core::FileInfo* f;
+                std::filesystem::path new_path;
+                int64_t intent_id = 0;
+                fo::core::OperationRecord rec;
+            };
+            auto make_rename_plan = [&](const fo::core::FileInfo& f) -> std::optional<RenamePlan> {
                 std::vector<std::string> tags;
                 if (f.id != 0) {
                     auto tag_pairs = engine.file_repository().get_tags(f.id);
                     for (const auto& p : tag_pairs) tags.push_back(p.first);
                 }
-
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
-                if (new_path_opt && new_path_opt->string() != f.uri) {
-                    auto new_path = *new_path_opt;
-                    // Absolute destination for the journal, as in organize.
-                    if (new_path.is_relative()) {
-                        std::error_code aec;
-                        auto abs_path = std::filesystem::absolute(new_path, aec);
-                        if (!aec) new_path = abs_path;
+                if (!new_path_opt || new_path_opt->string() == f.uri) return std::nullopt;
+                auto new_path = *new_path_opt;
+                // Absolute destination for the journal, as in organize.
+                if (new_path.is_relative()) {
+                    std::error_code aec;
+                    auto abs_path = std::filesystem::absolute(new_path, aec);
+                    if (!aec) new_path = abs_path;
+                }
+                if (destination_name_is_unsafe(new_path)) {
+                    ++failed_renames;
+                    std::cerr << "Failed to rename " << f.uri
+                              << ": unsafe destination name " << new_path.filename() << "\n";
+                    return std::nullopt;
+                }
+                if (!dry_run && std::filesystem::exists(new_path)) {
+                    ++failed_renames;
+                    std::cerr << "Failed to rename " << f.uri
+                              << ": destination exists: " << new_path.string() << "\n";
+                    return std::nullopt;
+                }
+                RenamePlan p;
+                p.f = &f;
+                p.new_path = new_path;
+                p.rec.timestamp = std::chrono::system_clock::now();
+                p.rec.type = fo::core::OperationType::Rename;
+                p.rec.source_path = std::filesystem::path(f.uri).is_relative()
+                    ? std::filesystem::absolute(f.uri).string() : f.uri;
+                p.rec.dest_path = new_path.string();
+                p.rec.file_size = f.size;
+                p.rec.batch_id = op_batch_id;
+                p.rec.status = "pending";
+                return p;
+            };
+
+            if (dry_run) {
+                for (const auto& f : files) {
+                    if (auto p = make_rename_plan(f)) renames.push_back({f.uri, p->new_path.string()});
+                }
+            } else {
+                // Chunked like organize (v6.5.109): one intent
+                // transaction per 128-file chunk commits BEFORE
+                // its renames; completions+audit follow in a
+                // second transaction. Crash windows reconcile
+                // exactly as organize's do.
+                fo::core::OperationRepository op_repo(engine.database());
+                constexpr size_t kChunk = 128;
+                for (size_t base = 0; base < files.size(); base += kChunk) {
+                    std::vector<RenamePlan> plans;
+                    size_t chunk_end = std::min(base + kChunk, files.size());
+                    for (size_t i = base; i < chunk_end; ++i) {
+                        if (auto p = make_rename_plan(files[i])) plans.push_back(std::move(*p));
                     }
-                    if (destination_name_is_unsafe(new_path)) {
-                        ++failed_renames;
-                        std::cerr << "Failed to rename " << f.uri
-                                  << ": unsafe destination name " << new_path.filename() << "\n";
+                    if (plans.empty()) continue;
+                    try {
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (auto& p : plans) p.intent_id = op_repo.log_operation(p.rec);
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        for (auto& p : plans) {
+                            ++failed_renames;
+                            std::cerr << "Failed to rename " << p.f->uri
+                                      << ": journal intent write failed (" << je.what()
+                                      << "); rename not attempted\n";
+                        }
                         continue;
                     }
-                    if (dry_run) {
-                        renames.push_back({f.uri, new_path.string()});
+                    fo::core::fault_checkpoint("organize.after-intent");
+                    std::vector<RenamePlan*> done;
+                    for (auto& p : plans) {
+                        std::error_code ren_ec;
+                        if (!fo::core::rename_no_replace(p.f->uri, p.new_path, ren_ec)) {
+                            ++failed_renames;
+                            std::cerr << "Failed to rename " << p.f->uri << ": " << ren_ec.message() << "\n";
+                            try { op_repo.delete_operation(p.intent_id); } catch (...) {}
+                            continue;
+                        }
+                        fo::core::fault_checkpoint("organize.after-rename");
+                        renames.push_back({p.f->uri, p.new_path.string()});
+                        if (journal_hasher && p.f->size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
+                            try { p.rec.file_hash = journal_hasher->fast64(p.new_path); } catch (...) {}
+                        }
+                        {
+                            std::error_code mec;
+                            auto mt = std::filesystem::last_write_time(p.new_path, mec);
+                            if (!mec) p.rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
+                                std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
+                        }
+                        p.rec.dest_file_id = fo::core::OperationRepository::file_identity(p.new_path);
+                        done.push_back(&p);
                     }
-                    if (!dry_run) {
-                        try {
-                            // MSVC's rename replaces existing files:
-                            // never silently overwrite a destination.
-                            if (std::filesystem::exists(new_path)) {
-                                throw std::runtime_error("destination exists: " + new_path.string());
-                            }
-                            // Intent BEFORE the rename, as in
-                            // organize: 'pending' row first, rename
-                            // second, completion last, so a crash
-                            // in any window reconciles next run.
-                            fo::core::OperationRepository op_repo(engine.database());
-                            fo::core::OperationRecord rec;
-                            rec.timestamp = std::chrono::system_clock::now();
-                            rec.type = fo::core::OperationType::Rename;
-                            rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                ? std::filesystem::absolute(f.uri).string() : f.uri;
-                            rec.dest_path = new_path.string();
-                            rec.file_size = f.size;
-                            rec.batch_id = op_batch_id;
-                            rec.status = "pending";
-                            int64_t intent_id = 0;
-                            try {
-                                intent_id = op_repo.log_operation(rec);
-                            } catch (const std::exception& je) {
-                                ++failed_renames;
-                                std::cerr << "Failed to rename " << f.uri
-                                          << ": journal intent write failed (" << je.what()
-                                          << "); rename not attempted\n";
-                                continue;
-                            }
-                            fo::core::fault_checkpoint("organize.after-intent");
-                            {
-                                // No-replace rename: the exists check
-                                // above is stale the moment it passes.
-                                std::error_code ren_ec;
-                                if (!fo::core::rename_no_replace(f.uri, new_path, ren_ec)) {
-                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                    throw std::runtime_error(ren_ec.message());
-                                }
-                            }
-                            fo::core::fault_checkpoint("organize.after-rename");
-                            try {
-                                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
-                                    try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
-                                }
-                                {
-                                    std::error_code mec;
-                                    auto mt = std::filesystem::last_write_time(new_path, mec);
-                                    if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
-                                        std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
-                                }
-                                rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
-                                op_repo.complete_operation(intent_id, rec);
-                            } catch (const std::exception& je) {
-                                ++failed_renames;
-                                try {
-                                    std::filesystem::rename(new_path, f.uri);
-                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                    std::cerr << "Failed to rename " << f.uri
-                                              << ": journal completion failed (" << je.what()
-                                              << "); rename rolled back\n";
-                                } catch (const std::exception& re) {
-                                    std::cerr << "ERROR: " << f.uri << " was renamed to " << new_path
-                                              << " but could not be journaled (" << je.what()
-                                              << ") or rolled back (" << re.what()
-                                              << "). Undo will not know about this file.\n";
-                                    record_journal_residue(cfg.db_path, f.uri, new_path.string(),
-                                        std::string("journal failed: ") + je.what() +
-                                        "; rollback failed: " + re.what());
-                                }
-                                continue;
-                            }
-                            // Only journaled renames are reported.
-                            renames.push_back({f.uri, new_path.string()});
+                    try {
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (auto* p : done) {
+                            op_repo.complete_operation(p->intent_id, p->rec);
                             try {
                                 fo::core::make_audit_logger(engine.database())
-                                    ->log("rename", f.uri, new_path.string(), f.size, "");
+                                    ->log("rename", p->f->uri, p->new_path.string(), p->f->size, "");
                             } catch (const std::exception& ae) {
-                                std::cerr << "Warning: audit write failed for " << f.uri
+                                std::cerr << "Warning: audit write failed for " << p->f->uri
                                           << ": " << ae.what() << "\n";
                             }
-                        } catch (const std::exception& e) {
-                            ++failed_renames;
-                            std::cerr << "Failed to rename " << f.uri << ": " << e.what() << "\n";
                         }
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        std::cerr << "Warning: journal completion failed (" << je.what()
+                                  << "); renames stand and reconcile on next run\n";
                     }
+                    fo::core::fault_checkpoint("organize.after-complete");
                 }
             }
 
