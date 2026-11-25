@@ -1,5 +1,30 @@
 # Changelog
 
+## [6.5.124] - 2026-11-25 — Vault Adversarial Suite + Dashboard Hardening
+
+### Fixed
+- **Dashboard was LAN-reachable**: the bridge listened
+  on all interfaces while executing destructive
+  operations. It now binds `127.0.0.1` only and caps
+  concurrent CLI subprocesses (excess = 429 OVERLOADED).
+- **Vault hardening** (ChatGPT V-series): mid-encrypt
+  fault checkpoint (partial `.part` + intact plaintext),
+  `.part` residue swept on vault open, and passwords
+  accepted via `FO_VAULT_PASSWORD` (argument `-`) so
+  they need not appear in argv. New adversarial suite:
+  ciphertext/tag tampering, truncation, malformed tiny
+  entries, metadata mangling, nonce freshness across
+  identical plaintexts, concurrent locks, and the
+  env-password flow — all clean auth failures, entry
+  recoverable, no residual plaintext.
+- Added `docs/SECURITY_MODEL.md` (vault crypto
+  parameters, journal trusted-artifact model, bridge
+  no-authentication statement, accepted limitations)
+  and `docs/RELEASE_QUALIFICATION.md` (the audit's
+  consolidated stopping-condition document). Suites:
+  lean/MSVC **135 + 1 skip**, wiring **33/33**, JUCE
+  **128 + 5 skips**.
+
 ## [6.5.123] - 2026-11-25 — Malformed Journal Safety + Dashboard Access Boundary
 
 ### Fixed

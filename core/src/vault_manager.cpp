@@ -48,6 +48,24 @@ bool VaultManager::initialize(const std::filesystem::path& vault_path, const std
     password_ = password;
     std::filesystem::create_directories(vault_path);
 
+    // Sweep stale temp files: a crash mid-encrypt/decrypt
+    // leaves a .part behind (possibly partial plaintext from
+    // an interrupted decryption). It is never a valid entry
+    // (listings exclude it); removing it on open keeps the
+    // vault free of residual plaintext.
+    {
+        std::error_code sec;
+        for (std::filesystem::directory_iterator it(vault_path, sec), end;
+             it != end; it.increment(sec)) {
+            if (sec) { sec.clear(); break; }
+            auto name = it->path().filename().string();
+            if (name.size() > 5 && name.substr(name.size() - 5) == ".part") {
+                std::error_code rec;
+                std::filesystem::remove(it->path(), rec);
+            }
+        }
+    }
+
     // Password verifier (".vault_verify": salt + HMAC of a known
     // constant under the PBKDF2 key). initialize() used to accept
     // ANY password, so vault-list leaked entry names/sizes to
@@ -178,12 +196,19 @@ bool VaultManager::encrypt_file(const std::filesystem::path& input, const std::f
     unsigned char out_buf[CHUNK_SIZE + AES_BLOCK_SIZE];
     int out_len;
 
+    bool first_chunk = true;
     while (in.read(reinterpret_cast<char*>(in_buf), CHUNK_SIZE) || in.gcount() > 0) {
         if (1 != EVP_EncryptUpdate(ctx, out_buf, &out_len, in_buf, in.gcount())) {
             EVP_CIPHER_CTX_free(ctx);
             return fail();
         }
         out.write(reinterpret_cast<char*>(out_buf), out_len);
+        if (first_chunk) {
+            first_chunk = false;
+            // Crash window: a partial .part exists (excluded
+            // from listings) and the plaintext is untouched.
+            fault_checkpoint("vault.mid-encrypt");
+        }
     }
 
     if (1 != EVP_EncryptFinal_ex(ctx, out_buf, &out_len)) {

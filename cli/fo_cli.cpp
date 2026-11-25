@@ -659,6 +659,9 @@ int main(int argc, char** argv) {
             // Parsed by the audit command handler below; accept silently here.
         } else if (a == "--dismiss") {
             // Parsed by the undo command handler below; accept silently here.
+        } else if (a == "-") {
+            // Bare "-" is a positional value (e.g. the vault
+            // password sentinel), not an option.
         } else if (a.rfind("--debounce=", 0) == 0 || a.rfind("--full-scan-every=", 0) == 0) {
             // Parsed by the watch command handler below; accept
             // silently here. (Missing from this list until
@@ -726,7 +729,7 @@ int main(int argc, char** argv) {
         // Handlers scanning for their own --flags keep using args.
         std::vector<std::string> pargs;
         for (const auto& a : args) {
-            if (pargs.empty() || a.empty() || a[0] != '-') pargs.push_back(a);
+            if (pargs.empty() || a.empty() || a[0] != '-' || a == "-") pargs.push_back(a);
         }
 
         std::vector<std::string> paths;
@@ -3329,8 +3332,30 @@ int main(int argc, char** argv) {
                 std::cerr << "Usage: fo " << command << " <vaultPath> <password> [args...]\n";
                 return 1;
             }
+            // Password via "-" reads FO_VAULT_PASSWORD instead:
+            // argv passwords are visible to every local user in
+            // process listings and shell history (roast V-16).
+            std::string vault_password = pargs[2];
+            if (vault_password == "-") {
+                std::string env_pw;
+#ifdef _WIN32
+                char* pw_buf = nullptr;
+                size_t pw_len = 0;
+                if (_dupenv_s(&pw_buf, &pw_len, "FO_VAULT_PASSWORD") == 0 && pw_buf) {
+                    env_pw = pw_buf;
+                    free(pw_buf);
+                }
+#else
+                if (const char* e = std::getenv("FO_VAULT_PASSWORD")) env_pw = e;
+#endif
+                if (env_pw.empty()) {
+                    std::cerr << "Error: FO_VAULT_PASSWORD is not set (required when password is '-').\n";
+                    return 1;
+                }
+                vault_password = env_pw;
+            }
             fo::core::VaultManager vault;
-            if (!vault.initialize(pargs[1], pargs[2])) {
+            if (!vault.initialize(pargs[1], vault_password)) {
                 // Failed access (wrong password, missing OpenSSL,
                 // corrupt vault) is exactly what a forensic trail
                 // exists to record. Paths only — never passwords.

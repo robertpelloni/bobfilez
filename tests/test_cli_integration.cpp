@@ -101,6 +101,21 @@ CliResult run_cli_fault(const std::string& args, const std::filesystem::path& wo
     return r;
 }
 
+// Runs the CLI with one environment variable set for the call.
+CliResult run_cli_env(const std::string& args, const std::filesystem::path& workdir,
+                      const std::string& name, const std::string& value) {
+#ifdef _WIN32
+    _putenv_s(name.c_str(), value.c_str());
+    auto r = run_cli(args, workdir);
+    _putenv_s(name.c_str(), "");
+#else
+    setenv(name.c_str(), value.c_str(), 1);
+    auto r = run_cli(args, workdir);
+    unsetenv(name.c_str());
+#endif
+    return r;
+}
+
 struct CliFixture : ::testing::Test {
     std::filesystem::path dir;
     std::filesystem::path original_cwd;
@@ -1574,6 +1589,171 @@ TEST_F(CliFixture, MalformedJournalRecordsAreSafe) {
     std::string content;
     { std::ifstream in(dir / "precious.txt"); content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()); }
     EXPECT_EQ(content, "do-not-move-me");
+}
+
+TEST_F(CliFixture, VaultAdversarialCorruptionSuite) {
+    // ChatGPT vault assignment (V-02..V-15): corrupt, tag-
+    // flip, truncate, metadata-mangle, nonce freshness,
+    // interrupt, and retry the vault. Every corruption must
+    // be a clean authentication failure with the entry and
+    // the vault recoverable — never a crash, never partial
+    // plaintext, never a silently "successful" bad unlock.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "s.txt") << "topsecret-data"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+    ASSERT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "s.txt").string() + "\" --db=" + db, dir).code, 0);
+
+    // Locate the single entry and snapshot its bytes.
+    std::filesystem::path entry;
+    for (const auto& e : std::filesystem::directory_iterator(vault)) {
+        auto n = e.path().filename().string();
+        if (n.rfind("vault_", 0) == 0 && n.find(".meta") == std::string::npos) entry = e.path();
+    }
+    ASSERT_FALSE(entry.empty());
+    std::string entry_id = entry.filename().string();
+    std::string pristine;
+    { std::ifstream in(entry, std::ios::binary); pristine.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()); }
+    auto restore = [&] {
+        std::ofstream out(entry, std::ios::binary | std::ios::trunc);
+        out << pristine;
+    };
+    auto try_unlock = [&](const std::filesystem::path& dest) {
+        return run_cli("vault-unlock \"" + vault.string() + "\" pw123 " + entry_id +
+                           " \"" + dest.string() + "\" --db=" + db, dir);
+    };
+
+    // V-02/V-03: ciphertext and tag tampering both fail auth.
+    for (size_t off : {size_t(40), pristine.size() - 1}) {
+        restore();
+        std::string bad = pristine;
+        bad[off] = static_cast<char>(bad[off] ^ 0xFF);
+        { std::ofstream out(entry, std::ios::binary | std::ios::trunc); out << bad; }
+        auto r = try_unlock(dir / "out.bin");
+        EXPECT_NE(r.code, 0) << "tamper at " << off << " was accepted: " << r.out;
+        EXPECT_FALSE(std::filesystem::exists(dir / "out.bin")) << r.out;
+        // V-12: no residual plaintext temp after failure.
+        bool part_left = false;
+        for (const auto& e : std::filesystem::directory_iterator(vault)) {
+            if (e.path().filename().string().find(".part") != std::string::npos) part_left = true;
+        }
+        EXPECT_FALSE(part_left) << "failed unlock left a .part behind";
+    }
+    // V-04: truncation is a safe rejection, entry survives.
+    restore();
+    { std::ofstream out(entry, std::ios::binary | std::ios::trunc); out << pristine.substr(0, 30); }
+    EXPECT_NE(try_unlock(dir / "out.bin").code, 0);
+    EXPECT_TRUE(std::filesystem::exists(entry));
+    // V-14: a garbage tiny "entry" fails cleanly, no crash.
+    { std::ofstream junk(vault / "vault_1_zz", std::ios::binary); junk << "tiny"; }
+    auto junk_unlock = run_cli("vault-unlock \"" + vault.string() + "\" pw123 vault_1_zz \"" +
+                                   (dir / "junk.bin").string() + "\" --db=" + db, dir);
+    EXPECT_NE(junk_unlock.code, 0) << junk_unlock.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "junk.bin"));
+
+    // V-05: mangled metadata does not break unlock by id.
+    restore();
+    { std::ofstream meta(entry.string() + ".meta", std::ios::trunc); meta << "\x01\x02 garbage"; }
+    auto ok = try_unlock(dir / "back.txt");
+    ASSERT_EQ(ok.code, 0) << ok.out;
+    {
+        std::ifstream in(dir / "back.txt");
+        std::string c((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        EXPECT_EQ(c, "topsecret-data");
+    }
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, VaultNonceFreshnessAndConcurrentLocks) {
+    // V-06: identical plaintext locked twice yields different
+    // entry bytes (fresh salt+IV per entry). V-15: two
+    // processes locking into one vault concurrently corrupt
+    // nothing; both entries end up listed and unlockable.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "one.txt") << "identical-content"; }
+    { std::ofstream(dir / "two.txt") << "identical-content"; }
+    { std::ofstream(dir / "three.txt") << "other-content"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+    // Separate workdirs: run_cli redirects through
+    // <workdir>/cli-out.txt, and sharing it would race the
+    // harness, not the vault.
+    std::filesystem::create_directories(dir / "w1");
+    std::filesystem::create_directories(dir / "w2");
+    std::thread t1([&] { run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "one.txt").string() + "\" --db=" + db, dir / "w1"); });
+    std::thread t2([&] { run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "two.txt").string() + "\" --db=" + db, dir / "w2"); });
+    t1.join();
+    t2.join();
+    ASSERT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "three.txt").string() + "\" --db=" + db, dir).code, 0);
+    auto list = run_cli("vault-list \"" + vault.string() + "\" pw123 --db=" + db, dir);
+    EXPECT_NE(list.out.find("(3 entries)"), std::string::npos) << list.out;
+    // Byte-compare the two identical-plaintext entries.
+    std::vector<std::string> blobs;
+    for (const auto& e : std::filesystem::directory_iterator(vault)) {
+        auto n = e.path().filename().string();
+        if (n.rfind("vault_", 0) == 0 && n.find(".meta") == std::string::npos) {
+            std::ifstream in(e.path(), std::ios::binary);
+            blobs.push_back(std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()));
+        }
+    }
+    ASSERT_EQ(blobs.size(), 3u);
+    // The identical pair must differ somewhere (salt/IV/tag).
+    EXPECT_TRUE(blobs[0] != blobs[1] || blobs[0] != blobs[2] || blobs[1] != blobs[2]);
+    int same_pairs = (blobs[0] == blobs[1]) + (blobs[0] == blobs[2]) + (blobs[1] == blobs[2]);
+    EXPECT_EQ(same_pairs, 0) << "identical plaintext produced an identical entry (nonce reuse)";
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, VaultPasswordViaEnvironment) {
+    // V-16: passwords in argv are visible to every local
+    // user (process lists, shell history). Password "-" reads
+    // FO_VAULT_PASSWORD from the environment instead.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "s.txt") << "env-secret"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto missing = run_cli("vault-init \"" + vault.string() + "\" - --db=" + db, dir);
+    EXPECT_NE(missing.code, 0);
+    EXPECT_NE(missing.out.find("FO_VAULT_PASSWORD"), std::string::npos) << missing.out;
+    ASSERT_EQ(run_cli_env("vault-init \"" + vault.string() + "\" - --db=" + db, dir,
+                          "FO_VAULT_PASSWORD", "pw123").code, 0);
+    ASSERT_EQ(run_cli_env("vault-lock \"" + vault.string() + "\" - \"" + (dir / "s.txt").string() + "\" --db=" + db,
+                          dir, "FO_VAULT_PASSWORD", "pw123").code, 0);
+    EXPECT_FALSE(std::filesystem::exists(dir / "s.txt"));
+    // Wrong env password is still rejected.
+    EXPECT_NE(run_cli_env("vault-list \"" + vault.string() + "\" - --db=" + db, dir,
+                          "FO_VAULT_PASSWORD", "nope").code, 0);
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, VaultMidEncryptCrashKeepsPlaintext) {
+    // V-08: interrupted encryption. Killed after the first
+    // encrypted chunk: the plaintext is untouched, no entry
+    // is listable (only a .part residue), and the next vault
+    // open sweeps the residue away.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "big.txt") << std::string(9000, 'x'); }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+    auto crash = run_cli_fault("vault-lock \"" + vault.string() + "\" pw123 \"" +
+                                   (dir / "big.txt").string() + "\" --db=" + db,
+                               dir, "vault.mid-encrypt");
+    EXPECT_NE(crash.code, 0) << "fault point did not fire: " << crash.out;
+    ASSERT_TRUE(std::filesystem::exists(dir / "big.txt"));
+    auto list = run_cli("vault-list \"" + vault.string() + "\" pw123 --db=" + db, dir);
+    EXPECT_NE(list.out.find("(0 entries)"), std::string::npos) << list.out;
+    bool part_left = false;
+    for (const auto& e : std::filesystem::directory_iterator(vault)) {
+        if (e.path().filename().string().find(".part") != std::string::npos) part_left = true;
+    }
+    EXPECT_FALSE(part_left) << "stale .part was not swept on vault open";
+    // And a clean retry locks the file normally.
+    EXPECT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" +
+                          (dir / "big.txt").string() + "\" --db=" + db, dir).code, 0);
+    std::filesystem::current_path(original_cwd);
 }
 
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {

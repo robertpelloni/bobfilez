@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.124 (Vault Suite + Qualification Doc)
+
+## What landed (2026-11-25, continuation)
+- **Dashboard**: loopback-only bind, 429-bounded CLI
+  fan-out (Host/Origin boundary was already in).
+- **Vault**: adversarial suite (tamper/truncate/meta/
+  nonce/concurrency/env-password/mid-encrypt crash);
+  `.part` swept on open; `FO_VAULT_PASSWORD` via `-`.
+- **Docs**: `docs/SECURITY_MODEL.md` and
+  `docs/RELEASE_QUALIFICATION.md` (stopping-condition
+  document: guarantees, skips, limitations, owners).
+- Version **6.5.124**: lean/MSVC **135 + 1 skip**,
+  wiring **33/33**, JUCE **128 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.123 (Journal Safety + Bridge Boundary)
 
 ## What landed (2026-11-25, continuation)

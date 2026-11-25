@@ -395,6 +395,12 @@ test('bridge refuses cross-origin and non-loopback callers', async () => {
     body: JSON.stringify({ paths: [root] }),
   });
   assert.equal(okRes.status, 200);
+  // And the listener itself must be loopback-bound, with
+  // bounded subprocess fan-out — origin checks alone are
+  // not a bind.
+  const srv = read('server.js');
+  assert.match(srv, /app\.listen\(PORT, '127\.0\.0\.1'/);
+  assert.match(srv, /CLI_MAX_IN_FLIGHT/);
 });
 
 test('scan bridge returns wrapped items, not a bare array', async () => {

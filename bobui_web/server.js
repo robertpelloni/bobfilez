@@ -60,6 +60,11 @@ const CLI = pickCli(CLI_CANDIDATES);
 // 400, CLI failures (exit 1) -> 422, timeouts -> 504, anything
 // else (spawn failure, missing CLI) -> 500.
 function cliError(res, e) {
+    if (e && e.retryable && !e.timedOut && e.cliCode == null && /Server busy/.test(e.message || '')) {
+        return res.status(429).json({
+            schema_version: 2, error: e.message, error_code: 'OVERLOADED', retryable: true,
+        });
+    }
     const status = e.timedOut ? 504 : e.cliCode === 2 ? 400 : e.cliCode === 1 ? 422 : 500;
     const code = e.timedOut ? 'TIMEOUT' : e.cliCode === 2 ? 'USAGE' : e.cliCode === 1 ? 'FAILED' : 'INTERNAL';
     const body = {
@@ -76,12 +81,27 @@ function cliError(res, e) {
     res.status(status).json(body);
 }
 
+// Bounded subprocess fan-out: a dashboard click storm (or a
+// hostile local page that somehow passes the boundary) must
+// not spawn unbounded fo_cli processes. Excess requests fail
+// fast as retryable overload instead of queueing forever.
+let cliInFlight = 0;
+const CLI_MAX_IN_FLIGHT = 8;
+
 function runCli(args, timeout = 120000) {
     if (!fs.existsSync(CLI)) {
         return Promise.reject(new Error(`CLI not found. Looked for: ${CLI_CANDIDATES.join(', ')}`));
     }
+    if (cliInFlight >= CLI_MAX_IN_FLIGHT) {
+        const e = new Error('Server busy: too many concurrent operations');
+        e.cliCode = null;
+        e.retryable = true;
+        return Promise.reject(e);
+    }
+    cliInFlight++;
     return new Promise((resolve, reject) => {
         execFile(CLI, args, { maxBuffer: 50 * 1024 * 1024, timeout }, (err, stdout, stderr) => {
+            cliInFlight--;
             if (err && err.killed) {
                 const e = new Error('Command timed out');
                 e.timedOut = true;
@@ -604,7 +624,11 @@ app.post('/api/quit', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3131;
-app.listen(PORT, () => {
+// Loopback only: this bridge executes destructive
+// filesystem operations; binding all interfaces would hand
+// them to the whole LAN. (The Host/Origin boundary above is
+// the second layer, not a substitute for the bind.)
+app.listen(PORT, '127.0.0.1', () => {
     console.log(`\n  ╔══════════════════════════════════════╗`);
     console.log(`  ║  BobUI — bobfilez GUI               ║`);
     console.log(`  ║  http://localhost:${PORT}              ║`);
