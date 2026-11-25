@@ -1,4 +1,5 @@
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/fs_walk.hpp"
 #include "fo/core/fault_injection.hpp"
 #include "fo/core/interfaces.hpp"
 #include "fo/core/registry.hpp"
@@ -372,7 +373,15 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                 if (src.has_parent_path()) {
                     std::filesystem::create_directories(src.parent_path(), ec);
                 }
-                std::filesystem::rename(dest, src);
+                {
+                    // No-replace: a source recreated in the
+                    // window since the check above must not be
+                    // clobbered (stale-authorization class).
+                    std::error_code rec_ec;
+                    if (!rename_no_replace(dest, src, rec_ec)) {
+                        return "I/O error: " + rec_ec.message();
+                    }
+                }
                 fault_checkpoint("undo.after-rename");
                 return std::nullopt;
             }

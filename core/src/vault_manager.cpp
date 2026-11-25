@@ -3,6 +3,7 @@
 
 #include "fo/core/vault_manager.hpp"
 #include "fo/core/fault_injection.hpp"
+#include "fo/core/fs_walk.hpp"
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -215,8 +216,7 @@ bool VaultManager::encrypt_file(const std::filesystem::path& input, const std::f
     }
 
     std::error_code rec_ec;
-    std::filesystem::rename(tmp, output, rec_ec);
-    if (rec_ec) return fail();
+    if (!rename_no_replace(tmp, output, rec_ec)) return fail();
 
     return true;
 }
@@ -308,8 +308,7 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
         out.write(reinterpret_cast<char*>(out_buf), out_len);
         out.close();
         std::error_code rec_ec;
-        std::filesystem::rename(tmp, output, rec_ec);
-        if (rec_ec) return fail();
+        if (!rename_no_replace(tmp, output, rec_ec)) return fail();
         return true;
     } else {
         out.close();

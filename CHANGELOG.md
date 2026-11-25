@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.106] - 2026-11-25 — No-Replace Rename Closes the Check-Then-Act Window
+
+### Fixed
+- **Stale-authorization at rename time** (ChatGPT's
+  standing class): every "check destination is free, then
+  rename" pair raced a destination appearing in between —
+  and rename replaces silently on MSVC and POSIX. The
+  window was worst in vault-unlock (a whole decrypt
+  between check and rename). New shared
+  `fo::core::rename_no_replace` (MoveFileEx without
+  REPLACE_EXISTING on Windows; link+unlink elsewhere)
+  now backs vault encrypt/decrypt completion, organize,
+  rename-batch, and undo's move-back. Unit test
+  `RenameNoReplace.RefusesExistingDestination` pins
+  both-files-intact refusal plus the free-destination
+  success path. Suites: lean **115 + 1 skip**, MSVC
+  **115 + 1 skip**, wiring **32/32**, JUCE **110 + 3
+  skips**.
+
 ## [6.5.105] - 2026-11-25 — Delete-Duplicates: Never Keep a Link Over Its Target
 
 ### Fixed

@@ -10,6 +10,9 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#else
+#include <unistd.h>
+#include <cerrno>
 #endif
 
 namespace fo::core {
@@ -48,6 +51,46 @@ inline bool is_link_like(const std::filesystem::path& p) {
 //
 // Directory symlinks are not followed unless requested.
 // Unreadable/vanished entries are skipped, never thrown on.
+// Rename that never replaces an existing destination.
+// std::filesystem::rename replaces silently on both MSVC
+// and POSIX, so every "check exists, then rename" pair has
+// a stale-authorization window where a destination that
+// appears in between gets clobbered. On Windows this is
+// MoveFileEx without MOVEFILE_REPLACE_EXISTING (atomic
+// refusal); elsewhere it falls back to link+unlink for
+// regular files, then plain rename for the rest, and
+// reports false with ec set when the destination exists.
+inline bool rename_no_replace(const std::filesystem::path& src,
+                               const std::filesystem::path& dst,
+                               std::error_code& ec) {
+    ec.clear();
+    if (std::filesystem::exists(dst, ec)) {
+        ec = std::make_error_code(std::errc::file_exists);
+        return false;
+    }
+#ifdef _WIN32
+    if (MoveFileExW(src.c_str(), dst.c_str(), MOVEFILE_WRITE_THROUGH)) {
+        return true;
+    }
+    ec = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+    return false;
+#else
+    std::error_code lec;
+    if (std::filesystem::is_regular_file(src, lec) && !lec) {
+        // link() refuses existing destinations atomically.
+        if (::link(src.c_str(), dst.c_str()) == 0) {
+            std::filesystem::remove(src, lec);
+            if (lec) { ec = lec; return false; }
+            return true;
+        }
+        ec = std::error_code(errno, std::generic_category());
+        return false;
+    }
+    std::filesystem::rename(src, dst, ec);
+    return !ec;
+#endif
+}
+
 inline std::vector<std::filesystem::path> collect_regular_files(
     const std::filesystem::path& root, bool follow_dir_symlinks = false) {
     std::vector<std::filesystem::path> out;

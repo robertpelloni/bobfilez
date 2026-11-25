@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "fo/core/registry.hpp"
+#include "fo/core/fs_walk.hpp"
 #include "fo/core/data_pruner_interface.hpp"
 #include "fo/core/treemap_engine_interface.hpp"
 #include "fo/core/enhanced_fileops_interface.hpp"
@@ -81,6 +82,31 @@ TEST_F(DeepTreeFixture, DirentScannerScansShallowFileDespiteDeepTree) {
         if (f.uri.find("setup.exe") != std::string::npos) found = true;
     }
     EXPECT_TRUE(found) << "dirent scan missed the shallow file on a deep tree";
+}
+
+TEST(RenameNoReplace, RefusesExistingDestination) {
+    // Stale-authorization (ChatGPT's standing class): every
+    // "check exists, then rename" pair has a window where the
+    // destination appears in between, and MSVC/POSIX rename
+    // then REPLACES it. rename_no_replace must fail instead,
+    // leaving both files byte-intact.
+    auto base = std::filesystem::temp_directory_path() /
+                "bobfilez-noreplace-test";
+    std::error_code ec;
+    std::filesystem::remove_all(base, ec);
+    std::filesystem::create_directories(base);
+    { std::ofstream(base / "src.txt") << "new-bytes"; }
+    { std::ofstream(base / "dst.txt") << "old-bytes"; }
+    EXPECT_FALSE(fo::core::rename_no_replace(base / "src.txt", base / "dst.txt", ec));
+    std::string sa, sb;
+    { std::ifstream a(base / "src.txt"); sa.assign(std::istreambuf_iterator<char>(a), std::istreambuf_iterator<char>()); }
+    { std::ifstream b(base / "dst.txt"); sb.assign(std::istreambuf_iterator<char>(b), std::istreambuf_iterator<char>()); }
+    EXPECT_EQ(sa, "new-bytes");
+    EXPECT_EQ(sb, "old-bytes");
+    // And the free-destination case still renames.
+    EXPECT_TRUE(fo::core::rename_no_replace(base / "src.txt", base / "free.txt", ec));
+    EXPECT_TRUE(std::filesystem::exists(base / "free.txt"));
+    std::filesystem::remove_all(base, ec);
 }
 
 TEST_F(DeepTreeFixture, CopyEstimateCountsShallowFileDespiteDeepTree) {

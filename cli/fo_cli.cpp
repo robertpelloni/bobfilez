@@ -1559,11 +1559,14 @@ int main(int argc, char** argv) {
                                 continue;
                             }
                             fo::core::fault_checkpoint("organize.after-intent");
-                            try {
-                                std::filesystem::rename(f.uri, new_path);
-                            } catch (...) {
-                                try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                throw;
+                            {
+                                // No-replace rename: the exists check
+                                // above is stale the moment it passes.
+                                std::error_code ren_ec;
+                                if (!fo::core::rename_no_replace(f.uri, new_path, ren_ec)) {
+                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
+                                    throw std::runtime_error(ren_ec.message());
+                                }
                             }
                             fo::core::fault_checkpoint("organize.after-rename");
                             // Complete the intent with the
@@ -1905,11 +1908,14 @@ int main(int argc, char** argv) {
                                 continue;
                             }
                             fo::core::fault_checkpoint("organize.after-intent");
-                            try {
-                                std::filesystem::rename(f.uri, new_path);
-                            } catch (...) {
-                                try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                throw;
+                            {
+                                // No-replace rename: the exists check
+                                // above is stale the moment it passes.
+                                std::error_code ren_ec;
+                                if (!fo::core::rename_no_replace(f.uri, new_path, ren_ec)) {
+                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
+                                    throw std::runtime_error(ren_ec.message());
+                                }
                             }
                             fo::core::fault_checkpoint("organize.after-rename");
                             try {
@@ -2744,7 +2750,7 @@ int main(int argc, char** argv) {
                             std::cerr << "Failed: " << old_name
                                       << ": destination exists: " << new_name << "\n";
                         } else {
-                            std::filesystem::rename(file_path, new_path, ec);
+                            fo::core::rename_no_replace(file_path, new_path, ec);
                             if (!ec) {
                                 std::cout << old_name << " -> " << new_name << "\n";
                                 renamed_count++;
