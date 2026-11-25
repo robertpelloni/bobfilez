@@ -38,7 +38,10 @@ shape, so every consumer moved in the same commit.
 raw; `error_code` is the stable machine-readable half
 (`BAD_REQUEST` 400, `USAGE` 400, `FAILED` 422, `TIMEOUT` 504
 retryable, `INTERNAL` 500). CLI exit code drives the mapping:
-2 → 400, 1 → 422, timeout → 504, anything else → 500.
+2 → 400, 1 → 422, timeout → 504, anything else → 500. When a
+failed run printed a JSON payload before dying (partial
+success), the envelope carries it as `partial` so consumers
+can show per-file results and offer undo for what landed.
 
 ## Pinning
 

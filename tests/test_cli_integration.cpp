@@ -83,6 +83,24 @@ CliResult run_cli_wide(const std::wstring& args, const std::filesystem::path& wo
 }
 #endif
 
+// Runs the CLI with FO_FAULT_AT=<point> in its environment: the
+// binary _Exit(70)s at that named checkpoint (fault_injection.hpp),
+// simulating a hard kill with journals flushed but no cleanup.
+// The env var lives in this process only for the one call.
+CliResult run_cli_fault(const std::string& args, const std::filesystem::path& workdir,
+                        const std::string& point) {
+#ifdef _WIN32
+    _putenv_s("FO_FAULT_AT", point.c_str());
+    auto r = run_cli(args, workdir);
+    _putenv_s("FO_FAULT_AT", "");
+#else
+    setenv("FO_FAULT_AT", point.c_str(), 1);
+    auto r = run_cli(args, workdir);
+    unsetenv("FO_FAULT_AT");
+#endif
+    return r;
+}
+
 struct CliFixture : ::testing::Test {
     std::filesystem::path dir;
     std::filesystem::path original_cwd;
@@ -538,10 +556,14 @@ TEST_F(CliFixture, BadNumericOptionsAreUsageErrors) {
 }
 
 TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
-    // Crash-injection (round-6/7): replace operation_log with a
-    // view so the journal insert throws AFTER the rename. The
-    // move must be rolled back and reported — never left moved
-    // but unjournaled (undo would not know the file).
+    // Fault injection (round-6/7; re-pinned round-8 v6.5.94):
+    // replace operation_log with a view so the journal insert
+    // throws. Originally the insert ran AFTER the rename and the
+    // move was rolled back; with intent-before-rename ordering
+    // the insert now fails BEFORE any rename, so the move is
+    // never attempted. The user-visible contract is unchanged
+    // and stronger: file home, nothing at dest, non-zero exit —
+    // never moved but unjournaled.
     auto inbox = dir / "inbox";
     std::filesystem::create_directories(inbox);
     { std::ofstream(inbox / "a.txt") << "a"; }
@@ -564,9 +586,108 @@ TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
     auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);
     std::filesystem::current_path(original_cwd);
     EXPECT_NE(org.code, 0) << org.out;
-    EXPECT_NE(org.out.find("rolled back"), std::string::npos) << org.out;
+    EXPECT_NE(org.out.find("intent"), std::string::npos) << org.out;
     EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org.out;
     EXPECT_FALSE(std::filesystem::exists(dir / "txt" / "a.txt")) << org.out;
+}
+
+TEST_F(CliFixture, OrganizeCrashRecoveryAtEachCheckpoint) {
+    // Per-step crash injection (Muse roast rounds 6/8): the
+    // exception-path rollback test cannot prove crash recovery —
+    // a hard kill runs no rollback. With an intent row journaled
+    // BEFORE the rename, every kill window must reconcile on the
+    // next invocation: file home, or moved-and-journaled (then
+    // undoable). Anything else is a lost file.
+    const char* points[] = {"organize.after-mkdir", "organize.after-intent",
+                            "organize.after-rename"};
+    int n = 0;
+    for (const char* point : points) {
+        auto cdir = dir / ("case" + std::to_string(n++));
+        auto inbox = cdir / "inbox";
+        std::filesystem::create_directories(inbox);
+        { std::ofstream(inbox / "a.txt") << "crash-data"; }
+        auto db = (cdir / "t.db").string();
+        std::filesystem::current_path(cdir); // organize dests are cwd-relative
+        auto crash = run_cli_fault(
+            "organize --rule={ext}/{filename} --format=json --db=" + db +
+                " \"" + inbox.string() + "\"",
+            cdir, point);
+        EXPECT_NE(crash.code, 0) << point << ": fault point did not fire: " << crash.out;
+        // Any later invocation reconciles pending intent rows.
+        auto hist = run_cli("history --format=json --db=" + db, cdir);
+        ASSERT_EQ(hist.code, 0) << point << ": " << hist.out;
+        EXPECT_EQ(hist.out.find("pending"), std::string::npos) << point << ": " << hist.out;
+        bool at_src = std::filesystem::exists(inbox / "a.txt");
+        bool at_dst = std::filesystem::exists(cdir / "txt" / "a.txt");
+        EXPECT_NE(at_src, at_dst) << point << ": file must be in exactly one place";
+        auto where = at_dst ? (cdir / "txt" / "a.txt") : (inbox / "a.txt");
+        std::string content;
+        { // close the handle before undo: Windows refuses to
+          // rename a file another handle holds open.
+            std::ifstream in(where);
+            content.assign((std::istreambuf_iterator<char>(in)),
+                           std::istreambuf_iterator<char>());
+        }
+        EXPECT_EQ(content, "crash-data") << point;
+        if (at_dst) { // moved + journaled => undo must restore it
+            auto und = run_cli("undo --format=json --db=" + db, cdir);
+            EXPECT_EQ(und.code, 0) << point << ": " << und.out;
+            EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt"))
+                << point << ": hist=" << hist.out << " undo=" << und.out;
+        }
+        std::filesystem::current_path(original_cwd);
+    }
+}
+
+TEST_F(CliFixture, UndoCrashRecoveryAtRenameCheckpoint) {
+    // Same discipline inside undo: kill between undo's rename
+    // and its journal mark. The next invocation reconciles the
+    // 'undoing' record; the file stays restored and a second
+    // undo must not move anything.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "undo-crash"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                          " \"" + inbox.string() + "\"",
+                      dir).code, 0);
+    ASSERT_TRUE(std::filesystem::exists(dir / "txt" / "a.txt"));
+    auto crash = run_cli_fault("undo --format=json --db=" + db, dir, "undo.after-rename");
+    EXPECT_NE(crash.code, 0) << "fault point did not fire: " << crash.out;
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    ASSERT_EQ(hist.code, 0) << hist.out;
+    EXPECT_EQ(hist.out.find("undoing"), std::string::npos) << hist.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << hist.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "txt" / "a.txt")) << hist.out;
+    auto again = run_cli("undo --format=json --db=" + db, dir);
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << again.out;
+    (void)again;
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, UndoToleratesTwoSecondMtimeRounding) {
+    // exFAT/FAT round mtimes to 2s (and DST shifts them), so the
+    // mtime identity gate tolerates <=2s drift when the file ID
+    // proves it is the same file. Forged-mtime replacement still
+    // fails the file-ID gate (see Tamper tests); a +1s bump on
+    // the untouched destination must not false-refuse.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "mtime-data"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                          " \"" + inbox.string() + "\"",
+                      dir).code, 0);
+    auto dst = dir / "txt" / "a.txt";
+    ASSERT_TRUE(std::filesystem::exists(dst));
+    auto mt = std::filesystem::last_write_time(dst);
+    std::filesystem::last_write_time(dst, mt + std::chrono::seconds(1));
+    auto und = run_cli("undo --format=json --db=" + db, dir);
+    EXPECT_EQ(und.code, 0) << und.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << und.out;
+    std::filesystem::current_path(original_cwd);
 }
 
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {

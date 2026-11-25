@@ -37,12 +37,18 @@ const CLI = pickCli(CLI_CANDIDATES);
 function cliError(res, e) {
     const status = e.timedOut ? 504 : e.cliCode === 2 ? 400 : e.cliCode === 1 ? 422 : 500;
     const code = e.timedOut ? 'TIMEOUT' : e.cliCode === 2 ? 'USAGE' : e.cliCode === 1 ? 'FAILED' : 'INTERNAL';
-    res.status(status).json({
+    const body = {
         schema_version: 2,
         error: e.message,
         error_code: code,
         retryable: e.timedOut === true,
-    });
+    };
+    // Partial success (roast round 8): a run that moved 4,990 of
+    // 5,000 files and exited 1 printed its per-file JSON before
+    // dying. Keep it: the dashboard shows what happened and can
+    // offer undo for the part that succeeded, not just a string.
+    if (e.partial) body.partial = e.partial;
+    res.status(status).json(body);
 }
 
 function runCli(args, timeout = 120000) {
@@ -64,6 +70,12 @@ function runCli(args, timeout = 120000) {
                 const detail = (stderr || '').trim() || (stdout || '').trim() || err.message;
                 const e = new Error(detail);
                 e.cliCode = (typeof err.code === 'number') ? err.code : null;
+                // Preserve a JSON payload printed before the
+                // failure (partial success) for the envelope.
+                try {
+                    const raw = extractJson(stdout || '');
+                    if (raw) e.partial = JSON.parse(raw);
+                } catch { /* payload was not JSON; nothing to keep */ }
                 return reject(e);
             }
             resolve({ stdout: stdout.trim(), stderr: stderr.trim() });

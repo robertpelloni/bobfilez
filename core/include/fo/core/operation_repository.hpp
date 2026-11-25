@@ -57,6 +57,23 @@ public:
     // Mark an operation as undone
     void mark_undone(int64_t id);
 
+    // Crash-recovery plumbing. Mutating commands journal an
+    // intent row (status "pending") BEFORE touching the
+    // filesystem, then complete it after the rename lands;
+    // undo marks records "undoing" before its rename and
+    // restores "completed" when the rename is journaled.
+    // set_status/delete_operation drive those transitions, and
+    // reconcile_pending resolves rows a crash left mid-flight
+    // by comparing journal paths against the live tree.
+    void set_status(int64_t id, const std::string& status);
+    void delete_operation(int64_t id);
+    // Fill in post-rename identity fields and mark completed.
+    void complete_operation(int64_t id, const OperationRecord& identity);
+    // Resolve every pending/undoing row against the filesystem.
+    // Returns how many rows were resolved; ambiguous rows (both
+    // paths exist, or neither) stay untouched for a human.
+    int reconcile_pending();
+
     // Allocate a fresh batch id for one multi-file command.
     int64_t allocate_batch_id();
 

@@ -1,3 +1,36 @@
+# Session Handoff - v6.5.94 (True Crash Recovery)
+
+## What landed (2026-11-25, continuation)
+- **Intent-before-move crash recovery**: organize/rename
+  journal `pending` intent → rename → complete; undo marks
+  `undoing` first; every CLI start reconciles leftovers
+  (Migration 13 status index). `FO_FAULT_AT` checkpoints
+  hard-kill at after-mkdir/-intent/-rename/-complete and
+  undo.after-rename; per-point crash tests assert recovery.
+  One older fault test openly re-pinned (insert failure now
+  prevents the move instead of rolling it back).
+- **2s mtime tolerance** when file ID matches (FAT rounding).
+- **Bridge `partial` payload** on nonzero exits + unified
+  page renders it; undo JSON now names skipped records.
+- Version **6.5.94**. Lean **100/100**, MSVC **100/100**,
+  wiring **30/30**, JUCE rebuilt. All pushed (sync after
+  the docs commit below).
+- Claude round-8 reply triaged: crash-recovery + partial
+  success + mtime edges were the valid items (all fixed);
+  secrets-in-history scan remains an owner question
+  (current-tree sweep was clean; history purge owner-gated).
+  Round-9 report to be posted to thread `ad74257e`.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Submodule gitlink drift (161 of ~173): commit new pins or
+  restore recorded pins (owner).
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.93 (Schema v2: Array Roots Wrapped)
 
 ## What landed (2026-11-25, continuation)

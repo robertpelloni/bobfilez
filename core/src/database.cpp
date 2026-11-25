@@ -236,6 +236,14 @@ static const char* MIGRATION_12 = R"(
 ALTER TABLE operation_log ADD COLUMN dest_file_id TEXT NOT NULL DEFAULT '';
 )";
 
+/// Migration 13: startup crash-recovery sweeps operation_log by
+/// status ('pending'/'undoing' rows left by a killed process).
+/// Without an index that is a full table scan on every CLI
+/// invocation once the journal grows.
+static const char* MIGRATION_13 = R"(
+CREATE INDEX IF NOT EXISTS idx_operation_log_status ON operation_log(status);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -354,6 +362,7 @@ void DatabaseManager::migrate() {
         if (current_ver < 10) apply_migration(10, MIGRATION_10);
         if (current_ver < 11) apply_migration(11, MIGRATION_11);
         if (current_ver < 12) apply_migration(12, MIGRATION_12);
+        if (current_ver < 13) apply_migration(13, MIGRATION_13);
 
         execute("COMMIT;");
     } catch (...) {

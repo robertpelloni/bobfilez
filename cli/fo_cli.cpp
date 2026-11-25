@@ -12,6 +12,7 @@
 #include "fo/core/lint_interface.hpp"
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/fault_injection.hpp"
 #include "fo/core/omniflow_engine_interface.hpp"
 #include "fo/core/omniclerk_interface.hpp"
 #include "fo/core/omni_oracle_interface.hpp"
@@ -607,6 +608,21 @@ int main(int argc, char** argv) {
     try {
         auto timer_start = std::chrono::steady_clock::now();
         fo::core::Engine engine(cfg);
+
+        // Crash recovery (roast rounds 6/8): a previous process
+        // may have died between journaling an intent row and its
+        // rename (or inside undo's). Reconcile those rows against
+        // the live tree before doing anything else, so the
+        // journal never silently disagrees with the disk.
+        try {
+            fo::core::OperationRepository recovery_repo(engine.database());
+            if (int n = recovery_repo.reconcile_pending(); n > 0) {
+                std::cerr << "Recovered " << n
+                          << " interrupted operation record(s) from a previous crash.\n";
+            }
+        } catch (const std::exception& re) {
+            std::cerr << "Warning: crash recovery skipped (" << re.what() << ")\n";
+        }
 
         // Convenience aliases for newer command blocks added later in the file.
         std::vector<std::string> args;
@@ -1474,28 +1490,56 @@ int main(int argc, char** argv) {
                                 // at the rename below.
                                 std::filesystem::create_directories(new_path.parent_path());
                             }
+                            fo::core::fault_checkpoint("organize.after-mkdir");
                             // MSVC's rename replaces existing files:
                             // never silently overwrite a destination.
                             if (std::filesystem::exists(new_path)) {
                                 throw std::runtime_error("destination exists: " + new_path.string());
                             }
-                            std::filesystem::rename(f.uri, new_path);
-                            // Journal immediately after the move. If
-                            // journaling fails (locked/full DB), roll
-                            // the rename back so tree and journal can
-                            // never silently disagree; if rollback
-                            // also fails, name the residue loudly —
-                            // undo will not know that file.
+                            // Intent BEFORE the rename (roast 6/8):
+                            // a 'pending' journal row is durable
+                            // evidence of the planned move. If the
+                            // process dies now, the next invocation
+                            // reconciles it (file home -> drop the
+                            // intent; file at dest -> complete it).
+                            // If the intent itself cannot be
+                            // written, the move is not attempted at
+                            // all — strictly stronger than the old
+                            // move-then-journal rollback.
+                            fo::core::OperationRepository op_repo(engine.database());
+                            fo::core::OperationRecord rec;
+                            rec.timestamp = std::chrono::system_clock::now();
+                            rec.type = fo::core::OperationType::Move;
+                            rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                ? std::filesystem::absolute(f.uri).string() : f.uri;
+                            rec.dest_path = new_path.string();
+                            rec.file_size = f.size;
+                            rec.batch_id = op_batch_id;
+                            rec.status = "pending";
+                            int64_t intent_id = 0;
                             try {
-                                fo::core::OperationRepository op_repo(engine.database());
-                                fo::core::OperationRecord rec;
-                                rec.timestamp = std::chrono::system_clock::now();
-                                rec.type = fo::core::OperationType::Move;
-                                rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                    ? std::filesystem::absolute(f.uri).string() : f.uri;
-                                rec.dest_path = new_path.string();
-                                rec.file_size = f.size;
-                                rec.batch_id = op_batch_id;
+                                intent_id = op_repo.log_operation(rec);
+                            } catch (const std::exception& je) {
+                                ++failed_moves;
+                                std::cerr << "Failed to move " << f.uri
+                                          << ": journal intent write failed (" << je.what()
+                                          << "); move not attempted\n";
+                                continue;
+                            }
+                            fo::core::fault_checkpoint("organize.after-intent");
+                            try {
+                                std::filesystem::rename(f.uri, new_path);
+                            } catch (...) {
+                                try { op_repo.delete_operation(intent_id); } catch (...) {}
+                                throw;
+                            }
+                            fo::core::fault_checkpoint("organize.after-rename");
+                            // Complete the intent with the
+                            // destination's post-move identity. If
+                            // completion fails, roll the rename
+                            // back and drop the intent; if rollback
+                            // also fails, name the residue loudly.
+                            try {
                                 // Hash only files up to the limit
                                 // at journal time: hashing makes an
                                 // O(1) rename read every byte, which
@@ -1511,13 +1555,14 @@ int main(int argc, char** argv) {
                                         std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
                                 rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
-                                op_repo.log_operation(rec);
+                                op_repo.complete_operation(intent_id, rec);
                             } catch (const std::exception& je) {
                                 ++failed_moves;
                                 try {
                                     std::filesystem::rename(new_path, f.uri);
+                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
                                     std::cerr << "Failed to move " << f.uri
-                                              << ": journal write failed (" << je.what()
+                                              << ": journal completion failed (" << je.what()
                                               << "); move rolled back\n";
                                 } catch (const std::exception& re) {
                                     std::cerr << "ERROR: " << f.uri << " was moved to " << new_path
@@ -1530,7 +1575,8 @@ int main(int argc, char** argv) {
                                 }
                                 continue;
                             }
-                            // Only journaled moves are reported as moves.
+                            fo::core::fault_checkpoint("organize.after-complete");
+                            // Only completed moves are reported as moves.
                             moves.push_back({f.uri, new_path.string()});
                             try {
                                 fo::core::make_audit_logger(engine.database())
@@ -1790,19 +1836,39 @@ int main(int argc, char** argv) {
                             if (std::filesystem::exists(new_path)) {
                                 throw std::runtime_error("destination exists: " + new_path.string());
                             }
-                            std::filesystem::rename(f.uri, new_path);
-                            // Journal immediately; roll back on
-                            // journal failure (see organize).
+                            // Intent BEFORE the rename, as in
+                            // organize: 'pending' row first, rename
+                            // second, completion last, so a crash
+                            // in any window reconciles next run.
+                            fo::core::OperationRepository op_repo(engine.database());
+                            fo::core::OperationRecord rec;
+                            rec.timestamp = std::chrono::system_clock::now();
+                            rec.type = fo::core::OperationType::Rename;
+                            rec.source_path = std::filesystem::path(f.uri).is_relative()
+                                ? std::filesystem::absolute(f.uri).string() : f.uri;
+                            rec.dest_path = new_path.string();
+                            rec.file_size = f.size;
+                            rec.batch_id = op_batch_id;
+                            rec.status = "pending";
+                            int64_t intent_id = 0;
                             try {
-                                fo::core::OperationRepository op_repo(engine.database());
-                                fo::core::OperationRecord rec;
-                                rec.timestamp = std::chrono::system_clock::now();
-                                rec.type = fo::core::OperationType::Rename;
-                                rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                    ? std::filesystem::absolute(f.uri).string() : f.uri;
-                                rec.dest_path = new_path.string();
-                                rec.file_size = f.size;
-                                rec.batch_id = op_batch_id;
+                                intent_id = op_repo.log_operation(rec);
+                            } catch (const std::exception& je) {
+                                ++failed_renames;
+                                std::cerr << "Failed to rename " << f.uri
+                                          << ": journal intent write failed (" << je.what()
+                                          << "); rename not attempted\n";
+                                continue;
+                            }
+                            fo::core::fault_checkpoint("organize.after-intent");
+                            try {
+                                std::filesystem::rename(f.uri, new_path);
+                            } catch (...) {
+                                try { op_repo.delete_operation(intent_id); } catch (...) {}
+                                throw;
+                            }
+                            fo::core::fault_checkpoint("organize.after-rename");
+                            try {
                                 if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
                                     try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
                                 }
@@ -1813,13 +1879,14 @@ int main(int argc, char** argv) {
                                         std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
                                 rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
-                                op_repo.log_operation(rec);
+                                op_repo.complete_operation(intent_id, rec);
                             } catch (const std::exception& je) {
                                 ++failed_renames;
                                 try {
                                     std::filesystem::rename(new_path, f.uri);
+                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
                                     std::cerr << "Failed to rename " << f.uri
-                                              << ": journal write failed (" << je.what()
+                                              << ": journal completion failed (" << je.what()
                                               << "); rename rolled back\n";
                                 } catch (const std::exception& re) {
                                     std::cerr << "ERROR: " << f.uri << " was renamed to " << new_path
@@ -2082,7 +2149,18 @@ int main(int argc, char** argv) {
                     }
                     std::cout << "]}\n";
                 } else {
-                    std::cout << "{\"schema_version\": 2, \"success\": false, \"message\": \"No operations to undo\"}\n";
+                    // Name every skipped record and its reason:
+                    // a generic "nothing to undo" hid refused
+                    // records (changed files, recreated sources)
+                    // from scripts and the dashboard.
+                    std::cout << "{\"schema_version\": 2, \"success\": false, \"message\": \"No operations to undo\""
+                              << ", \"skipped\": [";
+                    for (size_t i = 0; i < outcome.skipped.size(); ++i) {
+                        if (i) std::cout << ", ";
+                        std::cout << "{\"dest\": \"" << fo::core::Exporter::json_escape(outcome.skipped[i].first.dest_path)
+                                  << "\", \"reason\": \"" << fo::core::Exporter::json_escape(outcome.skipped[i].second) << "\"}";
+                    }
+                    std::cout << "]}\n";
                 }
             } else if (!undone.empty() || !outcome.skipped.empty()) {
                 for (const auto& rec : undone) {

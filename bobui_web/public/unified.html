@@ -97,7 +97,10 @@ async function api(path, body, outEl, btn) {
     const txt = typeof j === 'string' ? j : JSON.stringify(j, null, 2);
     if (!r.ok) {
       const msg = (j && j.error) ? j.error : ('HTTP ' + r.status);
-      outEl.textContent = 'ERROR (' + r.status + '): ' + msg;
+      // Partial success: show the per-file results that did land
+      // (bridge keeps them in `partial`) under the error line.
+      outEl.textContent = 'ERROR (' + r.status + '): ' + msg +
+        (j && j.partial ? '\n\nPartial results (the run failed partway):\n' + JSON.stringify(j.partial, null, 2).slice(0, 8000) : '');
       log('<span class="e">FAIL</span> ' + path + ' HTTP ' + r.status + ': ' + msg, 'e');
       return;
     }

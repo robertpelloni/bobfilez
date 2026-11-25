@@ -1,4 +1,5 @@
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/fault_injection.hpp"
 #include "fo/core/interfaces.hpp"
 #include "fo/core/registry.hpp"
 #include <sqlite3.h>
@@ -207,8 +208,42 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
 }
 
 void OperationRepository::mark_undone(int64_t id) {
-    db_.execute("UPDATE operation_log SET undone = 1 WHERE id = " + std::to_string(id));
+    db_.execute("UPDATE operation_log SET undone = 1, status = 'completed' WHERE id = " +
+                std::to_string(id));
 }
+
+void OperationRepository::set_status(int64_t id, const std::string& status) {
+    sqlite3* db = db_.get_db();
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, "UPDATE operation_log SET status = ? WHERE id = ?;",
+                           -1, &stmt, nullptr) != SQLITE_OK) return;
+    sqlite3_bind_text(stmt, 1, status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
+void OperationRepository::delete_operation(int64_t id) {
+    db_.execute("DELETE FROM operation_log WHERE id = " + std::to_string(id));
+}
+
+void OperationRepository::complete_operation(int64_t id, const OperationRecord& identity) {
+    sqlite3* db = db_.get_db();
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db,
+            "UPDATE operation_log SET status = 'completed', file_hash = ?, "
+            "dest_mtime = ?, dest_file_id = ? WHERE id = ?;",
+            -1, &stmt, nullptr) != SQLITE_OK) return;
+    sqlite3_bind_text(stmt, 1, identity.file_hash.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 2, identity.dest_mtime);
+    sqlite3_bind_text(stmt, 3, identity.dest_file_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int64(stmt, 4, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
+// reconcile_pending is implemented after read_record/kRecordCols
+// below (it reuses them); see the definition past undo_last_batch.
 
 namespace {
 OperationRecord read_record(sqlite3_stmt* stmt) {
@@ -283,22 +318,32 @@ std::optional<std::string> verify_identity(const OperationRecord& rec,
     // File identity (Migration 12): survives renames, not
     // replacement — catches a different file wearing the same
     // path with forged size and mtime.
+    bool same_file_id = false;
     if (!rec.dest_file_id.empty() && std::filesystem::is_regular_file(dest, ec)) {
         auto now_id = OperationRepository::file_identity(dest);
         if (!now_id.empty() && now_id != rec.dest_file_id) {
             return "file changed since the operation (identity differs)";
         }
+        same_file_id = !now_id.empty();
     }
     // Mtime identity (Migration 11): recorded for every file,
     // including ones too large for journal-time hashing, so a
     // same-size in-place edit is caught without reading a byte.
+    // FAT/exFAT round mtimes to 2s, so when the file ID proves
+    // this is the same file, <=2s of drift is filesystem
+    // rounding, not an edit (an hour-scale DST shift on FAT
+    // still refuses — the safe direction). A replacement
+    // still fails the file-ID gate above; an in-place edit of a
+    // hashable file still fails the content gate.
     if (rec.dest_mtime > 0 && std::filesystem::is_regular_file(dest, ec)) {
         std::error_code mec;
         auto mt = std::filesystem::last_write_time(dest, mec);
         if (!mec) {
             auto secs = std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
-            if (secs != rec.dest_mtime) {
+            auto drift = secs - rec.dest_mtime;
+            if (drift < 0) drift = -drift;
+            if (secs != rec.dest_mtime && !(same_file_id && drift <= 2)) {
                 return "file changed since the operation (mtime differs)";
             }
         }
@@ -328,6 +373,7 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     std::filesystem::create_directories(src.parent_path(), ec);
                 }
                 std::filesystem::rename(dest, src);
+                fault_checkpoint("undo.after-rename");
                 return std::nullopt;
             }
             case OperationType::Copy: {
@@ -347,6 +393,7 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     }
                 }
                 std::filesystem::remove(dest);
+                fault_checkpoint("undo.after-rename");
                 return std::nullopt;
             }
             case OperationType::Delete:
@@ -400,10 +447,12 @@ std::optional<OperationRecord> OperationRepository::undo_last() {
     // (or whose move-back fails) is stale: skipping it keeps one bad
     // record from blocking every older undo forever.
     for (const auto& rec : get_undoable(50)) {
+        set_status(rec.id, "undoing");
         if (!try_undo_record(rec)) {
             mark_undone(rec.id);
             return rec;
         }
+        set_status(rec.id, "completed");
     }
 
     return std::nullopt;
@@ -452,7 +501,9 @@ OperationRepository::UndoOutcome OperationRepository::undo_last_batch() {
         size_t undone_before = outcome.undone.size();
         for (const auto& rec : members) {
             if (rec.type == OperationType::Delete) continue; // older delete batches: skip silently in the walk
+            set_status(rec.id, "undoing");
             if (auto reason = try_undo_record(rec)) {
+                set_status(rec.id, "completed");
                 outcome.skipped.push_back({rec, *reason});
             } else {
                 mark_undone(rec.id);
@@ -468,6 +519,50 @@ OperationRepository::UndoOutcome OperationRepository::undo_last_batch() {
         i = j;
     }
     return outcome;
+}
+
+int OperationRepository::reconcile_pending() {
+    sqlite3* raw = db_.get_db();
+    // Hold the write lock for the whole sweep so a concurrent
+    // invocation cannot reconcile the same rows twice.
+    sqlite3_exec(raw, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr);
+    std::vector<OperationRecord> open;
+    sqlite3_stmt* stmt;
+    std::string sql = std::string("SELECT ") + kRecordCols +
+        " FROM operation_log WHERE undone = 0 AND status IN ('pending', 'undoing');";
+    if (sqlite3_prepare_v2(raw, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) open.push_back(read_record(stmt));
+        sqlite3_finalize(stmt);
+    }
+    int resolved = 0;
+    std::error_code ec;
+    for (const auto& rec : open) {
+        auto src = std::filesystem::path(rec.source_path);
+        auto dst = std::filesystem::path(rec.dest_path);
+        bool at_src = !src.empty() && std::filesystem::exists(src, ec);
+        bool at_dst = !dst.empty() && std::filesystem::exists(dst, ec);
+        if (rec.status == "pending") {
+            // Intent row written before the rename. Rename never
+            // ran (file home): drop the intent. Rename landed
+            // (file at dest only): the journal becomes truth by
+            // completing the row — undo can now restore it.
+            if (at_src && !at_dst) { delete_operation(rec.id); ++resolved; }
+            else if (at_dst && !at_src) { set_status(rec.id, "completed"); ++resolved; }
+        } else { // "undoing": undo's rename may or may not have run
+            bool restored = false;
+            if (rec.type == OperationType::Copy) {
+                restored = !at_dst; // copy deleted by undo
+            } else {
+                restored = at_src && !at_dst; // moved back home
+            }
+            if (restored) { mark_undone(rec.id); ++resolved; }
+            else if (at_dst) { set_status(rec.id, "completed"); ++resolved; }
+        }
+        // Both paths exist (or neither) is ambiguous: leave the
+        // row for a human rather than guess at user files.
+    }
+    sqlite3_exec(raw, "COMMIT;", nullptr, nullptr, nullptr);
+    return resolved;
 }
 
 void OperationRepository::log_created_dirs(int64_t batch_id, const std::vector<std::string>& dirs) {

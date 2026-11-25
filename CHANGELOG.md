@@ -1,5 +1,40 @@
 # Changelog
 
+## [6.5.94] - 2026-11-25 — True Crash Recovery: Intent Before Move
+
+### Fixed
+- **Crash between rename and journal was unrecoverable**: the
+  exception-path rollback only worked while the process lived.
+  Organize/rename now journal a `pending` intent row BEFORE
+  the rename and complete it after (`complete_operation`),
+  undo marks records `undoing` before its rename, and every
+  CLI invocation reconciles leftovers against the live tree
+  (`reconcile_pending`, Migration 13 status index): intent
+  with the file home is dropped, intent with the file at dest
+  is completed (undoable), undoing with the file restored is
+  marked undone; ambiguous rows (both/neither paths) are left
+  for a human. `FO_FAULT_AT=<point>` checkpoints
+  (`fault_injection.hpp`) hard-kill the process at
+  `organize.after-mkdir/-intent/-rename/-complete` and
+  `undo.after-rename`; new `OrganizeCrashRecoveryAtEach
+  Checkpoint` / `UndoCrashRecoveryAtRenameCheckpoint` tests
+  assert tree+journal consistency after each kill. The older
+  view-swap rollback test was openly re-pinned: an intent
+  insert failure now prevents the move instead of rolling it
+  back (same file-home contract, stronger mechanism).
+- **Undo mtime false-refusals**: FAT/exFAT 2-second mtime
+  rounding no longer refuses an untouched file — when the
+  file ID matches, ≤2s of drift is rounding, not an edit
+  (`UndoToleratesTwoSecondMtimeRounding`). Replacement still
+  fails the file-ID gate.
+- **Partial success was invisible**: the bridge discarded a
+  failed run's JSON payload; the error envelope now carries
+  it as `partial`, and the unified page renders it. Also, the
+  CLI undo JSON empty case now names every skipped record
+  and reason instead of a bare "No operations to undo".
+  Suites: lean **100/100**, MSVC **100/100**, wiring
+  **30/30**; JUCE lane rebuilt at this version.
+
 ## [6.5.93] - 2026-11-25 — Schema v2: Array Roots Wrapped
 
 ### Changed (breaking, versioned)

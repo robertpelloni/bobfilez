@@ -291,6 +291,40 @@ test('hash accepts a single file path (scanner file roots)', async () => {
   assert.ok(Array.isArray(j.items) && j.items.length >= 1, 'expected at least one hash result for a file path');
 });
 
+test('partial success keeps its per-file payload on failure', async () => {
+  // Round 8: a run that finishes partway and exits 1 printed its
+  // per-file JSON first. The bridge envelope must carry it as
+  // `partial` so the dashboard can show what landed (and offer
+  // undo) instead of only an error string.
+  const os = require('node:os');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bobfilez-partial-'));
+  try {
+    // The rename bridge (dryRun=false) has the same shape as a
+    // real organize: one target pre-exists (failure), the other
+    // renames fine, and the CLI prints JSON then exits 1.
+    const fix = path.join(tmp, 'fix');
+    fs.mkdirSync(fix, { recursive: true });
+    // {name} drops the extension, so a.txt and a.md both map to
+    // "a": exactly one wins the rename, the other fails with
+    // "destination exists" — partial success in any scan order.
+    fs.writeFileSync(path.join(fix, 'a.txt'), 'aaa');
+    fs.writeFileSync(path.join(fix, 'a.md'), 'amd');
+    fs.writeFileSync(path.join(fix, 'c.txt'), 'ccc');
+    const r = await fetch('http://localhost:3199/api/rename', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths: [fix], pattern: '{name}', dryRun: false }),
+    });
+    assert.equal(r.status, 422);
+    const j = await r.json();
+    assert.equal(j.error_code, 'FAILED');
+    assert.ok(j.partial, 'expected partial payload on the envelope');
+    assert.ok(j.partial.failed >= 1, 'expected at least one failed rename');
+    assert.ok(j.partial.renamed >= 1, 'expected at least one successful rename');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test('scan bridge returns wrapped items, not a bare array', async () => {
   const r = await fetch('http://localhost:3199/api/scan', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
