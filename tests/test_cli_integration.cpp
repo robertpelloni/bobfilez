@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <map>
+#include <set>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -409,18 +410,30 @@ TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
         // rewrites timestamps would be a quiet lie (Muse roast).
         // Wide keys: generic_string() would ANSI-mangle (and throw
         // on) the CJK fixture name before the product even runs.
-        std::map<std::wstring, std::pair<std::string, std::filesystem::file_time_type>> files;
-        for (auto& e : std::filesystem::recursive_directory_iterator(inbox)) {
-            if (!e.is_regular_file()) continue;
-            std::ifstream in(e.path(), std::ios::binary);
-            std::stringstream ss; ss << in.rdbuf();
-            files[std::filesystem::relative(e.path(), inbox).generic_wstring()] =
-                {ss.str(), e.last_write_time()};
+        // The whole fixture dir is compared (inbox + organize
+        // target area), including the directory set: undo must
+        // not leave organize's empty category dirs behind.
+        struct Snap {
+            std::map<std::wstring, std::pair<std::string, std::filesystem::file_time_type>> files;
+            std::set<std::wstring> dirs;
+            bool operator==(const Snap& o) const { return files == o.files && dirs == o.dirs; }
+        };
+        Snap snap;
+        for (auto& e : std::filesystem::recursive_directory_iterator(dir)) {
+            auto rel = std::filesystem::relative(e.path(), dir).generic_wstring();
+            if (rel.find(L"t.db") == 0 || rel.find(L"cli-out") == 0) continue;
+            if (e.is_directory()) {
+                snap.dirs.insert(rel);
+            } else if (e.is_regular_file()) {
+                std::ifstream in(e.path(), std::ios::binary);
+                std::stringstream ss; ss << in.rdbuf();
+                snap.files[rel] = {ss.str(), e.last_write_time()};
+            }
         }
-        return files;
+        return snap;
     };
     auto before = snapshot();
-    ASSERT_EQ(before.size(), 5u);
+    ASSERT_EQ(before.files.size(), 5u);
 
     std::filesystem::current_path(dir);
     auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);

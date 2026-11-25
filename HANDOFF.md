@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.77 (Undo Leaves No Empty Category Dirs)
+
+## What landed (2026-11-24, continuation)
+- **Dir-pruning undo**: move-back prunes emptied destination
+  parents (empty-only remove, ≤8 levels); invariant now
+  compares files+mtimes+directory set over the whole fixture.
+  Remote `origin/main` tree verified free of the 18 untracked
+  root files. Lean ctest **81/81**.
+- Version **6.5.77**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 5 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.76 (Non-ASCII Paths Through argv)
 
 ## What landed (2026-11-24, continuation)

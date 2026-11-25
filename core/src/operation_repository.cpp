@@ -263,6 +263,19 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     std::filesystem::create_directories(src.parent_path(), ec);
                 }
                 std::filesystem::rename(dest, src);
+                // Prune destination parents the organize created
+                // and this move-back just emptied (category dirs
+                // like txt/, log/). remove() only succeeds on
+                // empty directories, so user content is never at
+                // risk; stop at the first non-empty ancestor.
+                {
+                    auto parent = dest.parent_path();
+                    for (int i = 0; i < 8 && !parent.empty(); ++i) {
+                        std::error_code rec_ec;
+                        if (!std::filesystem::remove(parent, rec_ec)) break;
+                        parent = parent.parent_path();
+                    }
+                }
                 return std::nullopt;
             }
             case OperationType::Copy: {

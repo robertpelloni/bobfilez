@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.77] - 2026-11-24 — Undo Leaves No Empty Category Dirs
+
+### Fixed
+- **Undo left organize's empty category directories behind**
+  (Muse review: the identical-tree invariant compared only
+  files). A successful move-back now prunes destination parent
+  directories it emptied, up to 8 levels — `remove()` only
+  succeeds on empty dirs, so user content is never at risk.
+  The invariant test now compares the whole fixture tree
+  (files + mtimes + directory set). Remote tree verified
+  against Muse's cached-page caveat: the 18 untracked root
+  files are confirmed gone from `origin/main`. Suites: lean
+  **81/81**; other lanes rebuilt at this version.
+
 ## [6.5.76] - 2026-11-24 — Non-ASCII Paths Work Through argv (Claude Round 4)
 
 ### Fixed
