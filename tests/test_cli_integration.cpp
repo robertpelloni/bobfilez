@@ -352,6 +352,26 @@ void write_minimal_exif_jpeg(const std::filesystem::path& path) {
     (void)tiff;
 }
 
+TEST_F(CliFixture, IgnoreAddRemoveReportTruthfully) {
+    // ignore add/remove claimed success unconditionally: adding
+    // a duplicate and removing a nonexistent rule both printed
+    // success and exited 0. Both must report what happened.
+    auto db = (dir / "t.db").string();
+    auto add1 = run_cli("ignore add \"*.log\" reason --db=" + db, dir);
+    ASSERT_EQ(add1.code, 0) << add1.out;
+
+    auto add2 = run_cli("ignore add \"*.log\" reason --db=" + db, dir);
+    EXPECT_NE(add2.code, 0) << add2.out;
+    EXPECT_NE(add2.out.find("already exists"), std::string::npos) << add2.out;
+
+    auto rem1 = run_cli("ignore remove \"*.log\" --db=" + db, dir);
+    ASSERT_EQ(rem1.code, 0) << rem1.out;
+
+    auto rem2 = run_cli("ignore remove \"*.log\" --db=" + db, dir);
+    EXPECT_NE(rem2.code, 0) << rem2.out;
+    EXPECT_NE(rem2.out.find("No ignore rule"), std::string::npos) << rem2.out;
+}
+
 TEST_F(CliFixture, VaultUnlockRejectsTraversalId) {
     // unlock_file joined the vault id unchecked: "../x" escaped
     // the vault, and a successful decrypt DELETED the outside

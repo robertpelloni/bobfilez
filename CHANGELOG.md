@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.90] - 2026-11-24 — Ignore Add/Remove Report Truthfully
+
+### Fixed
+- **`ignore add`/`remove` claimed success unconditionally**:
+  adding a duplicate and removing a nonexistent rule both
+  printed success and exited 0. `IgnoreRepository::add/remove`
+  now report whether a row actually changed; the CLI exits 1
+  with "already exists" / "No ignore rule matches", and the
+  C API action JSON carries a truthful `"success"` field.
+  New `IgnoreAddRemoveReportTruthfully` CLI test failed
+  before, passes after. Suites: lean **94/94**; other lanes
+  rebuilt at this version.
+
 ## [6.5.89] - 2026-11-24 — Vault Unlock Path Traversal
 
 ### Fixed

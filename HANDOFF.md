@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.90 (Ignore Add/Remove Report Truthfully)
+
+## What landed (2026-11-24, continuation)
+- **Ignore truthfulness**: repo add/remove return change
+  counts; CLI exits 1 on duplicate-add/missing-remove; C API
+  gains `"success"` on ignore actions. CLI test added. Lean
+  ctest **94/94**.
+- Version **6.5.90**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.89 (Vault Unlock Path Traversal)
 
 ## What landed (2026-11-24, continuation)

@@ -758,11 +758,13 @@ std::string make_ignore_summary_text(const std::vector<fo::core::IgnoreRule>& ru
 
 std::string make_ignore_action_json(const char* action,
                                     const std::string& pattern,
-                                    const std::string& reason)
+                                    const std::string& reason,
+                                    bool success = true)
 {
     std::ostringstream out;
     out << "{\n"
         << "  \"action\": \"" << action << "\",\n"
+        << "  \"success\": " << (success ? "true" : "false") << ",\n"
         << "  \"pattern\": \"" << fo::core::Exporter::json_escape(pattern) << "\",\n"
         << "  \"reason\": \"" << fo::core::Exporter::json_escape(reason) << "\"\n"
         << "}\n";
@@ -1060,8 +1062,8 @@ extern "C" char* fo_bobfilez_ignore_add_json(const char* pattern, const char* re
         fo::core::EngineConfig config;
         config.db_path = current_c_api_db_path();
         fo::core::Engine engine(config);
-        engine.ignore_repository().add(parsed_pattern, parsed_reason);
-        return make_ignore_action_json("add", parsed_pattern, parsed_reason);
+        bool added = engine.ignore_repository().add(parsed_pattern, parsed_reason);
+        return make_ignore_action_json("add", parsed_pattern, parsed_reason, added);
     });
 }
 
@@ -1071,8 +1073,8 @@ extern "C" char* fo_bobfilez_ignore_remove_json(const char* pattern)
         fo::core::EngineConfig config;
         config.db_path = current_c_api_db_path();
         fo::core::Engine engine(config);
-        engine.ignore_repository().remove(parsed_pattern);
-        return make_ignore_action_json("remove", parsed_pattern, "");
+        bool removed = engine.ignore_repository().remove(parsed_pattern);
+        return make_ignore_action_json("remove", parsed_pattern, "", removed);
     });
 }
 

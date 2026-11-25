@@ -7,25 +7,29 @@ namespace fo::core {
 
 IgnoreRepository::IgnoreRepository(DatabaseManager& db) : db_(db) {}
 
-void IgnoreRepository::add(const std::string& pattern, const std::string& reason) {
+bool IgnoreRepository::add(const std::string& pattern, const std::string& reason) {
     std::string sql = "INSERT OR IGNORE INTO ignore_list (pattern, reason) VALUES (?, ?);";
     sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db_.get_db(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return;
-    
+    if (sqlite3_prepare_v2(db_.get_db(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return false;
+
     sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, reason.c_str(), -1, SQLITE_STATIC);
     sqlite3_step(stmt);
+    int changed = sqlite3_changes(db_.get_db());
     sqlite3_finalize(stmt);
+    return changed > 0;
 }
 
-void IgnoreRepository::remove(const std::string& pattern) {
+bool IgnoreRepository::remove(const std::string& pattern) {
     std::string sql = "DELETE FROM ignore_list WHERE pattern = ?;";
     sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db_.get_db(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return;
-    
+    if (sqlite3_prepare_v2(db_.get_db(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return false;
+
     sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_STATIC);
     sqlite3_step(stmt);
+    int changed = sqlite3_changes(db_.get_db());
     sqlite3_finalize(stmt);
+    return changed > 0;
 }
 
 std::vector<IgnoreRule> IgnoreRepository::get_all() {

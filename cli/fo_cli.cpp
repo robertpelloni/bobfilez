@@ -2262,11 +2262,17 @@ int main(int argc, char** argv) {
                 if (sub == "add" && roots.size() >= 2) {
                     std::string pattern = roots[1].string();
                     std::string reason = roots.size() >= 3 ? roots[2].string() : "";
-                    engine.ignore_repository().add(pattern, reason);
+                    if (!engine.ignore_repository().add(pattern, reason)) {
+                        std::cerr << "Ignore rule already exists: " << pattern << "\n";
+                        return 1;
+                    }
                     std::cout << "Added ignore rule: " << pattern << "\n";
                 } else if (sub == "remove" && roots.size() >= 2) {
                     std::string pattern = roots[1].string();
-                    engine.ignore_repository().remove(pattern);
+                    if (!engine.ignore_repository().remove(pattern)) {
+                        std::cerr << "No ignore rule matches: " << pattern << "\n";
+                        return 1;
+                    }
                     std::cout << "Removed ignore rule: " << pattern << "\n";
                 } else if (sub == "list") {
                     auto rules = engine.ignore_repository().get_all();
