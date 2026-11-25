@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.116 (Index Follows Moves)
+
+## What landed (2026-11-25, continuation)
+- **Stale index fixed**: organize/rename completions
+  and the undo handler re-point file-repository rows
+  (`update_path`), so `similar` never answers with
+  pre-move or post-undo phantom paths. Test pins the
+  hash → organize → similar → undo → similar cycle.
+- Version **6.5.116**: lean/MSVC **125 + 1 skip**,
+  wiring **32/32**, JUCE **119 + 4 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`; Gemini recovery/index items answered).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.115 (Recovery Identity)
 
 ## What landed (2026-11-25, continuation)

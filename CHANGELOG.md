@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.116] - 2026-11-25 — File Index Follows Moves and Undo
+
+### Fixed
+- **Stale index after moves** (Gemini replay item): the
+  file repository's hash records are keyed by path and
+  `similar` answers from them, but organize/rename/undo
+  never re-pointed the rows — queries kept returning
+  pre-move locations that no longer exist. Completions
+  now `update_path` each moved row, and the undo
+  handler re-points restored rows back. New
+  `IndexFollowsMovesAndUndo` test: hash → organize →
+  similar answers with post-move paths; undo → answers
+  with the original paths again. Suites: lean/MSVC
+  **125 + 1 skip**, wiring **32/32**, JUCE **119 + 4
+  skips** (media-lane skips by design).
+
 ## [6.5.115] - 2026-11-25 — Recovery Verifies Identity, Not Just Existence
 
 ### Fixed

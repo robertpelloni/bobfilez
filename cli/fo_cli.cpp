@@ -1698,6 +1698,12 @@ int main(int argc, char** argv) {
                         engine.database().execute("BEGIN IMMEDIATE;");
                         for (auto* p : done) {
                             op_repo.complete_operation(p->intent_id, p->rec);
+                            // Keep the file index pointing at
+                            // reality: hash consumers (similar)
+                            // answer by repository path.
+                            if (p->f->id != 0) {
+                                try { engine.file_repository().update_path(p->f->id, p->new_path); } catch (...) {}
+                            }
                             try {
                                 fo::core::make_audit_logger(engine.database())
                                     ->log("move", p->f->uri, p->new_path.string(), p->f->size, "");
@@ -2107,6 +2113,9 @@ int main(int argc, char** argv) {
                         engine.database().execute("BEGIN IMMEDIATE;");
                         for (auto* p : done) {
                             op_repo.complete_operation(p->intent_id, p->rec);
+                            if (p->f->id != 0) {
+                                try { engine.file_repository().update_path(p->f->id, p->new_path); } catch (...) {}
+                            }
                             try {
                                 fo::core::make_audit_logger(engine.database())
                                     ->log("rename", p->f->uri, p->new_path.string(), p->f->size, "");
@@ -2312,6 +2321,17 @@ int main(int argc, char** argv) {
             // its newest file.
             auto outcome = op_repo.undo_last_batch();
             const auto& undone = outcome.undone;
+
+            // Re-point the file index at the restored paths so
+            // hash consumers never answer with pre-move (or
+            // post-move, after undo) locations.
+            for (const auto& rec : undone) {
+                try {
+                    if (auto row = engine.file_repository().get_by_path(rec.dest_path)) {
+                        engine.file_repository().update_path(row->id, rec.source_path);
+                    }
+                } catch (...) {}
+            }
 
             auto type_name = [](fo::core::OperationType t) {
                 switch (t) {
