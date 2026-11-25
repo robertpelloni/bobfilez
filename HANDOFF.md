@@ -1,3 +1,32 @@
+# Session Handoff - v6.5.92 (Vault Ops Reach the Audit Ledger)
+
+## What landed (2026-11-25, continuation)
+- **Vault audit coverage**: `vault-lock`/`vault-unlock` now
+  write `vault-lock`/`vault-unlock` entries to the forensic
+  audit ledger on success (previously a silent hole — lock
+  consumes the source file yet left no trace). New
+  `VaultOpsAppearInAuditLedger` CLI test failed before,
+  passes after. Lean **96/96**, MSVC **96/96**, wiring
+  **28/28**, JUCE lane rebuilt.
+- Version **6.5.92** (`7b1fc476f`, pushed; tree in sync).
+- Verified live: dashboard on http://localhost:3131 serves
+  `unified.html` (200) and `/api/audit` (200, verified:true)
+  via the pre-existing tray-managed server; the bridge picks
+  the newest `fo_cli` per request, so no restart was needed.
+- Note: `fo_tests` target does not rebuild `fo_cli`; the CLI
+  fixture runs the exe, so rebuild `fo_cli` explicitly when a
+  CLI-only change seems not to take effect in tests.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Submodule gitlink drift (161 of ~173): commit new pins or
+  restore recorded pins (owner).
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.91 (Convert Overwrite + Injection Guards)
 
 ## What landed (2026-11-24, continuation)
