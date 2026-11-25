@@ -1377,6 +1377,31 @@ TEST_F(CliFixture, SimilarDoesNotReportDeletedFiles) {
     EXPECT_EQ(sim.out.find(deleted), std::string::npos) << sim.out;
 }
 
+TEST_F(CliFixture, RecoveredMovesAppearInAuditLedger) {
+    // Forensic completeness: a move recovered by reconcile
+    // (crash after rename, before completion) used to enter
+    // the journal silently — the tamper-evident audit ledger
+    // had no trace of a file movement that really happened.
+    // Recovery now writes recover-* audit entries, and the
+    // chain still verifies end to end.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "audit-me"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto crash = run_cli_fault("organize --rule={ext}/{filename} --format=json --db=" + db +
+                                   " \"" + inbox.string() + "\"",
+                               dir, "organize.after-rename");
+    ASSERT_NE(crash.code, 0) << crash.out;
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    ASSERT_EQ(hist.code, 0) << hist.out;
+    auto audit = run_cli("audit --format=json --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("recover"), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

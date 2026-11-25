@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.118 (Recovered Ops Audited)
+
+## What landed (2026-11-25, continuation)
+- **Recovery reaches the audit ledger**: reconcile now
+  appends recover-move/-rename/-delete/-undo entries
+  (was journal-only, a forensic hole). Chain verifies.
+- Version **6.5.118**: lean/MSVC **127 + 1 skip**,
+  wiring **32/32**, JUCE **120 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21` — Gemini wedged at "...").
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.117 (Index Leaves Deleted)
 
 ## What landed (2026-11-25, continuation)

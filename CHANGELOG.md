@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.118] - 2026-11-25 — Recovered Operations Reach the Audit Ledger
+
+### Fixed
+- **Silent recovery**: reconcile completed crashed
+  moves/deletes/undos in the journal but never wrote to
+  the forensic audit ledger, so the tamper-evident trail
+  claimed movements it recovered never happened (the
+  same class as the v6.5.92 vault hole, one layer down).
+  Recovery now appends `recover-move` / `recover-rename`
+  / `recover-delete` / `recover-undo` entries, and the
+  hash chain still verifies end to end. New
+  `RecoveredMovesAppearInAuditLedger` test. Suites:
+  lean/MSVC **127 + 1 skip**, wiring **32/32**, JUCE
+  **120 + 5 skips**.
+
 ## [6.5.117] - 2026-11-25 — Deleted Files Leave the Index Too
 
 ### Fixed

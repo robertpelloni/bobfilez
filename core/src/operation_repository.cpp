@@ -1,4 +1,5 @@
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/audit_logger_interface.hpp"
 #include "fo/core/fs_walk.hpp"
 #include "fo/core/fault_injection.hpp"
 #include "fo/core/interfaces.hpp"
@@ -569,6 +570,18 @@ int OperationRepository::reconcile_pending() {
     }
     int resolved = 0;
     std::error_code ec;
+    // Recovered state changes belong in the forensic ledger
+    // too: a movement recovery completes is a real file
+    // movement, and a silent one would leave the audit
+    // trail claiming it never happened.
+    auto audit = make_audit_logger(db_);
+    auto audit_log = [&](const char* op, const OperationRecord& r,
+                         const std::string& src, const std::string& dst) {
+        try {
+            if (audit) audit->log(op, src, dst,
+                                  static_cast<std::uintmax_t>(r.file_size), "");
+        } catch (...) {}
+    };
     for (const auto& rec : open) {
         auto src = std::filesystem::path(rec.source_path);
         auto dst = std::filesystem::path(rec.dest_path);
@@ -580,7 +593,10 @@ int OperationRepository::reconcile_pending() {
             // the intent); it being gone means it did (complete
             // the row, so the batch refuses undo truthfully).
             if (at_src) { delete_operation(rec.id); ++resolved; }
-            else { set_status(rec.id, "completed"); ++resolved; }
+            else {
+                set_status(rec.id, "completed"); ++resolved;
+                audit_log("recover-delete", rec, rec.source_path, "");
+            }
         } else if (rec.status == "pending") {
             // Intent row written before the rename. Rename never
             // ran (file home): drop the intent. Rename landed
@@ -602,7 +618,11 @@ int OperationRepository::reconcile_pending() {
                     auto hasher = Registry<IHasher>::instance().create("fast64");
                     if (hasher && hasher->fast64(dst) != rec.file_hash) drifted = true;
                 }
-                if (!drifted) { set_status(rec.id, "completed"); ++resolved; }
+                if (!drifted) {
+                    set_status(rec.id, "completed"); ++resolved;
+                    audit_log(rec.type == OperationType::Rename ? "recover-rename" : "recover-move",
+                              rec, rec.source_path, rec.dest_path);
+                }
             }
         } else { // "undoing": undo's rename may or may not have run
             bool restored = false;
@@ -611,7 +631,10 @@ int OperationRepository::reconcile_pending() {
             } else {
                 restored = at_src && !at_dst; // moved back home
             }
-            if (restored) { mark_undone(rec.id); ++resolved; }
+            if (restored) {
+                mark_undone(rec.id); ++resolved;
+                audit_log("recover-undo", rec, rec.dest_path, rec.source_path);
+            }
             else if (at_dst) { set_status(rec.id, "completed"); ++resolved; }
         }
         // Both paths exist (or neither) is ambiguous: leave the
