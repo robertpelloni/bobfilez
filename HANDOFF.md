@@ -8,6 +8,10 @@
 - **Secrets check (Muse round 4)**: metamcp.db/index.db/
   session files hold NO credentials (sensitive tables empty);
   fo.db has 3,156 scanned paths (privacy, not secrets).
+- **Kill test (Muse round 4)**: 5,000-file organize hard-
+  killed at 1.2s: 97 moved, 97 journaled, 0 orphaned — the
+  per-file rename→autocommit-journal ordering holds
+  empirically. Round-4 replies posted to chat `fd6d6d5b`.
 - Version **6.5.76**.
 
 ## Still open (roast triage)
