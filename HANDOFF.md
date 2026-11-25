@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.103 (Hardlink Twins)
+
+## What landed (2026-11-25, continuation)
+- **Hardlink twins collapse** (Gemini alias-boundary
+  class): all three duplicate grouping implementations
+  keep one representative per file identity (Migration
+  12), so hardlink pairs no longer inflate groups or
+  wasted-space claims. CLI test added.
+- Version **6.5.103**: lean **113/113**, MSVC **113/113**,
+  wiring **32/32**, JUCE **108 + 2 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21` — briefed through
+  v6.5.101 + this class answered for Gemini).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.102 (Junction Cycles)
 
 ## What landed (2026-11-25, continuation)

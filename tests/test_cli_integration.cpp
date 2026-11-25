@@ -951,6 +951,33 @@ TEST_F(CliFixture, WatchPrunedPollingStillDetectsChanges) {
 }
 #endif
 
+TEST_F(CliFixture, HardlinkTwinsAreNotDuplicates) {
+    // Gemini's alias-boundary class: two hardlinks are ONE
+    // file with two names. Grouping them as duplicates claims
+    // reclaimable space that deleting cannot free (unlinking
+    // one name leaves the bytes), and invites deleting a
+    // "copy" that is the same inode. Same-file-ID entries
+    // collapse to a single representative before grouping.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "orig.bin") << "shared-content-1234567890"; }
+    std::error_code ec;
+    std::filesystem::create_hard_link(inbox / "orig.bin", inbox / "twin.bin", ec);
+    if (ec) GTEST_SKIP() << "hard links unavailable here: " << ec.message();
+    { std::ofstream(inbox / "copy.bin") << "shared-content-1234567890"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    // Exactly one of the hardlink pair may appear, plus the
+    // real copy: a 2-member group, never 3.
+    int members = 0;
+    for (const char* name : {"orig.bin", "twin.bin", "copy.bin"}) {
+        if (r.out.find(name) != std::string::npos) ++members;
+    }
+    EXPECT_EQ(members, 2) << r.out;
+    EXPECT_NE(r.out.find("copy.bin"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

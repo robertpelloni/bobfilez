@@ -1,4 +1,5 @@
 #include "fo/core/engine.hpp"
+#include "fo/core/operation_repository.hpp"
 #include "fo/core/ads_cache.hpp"
 #include "fo/core/search_interface.hpp"
 #include "fo/core/nexus_interface.hpp"
@@ -274,11 +275,29 @@ std::vector<DuplicateGroup> Engine::find_duplicates(const std::vector<FileInfo>&
 std::vector<DuplicateGroup> Engine::SizeHashDuplicateFinder::group(const std::vector<FileInfo>& files, IHasher& hasher) {
     // Forward to the implementation in dupe_size_fast.cpp without exposing it
     // Duplicate minimal logic here to avoid cross-odr issues
+    //
+    // Hardlink collapse first (alias-boundary class): two
+    // names for one inode are one file. Grouping them claims
+    // reclaimable bytes that unlinking cannot free, so keep
+    // a single representative per file identity.
+    std::vector<const FileInfo*> distinct;
+    distinct.reserve(files.size());
+    {
+        std::unordered_map<std::string, bool> seen_ids;
+        for (auto& f : files) {
+            auto id = OperationRepository::file_identity(std::filesystem::path(f.uri));
+            if (!id.empty()) {
+                if (seen_ids.count(id)) continue;
+                seen_ids[id] = true;
+            }
+            distinct.push_back(&f);
+        }
+    }
     std::unordered_map<std::uintmax_t, std::vector<const FileInfo*>> by_size;
-    by_size.reserve(files.size());
-    for (auto& f : files) {
-        if (f.size == static_cast<std::uintmax_t>(-1)) continue;
-        by_size[f.size].push_back(&f);
+    by_size.reserve(distinct.size());
+    for (auto* fp : distinct) {
+        if (fp->size == static_cast<std::uintmax_t>(-1)) continue;
+        by_size[fp->size].push_back(fp);
     }
 
     std::vector<DuplicateGroup> groups;

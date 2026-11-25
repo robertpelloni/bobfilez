@@ -1,13 +1,21 @@
 #include "fo/core/duplicate_finders.hpp"
+#include "fo/core/operation_repository.hpp"
 #include <map>
 #include <fstream>
+#include <unordered_map>
 
 namespace fo::core {
 
 std::vector<DuplicateGroup> SizeHashDuplicateFinder::group(const std::vector<FileInfo>& files, IHasher& hasher) {
     std::map<std::pair<std::uintmax_t, std::string>, std::vector<FileInfo>> groups;
 
+    // Hardlink collapse (see Engine::find_duplicates): one
+    // representative per file identity.
+    std::unordered_map<std::string, bool> seen_ids;
     for (const auto& file : files) {
+        auto id = OperationRepository::file_identity(std::filesystem::path(file.uri));
+        if (!id.empty() && seen_ids.count(id)) continue;
+        if (!id.empty()) seen_ids[id] = true;
         std::string fast_hash = hasher.fast64(std::filesystem::path(file.uri));
         groups[{file.size, fast_hash}].push_back(file);
     }

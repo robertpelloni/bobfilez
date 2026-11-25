@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.103] - 2026-11-25 — Hardlink Twins Are Not Duplicates
+
+### Fixed
+- **Hardlink twins grouped as duplicates** (Gemini's
+  alias-boundary class): two names for one inode were
+  counted as a duplicate pair, claiming reclaimable bytes
+  that unlinking one name cannot free and inviting the
+  deletion of "copies" that are the same file. All three
+  size+hash grouping implementations (Engine finder and
+  both registered finders) now collapse same-file-ID
+  entries to one representative before grouping, reusing
+  the Migration-12 file identity. New
+  `HardlinkTwinsAreNotDuplicates` CLI test: orig + hardlink
+  twin + real copy yields a 2-member group, never 3.
+  Suites: lean **113/113**, MSVC **113/113**, wiring
+  **32/32**, JUCE **108 + 2 designed skips**.
+
 ## [6.5.102] - 2026-11-25 — Win32 Scanner Junction Cycles
 
 ### Fixed

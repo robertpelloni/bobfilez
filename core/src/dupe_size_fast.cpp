@@ -1,4 +1,5 @@
 #include "fo/core/interfaces.hpp"
+#include "fo/core/operation_repository.hpp"
 #include "fo/core/registry.hpp"
 #include <unordered_map>
 
@@ -11,8 +12,14 @@ public:
     std::vector<DuplicateGroup> group(const std::vector<FileInfo>& files, IHasher& hasher) override {
         std::unordered_map<std::uintmax_t, std::vector<const FileInfo*>> by_size;
         by_size.reserve(files.size());
+        // Hardlink collapse: one representative per file
+        // identity (see Engine::find_duplicates).
+        std::unordered_map<std::string, bool> seen_ids;
         for (auto& f : files) {
             if (f.size == static_cast<std::uintmax_t>(-1)) continue;
+            auto id = OperationRepository::file_identity(std::filesystem::path(f.uri));
+            if (!id.empty() && seen_ids.count(id)) continue;
+            if (!id.empty()) seen_ids[id] = true;
             by_size[f.size].push_back(&f);
         }
 
