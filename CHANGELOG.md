@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.111] - 2026-11-25 — Bulk Rename Chunked Like Organize
+
+### Fixed
+- **Pattern rename paid the same per-file fsync
+  triple** (intent, completion, audit) as organize did
+  before v6.5.109. It now uses the identical chunked
+  structure: 128-file intent transaction before the
+  chunk's renames, completion+audit transaction after.
+  Completion failure no longer rolls renames back —
+  rows stay pending and reconcile at startup, the same
+  semantics organize adopted. Measured: 2,000-file
+  rename in ~6.3s (the host's raw rename floor).
+  Removed the now-dead `record_journal_residue` helper
+  (superseded by pending-intent reconciliation).
+  Suites: lean/MSVC **118 + 1 skip**, wiring **32/32**,
+  JUCE **113 + 3 skips**.
+
 ## [6.5.110] - 2026-11-25 — Bulk Undo Status Transitions Batched
 
 ### Fixed

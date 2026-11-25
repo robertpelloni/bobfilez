@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.111 (Bulk Rename Chunked)
+
+## What landed (2026-11-25, continuation)
+- **Rename chunked** identically to organize (intent
+  txn per 128, completion txn after; completion failure
+  reconciles instead of rolling back). 2,000-file
+  rename ~6.3s (host floor). Dead residue helper removed.
+- Version **6.5.111**: lean/MSVC **118 + 1 skip**,
+  wiring **32/32**, JUCE **113 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- delete-duplicates still journals per file (batching
+  needs a Delete-aware reconcile branch; designed, not
+  yet built).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.110 (Bulk Undo Batched)
 
 ## What landed (2026-11-25, continuation)
