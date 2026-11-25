@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.105] - 2026-11-25 — Delete-Duplicates: Never Keep a Link Over Its Target
+
+### Fixed
+- **Keeper alias rule**: when a symlink and its target
+  landed in one duplicate group, `--keep` strategies
+  (mtime/name length) could keep the LINK and delete the
+  real file, leaving a dangling path and lost bytes. The
+  keeper sort now prefers a real file over a link before
+  any strategy applies. New
+  `DeleteDuplicatesKeepsRealFileOverSymlink` test pins it
+  where file symlinks can be created (skips on this host:
+  symlink creation needs a privilege Windows does not
+  grant here; it runs where developer mode/admin allows).
+  Suites: lean **114 passed + 1 skip**, MSVC **114 + 1**,
+  wiring **32/32**, JUCE **109 + 3 skips**.
+
 ## [6.5.104] - 2026-11-25 — Organize Escaped Its Root Through a Junction
 
 ### Fixed

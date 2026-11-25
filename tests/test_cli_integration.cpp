@@ -1007,6 +1007,31 @@ TEST_F(CliFixture, OrganizeDoesNotEscapeThroughJunction) {
 }
 #endif
 
+TEST_F(CliFixture, DeleteDuplicatesKeepsRealFileOverSymlink) {
+    // Alias class, keeper side: if a symlink and its target
+    // land in one duplicate group, keeping the LINK and
+    // deleting the real file leaves a dangling path and lost
+    // bytes. The keeper sort must prefer a real file over a
+    // link regardless of --keep strategy. (Skips where file
+    // symlinks need privilege this host does not grant.)
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "real.bin") << "shared-bytes-1234567890"; }
+    std::error_code ec;
+    std::filesystem::create_symlink(inbox / "real.bin", inbox / "link.bin", ec);
+    if (ec) GTEST_SKIP() << "file symlinks unavailable here: " << ec.message();
+    auto db = (dir / "t.db").string();
+    ASSERT_EQ(run_cli("duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    // --keep=newest would pick the (newer) link without the
+    // alias rule; the real file must survive either way.
+    auto del = run_cli("delete-duplicates --keep=newest --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_EQ(del.code, 0) << del.out;
+    ASSERT_TRUE(std::filesystem::exists(inbox / "real.bin")) << del.out;
+    std::ifstream in(inbox / "real.bin");
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(content, "shared-bytes-1234567890");
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

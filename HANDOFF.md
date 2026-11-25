@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.105 (Keeper Alias Rule)
+
+## What landed (2026-11-25, continuation)
+- **Keeper alias rule**: delete-duplicates keeper sort
+  prefers real files over links before any --keep
+  strategy (keeping a link and deleting its target
+  dangled the path and lost the bytes). Test is
+  skip-guarded on hosts without symlink privilege.
+- Version **6.5.105**: lean/MSVC **114 + 1 skip**,
+  wiring **32/32**, JUCE **109 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.104 (Junction Escape)
 
 ## What landed (2026-11-25, continuation)

@@ -1703,6 +1703,12 @@ int main(int argc, char** argv) {
                 ++scoped_groups;
 
                 std::sort(members.begin(), members.end(), [&](const fo::core::FileInfo& a, const fo::core::FileInfo& b) {
+                    // Alias rule beats every strategy: never
+                    // keep a link and delete its real target
+                    // (the kept path would dangle, bytes lost).
+                    bool a_link = fo::core::is_link_like(a.uri);
+                    bool b_link = fo::core::is_link_like(b.uri);
+                    if (a_link != b_link) return b_link;
                     if (keep_strategy == "newest") return a.mtime > b.mtime;
                     if (keep_strategy == "shortest") return a.uri.length() < b.uri.length();
                     if (keep_strategy == "longest") return a.uri.length() > b.uri.length();
