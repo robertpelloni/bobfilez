@@ -352,6 +352,31 @@ void write_minimal_exif_jpeg(const std::filesystem::path& path) {
     (void)tiff;
 }
 
+TEST_F(CliFixture, ConvertRefusesExistingOutputAndQuoteInjection) {
+    // convert used to overwrite existing outputs silently
+    // (ffmpeg -y) while every other command refuses, and it
+    // built shell commands with an unchecked --output path: a
+    // quote in it breaks out of the quoted argument under
+    // cmd.exe. Both must be refused before any tool runs.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_tone_wav(inbox / "tone.wav");
+    { std::ofstream(inbox / "tone.flac") << "previous conversion"; }
+    auto db = (dir / "t.db").string();
+
+    auto over = run_cli("convert --to=flac --db=" + db + " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    EXPECT_NE(over.code, 0) << over.out;
+    EXPECT_NE(over.out.find("already exists"), std::string::npos) << over.out;
+    std::ifstream in(inbox / "tone.flac");
+    std::stringstream ss; ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "previous conversion");
+
+    auto inj = run_cli("convert --to=flac --output=\"evil\\\" & echo pwned > pwned.txt & \\\"\" --db=" + db +
+                       " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    EXPECT_NE(inj.code, 0) << inj.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "pwned.txt")) << inj.out;
+}
+
 TEST_F(CliFixture, IgnoreAddRemoveReportTruthfully) {
     // ignore add/remove claimed success unconditionally: adding
     // a duplicate and removing a nonexistent rule both printed

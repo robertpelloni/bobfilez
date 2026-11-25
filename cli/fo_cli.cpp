@@ -2319,6 +2319,16 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
+            // The backend command is built as a shell string; a
+            // double quote in --output would break out of the
+            // quoted argument under cmd.exe. Windows filenames
+            // cannot contain quotes, so one here is never legit.
+            if (requested_output_path.find('"') != std::string::npos) {
+                std::cerr << "Invalid --output path (contains a double quote; refusing to build a shell command): "
+                          << requested_output_path << "\n";
+                return 2;
+            }
+
             int failed_conversions = 0;
             for (auto& input_file : paths) {
                 std::filesystem::path inp(input_file);
@@ -2333,6 +2343,16 @@ int main(int argc, char** argv) {
                 std::string ext_lower = target_format;
                 std::transform(ext_lower.begin(), ext_lower.end(), ext_lower.begin(), ::tolower);
 
+                // Never silently overwrite an existing output
+                // (the house rule for vault/organize/rename);
+                // ffmpeg's -y made convert the exception.
+                if (std::filesystem::exists(outp)) {
+                    ++failed_conversions;
+                    std::cerr << "Conversion failed for: " << inp.string()
+                              << " (output already exists: " << outp.string() << ")\n";
+                    continue;
+                }
+
                 std::string cmd;
                 if (ext_lower == "mp4" || ext_lower == "webm" || ext_lower == "mkv" ||
                     ext_lower == "avi" || ext_lower == "mov" || ext_lower == "mp3" ||
@@ -2340,7 +2360,7 @@ int main(int argc, char** argv) {
                     ext_lower == "aac" || ext_lower == "gif") {
                     cmd = "ffmpeg -i \"" + inp.string() + "\"";
                     if (quality >= 0) cmd += " -crf " + std::to_string(quality);
-                    cmd += " \"" + outp.string() + "\" -y";
+                    cmd += " \"" + outp.string() + "\"";
                 } else if (ext_lower == "png" || ext_lower == "jpg" || ext_lower == "jpeg" ||
                            ext_lower == "bmp" || ext_lower == "tiff" || ext_lower == "webp" ||
                            ext_lower == "ico" || ext_lower == "svg") {

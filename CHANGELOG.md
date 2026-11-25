@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.91] - 2026-11-24 — Convert: No Silent Overwrite, No Shell Injection
+
+### Fixed
+- **Convert silently overwrote existing outputs** (a trailing
+  ffmpeg `-y`), breaking the house rule every other command
+  follows; an existing output is now a named per-file failure.
+  **Shell injection via `--output`**: backend commands are
+  built as shell strings, and a double quote in the output
+  path broke out of the quoted argument under cmd.exe (the
+  dashboard passes this field from JSON). Quote-bearing
+  output paths are refused as usage errors before any tool
+  runs. New `ConvertRefusesExistingOutputAndQuoteInjection`
+  CLI test failed before, passes after. Suites: lean
+  **95/95**; other lanes rebuilt at this version.
+
 ## [6.5.90] - 2026-11-24 — Ignore Add/Remove Report Truthfully
 
 ### Fixed
