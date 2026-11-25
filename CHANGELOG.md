@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.120] - 2026-11-25 — Delete-Duplicates Refuses Read-Only Files
+
+### Fixed
+- **Read-only files were silently deleted**: MSVC's
+  `std::filesystem::remove` force-clears the read-only
+  attribute, so delete-duplicates wiped files the user
+  had explicitly marked read-only. Candidates carrying
+  the mark are now skipped by name ("Skipped
+  (read-only)") with every byte left in place — the
+  tool never overrides a user's protection mark behind
+  their back. Renaming a read-only file stays allowed
+  (no write needed). `ReadOnlySourceHandling` covers
+  both halves. Suites: lean/MSVC **129 + 1 skip**,
+  wiring **32/32**, JUCE **122 + 5 skips**.
+
 ## [6.5.119] - 2026-11-25 — Locked Files and Read-Only Destinations Pinned
 
 ### Added

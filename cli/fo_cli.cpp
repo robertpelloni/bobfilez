@@ -1865,6 +1865,22 @@ int main(int argc, char** argv) {
                             deleted_paths.push_back(del.uri);
                             continue;
                         }
+                        {
+                            // Read-only is an explicit user
+                            // protection mark: MSVC's remove()
+                            // would force-clear it and delete
+                            // anyway. Refuse by name instead —
+                            // never override the mark silently.
+                            std::error_code pec;
+                            auto perms = std::filesystem::status(del.uri, pec).permissions();
+                            if (!pec && (perms & std::filesystem::perms::owner_write) ==
+                                             std::filesystem::perms::none) {
+                                ++skipped_count;
+                                std::cerr << "Skipped (read-only): " << del.uri << "\n";
+                                dropped_idx.push_back(i);
+                                continue;
+                            }
+                        }
                         if (keep_hash.empty() || !recheck_hasher ||
                             recheck_hasher->fast64(del.uri) != keep_hash) {
                             ++skipped_count;

@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.120 (Read-Only Refusal)
+
+## What landed (2026-11-25, continuation)
+- **Read-only deletion refusal**: MSVC `remove()`
+  force-clears the read-only attribute; delete-
+  duplicates now skips read-only candidates by name
+  instead of overriding the user's mark. Renaming
+  read-only files stays allowed. Test covers both.
+- Version **6.5.120**: lean/MSVC **129 + 1 skip**,
+  wiring **32/32**, JUCE **122 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21` — wedged at "...").
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.119 (Locked/Read-Only Pinned)
 
 ## What landed (2026-11-25, continuation)

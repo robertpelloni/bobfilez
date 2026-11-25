@@ -1451,6 +1451,41 @@ TEST_F(CliFixture, LockedFileAndReadOnlyDestFailCleanly) {
 }
 #endif
 
+#ifdef _WIN32
+TEST_F(CliFixture, ReadOnlySourceHandling) {
+    // Permission class, source side: a read-only file can be
+    // RENAMED (no write needed) but cannot be DELETED on
+    // Windows without clearing the attribute. Organize must
+    // move it; delete-duplicates must refuse it by name and
+    // leave every byte in place — never force-clear user
+    // attributes behind their back.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "ro.txt") << "read-only-bytes"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    SetFileAttributesW((inbox / "ro.txt").c_str(), FILE_ATTRIBUTE_READONLY);
+    auto org = run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_EQ(org.code, 0) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "ro.txt")) << org.out;
+
+    // Restore it home, add an identical twin, make the TWIN
+    // read-only, and try to delete duplicates.
+    ASSERT_EQ(run_cli("undo --format=json --db=" + db, dir).code, 0);
+    std::filesystem::copy_file(inbox / "ro.txt", inbox / "twin.txt");
+    SetFileAttributesW((inbox / "twin.txt").c_str(), FILE_ATTRIBUTE_READONLY);
+    ASSERT_EQ(run_cli("duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    auto del = run_cli("delete-duplicates --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    SetFileAttributesW((inbox / "ro.txt").c_str(), FILE_ATTRIBUTE_NORMAL);
+    SetFileAttributesW((inbox / "twin.txt").c_str(), FILE_ATTRIBUTE_NORMAL);
+    EXPECT_TRUE(std::filesystem::exists(inbox / "ro.txt")) << del.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "twin.txt")) << del.out;
+    std::filesystem::current_path(original_cwd);
+}
+#endif
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries
