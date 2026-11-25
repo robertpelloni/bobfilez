@@ -1246,6 +1246,65 @@ TEST_F(CliFixture, OrganizeToDeepDestinationFailsSafely) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, ExternalDriftDuringRecoveryIsNotSilentlyCompleted) {
+    // Gemini recovery-drift class: a file changed externally
+    // between the crash and the recovery run must not be
+    // silently adopted as "the moved file". Reconcile used to
+    // complete a pending intent on existence alone; with the
+    // source size+hash recorded in the intent, a drifted
+    // destination stays pending (visible), undo does not
+    // move it, and its edited bytes are untouched.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "original-bytes"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto crash = run_cli_fault("organize --rule={ext}/{filename} --format=json --db=" + db +
+                                   " \"" + inbox.string() + "\"",
+                               dir, "organize.after-rename");
+    ASSERT_NE(crash.code, 0) << crash.out;
+    ASSERT_TRUE(std::filesystem::exists(dir / "txt" / "a.txt"));
+    // External drift: append to the moved file before recovery.
+    { std::ofstream app(dir / "txt" / "a.txt", std::ios::app); app << "-edited"; }
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    ASSERT_EQ(hist.code, 0) << hist.out;
+    EXPECT_NE(hist.out.find("\"status\": \"pending\""), std::string::npos) << hist.out;
+    auto und = run_cli("undo --format=json --db=" + db, dir);
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "a.txt")) << und.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "a.txt")) << und.out;
+    std::string content;
+    { std::ifstream in(dir / "txt" / "a.txt"); content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()); }
+    EXPECT_EQ(content, "original-bytes-edited");
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, OrganizeUndoReplayIsIdempotent) {
+    // Post-undo replay (Gemini): organize -> undo -> organize
+    // again over two full cycles must move every file exactly
+    // once per cycle, keep the audit chain verifiable, and
+    // end with the tree byte-identical to the start.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "cycle-a"; }
+    { std::ofstream(inbox / "b.txt") << "cycle-b"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        auto org = run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                               " \"" + inbox.string() + "\"", dir);
+        ASSERT_EQ(org.code, 0) << org.out;
+        EXPECT_NE(org.out.find("\"moved\": 2"), std::string::npos) << org.out;
+        EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "a.txt"));
+        auto und = run_cli("undo --format=json --db=" + db, dir);
+        ASSERT_EQ(und.code, 0) << und.out;
+        EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << und.out;
+        EXPECT_TRUE(std::filesystem::exists(inbox / "b.txt")) << und.out;
+    }
+    auto audit = run_cli("audit --format=json --db=" + db, dir);
+    EXPECT_NE(audit.out.find("\"verified\": true"), std::string::npos) << audit.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

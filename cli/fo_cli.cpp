@@ -1613,6 +1613,13 @@ int main(int argc, char** argv) {
                 MovePlan p;
                 p.f = &f;
                 p.new_path = new_path;
+                // Record the source's content identity in the
+                // intent: if the destination drifts externally
+                // before recovery, reconcile can tell it is no
+                // longer the file that was moved.
+                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
+                    try { p.rec.file_hash = journal_hasher->fast64(f.uri); } catch (...) {}
+                }
                 p.rec.timestamp = std::chrono::system_clock::now();
                 p.rec.type = fo::core::OperationType::Move;
                 p.rec.source_path = std::filesystem::path(f.uri).is_relative()
@@ -2025,6 +2032,9 @@ int main(int argc, char** argv) {
                 RenamePlan p;
                 p.f = &f;
                 p.new_path = new_path;
+                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
+                    try { p.rec.file_hash = journal_hasher->fast64(f.uri); } catch (...) {}
+                }
                 p.rec.timestamp = std::chrono::system_clock::now();
                 p.rec.type = fo::core::OperationType::Rename;
                 p.rec.source_path = std::filesystem::path(f.uri).is_relative()
@@ -2474,6 +2484,7 @@ int main(int argc, char** argv) {
                               << ", \"source\": \"" << fo::core::Exporter::json_escape(op.source_path) << "\""
                               << ", \"dest\": \"" << fo::core::Exporter::json_escape(op.dest_path) << "\""
                               << ", \"timestamp\": \"" << ts.str() << "\""
+                              << ", \"status\": \"" << op.status << "\""
                               << ", \"undone\": " << (op.undone ? "true" : "false")
                               << "}" << (i + 1 < ops.size() ? "," : "") << "\n";
                 }

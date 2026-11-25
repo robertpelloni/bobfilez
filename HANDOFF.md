@@ -1,3 +1,26 @@
+# Session Handoff - v6.5.115 (Recovery Identity)
+
+## What landed (2026-11-25, continuation)
+- **Recovery verifies identity** (Gemini drift class):
+  intents record source size+hash at plan time;
+  reconcile verifies both before completing a crashed
+  move — drifted destinations stay `pending` (history
+  JSON now shows `status`) and undo never touches them.
+  Replay idempotence (organize→undo cycles + audit
+  chain) pinned.
+- Version **6.5.115**: lean/MSVC **124 + 1 skip**,
+  wiring **32/32**, JUCE **119 + 3 skips**. (One MSVC
+  run skip-cascaded when `build-msvc/cli/fo_cli.exe`
+  vanished to an external cleanup; rebuilt green.)
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`; Gemini class above answered in-thread).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.114 (Illegal/ADS Names)
 
 ## What landed (2026-11-25, continuation)

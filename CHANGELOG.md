@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.5.115] - 2026-11-25 — Recovery Verifies Identity, Not Just Existence
+
+### Fixed
+- **External drift during recovery was silently adopted**
+  (Gemini): reconcile completed a crashed move's pending
+  intent if the destination merely EXISTED — a file
+  edited or replaced between crash and recovery would be
+  adopted as the moved file and later "restored" by undo.
+  Intents now record the source's size+content hash at
+  plan time, and reconcile verifies both before
+  completing: a drifted destination stays `pending`
+  (now visible via a new `status` field in history JSON)
+  for a human, and undo never touches it.
+  `ExternalDriftDuringRecoveryIsNotSilentlyCompleted`
+  failed before, passes after;
+  `OrganizeUndoReplayIsIdempotent` pins organize→undo→
+  organize cycles with an unbroken audit chain. Suites:
+  lean/MSVC **124 + 1 skip** (one MSVC run briefly lost
+  `build-msvc/cli/fo_cli.exe` to an external cleanup and
+  skip-cascaded; rebuilt green), wiring **32/32**, JUCE
+  **119 + 3 skips**.
+
 ## [6.5.114] - 2026-11-25 — Illegal/ADS Destination Characters Refused
 
 ### Fixed

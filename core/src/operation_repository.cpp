@@ -586,8 +586,24 @@ int OperationRepository::reconcile_pending() {
             // ran (file home): drop the intent. Rename landed
             // (file at dest only): the journal becomes truth by
             // completing the row — undo can now restore it.
+            // But existence is not identity: if the file at
+            // dest drifted externally since the crash (size or
+            // recorded content hash differs), leave the row
+            // pending for a human rather than adopting a file
+            // that is no longer the one that was moved.
             if (at_src && !at_dst) { delete_operation(rec.id); ++resolved; }
-            else if (at_dst && !at_src) { set_status(rec.id, "completed"); ++resolved; }
+            else if (at_dst && !at_src) {
+                bool drifted = false;
+                std::error_code sec;
+                auto sz = std::filesystem::file_size(dst, sec);
+                if (!sec && rec.file_size != 0 &&
+                    sz != static_cast<std::uintmax_t>(rec.file_size)) drifted = true;
+                if (!drifted && !rec.file_hash.empty()) {
+                    auto hasher = Registry<IHasher>::instance().create("fast64");
+                    if (hasher && hasher->fast64(dst) != rec.file_hash) drifted = true;
+                }
+                if (!drifted) { set_status(rec.id, "completed"); ++resolved; }
+            }
         } else { // "undoing": undo's rename may or may not have run
             bool restored = false;
             if (rec.type == OperationType::Copy) {
