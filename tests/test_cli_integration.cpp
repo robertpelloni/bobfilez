@@ -881,6 +881,76 @@ TEST_F(CliFixture, RenameBatchSurvivesOverLongPaths) {
     EXPECT_FALSE(std::filesystem::exists(dir / "aaa-report.txt")) << r2.out;
 }
 
+#ifdef _WIN32
+TEST_F(CliFixture, WatchPrunedPollingStillDetectsChanges) {
+    // Watch used to rescan (and re-stat) the whole tree every
+    // debounce tick. It now prunes by directory mtime and only
+    // falls back to a full rescan every N ticks — which must
+    // not lose the events users rely on: NEW on creation
+    // (directory changes) and MODIFIED on a content-only edit
+    // (directory mtime does NOT change; the periodic full
+    // rescan is what catches it).
+    auto watched = dir / "watched";
+    std::filesystem::create_directories(watched);
+    { std::ofstream(watched / "a.txt") << "one"; }
+    // Outside the fixture dir: teardown wipes the dir, and with
+    // it any evidence of what the child actually printed.
+    auto out_file = dir.parent_path() / "bobfilez-watch-test-out.txt";
+    { std::error_code ec; std::filesystem::remove(out_file, ec); }
+    auto db = (dir / "t.db").string();
+
+    // bInheritHandle must be TRUE: with a non-inheritable handle
+    // the child daemon runs fine but every write fails silently
+    // (cout failbit, no crash) — the test then waits forever on
+    // output that can never arrive.
+    SECURITY_ATTRIBUTES sa{sizeof(sa), nullptr, TRUE};
+    HANDLE h = CreateFileW(out_file.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
+                           &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT_NE(h, INVALID_HANDLE_VALUE);
+    std::wstring cmd = L"\"" + cli_path().wstring() + L"\" watch --debounce=100 --db=" +
+                       std::wstring(db.begin(), db.end()) + L" \"" + watched.wstring() + L"\"";
+    std::vector<wchar_t> buf(cmd.begin(), cmd.end());
+    buf.push_back(L'\0');
+    STARTUPINFOW si{};
+    si.cb = sizeof(si);
+    si.hStdOutput = h;
+    si.hStdError = h;
+    si.dwFlags = STARTF_USESTDHANDLES;
+    PROCESS_INFORMATION pi{};
+    ASSERT_TRUE(CreateProcessW(nullptr, buf.data(), nullptr, nullptr, TRUE, 0,
+                               nullptr, dir.c_str(), &si, &pi));
+    CloseHandle(h);
+    struct Guard {
+        PROCESS_INFORMATION& pi;
+        ~Guard() { TerminateProcess(pi.hProcess, 0); CloseHandle(pi.hThread); CloseHandle(pi.hProcess); }
+    } guard{pi};
+
+    auto output_contains = [&](const std::string& needle, int timeout_ms) {
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms);
+        while (std::chrono::steady_clock::now() < deadline) {
+            std::ifstream in(out_file);
+            std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            if (text.find(needle) != std::string::npos) return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        return false;
+    };
+
+    if (!output_contains("Baseline:", 8000)) {
+        DWORD code = 0;
+        GetExitCodeProcess(pi.hProcess, &code);
+        ADD_FAILURE() << "watch child never printed Baseline; exit=" << code
+                      << " (259=STILL_ACTIVE) out_file=" << out_file.string();
+    }
+    EXPECT_TRUE(output_contains("pruned", 2000)) << "watch does not announce pruned polling";
+    { std::ofstream(watched / "b.txt") << "new"; }
+    EXPECT_TRUE(output_contains("[NEW]", 8000)) << "creation not detected";
+    std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+    { std::ofstream app(watched / "a.txt", std::ios::app); app << "two"; }
+    EXPECT_TRUE(output_contains("[MODIFIED]", 12000)) << "content-only edit not detected";
+}
+#endif
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

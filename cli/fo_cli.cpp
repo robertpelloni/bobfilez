@@ -595,6 +595,11 @@ int main(int argc, char** argv) {
             // Parsed by the audit command handler below; accept silently here.
         } else if (a == "--dismiss") {
             // Parsed by the undo command handler below; accept silently here.
+        } else if (a.rfind("--debounce=", 0) == 0 || a.rfind("--full-scan-every=", 0) == 0) {
+            // Parsed by the watch command handler below; accept
+            // silently here. (Missing from this list until
+            // v6.5.101: watch --debounce always died here with
+            // "Unknown option" before dispatch.)
         } else if (a.rfind("--threads=", 0) == 0) {
             auto v = parse_int_strict(a.substr(10));
             if (!v) { std::cerr << "Invalid --threads value: " << a.substr(10) << " (expected a number)\n"; return 2; }
@@ -2753,25 +2758,32 @@ int main(int argc, char** argv) {
 
         } else if (command == "watch") {
             // ─── Watch Command (Shadow Sorter) ──────────────────────────────
-            // Usage: fo_cli watch <path...> [--debounce=<ms>]
+            // Usage: fo_cli watch <path...> [--debounce=<ms>] [--full-scan-every=<ticks>]
             if (paths.empty()) {
-                std::cerr << "Usage: fo watch <path...> [--debounce=<ms>]\n";
+                std::cerr << "Usage: fo watch <path...> [--debounce=<ms>] [--full-scan-every=<ticks>]\n";
                 return 1;
             }
 
             int debounce_ms = 500;
+            int full_scan_every = 20;
             for (auto& a : args) {
                 if (a.rfind("--debounce=", 0) == 0) {
                     auto dv = parse_int_strict(a.substr(11));
                     if (!dv) { std::cerr << "Invalid --debounce value: " << a.substr(11) << " (expected a number)\n"; return 2; }
                     debounce_ms = *dv;
+                } else if (a.rfind("--full-scan-every=", 0) == 0) {
+                    auto fv = parse_int_strict(a.substr(18));
+                    if (!fv || *fv < 1) { std::cerr << "Invalid --full-scan-every value: " << a.substr(18) << " (expected >= 1)\n"; return 2; }
+                    full_scan_every = *fv;
                 }
             }
 
             std::cout << "Watching " << paths.size() << " path(s) for changes (Ctrl+C to stop)...\n";
-            std::cout << "Debounce: " << debounce_ms << "ms\n\n";
+            std::cout << "Debounce: " << debounce_ms << "ms\n";
+            std::cout << "Index: pruned polling (full rescan every " << full_scan_every << " ticks)\n\n";
 
             std::unordered_map<std::string, std::filesystem::file_time_type> file_times;
+            std::unordered_map<std::string, std::filesystem::file_time_type> dir_times;
 
             // Snapshot one poll: stack-DFS collect, then stat
             // with error codes. The old live recursive walk
@@ -2789,11 +2801,37 @@ int main(int argc, char** argv) {
                 }
                 return times;
             };
+            auto scan_dirs = [&]() {
+                std::unordered_map<std::string, std::filesystem::file_time_type> dirs;
+                for (auto& sp : paths) {
+                    std::error_code ec;
+                    if (!std::filesystem::is_directory(sp, ec)) continue;
+                    std::vector<std::filesystem::path> stack{sp};
+                    while (!stack.empty()) {
+                        auto cur = stack.back();
+                        stack.pop_back();
+                        std::error_code fec;
+                        auto ft = std::filesystem::last_write_time(cur, fec);
+                        if (!fec) dirs[cur.string()] = ft;
+                        std::error_code dec;
+                        for (std::filesystem::directory_iterator it(cur, dec), end;
+                             it != end; it.increment(dec)) {
+                            if (dec) { dec.clear(); break; }
+                            std::error_code xec;
+                            if (it->is_directory(xec) && !xec && !it->is_symlink(xec)) {
+                                stack.push_back(it->path());
+                            }
+                        }
+                    }
+                }
+                return dirs;
+            };
 
             // Initial scan to establish baseline
             file_times = scan_times();
+            dir_times = scan_dirs();
 
-            std::cout << "Baseline: " << file_times.size() << " files indexed\n";
+            std::cout << "Baseline: " << file_times.size() << " files indexed\n" << std::flush;
 
             // Publish heartbeat so `watch-status` / dashboard can query us.
             const long long watch_started = unix_now();
@@ -2801,12 +2839,7 @@ int main(int argc, char** argv) {
             std::string watch_last = "baseline " + std::to_string(file_times.size()) + " files";
             write_watch_status(watch_started, paths, watch_events, watch_last);
 
-            // Continuous poll loop
-            while (true) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(debounce_ms));
-
-                auto current = scan_times();
-
+            auto report_diff = [&](const std::unordered_map<std::string, std::filesystem::file_time_type>& current) {
                 for (auto& [path, mtime] : current) {
                     auto it = file_times.find(path);
                     if (it == file_times.end()) {
@@ -2817,16 +2850,95 @@ int main(int argc, char** argv) {
                         ++watch_events; watch_last = "MODIFIED " + path;
                     }
                 }
-
                 for (auto& [path, mtime] : file_times) {
                     if (current.find(path) == current.end()) {
                         std::cout << "[DELETED]  " << path << "\n";
                         ++watch_events; watch_last = "DELETED " + path;
                     }
                 }
+            };
 
-                file_times = std::move(current);
+            // Continuous poll loop. Most ticks are pruned: only
+            // directories are enumerated (cheap stats), and files
+            // are re-stat'ed solely inside directories whose
+            // mtime changed (create/delete/rename show up there).
+            // A content-only edit does not move its directory's
+            // mtime, so every full_scan_every-th tick does the
+            // old full rescan to catch those — bounded staleness
+            // instead of an O(files) stat storm per tick.
+            long long tick = 0;
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(debounce_ms));
+                ++tick;
+
+                if (tick % full_scan_every == 0) {
+                    auto current = scan_times();
+                    report_diff(current);
+                    file_times = std::move(current);
+                    dir_times = scan_dirs();
+                } else {
+                    auto now_dirs = scan_dirs();
+                    // Dirty = changed, brand-new, or vanished dirs.
+                    std::vector<std::string> dirty;
+                    for (auto& [d, mt] : now_dirs) {
+                        auto it = dir_times.find(d);
+                        if (it == dir_times.end() || it->second != mt) dirty.push_back(d);
+                    }
+                    for (auto& [d, mt] : dir_times) {
+                        if (now_dirs.find(d) == now_dirs.end()) dirty.push_back(d);
+                    }
+                    if (!dirty.empty()) {
+                        // Re-stat only files directly inside dirty
+                        // dirs, then diff just that slice: build
+                        // the candidate set from the refreshed
+                        // files plus baseline files under a dirty
+                        // dir (so deletions surface too).
+                        std::unordered_map<std::string, std::filesystem::file_time_type> slice;
+                        for (auto& d : dirty) {
+                            std::error_code dec;
+                            for (std::filesystem::directory_iterator it(d, dec), end;
+                                 it != end; it.increment(dec)) {
+                                if (dec) { dec.clear(); break; }
+                                std::error_code fec;
+                                if (!it->is_regular_file(fec) || fec) continue;
+                                auto ft = std::filesystem::last_write_time(it->path(), fec);
+                                if (!fec) slice[it->path().string()] = ft;
+                            }
+                        }
+                        for (auto& [path, mtime] : file_times) {
+                            auto parent = std::filesystem::path(path).parent_path().string();
+                            bool in_dirty = std::find(dirty.begin(), dirty.end(), parent) != dirty.end();
+                            if (in_dirty && slice.find(path) == slice.end()) {
+                                std::cout << "[DELETED]  " << path << "\n";
+                                ++watch_events; watch_last = "DELETED " + path;
+                            }
+                        }
+                        for (auto& [path, mtime] : slice) {
+                            auto it = file_times.find(path);
+                            if (it == file_times.end()) {
+                                std::cout << "[NEW]      " << path << "\n";
+                                ++watch_events; watch_last = "NEW " + path;
+                            } else if (it->second != mtime) {
+                                std::cout << "[MODIFIED] " << path << "\n";
+                                ++watch_events; watch_last = "MODIFIED " + path;
+                            }
+                        }
+                        // Apply the slice; drop deleted entries.
+                        for (auto& d : dirty) {
+                            std::erase_if(file_times, [&](const auto& kv) {
+                                return std::filesystem::path(kv.first).parent_path().string() == d &&
+                                       slice.find(kv.first) == slice.end();
+                            });
+                        }
+                        for (auto& [path, mtime] : slice) file_times[path] = mtime;
+                    }
+                    dir_times = std::move(now_dirs);
+                }
                 write_watch_status(watch_started, paths, watch_events, watch_last);
+                // Redirected watch output is fully buffered: a
+                // daemon whose events sit in a 4KB buffer looks
+                // dead to anything tailing the log.
+                std::cout << std::flush;
             }
 
         } else if (command == "watch-status") {

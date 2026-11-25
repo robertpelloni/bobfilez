@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.5.101] - 2026-11-25 — Watch: Pruned Polling, Dead --debounce
+
+### Fixed
+- **`watch --debounce` never worked**: the global option
+  pre-parser rejected `--debounce=` as an unknown option
+  (exit 2) before dispatch ever saw it; the documented
+  option was dead on arrival. Watch flags are now accepted
+  globally and validated by the handler.
+- **Watch rescanned everything every tick**: polling now
+  prunes by directory mtime — unchanged directories are not
+  re-stat'ed; only files inside changed/new/vanished
+  directories are diffed (NEW/MODIFIED/DELETED all
+  preserved). A content-only edit does not move its
+  directory's mtime, so every `--full-scan-every=<ticks>`
+  (default 20) the old full rescan runs, bounding staleness
+  instead of paying an O(files) stat storm per tick.
+  Redirected watch output is flushed per tick (it was fully
+  buffered and looked dead in logs). New
+  `WatchPrunedPollingStillDetectsChanges` drives a real
+  watch process and asserts baseline announce, NEW on
+  creation, and MODIFIED on a content-only edit. Suites:
+  lean **111/111**, MSVC **111/111**, wiring **32/32**,
+  JUCE **106 + 2 designed skips**.
+
 ## [6.5.100] - 2026-11-25 — Round 12: The Recursive Iterator Is Gone
 
 ### Fixed

@@ -1,3 +1,28 @@
+# Session Handoff - v6.5.101 (Watch Pruned Polling)
+
+## What landed (2026-11-25, continuation)
+- **Watch**: `--debounce` was dead (global pre-parser
+  rejected it, exit 2 — fixed + whitelisted
+  `--full-scan-every`); polling now prunes by directory
+  mtime with a full rescan every 20 ticks for content-only
+  edits; redirected output flushed per tick. Real-process
+  watch test added (baseline/NEW/MODIFIED).
+- Version **6.5.101**: lean **111/111**, MSVC **111/111**,
+  wiring **32/32**, JUCE **106 + 2 skips**. Pushed.
+- Test-harness lesson: a child process with a
+  non-inheritable stdout handle runs forever writing
+  nothing (cout failbit, no crash) — the watch test's
+  first implementation hit exactly that.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner) —
+  reviewer urges moving this above other owner items.
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Muse review: thread `6d2f6927` (round 13 posted,
+  reply pending); `ad74257e`/`fd6d6d5b` wedged.
+
+---
 # Session Handoff - v6.5.100 (Recursive Iterator Gone)
 
 ## What landed (2026-11-25, continuation)
