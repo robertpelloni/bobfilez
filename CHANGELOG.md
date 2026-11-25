@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.110] - 2026-11-25 — Bulk Undo Status Transitions Batched
+
+### Fixed
+- **Bulk undo paid two fsync'd status transitions per
+  record** (undoing, then undone): 2,000-file undo took
+  ~27s. The batch now marks all members `undoing` in one
+  transaction, runs the renames, and settles
+  undone/completed in a second transaction. Crash safety
+  is unchanged — reconcile already resolves `undoing`
+  records from the tree. Measured ~13s, the remainder
+  being per-file identity verification (content hash +
+  file ID), which is the safety property, not overhead.
+  Suites: lean/MSVC **118 + 1 skip**, wiring **32/32**,
+  JUCE **113 + 3 skips**.
+
 ## [6.5.109] - 2026-11-25 — Bulk Organize fsync Cost Halved
 
 ### Fixed

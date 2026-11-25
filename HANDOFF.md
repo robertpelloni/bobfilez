@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.110 (Bulk Undo Batched)
+
+## What landed (2026-11-25, continuation)
+- **Bulk undo batched**: status transitions are one
+  transaction per batch (was two fsyncs per record);
+  2,000-file undo ~27s → ~13s, remainder is identity
+  verification by design. Crash semantics unchanged
+  (reconcile resolves `undoing` rows).
+- Version **6.5.110**: lean/MSVC **118 + 1 skip**,
+  wiring **32/32**, JUCE **113 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.109 (Bulk Organize Halved)
 
 ## What landed (2026-11-25, continuation)
