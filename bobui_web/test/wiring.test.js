@@ -378,6 +378,25 @@ test('no recursive_directory_iterator remains in shipped sources', () => {
   assert.deepEqual(offenders, []);
 });
 
+test('bridge refuses cross-origin and non-loopback callers', async () => {
+  // The bridge performs destructive filesystem operations
+  // for any page that can reach localhost. A cross-origin
+  // POST must be refused before it can delete anything;
+  // same-host dashboard calls must keep working.
+  const evil = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(evil.status, 403);
+  const ej = await evil.json();
+  assert.equal(ej.error_code, 'FORBIDDEN');
+  const okRes = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:3199' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(okRes.status, 200);
+});
+
 test('scan bridge returns wrapped items, not a bare array', async () => {
   const r = await fetch('http://localhost:3199/api/scan', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },

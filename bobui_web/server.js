@@ -5,6 +5,31 @@ const fs = require('fs');
 
 const app = express();
 app.use(express.json());
+
+// Access boundary: this bridge runs destructive filesystem
+// operations on behalf of any local web page that can reach
+// it. Browsers will happily POST here cross-origin (the
+// response is unreadable to them, but the request — and its
+// side effects — still land). Only same-host pages may use
+// the API: the Host must be a loopback name and, when an
+// Origin is present, it must be loopback too. Non-browser
+// local clients (curl, tests) send no Origin and pass.
+app.use((req, res, next) => {
+    const loopback = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+    const host = (req.headers.host || '').replace(/:\d+$/, '');
+    if (host && !loopback.has(host)) {
+        return res.status(403).json({ schema_version: 2, error: 'Forbidden host', error_code: 'FORBIDDEN', retryable: false });
+    }
+    const origin = req.headers.origin;
+    if (origin) {
+        let hostname = null;
+        try { hostname = new URL(origin).hostname; } catch { /* malformed */ }
+        if (!hostname || !loopback.has(hostname.replace(/^\[|\]$/g, ''))) {
+            return res.status(403).json({ schema_version: 2, error: 'Forbidden origin', error_code: 'FORBIDDEN', retryable: false });
+        }
+    }
+    next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 const CLI_CANDIDATES = [

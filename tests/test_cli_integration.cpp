@@ -1523,6 +1523,59 @@ TEST_F(CliFixture, LockedConvertSourceFailsCleanly) {
 }
 #endif
 
+TEST_F(CliFixture, MalformedJournalRecordsAreSafe) {
+    // ChatGPT P1 (malformed/malicious journal): the journal
+    // is user-editable SQLite. A NULL source_path crashed
+    // every reader (std::string from nullptr), and a forged
+    // "completed" Move carrying no identity evidence could
+    // make undo relocate an arbitrary file. Readers must
+    // null-guard, and undo must refuse records it cannot
+    // verify at all.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(dir / "precious.txt") << "do-not-move-me"; }
+    auto db = (dir / "t.db").string();
+    ASSERT_EQ(run_cli("scan --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+
+    sqlite3* h = nullptr;
+    ASSERT_EQ(sqlite3_open(db.c_str(), &h), SQLITE_OK);
+    std::string forged_home = (dir / "forged-home.txt").string();
+    std::string precious = (dir / "precious.txt").string();
+    // Current schema forbids NULLs; a legacy or hand-edited
+    // journal may not. Swap in a constraint-free table to
+    // simulate one (the reader must survive it regardless).
+    {
+        char* derr = nullptr;
+        const char* ddl =
+            "DROP TABLE operation_log;"
+            "CREATE TABLE operation_log (id INTEGER PRIMARY KEY, timestamp INTEGER,"
+            " operation_type TEXT, source_path TEXT, dest_path TEXT, file_size INTEGER,"
+            " file_hash TEXT, status TEXT, undone INTEGER, batch_id INTEGER,"
+            " dest_mtime INTEGER, dest_file_id TEXT);";
+        ASSERT_EQ(sqlite3_exec(h, ddl, nullptr, nullptr, &derr), SQLITE_OK) << (derr ? derr : "");
+    }
+    std::string sql =
+        "INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path,"
+        " file_size, file_hash, status, undone, batch_id, dest_mtime, dest_file_id) VALUES"
+        " (1, 'move', NULL, 'x', 0, '', 'completed', 0, 901, 0, ''),"
+        " (2, NULL, 'a', 'b', 0, '', 'completed', 0, 901, 0, ''),"
+        " (3, 'move', '', '', 0, '', 'pending', 0, 901, 0, ''),"
+        " (4, 'move', '" + forged_home + "', '" + precious +
+        "', 0, '', 'completed', 0, 902, 0, '');";
+    char* err = nullptr;
+    ASSERT_EQ(sqlite3_exec(h, sql.c_str(), nullptr, nullptr, &err), SQLITE_OK) << (err ? err : "");
+    sqlite3_close(h);
+
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    EXPECT_EQ(hist.code, 0) << hist.out; // no crash on NULL columns
+    auto und = run_cli("undo --format=json --db=" + db, dir);
+    EXPECT_TRUE(std::filesystem::exists(dir / "precious.txt")) << und.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "forged-home.txt")) << und.out;
+    std::string content;
+    { std::ifstream in(dir / "precious.txt"); content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()); }
+    EXPECT_EQ(content, "do-not-move-me");
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.5.123] - 2026-11-25 — Malformed Journal Safety + Dashboard Access Boundary
+
+### Fixed
+- **Malformed/malicious journal (ChatGPT P1)**: the
+  journal is user-editable SQLite, and two record
+  readers built `std::string` from possibly-NULL
+  columns — a legacy or hand-edited journal crashed
+  every invocation with an access violation. All
+  readers now share the null-guarded `read_record`.
+  Undo additionally refuses records with empty,
+  relative, or self-referential paths and records
+  carrying NO identity evidence at all (a forged
+  "completed" row could otherwise make undo relocate
+  an arbitrary file). Reconcile drops empty-source
+  rows instead of leaving them pending forever.
+- **Dashboard access boundary**: the localhost bridge
+  performs destructive operations for any page that
+  can reach it; cross-origin POSTs from arbitrary web
+  pages now get 403 (loopback Host and, when present,
+  loopback Origin required). New
+  `MalformedJournalRecordsAreSafe` test and a wiring
+  test pin both. Suites: lean/MSVC **131 + 1 skip**,
+  wiring **33/33**, JUCE **124 + 5 skips**.
+
 ## [6.5.122] - 2026-11-25 — Partial-Batch Journal/Audit Accuracy Pinned
 
 ### Added

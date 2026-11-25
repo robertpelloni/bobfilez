@@ -136,6 +136,11 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     return id;
 }
 
+namespace {
+OperationRecord read_record(sqlite3_stmt* stmt);
+extern const char* kRecordCols;
+} // namespace
+
 std::vector<OperationRecord> OperationRepository::get_all(int limit) {
     sqlite3* db = db_.get_db();
     std::vector<OperationRecord> results;
@@ -149,20 +154,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        OperationRecord rec;
-        rec.id = sqlite3_column_int64(stmt, 0);
-        rec.timestamp = std::chrono::system_clock::time_point(std::chrono::seconds(sqlite3_column_int64(stmt, 1)));
-        rec.type = string_to_operation_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-        rec.source_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        if (sqlite3_column_text(stmt, 4)) rec.dest_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        rec.file_size = sqlite3_column_int64(stmt, 5);
-        if (sqlite3_column_text(stmt, 6)) rec.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-        if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
-        rec.undone = sqlite3_column_int(stmt, 8) != 0;
-        rec.batch_id = sqlite3_column_int64(stmt, 9);
-        rec.dest_mtime = sqlite3_column_int64(stmt, 10);
-        if (sqlite3_column_text(stmt, 11)) rec.dest_file_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
-        results.push_back(rec);
+        results.push_back(read_record(stmt));
     }
 
     sqlite3_finalize(stmt);
@@ -189,20 +181,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        OperationRecord rec;
-        rec.id = sqlite3_column_int64(stmt, 0);
-        rec.timestamp = std::chrono::system_clock::time_point(std::chrono::seconds(sqlite3_column_int64(stmt, 1)));
-        rec.type = string_to_operation_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-        rec.source_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        if (sqlite3_column_text(stmt, 4)) rec.dest_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        rec.file_size = sqlite3_column_int64(stmt, 5);
-        if (sqlite3_column_text(stmt, 6)) rec.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-        if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
-        rec.undone = sqlite3_column_int(stmt, 8) != 0;
-        rec.batch_id = sqlite3_column_int64(stmt, 9);
-        rec.dest_mtime = sqlite3_column_int64(stmt, 10);
-        if (sqlite3_column_text(stmt, 11)) rec.dest_file_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
-        results.push_back(rec);
+        results.push_back(read_record(stmt));
     }
 
     sqlite3_finalize(stmt);
@@ -252,9 +231,13 @@ OperationRecord read_record(sqlite3_stmt* stmt) {
     OperationRecord rec;
     rec.id = sqlite3_column_int64(stmt, 0);
     rec.timestamp = std::chrono::system_clock::time_point(std::chrono::seconds(sqlite3_column_int64(stmt, 1)));
+    // NULL-guarded: the journal is user-editable SQLite, and
+    // std::string(nullptr) in an unguarded column crashed
+    // every reader (history/undo/startup reconcile).
+    const auto* type_text = sqlite3_column_text(stmt, 2);
     rec.type = OperationRepository::string_to_operation_type(
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-    rec.source_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        type_text ? reinterpret_cast<const char*>(type_text) : "");
+    if (sqlite3_column_text(stmt, 3)) rec.source_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
     if (sqlite3_column_text(stmt, 4)) rec.dest_path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
     rec.file_size = sqlite3_column_int64(stmt, 5);
     if (sqlite3_column_text(stmt, 6)) rec.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
@@ -362,6 +345,23 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
     std::error_code ec;
     auto dest = std::filesystem::path(rec.dest_path);
     auto src = std::filesystem::path(rec.source_path);
+    // Malformed/malicious journal guard: the journal is
+    // user-editable SQLite, so a record is untrusted input.
+    // Never act on empty/relative/self-referential paths, and
+    // never act on a record carrying NO identity evidence at
+    // all (a forged row could otherwise make undo relocate
+    // or delete an arbitrary file). Real writers always
+    // record at least size+mtime (0-byte files included).
+    if (rec.type == OperationType::Move || rec.type == OperationType::Rename ||
+        rec.type == OperationType::Copy) {
+        if (src.empty() || dest.empty()) return "journal record is malformed (empty path)";
+        if (src == dest) return "journal record is malformed (source equals destination)";
+        if (!src.is_absolute() || !dest.is_absolute()) return "journal record is malformed (relative path)";
+        if (rec.file_size <= 0 && rec.file_hash.empty() &&
+            rec.dest_mtime <= 0 && rec.dest_file_id.empty()) {
+            return "journal record carries no identity evidence; refusing to act on it";
+        }
+    }
     try {
         switch (rec.type) {
             case OperationType::Move:
@@ -583,6 +583,10 @@ int OperationRepository::reconcile_pending() {
         } catch (...) {}
     };
     for (const auto& rec : open) {
+        // Malformed rows (empty source) can never resolve to
+        // a filesystem truth; drop them instead of leaving
+        // them pending forever.
+        if (rec.source_path.empty()) { delete_operation(rec.id); ++resolved; continue; }
         auto src = std::filesystem::path(rec.source_path);
         auto dst = std::filesystem::path(rec.dest_path);
         bool at_src = !src.empty() && std::filesystem::exists(src, ec);

@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.123 (Journal Safety + Bridge Boundary)
+
+## What landed (2026-11-25, continuation)
+- **Malformed journal hardening** (ChatGPT P1):
+  null-guarded shared record reader (was a NULL-column
+  AV in two duplicated readers), undo refuses empty/
+  relative/self-referential/identity-free records,
+  reconcile drops empty-source rows.
+- **Dashboard boundary**: bridge 403s non-loopback
+  Host/Origin callers (drive-by POST protection).
+- Version **6.5.123**: lean/MSVC **131 + 1 skip**,
+  wiring **33/33**, JUCE **124 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.122 (Partial-Batch Accuracy)
 
 ## What landed (2026-11-25, continuation)
