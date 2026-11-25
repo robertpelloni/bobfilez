@@ -1,5 +1,34 @@
 # Changelog
 
+## [6.5.107] - 2026-11-25 — Cross-Volume Moves, Recovery-in-Recovery, FULL Sync
+
+### Fixed
+- **Cross-volume organize failed every file** (ChatGPT
+  gap table): rename cannot cross volumes, so a rule
+  landing on another drive named-failed per file. New
+  `move_file_no_replace` falls back to copy-to-.part on
+  the destination volume, size-verifies, no-replace
+  renames the temp, then removes the source; undo makes
+  the same trip back. `OrganizeCrossVolumeMovesAndUndo
+  Restores` pins it against a second volume.
+- **Recovery interrupted during recovery**: reconcile now
+  resolves rows one at a time (no sweep-wide transaction
+  to roll back) with a `reconcile.after-row` checkpoint;
+  the new test kills the process inside the sweep, then
+  proves completion plus idempotency on re-run.
+- **Power-loss durability**: the journal DB used
+  `synchronous=NORMAL` (survives process crash, not
+  power loss). The intent-before-rename promise needs
+  the row on stable storage first — now `FULL`.
+- **Watch heartbeat**: a watcher killed mid-write left
+  an empty heartbeat that made `watch-status` print
+  nothing at all. Writes are temp+rename now, and an
+  empty heartbeat reads as "not running".
+- Concurrent organizes invariant pinned by
+  `ConcurrentOrganizesLoseNothing`. Suites: lean **118
+  + 1 skip**, MSVC **118 + 1 skip**, wiring **32/32**,
+  JUCE **113 + 3 skips**.
+
 ## [6.5.106] - 2026-11-25 — No-Replace Rename Closes the Check-Then-Act Window
 
 ### Fixed

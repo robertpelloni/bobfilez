@@ -374,11 +374,12 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     std::filesystem::create_directories(src.parent_path(), ec);
                 }
                 {
-                    // No-replace: a source recreated in the
+                    // No-replace move (cross-volume copy
+                    // fallback): a source recreated in the
                     // window since the check above must not be
                     // clobbered (stale-authorization class).
                     std::error_code rec_ec;
-                    if (!rename_no_replace(dest, src, rec_ec)) {
+                    if (!move_file_no_replace(dest, src, rec_ec)) {
                         return "I/O error: " + rec_ec.message();
                     }
                 }
@@ -532,9 +533,11 @@ OperationRepository::UndoOutcome OperationRepository::undo_last_batch() {
 
 int OperationRepository::reconcile_pending() {
     sqlite3* raw = db_.get_db();
-    // Hold the write lock for the whole sweep so a concurrent
-    // invocation cannot reconcile the same rows twice.
-    sqlite3_exec(raw, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr);
+    // Deliberately NO sweep-wide transaction: each row
+    // resolution autocommits, so a process killed mid-sweep
+    // (recovery interrupted during recovery) loses nothing
+    // already resolved. Resolutions are idempotent, so a
+    // concurrent second sweep is harmless.
     std::vector<OperationRecord> open;
     sqlite3_stmt* stmt;
     std::string sql = std::string("SELECT ") + kRecordCols +
@@ -569,8 +572,11 @@ int OperationRepository::reconcile_pending() {
         }
         // Both paths exist (or neither) is ambiguous: leave the
         // row for a human rather than guess at user files.
+        // Recovery must survive being interrupted itself: each
+        // row resolution is its own committed state change, so
+        // a kill here leaves a strictly smaller problem.
+        fault_checkpoint("reconcile.after-row");
     }
-    sqlite3_exec(raw, "COMMIT;", nullptr, nullptr, nullptr);
     return resolved;
 }
 

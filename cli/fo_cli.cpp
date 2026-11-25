@@ -94,7 +94,13 @@ static long long unix_now() {
 }
 static void write_watch_status(long long started, const std::vector<std::string>& paths,
                                long long events, const std::string& last_event) {
-    std::ofstream out(watch_status_path(), std::ios::trunc);
+    // Write to a sibling temp, then rename over: a watcher
+    // killed mid-write must not leave a truncated heartbeat
+    // for watch-status to choke on.
+    auto target = watch_status_path();
+    auto tmp = target;
+    tmp += ".tmp";
+    std::ofstream out(tmp, std::ios::trunc);
     if (!out) return;
     auto esc = [](std::string s) { // JSON-safe: forward slashes, no quotes
         std::replace(s.begin(), s.end(), '\\', '/');
@@ -109,6 +115,12 @@ static void write_watch_status(long long started, const std::vector<std::string>
         out << "\"" << esc(paths[i]) << "\"";
     }
     out << "]}";
+    out.close();
+    std::error_code ec;
+    // rename replaces on Windows via std::filesystem; the
+    // heartbeat is advisory, so a failed swap just leaves the
+    // previous heartbeat in place.
+    std::filesystem::rename(tmp, target, ec);
 }
 
 // Durable residue record for moved-but-unjournaled files (journal
@@ -1560,10 +1572,12 @@ int main(int argc, char** argv) {
                             }
                             fo::core::fault_checkpoint("organize.after-intent");
                             {
-                                // No-replace rename: the exists check
-                                // above is stale the moment it passes.
+                                // No-replace move (cross-volume
+                                // copy fallback): the exists check
+                                // above is stale the moment it
+                                // passes.
                                 std::error_code ren_ec;
-                                if (!fo::core::rename_no_replace(f.uri, new_path, ren_ec)) {
+                                if (!fo::core::move_file_no_replace(f.uri, new_path, ren_ec)) {
                                     try { op_repo.delete_operation(intent_id); } catch (...) {}
                                     throw std::runtime_error(ren_ec.message());
                                 }
@@ -2957,7 +2971,16 @@ int main(int argc, char** argv) {
             // ─── Watch Status (non-blocking heartbeat read) ─────────────
             auto path = watch_status_path();
             std::ifstream in(path);
-            if (!in) {
+            // A watch process killed between truncating the
+            // heartbeat and writing it leaves an empty file:
+            // that is "not running", not an empty response.
+            bool empty_file = false;
+            if (in) {
+                in.seekg(0, std::ios::end);
+                empty_file = in.tellg() == 0;
+                in.seekg(0);
+            }
+            if (!in || empty_file) {
                 if (format == "json") std::cout << "{\"schema_version\":2,\"watching\":false,\"reason\":\"no watcher heartbeat found\"}";
                 else std::cout << "Watcher: not running (no heartbeat found)\n";
             } else {

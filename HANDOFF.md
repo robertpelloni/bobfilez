@@ -1,3 +1,28 @@
+# Session Handoff - v6.5.107 (Cross-Volume + Recovery-in-Recovery)
+
+## What landed (2026-11-25, continuation)
+- **Cross-volume moves**: `move_file_no_replace` copy
+  fallback (temp on dest volume, size-verify, no-replace
+  rename, source removal) in organize + undo.
+- **Recovery-in-recovery**: reconcile resolves per row
+  (no sweep transaction), `reconcile.after-row`
+  checkpoint; kill-mid-sweep + idempotency test.
+- **Durability**: journal DB `synchronous=FULL` (intent
+  must survive power loss, not just process crash).
+- **Watch heartbeat**: temp+rename writes; empty
+  heartbeat reads as not-running (was empty output).
+- Version **6.5.107**: lean/MSVC **118 + 1 skip**,
+  wiring **32/32**, JUCE **113 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.106 (No-Replace Rename)
 
 ## What landed (2026-11-25, continuation)

@@ -91,6 +91,56 @@ inline bool rename_no_replace(const std::filesystem::path& src,
 #endif
 }
 
+// Move a file, never replacing the destination. Rename is
+// tried first; on a cross-volume failure it falls back to
+// copy-to-temp-on-the-destination-volume, size verification,
+// no-replace rename of the temp, then source removal — so a
+// crash mid-copy leaves the source intact and only a .part
+// residue (a pending journal intent reconciles the rest).
+inline bool move_file_no_replace(const std::filesystem::path& src,
+                                  const std::filesystem::path& dst,
+                                  std::error_code& ec) {
+    if (rename_no_replace(src, dst, ec)) return true;
+    auto first_error = ec;
+    bool cross_volume =
+#ifdef _WIN32
+        first_error.value() == 17; // ERROR_NOT_SAME_DEVICE
+#else
+        first_error == std::make_error_code(std::errc::cross_device_link);
+#endif
+    if (!cross_volume) { ec = first_error; return false; }
+
+    std::error_code fec;
+    auto size = std::filesystem::file_size(src, fec);
+    if (fec) { ec = fec; return false; }
+
+    auto part = dst;
+    part += ".part";
+    std::filesystem::remove(part, fec);
+    if (!std::filesystem::copy_file(src, part, std::filesystem::copy_options::none, fec) || fec) {
+        std::error_code cec;
+        std::filesystem::remove(part, cec);
+        ec = fec;
+        return false;
+    }
+    auto copied = std::filesystem::file_size(part, fec);
+    if (fec || copied != size) {
+        std::error_code cec;
+        std::filesystem::remove(part, cec);
+        ec = fec ? fec : std::make_error_code(std::errc::io_error);
+        return false;
+    }
+    if (!rename_no_replace(part, dst, ec)) {
+        std::error_code cec;
+        std::filesystem::remove(part, cec);
+        return false;
+    }
+    std::filesystem::remove(src, fec);
+    if (fec) { ec = fec; return false; }
+    ec.clear();
+    return true;
+}
+
 inline std::vector<std::filesystem::path> collect_regular_files(
     const std::filesystem::path& root, bool follow_dir_symlinks = false) {
     std::vector<std::filesystem::path> out;

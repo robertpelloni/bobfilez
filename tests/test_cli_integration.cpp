@@ -1032,6 +1032,109 @@ TEST_F(CliFixture, DeleteDuplicatesKeepsRealFileOverSymlink) {
     EXPECT_EQ(content, "shared-bytes-1234567890");
 }
 
+TEST_F(CliFixture, OrganizeCrossVolumeMovesAndUndoRestores) {
+    // ChatGPT gap table: "cross-volume interruption — not
+    // explicitly demonstrated". rename() cannot cross volumes
+    // (EXDEV); an organizer whose rule lands on another drive
+    // must fall back to copy+verify+delete or it simply fails
+    // every file. Undo must make the same trip back.
+    if (!std::filesystem::exists("D:\\")) GTEST_SKIP() << "no second volume on this host";
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "cross-volume-bytes"; }
+    auto dest_root = std::filesystem::path("D:\\bobfilez-xv-" +
+        std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+    { std::error_code ec; std::filesystem::remove_all(dest_root, ec); }
+    struct Cleanup {
+        std::filesystem::path p;
+        ~Cleanup() { std::error_code ec; std::filesystem::remove_all(p, ec); }
+    } cleanup{dest_root};
+    auto db = (dir / "t.db").string();
+    std::string rule = dest_root.generic_string() + "/{filename}";
+    auto org = run_cli("organize --rule=" + rule + " --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(org.code, 0) << org.out;
+    ASSERT_TRUE(std::filesystem::exists(dest_root / "a.txt")) << org.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+    {
+        std::ifstream in(dest_root / "a.txt");
+        std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        EXPECT_EQ(content, "cross-volume-bytes");
+    }
+    auto und = run_cli("undo --format=json --db=" + db + " \"" + inbox.string() + "\"", dir);
+    EXPECT_EQ(und.code, 0) << und.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << und.out;
+    EXPECT_FALSE(std::filesystem::exists(dest_root / "a.txt")) << und.out;
+}
+
+TEST_F(CliFixture, RecoverySurvivesCrashDuringRecoveryAndIsIdempotent) {
+    // Recovery itself can be interrupted: reconcile resolves
+    // rows one at a time under a write lock, so a kill
+    // mid-sweep leaves the rest for the next invocation, and
+    // re-running recovery on a clean journal changes nothing.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "recover-me"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto crash = run_cli_fault("organize --rule={ext}/{filename} --format=json --db=" + db +
+                                   " \"" + inbox.string() + "\"",
+                               dir, "organize.after-rename");
+    ASSERT_NE(crash.code, 0) << crash.out;
+    // Die again *inside* the recovery sweep.
+    auto crash2 = run_cli_fault("history --format=json --db=" + db, dir, "reconcile.after-row");
+    EXPECT_NE(crash2.code, 0) << "reconcile fault point did not fire: " << crash2.out;
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    ASSERT_EQ(hist.code, 0) << hist.out;
+    EXPECT_EQ(hist.out.find("pending"), std::string::npos) << hist.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "a.txt")) << hist.out;
+    // Idempotent: a second recovery changes nothing and the
+    // move is still undoable exactly once.
+    auto hist2 = run_cli("history --format=json --db=" + db, dir);
+    EXPECT_EQ(hist2.out.find("Recovered"), std::string::npos) << hist2.out;
+    auto und = run_cli("undo --format=json --db=" + db, dir);
+    EXPECT_EQ(und.code, 0) << und.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << und.out;
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, ConcurrentOrganizesLoseNothing) {
+    // Two organizers racing one tree: journals serialize on
+    // the DB write lock and renames refuse to replace, so the
+    // invariant is conservation — every file's bytes exist
+    // exactly once afterwards, whichever process won each.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    std::vector<std::string> names;
+    for (int i = 0; i < 12; ++i) {
+        auto name = "f" + std::to_string(i) + ".txt";
+        names.push_back(name);
+        std::ofstream(inbox / name) << "content-" << i;
+    }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    std::thread t1([&] { run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                                     " \"" + inbox.string() + "\"", dir); });
+    std::thread t2([&] { run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                                     " \"" + inbox.string() + "\"", dir); });
+    t1.join();
+    t2.join();
+    int present = 0;
+    for (int i = 0; i < 12; ++i) {
+        auto name = "f" + std::to_string(i) + ".txt";
+        bool at_src = std::filesystem::exists(inbox / name);
+        bool at_dst = std::filesystem::exists(dir / "txt" / name);
+        EXPECT_NE(at_src, at_dst) << name << " must be in exactly one place";
+        if (at_src || at_dst) ++present;
+        auto where = at_dst ? (dir / "txt" / name) : (inbox / name);
+        std::string content;
+        { std::ifstream in(where); content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()); }
+        EXPECT_EQ(content, "content-" + std::to_string(i)) << name;
+    }
+    EXPECT_EQ(present, 12);
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

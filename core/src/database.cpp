@@ -287,8 +287,12 @@ void DatabaseManager::open(const std::filesystem::path& db_path) {
     execute("PRAGMA busy_timeout = 30000;");
     // WAL mode for better concurrency
     execute("PRAGMA journal_mode = WAL;");
-    // Synchronous NORMAL is usually safe enough for WAL and faster
-    execute("PRAGMA synchronous = NORMAL;");
+    // FULL, not NORMAL: the operation journal's core promise
+    // is that an intent row is on stable storage BEFORE the
+    // rename it authorizes. NORMAL survives a process crash
+    // but not power loss; for a data-safety journal the fsync
+    // per commit is the honest price.
+    execute("PRAGMA synchronous = FULL;");
 }
 
 void DatabaseManager::close() {
