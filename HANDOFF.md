@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.85 (Bogus GPS Sentinels + Flow JSON Exit)
+
+## What landed (2026-11-24, continuation)
+- **Metadata GPS validation**: finite/range-checked before
+  `has_gps` is set; flow JSON failure now exits 1 like text.
+  EXIF-fixture CLI test added. Lean ctest **89/89**.
+- Version **6.5.85**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.84 (Malformed Patterns Are Usage Errors)
 
 ## What landed (2026-11-24, continuation)

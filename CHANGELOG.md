@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.85] - 2026-11-24 — Bogus GPS Sentinels + Flow JSON Exit
+
+### Fixed
+- **Metadata printed garbage GPS coordinates**: TinyEXIF
+  reports absent GPS with sentinel doubles (DBL_MAX), which
+  surfaced as `GPS: 1.79769e+308, 1.79769e+308` for any JPEG
+  without GPS data. Only finite, in-range values now count.
+  **Flow run in JSON mode exited 0 on failure** (text mode
+  exited 1); both modes now share the exit contract, so the
+  bridge maps failures to HTTP 422. New
+  `MetadataOmitsBogusGps` CLI test (hand-crafted EXIF JPEG)
+  failed before, passes after. Suites: lean **89/89**; other
+  lanes rebuilt at this version.
+
 ## [6.5.84] - 2026-11-24 — Malformed Patterns Are Usage Errors
 
 ### Fixed

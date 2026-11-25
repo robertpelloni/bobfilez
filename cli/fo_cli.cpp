@@ -2726,6 +2726,10 @@ int main(int argc, char** argv) {
                     std::cout << "{\"schema_version\": 1, \"workflow_id\":\"" << workflow_id << "\",";
                     std::cout << "\"payload\":\"" << payload << "\",";
                     std::cout << "\"success\":" << (ok ? "true" : "false") << "}";
+                    // Same exit contract as text mode: a failed
+                    // run is a failure even when reported as JSON
+                    // (bridges map exit 1 to HTTP 422).
+                    if (!ok) return 1;
                 } else {
                     if (ok) {
                         std::cout << "✓ Workflow '" << workflow_id << "' executed successfully on '" << payload << "'\n";

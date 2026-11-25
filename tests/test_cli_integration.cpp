@@ -322,6 +322,50 @@ static const std::string kMissingRootCmds[] = {
     "search needle", "convert --to=mp4",
 };
 
+// Minimal JPEG carrying an EXIF APP1 segment with only a Make
+// tag (no GPS, no date). TinyEXIF reports absent GPS via
+// sentinel doubles; the provider must not surface them.
+void write_minimal_exif_jpeg(const std::filesystem::path& path) {
+    std::vector<unsigned char> b;
+    auto u16 = [&](uint16_t v) { b.push_back(v & 0xff); b.push_back((v >> 8) & 0xff); };
+    auto u32 = [&](uint32_t v) { for (int i = 0; i < 4; ++i) { b.push_back(v & 0xff); v >>= 8; } };
+    b.insert(b.end(), {0xff, 0xd8}); // SOI
+    size_t app1_start = b.size();
+    b.insert(b.end(), {0xff, 0xe1, 0, 0}); // APP1 + length placeholder
+    const char* exif_hdr = "Exif\0\0";
+    b.insert(b.end(), exif_hdr, exif_hdr + 6);
+    size_t tiff = b.size();
+    b.insert(b.end(), {'I', 'I', 42, 0});
+    u32(8); // IFD0 offset
+    u16(1); // one entry
+    u16(0x010f); u16(2); u32(8); // Make, ASCII, 8 bytes
+    u32(26); // value offset (tiff+26)
+    u32(0); // next IFD
+    const char* make = "TestCam\0";
+    b.insert(b.end(), make, make + 8);
+    size_t seg_len = b.size() - app1_start - 2;
+    b[app1_start + 2] = static_cast<unsigned char>((seg_len >> 8) & 0xff);
+    b[app1_start + 3] = static_cast<unsigned char>(seg_len & 0xff);
+    b.insert(b.end(), {0xff, 0xd9}); // EOI
+    std::ofstream out(path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(b.data()), static_cast<std::streamsize>(b.size()));
+    (void)tiff;
+}
+
+TEST_F(CliFixture, MetadataOmitsBogusGps) {
+    // A JPEG with EXIF Make but no GPS used to print
+    // "GPS: 1.79769e+308, 1.79769e+308" — TinyEXIF's absent-GPS
+    // sentinels surfaced as real coordinates.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_minimal_exif_jpeg(inbox / "photo.jpg");
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("metadata --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    EXPECT_EQ(r.out.find("1.79769"), std::string::npos) << r.out;
+    EXPECT_EQ(r.out.find("GPS:"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, MalformedTemplatesAndRegexAreUsageErrors) {
     // Garbage patterns used to "succeed": rename --pattern="{name"
     // renamed a file to a literal "{name", an unknown {bogus}

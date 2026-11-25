@@ -2,6 +2,7 @@
 #include "fo/core/registry.hpp"
 #include "../../libs/TinyEXIF/TinyEXIF.h"
 #include <fstream>
+#include <cmath>
 #include <cstring>
 #include <ctime>
 
@@ -56,11 +57,20 @@ bool TinyExifMetadataProvider::read(const std::filesystem::path& p, fo::core::Im
         }
     }
 
-    // GPS
-    if (exif.GeoLocation.Latitude != 0.0 || exif.GeoLocation.Longitude != 0.0) {
-        out.has_gps = true;
-        out.gps_lat = exif.GeoLocation.Latitude;
-        out.gps_lon = exif.GeoLocation.Longitude;
+    // GPS. TinyEXIF reports absent GPS with sentinel doubles
+    // (DBL_MAX), which the old `!= 0.0` check surfaced as real
+    // coordinates ("GPS: 1.79769e+308, ..."). Only finite,
+    // in-range values count as GPS.
+    {
+        const double lat = exif.GeoLocation.Latitude;
+        const double lon = exif.GeoLocation.Longitude;
+        if (std::isfinite(lat) && std::isfinite(lon) &&
+            lat >= -90.0 && lat <= 90.0 && lon >= -180.0 && lon <= 180.0 &&
+            (lat != 0.0 || lon != 0.0)) {
+            out.has_gps = true;
+            out.gps_lat = lat;
+            out.gps_lon = lon;
+        }
     }
 
     return out.date.has_taken || out.has_gps;
