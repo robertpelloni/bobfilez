@@ -272,6 +272,11 @@ void DatabaseManager::open(const std::filesystem::path& db_path) {
 
     // Enable foreign keys
     execute("PRAGMA foreign_keys = ON;");
+    // Wait briefly for a competing writer instead of failing
+    // instantly with "database is locked": concurrent CLI
+    // invocations on one --db (and the tray + CLI together) hit
+    // exactly that, including a migration race at startup.
+    execute("PRAGMA busy_timeout = 30000;");
     // WAL mode for better concurrency
     execute("PRAGMA journal_mode = WAL;");
     // Synchronous NORMAL is usually safe enough for WAL and faster
@@ -323,53 +328,37 @@ int DatabaseManager::get_current_version() {
 }
 
 void DatabaseManager::apply_migration(int version, const std::string& sql) {
-    execute("BEGIN TRANSACTION;");
-    try {
-        execute(sql);
-        std::string update_ver = "INSERT INTO schema_version (version) VALUES (" + std::to_string(version) + ");";
-        execute(update_ver);
-        execute("COMMIT;");
-    } catch (...) {
-        execute("ROLLBACK;");
-        throw;
-    }
+    // Caller (migrate) holds the write transaction.
+    execute(sql);
+    std::string update_ver = "INSERT INTO schema_version (version) VALUES (" + std::to_string(version) + ");";
+    execute(update_ver);
 }
 
 void DatabaseManager::migrate() {
-    int current_ver = get_current_version();
+    // Serialize concurrent migrators: hold the write lock for the
+    // whole sequence and re-read the version inside it. Two
+    // processes on a fresh DB otherwise both saw version 0 and
+    // raced the same ALTERs ("duplicate column name").
+    execute("BEGIN IMMEDIATE;");
+    try {
+        int current_ver = get_current_version();
 
-    if (current_ver < 1) {
-        apply_migration(1, MIGRATION_1);
-    }
-    if (current_ver < 2) {
-        apply_migration(2, MIGRATION_2);
-    }
-    if (current_ver < 3) {
-        apply_migration(3, MIGRATION_3);
-    }
-    if (current_ver < 4) {
-        apply_migration(4, MIGRATION_4);
-    }
-    if (current_ver < 5) {
-        apply_migration(5, MIGRATION_5);
-    }
-    if (current_ver < 7) {
-        apply_migration(7, MIGRATION_7);
-    }
-    if (current_ver < 8) {
-        apply_migration(8, MIGRATION_8);
-    }
-    if (current_ver < 9) {
-        apply_migration(9, MIGRATION_9);
-    }
-    if (current_ver < 10) {
-        apply_migration(10, MIGRATION_10);
-    }
-    if (current_ver < 11) {
-        apply_migration(11, MIGRATION_11);
-    }
-    if (current_ver < 12) {
-        apply_migration(12, MIGRATION_12);
+        if (current_ver < 1) apply_migration(1, MIGRATION_1);
+        if (current_ver < 2) apply_migration(2, MIGRATION_2);
+        if (current_ver < 3) apply_migration(3, MIGRATION_3);
+        if (current_ver < 4) apply_migration(4, MIGRATION_4);
+        if (current_ver < 5) apply_migration(5, MIGRATION_5);
+        if (current_ver < 7) apply_migration(7, MIGRATION_7);
+        if (current_ver < 8) apply_migration(8, MIGRATION_8);
+        if (current_ver < 9) apply_migration(9, MIGRATION_9);
+        if (current_ver < 10) apply_migration(10, MIGRATION_10);
+        if (current_ver < 11) apply_migration(11, MIGRATION_11);
+        if (current_ver < 12) apply_migration(12, MIGRATION_12);
+
+        execute("COMMIT;");
+    } catch (...) {
+        try { execute("ROLLBACK;"); } catch (...) {}
+        throw;
     }
 }
 

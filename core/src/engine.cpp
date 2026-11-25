@@ -153,7 +153,11 @@ std::vector<FileInfo> Engine::scan(const std::vector<std::filesystem::path>& roo
             });
         }
 
-        db_manager_.execute("BEGIN TRANSACTION;");
+        // IMMEDIATE, not deferred: a deferred transaction that
+        // read first gets SQLITE_BUSY instantly on the write
+        // upgrade (deadlock avoidance bypasses busy_timeout), so
+        // concurrent scans on one DB failed at the first insert.
+        db_manager_.execute("BEGIN IMMEDIATE;");
 
         // 1. Identify existing vs new files
         std::vector<FileInfo*> new_files;
@@ -240,8 +244,8 @@ std::vector<DuplicateGroup> Engine::find_duplicates(const std::vector<FileInfo>&
     SizeHashDuplicateFinder local(cfg_.use_ads_cache);
     auto groups = local.group(files, *hasher_);
 
-    // Persist duplicates
-    db_manager_.execute("BEGIN TRANSACTION;");
+    // Persist duplicates (IMMEDIATE: see Engine::scan)
+    db_manager_.execute("BEGIN IMMEDIATE;");
     try {
         duplicate_repo_.clear_all();
         for (auto& g : groups) {

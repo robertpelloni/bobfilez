@@ -1,3 +1,22 @@
+# Session Handoff - v6.5.87 (Concurrent Invocations On One Database)
+
+## What landed (2026-11-24, continuation)
+- **DB concurrency**: busy_timeout 30s at open; migrations
+  serialized under BEGIN IMMEDIATE with in-transaction version
+  re-read; Engine scan/duplicates transactions BEGIN
+  IMMEDIATE (deferred-upgrade BUSY bypassed the busy handler).
+  Quad concurrent scans verified live. `tests/test_database.
+  cpp` added. Lean ctest **91/91**.
+- Version **6.5.87**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.86 (Vault List Verifies The Password)
 
 ## What landed (2026-11-24, continuation)

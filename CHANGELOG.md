@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.87] - 2026-11-24 — Concurrent Invocations On One Database
+
+### Fixed
+- **Concurrent CLI runs on one `--db` hard-failed**: four
+  simultaneous scans produced "database is locked" (and a
+  migration race: "duplicate column name"). Three layered
+  causes, three fixes: connections now set
+  `PRAGMA busy_timeout = 30000`; migrations run serialized
+  under one `BEGIN IMMEDIATE` with the version re-read inside
+  it; and Engine's scan/duplicates transactions use
+  `BEGIN IMMEDIATE` — a deferred transaction that reads first
+  gets instant `SQLITE_BUSY` on the write upgrade (deadlock
+  avoidance bypasses the busy handler entirely). Verified:
+  4 concurrent scans of 200 files on a fresh DB all succeed;
+  new `DatabaseFixture` contention test failed before, passes
+  after. Suites: lean **91/91**; other lanes rebuilt here.
+
 ## [6.5.86] - 2026-11-24 — Vault List Verifies The Password
 
 ### Fixed

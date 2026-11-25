@@ -11,6 +11,7 @@ endif()
 add_executable(fo_tests
     test_audit_logger.cpp
     test_c_api.cpp
+    test_database.cpp
     test_cli_integration.cpp
     test_file_repository.cpp
     test_operation_repository.cpp
