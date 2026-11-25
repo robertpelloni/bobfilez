@@ -5,6 +5,7 @@
 #include "fo/core/interfaces.hpp"
 #include "fo/core/lint_interface.hpp"
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/fs_walk.hpp"
 #include "fo/core/provider_registration.hpp"
 #include "fo/core/registry.hpp"
 #include "fo/core/rule_engine.hpp"
@@ -984,16 +985,16 @@ extern "C" char* fo_bobfilez_search_json(const char* root_path, const char* quer
         std::string query_lower = q;
         std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
 
-        for (auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
-            if (!entry.is_regular_file()) continue;
-            auto fname = entry.path().filename().string();
+        for (const auto& file_path : fo::core::collect_regular_files(root)) {
+            
+            auto fname = file_path.filename().string();
             std::string fname_lower = fname;
             std::transform(fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
 
             if (fname_lower.find(query_lower) != std::string::npos) {
                 if (!first) out << ",\n";
                 first = false;
-                out << "  {\"path\": \"" << fo::core::Exporter::json_escape(entry.path().string()) << "\"}";
+                out << "  {\"path\": \"" << fo::core::Exporter::json_escape(file_path.string()) << "\"}";
             }
         }
         out << "\n]}\n";
@@ -1151,14 +1152,14 @@ extern "C" char* fo_bobfilez_search_summary_text(const char* root_path, const ch
         std::string query_lower = q;
         std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
 
-        for (auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
-            if (!entry.is_regular_file()) continue;
-            auto fname = entry.path().filename().string();
+        for (const auto& file_path : fo::core::collect_regular_files(root)) {
+            
+            auto fname = file_path.filename().string();
             std::string fname_lower = fname;
             std::transform(fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
 
             if (fname_lower.find(query_lower) != std::string::npos) {
-                out << "- " << entry.path().string() << "\n";
+                out << "- " << file_path.string() << "\n";
                 count++;
                 if (count >= 100) {
                     out << "... and more results truncated.\n";

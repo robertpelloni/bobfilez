@@ -1,5 +1,6 @@
 #include "fo/core/interfaces.hpp"
 #include "fo/core/registry.hpp"
+#include "fo/core/fs_walk.hpp"
 
 #include <string>
 #include <vector>
@@ -63,18 +64,17 @@ public:
 #ifdef _WIN32
         // The vendored dirent shim stores the CRT find handle (pointer-sized
         // since VS2015) in a 32-bit long, which truncates it and crashes in
-        // readdir with the modern MSVC CRT. Walk with std::filesystem here;
-        // POSIX keeps the real dirent loop below.
+        // readdir with the modern MSVC CRT. Walk with the shared stack-DFS
+        // collector here; POSIX keeps the real dirent loop below.
         for (auto& root : stack) {
-            std::error_code ec;
-            for (std::filesystem::recursive_directory_iterator it(root, ec), end; it != end; it.increment(ec)) {
-                if (ec) break;
-                std::error_code fec;
-                if (!it->is_regular_file(fec) || !accept_ext(it->path())) continue;
+            for (const auto& p : collect_regular_files(root)) {
+                if (!accept_ext(p)) continue;
                 FileInfo fi;
-                fi.uri = it->path().string();
-                fi.size = it->file_size(fec);
-                auto ft = it->last_write_time(fec);
+                fi.uri = p.string();
+                std::error_code fec;
+                fi.size = std::filesystem::file_size(p, fec);
+                if (fec) continue;
+                auto ft = std::filesystem::last_write_time(p, fec);
                 if (!fec) fi.mtime = ft;
                 out.push_back(std::move(fi));
             }

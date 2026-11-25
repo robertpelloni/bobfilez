@@ -231,12 +231,14 @@ std::vector<SearchResult> SearchEngine::search(const SearchOptions& opts, Search
     // Queue for BFS directory traversal (Fall back to disk scan or if content search needed)
     std::queue<std::filesystem::path> dirs;
     for (const auto& root : opts.search_roots) {
-        if (std::filesystem::exists(root)) {
-            if (std::filesystem::is_directory(root)) dirs.push(root);
+        std::error_code rec;
+        if (std::filesystem::exists(root, rec) && !rec) {
+            if (std::filesystem::is_directory(root, rec)) dirs.push(root);
             else if (matches_filename(root, opts) && matches_attributes(root, opts)) {
                 SearchResult sr;
                 sr.path = root;
-                sr.size = std::filesystem::file_size(root);
+                sr.size = std::filesystem::file_size(root, rec);
+                if (rec) continue;
                 if (opts.search_content) {
                     sr.matches = search_content(root, opts);
                     sr.match_count = sr.matches.size();

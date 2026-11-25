@@ -150,7 +150,7 @@ bool AdvancedArchiveManager::convert(const std::filesystem::path& src_archive,
     }
 
     bool success = ArchiveEngine::create(files, dst_archive, opts);
-    std::filesystem::remove_all(temp_dir);
+    { std::error_code ec; std::filesystem::remove_all(temp_dir, ec); }
     return success;
 }
 

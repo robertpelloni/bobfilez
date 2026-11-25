@@ -352,6 +352,32 @@ test('every array bridge route returns the wrapped v2 shape', async () => {
   }
 });
 
+test('no recursive_directory_iterator remains in shipped sources', () => {
+  // Round 12 invariant: the recursive iterator family crashed
+  // (AV), threw (exit 3), or silently truncated on deep trees
+  // in scanner after scanner. All walkers use stack DFS now;
+  // a grep is the enforcement, so reintroducing one fails CI.
+  const roots = ['../core/src', '../cli', '../core/c_api', '../core/include'];
+  const offenders = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.(cpp|hpp|h)$/.test(e.name)) {
+        const text = fs.readFileSync(p, 'utf8');
+        // Strip comments crudely: only flag code lines.
+        for (const line of text.split('\n')) {
+          const t = line.trim();
+          if (t.startsWith('//') || t.startsWith('*')) continue;
+          if (t.includes('recursive_directory_iterator')) offenders.push(p + ': ' + t.slice(0, 80));
+        }
+      }
+    }
+  };
+  for (const r of roots) walk(path.join(root, r));
+  assert.deepEqual(offenders, []);
+});
+
 test('scan bridge returns wrapped items, not a bare array', async () => {
   const r = await fetch('http://localhost:3199/api/scan', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },

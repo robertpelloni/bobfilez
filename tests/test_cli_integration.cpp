@@ -112,14 +112,27 @@ struct CliFixture : ::testing::Test {
         original_cwd = std::filesystem::current_path();
         dir = std::filesystem::temp_directory_path() /
               ("bobfilez-cli-test-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
-        { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
+        wipe_dir();
         std::filesystem::create_directories(dir);
+    }
+
+    // Clean-slate + teardown removal must survive the >260
+    // fixture trees the deep tests build: plain remove_all
+    // cannot traverse them and silently leaves residue (which
+    // the next run then inherits - the flake class of v6.5.99).
+    void wipe_dir() {
+        std::error_code ec;
+#ifdef _WIN32
+        std::filesystem::remove_all(std::filesystem::path("\\\\?\\" + dir.string()), ec);
+#else
+        std::filesystem::remove_all(dir, ec);
+#endif
     }
 
     void TearDown() override {
         std::error_code ec;
         std::filesystem::current_path(original_cwd, ec);
-        std::filesystem::remove_all(dir, ec);
+        wipe_dir();
     }
 };
 
@@ -833,6 +846,39 @@ TEST_F(CliFixture, LintSurvivesOverLongPaths) {
     auto r = run_cli("lint --format=json --db=" + db + " \"" + dir.string() + "\"", dir);
     EXPECT_EQ(r.code, 0) << r.out;
     EXPECT_NE(r.out.find("empty.txt"), std::string::npos) << r.out;
+}
+
+TEST_F(CliFixture, RenameBatchSurvivesOverLongPaths) {
+    // Round 12: rename-batch walked with a range-for
+    // recursive_directory_iterator AND renamed entries inside
+    // the live iteration. On a deep tree it died (exit 3/AV);
+    // a rename whose output re-matches the find pattern could
+    // be renamed again by the same pass. Collect-first stack
+    // walk fixes both: exit 0, shallow file renamed once.
+    { std::ofstream(dir / "old-report.txt") << "x"; }
+    { std::ofstream(dir / "a-report.txt") << "y"; }
+    std::error_code ec;
+    auto cur = dir;
+    const std::string seg(40, 'd');
+    for (int i = 0; i < 6; ++i) {
+        cur /= seg;
+        auto verbatim = std::filesystem::path("\\\\?\\" + cur.string());
+        std::filesystem::create_directories(verbatim, ec);
+        ASSERT_FALSE(ec) << "fixture cannot create long path: " << ec.message();
+    }
+    { std::ofstream(std::filesystem::path("\\\\?\\" + (cur / "deep.txt").string())) << "deep"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("rename-batch --find=old --replace=new --db=" + db +
+                         " \"" + dir.string() + "\"", dir);
+    EXPECT_EQ(r.code, 0) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "new-report.txt")) << r.out;
+    auto r2 = run_cli("rename-batch --find=a --replace=aa --db=" + db +
+                          " \"" + dir.string() + "\"", dir);
+    EXPECT_EQ(r2.code, 0) << r2.out;
+    // Exactly one expansion of the original name, never a
+    // second pass over the pass's own output.
+    EXPECT_TRUE(std::filesystem::exists(dir / "aa-report.txt")) << r2.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "aaa-report.txt")) << r2.out;
 }
 
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {

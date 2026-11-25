@@ -13,6 +13,7 @@
 #include "fo/core/version.hpp"
 #include "fo/core/operation_repository.hpp"
 #include "fo/core/fault_injection.hpp"
+#include "fo/core/fs_walk.hpp"
 #include "fo/core/omniflow_engine_interface.hpp"
 #include "fo/core/omniclerk_interface.hpp"
 #include "fo/core/omni_oracle_interface.hpp"
@@ -2688,16 +2689,20 @@ int main(int argc, char** argv) {
             };
             for (auto& sp : paths) {
                 std::error_code ec;
-                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
-                    if (!entry.is_regular_file()) continue;
-                    if (is_own_db(entry.path())) continue;
+                // Collect first (stack DFS): renaming entries
+                // inside a live recursive iteration is
+                // unspecified, and the recursive iterator dies
+                // on deep trees. A snapshot also means a name
+                // produced by this pass is never re-matched.
+                for (const auto& file_path : fo::core::collect_regular_files(sp)) {
+                    if (is_own_db(file_path)) continue;
 
                     if (!exts.empty()) {
-                        auto e = entry.path().extension().string();
+                        auto e = file_path.extension().string();
                         if (std::find(exts.begin(), exts.end(), e) == exts.end()) continue;
                     }
 
-                    auto old_name = entry.path().filename().string();
+                    auto old_name = file_path.filename().string();
                     std::string new_name;
 
                     if (use_regex_rb) {
@@ -2717,17 +2722,18 @@ int main(int argc, char** argv) {
                     }
 
                     if (new_name != old_name) {
-                        auto new_path = entry.path().parent_path() / new_name;
+                        auto new_path = file_path.parent_path() / new_name;
+                        std::error_code xec;
                         if (dry_run) {
                             std::cout << "[DRY] " << old_name << " -> " << new_name << "\n";
-                        } else if (std::filesystem::exists(new_path)) {
+                        } else if (std::filesystem::exists(new_path, xec)) {
                             // MSVC's rename replaces existing files:
                             // never silently overwrite a destination.
                             ++failed_count;
                             std::cerr << "Failed: " << old_name
                                       << ": destination exists: " << new_name << "\n";
                         } else {
-                            std::filesystem::rename(entry.path(), new_path, ec);
+                            std::filesystem::rename(file_path, new_path, ec);
                             if (!ec) {
                                 std::cout << old_name << " -> " << new_name << "\n";
                                 renamed_count++;
@@ -2767,15 +2773,25 @@ int main(int argc, char** argv) {
 
             std::unordered_map<std::string, std::filesystem::file_time_type> file_times;
 
-            // Initial scan to establish baseline
-            for (auto& sp : paths) {
-                std::error_code ec;
-                for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
-                    if (entry.is_regular_file()) {
-                        file_times[entry.path().string()] = entry.last_write_time();
+            // Snapshot one poll: stack-DFS collect, then stat
+            // with error codes. The old live recursive walk
+            // threw (or faulted) whenever a file vanished
+            // mid-tick or a subtree crossed MAX_PATH — the
+            // likeliest crash in the whole tool, every tick.
+            auto scan_times = [&]() {
+                std::unordered_map<std::string, std::filesystem::file_time_type> times;
+                for (auto& sp : paths) {
+                    for (const auto& p : fo::core::collect_regular_files(sp)) {
+                        std::error_code fec;
+                        auto ft = std::filesystem::last_write_time(p, fec);
+                        if (!fec) times[p.string()] = ft;
                     }
                 }
-            }
+                return times;
+            };
+
+            // Initial scan to establish baseline
+            file_times = scan_times();
 
             std::cout << "Baseline: " << file_times.size() << " files indexed\n";
 
@@ -2789,15 +2805,7 @@ int main(int argc, char** argv) {
             while (true) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(debounce_ms));
 
-                std::unordered_map<std::string, std::filesystem::file_time_type> current;
-                for (auto& sp : paths) {
-                    std::error_code ec;
-                    for (auto& entry : std::filesystem::recursive_directory_iterator(sp, ec)) {
-                        if (entry.is_regular_file()) {
-                            current[entry.path().string()] = entry.last_write_time();
-                        }
-                    }
-                }
+                auto current = scan_times();
 
                 for (auto& [path, mtime] : current) {
                     auto it = file_times.find(path);
@@ -3104,20 +3112,21 @@ int main(int argc, char** argv) {
             std::vector<std::string> corrupted_files;
             for (const auto& root : paths) {
                 std::error_code ec;
-                for (const auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
-                    if (!entry.is_regular_file()) continue;
-                    auto current = hasher->fast64(entry.path());
+                // Stack-DFS collect (shared walker): the live
+                // recursive iterator died on deep trees here too.
+                for (const auto& file_path : fo::core::collect_regular_files(root)) {
+                    auto current = hasher->fast64(file_path);
                     if (current.empty()) continue;
                     ++total_files;
 
                     int64_t file_id = 0;
-                    if (auto existing = repo.get_by_path(entry.path().string())) {
+                    if (auto existing = repo.get_by_path(file_path.string())) {
                         file_id = existing->id;
                     } else {
                         fo::core::FileInfo fi;
-                        fi.uri = entry.path().string();
-                        fi.size = entry.file_size(ec);
-                        fi.mtime = entry.last_write_time(ec);
+                        fi.uri = file_path.string();
+                        fi.size = std::filesystem::file_size(file_path, ec);
+                        fi.mtime = std::filesystem::last_write_time(file_path, ec);
                         repo.upsert(fi);
                         file_id = fi.id;
                     }
@@ -3132,7 +3141,7 @@ int main(int argc, char** argv) {
                         ++baselined;
                     } else if (stored != current) {
                         ++corrupted;
-                        corrupted_files.push_back(entry.path().string());
+                        corrupted_files.push_back(file_path.string());
                     }
                 }
             }

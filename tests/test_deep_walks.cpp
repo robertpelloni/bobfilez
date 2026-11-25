@@ -24,7 +24,7 @@ struct DeepTreeFixture : ::testing::Test {
               ("bobfilez-deepwalk-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
         std::error_code ec;
         std::filesystem::remove_all(dir, ec);
-        { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
+        { std::error_code ec0; std::filesystem::remove_all(std::filesystem::path("\\\\?\\" + dir.string()), ec0); }
         std::filesystem::create_directories(dir);
         { std::ofstream(dir / "setup.exe") << "shallow-bytes"; }
         auto cur = dir;
@@ -65,6 +65,22 @@ TEST_F(DeepTreeFixture, TreemapSizesShallowFileDespiteDeepTree) {
     fo::core::TreemapNode node;
     EXPECT_NO_THROW(node = engine->build_tree(dir, 8));
     EXPECT_GE(node.size, static_cast<std::uintmax_t>(13)); // "shallow-bytes"
+}
+
+TEST_F(DeepTreeFixture, DirentScannerScansShallowFileDespiteDeepTree) {
+    // Round 12: the dirent scanner's _WIN32 branch walked with
+    // recursive_directory_iterator + increment(ec) — the same
+    // iterator family that faulted the std scanner. It needs
+    // the same stack-DFS discipline and a test that proves it.
+    auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("dirent");
+    ASSERT_NE(scanner, nullptr);
+    std::vector<fo::core::FileInfo> files;
+    EXPECT_NO_THROW(files = scanner->scan({dir}, {}, false));
+    bool found = false;
+    for (const auto& f : files) {
+        if (f.uri.find("setup.exe") != std::string::npos) found = true;
+    }
+    EXPECT_TRUE(found) << "dirent scan missed the shallow file on a deep tree";
 }
 
 TEST_F(DeepTreeFixture, CopyEstimateCountsShallowFileDespiteDeepTree) {

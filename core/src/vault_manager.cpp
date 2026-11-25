@@ -318,7 +318,8 @@ bool VaultManager::decrypt_file(const std::filesystem::path& input, const std::f
 }
 
 bool VaultManager::lock_file(const std::filesystem::path& file_path) {
-    if (!std::filesystem::exists(file_path)) return false;
+    std::error_code ec;
+    if (!std::filesystem::exists(file_path, ec) || ec) return false;
     
     std::string vault_id = generate_id();
     std::filesystem::path dest_path = vault_path_ / vault_id;
@@ -348,15 +349,16 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
         return false;
     }
     std::filesystem::path src_path = vault_path_ / vault_id;
-    if (!std::filesystem::exists(src_path)) return false;
+    std::error_code ec;
+    if (!std::filesystem::exists(src_path, ec) || ec) return false;
 
     std::filesystem::path actual_dest = dest_path;
 
     // Check if dest_path is a directory. If so, append original filename if we have it
-    if (std::filesystem::is_directory(dest_path)) {
+    if (std::filesystem::is_directory(dest_path, ec)) {
         std::filesystem::path meta_path = src_path;
         meta_path += ".meta";
-        if (std::filesystem::exists(meta_path)) {
+        if (std::filesystem::exists(meta_path, ec)) {
             std::ifstream meta_in(meta_path);
             std::string orig_name;
             if (std::getline(meta_in, orig_name)) {
@@ -368,7 +370,7 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
     // Never silently replace an existing destination file: the
     // decrypt rename would overwrite its bytes. Refuse instead;
     // the vault entry survives for a retry with a free path.
-    if (std::filesystem::exists(actual_dest)) return false;
+    if (std::filesystem::exists(actual_dest, ec)) return false;
 
     if (decrypt_file(src_path, actual_dest)) {
         // Crash window: plaintext restored (tag-verified),
@@ -378,7 +380,7 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
 
         std::filesystem::path meta_path = src_path;
         meta_path += ".meta";
-        if (std::filesystem::exists(meta_path)) {
+        if (std::filesystem::exists(meta_path, ec)) {
             std::filesystem::remove(meta_path);
         }
 
@@ -393,7 +395,10 @@ std::vector<VaultEntry> VaultManager::list_contents() {
     std::vector<VaultEntry> entries;
     if (!std::filesystem::exists(vault_path_)) return entries;
 
-    for (const auto& entry : std::filesystem::directory_iterator(vault_path_)) {
+    std::error_code dec;
+    for (std::filesystem::directory_iterator it(vault_path_, dec), end; it != end; it.increment(dec)) {
+        if (dec) { dec.clear(); break; }
+        const auto& entry = *it;
         if (entry.is_regular_file()) {
             std::string id = entry.path().filename().string();
 
@@ -414,15 +419,17 @@ std::vector<VaultEntry> VaultManager::list_contents() {
             // Try reading original name
             std::filesystem::path meta_path = entry.path();
             meta_path += ".meta";
-            if (std::filesystem::exists(meta_path)) {
+            std::error_code mec;
+            if (std::filesystem::exists(meta_path, mec) && !mec) {
                 std::ifstream meta_in(meta_path);
                 std::getline(meta_in, ve.original_name);
             } else {
                 ve.original_name = "Unknown";
             }
 
-            auto ftime = std::filesystem::last_write_time(entry);
-            ve.added_at = std::chrono::duration_cast<std::chrono::seconds>(ftime.time_since_epoch()).count();
+            std::error_code fec;
+            auto ftime = std::filesystem::last_write_time(entry, fec);
+            ve.added_at = fec ? 0 : std::chrono::duration_cast<std::chrono::seconds>(ftime.time_since_epoch()).count();
 
             entries.push_back(ve);
         }

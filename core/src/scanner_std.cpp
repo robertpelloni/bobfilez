@@ -50,7 +50,7 @@ public:
                 continue;
             }
             // Manual stack DFS, error codes throughout. The old
-            // recursive_directory_iterator walk died with an
+            // recursive directory walk died with an
             // access violation when a subtree crossed MAX_PATH
             // mid-iteration (both the throwing ++it and the
             // increment(ec) forms fault inside the iterator on

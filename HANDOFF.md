@@ -1,3 +1,31 @@
+# Session Handoff - v6.5.100 (Recursive Iterator Gone)
+
+## What landed (2026-11-25, continuation)
+- **Round-12 reviewer items fixed**: six range-for
+  recursive walks (rename-batch, watch x2, integrity,
+  C API search x2) + dirent Windows branch all use the
+  shared `collect_regular_files` stack walk
+  (`core/include/fo/core/fs_walk.hpp`); a wiring invariant
+  test now bans the recursive iterator token in shipped
+  sources. Rename-batch is collect-first (no live-iteration
+  mutation, no self re-match). Flagged throwing calls
+  converted to error-code forms.
+- Version **6.5.100**: lean **110/110**, MSVC **110/110**,
+  wiring **32/32**, JUCE **105 + 2 skips**. Pushed.
+- Watch remains O(N) rescan per tick (reviewer item 5) —
+  performance work, not correctness; still open.
+- Fixture cleanup now verbatim-aware for >260 trees.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner) —
+  reviewer urges moving this above other owner items.
+- Watch incremental indexing (O(N) rescan per tick).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Muse review: thread `6d2f6927` (round 13 to post);
+  `ad74257e`/`fd6d6d5b` wedged, read-only history.
+
+---
 # Session Handoff - v6.5.99 (Flake Class Removed)
 
 ## What landed (2026-11-25, continuation)

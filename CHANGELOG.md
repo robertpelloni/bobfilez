@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.5.100] - 2026-11-25 — Round 12: The Recursive Iterator Is Gone
+
+### Fixed
+- **Six missed recursive walks** (externally verified
+  against HEAD, round 12): rename-batch, both watch loops,
+  the integrity/baseline walk, and both C API search walks
+  used range-for over the recursive directory iterator; the
+  dirent scanner's Windows branch used its increment form.
+  All now share `collect_regular_files` (stack DFS,
+  error-code only, new `core/include/fo/core/fs_walk.hpp`).
+  A wiring invariant test fails CI if the recursive
+  iterator token returns to shipped sources.
+- **Rename-batch mutated the tree during live iteration**:
+  it now renames from a collected snapshot, so a name this
+  pass produces is never re-matched by the same pass
+  (`RenameBatchSurvivesOverLongPaths` pins both).
+- **Throwing filesystem calls** at the flagged spots
+  (vault list/lock/unlock, search roots, archive temp
+  cleanup, rename-batch exists) now use error-code forms.
+- Fixture cleanup for >260 trees is verbatim-aware
+  (plain remove_all cannot traverse them — the leftover
+  was itself a flake source). Suites: lean **110/110**,
+  MSVC **110/110**, wiring **32/32**, JUCE **105 + 2**.
+
 ## [6.5.99] - 2026-11-25 — Test-Harness Flake Class Removed
 
 ### Fixed
