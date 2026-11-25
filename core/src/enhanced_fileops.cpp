@@ -1,4 +1,5 @@
-/// @file enhanced_fileops.cpp
+/// @file enhanced_fileops.cpp
+#include "fo/core/fs_walk.hpp"
 /// @brief Implementation of the EnhancedCopyEngine with FastCopy/TeraCopy parity.
 
 #include "fo/core/enhanced_fileops_interface.hpp"
@@ -175,7 +176,7 @@ void EnhancedCopyEngine::run_job(TransferJob& job, ErrorHandlerCb error_cb,
                         if (dec) { dec.clear(); break; }
                         std::error_code fec;
                         bool is_dir = it->is_directory(fec) && !fec;
-                        if (is_dir && !it->is_symlink(fec)) stack.push_back(it->path());
+                        if (is_dir && !fo::core::is_link_like(it->path())) stack.push_back(it->path());
                         auto rel_path = std::filesystem::relative(it->path(), src, fec);
                         if (fec) continue;
                         auto dst_path = job.dest / src.filename() / rel_path;
@@ -597,7 +598,7 @@ int64_t EnhancedCopyEngine::estimate(const std::vector<std::filesystem::path>& s
                         if (dec) { dec.clear(); break; }
                         std::error_code fec;
                         if (it->is_directory(fec) && !fec) {
-                            if (!it->is_symlink(fec)) stack.push_back(it->path());
+                            if (!fo::core::is_link_like(it->path())) stack.push_back(it->path());
                         } else if (it->is_regular_file(fec) && !fec) {
                             auto sz = it->file_size(fec);
                             if (!fec) total += static_cast<int64_t>(sz);

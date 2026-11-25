@@ -978,6 +978,35 @@ TEST_F(CliFixture, HardlinkTwinsAreNotDuplicates) {
     EXPECT_NE(r.out.find("copy.bin"), std::string::npos) << r.out;
 }
 
+#ifdef _WIN32
+TEST_F(CliFixture, OrganizeDoesNotEscapeThroughJunction) {
+    // Gemini alias-boundary class, end to end: a junction
+    // inside the scanned root pointing OUTSIDE it must not
+    // let organize reach through and move the target's files.
+    // Directory links are never descended by the scanners.
+    auto outside = dir / "outside";
+    std::filesystem::create_directories(outside);
+    { std::ofstream(outside / "keep.txt") << "do-not-touch"; }
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "mine.txt") << "mine"; }
+    auto link = inbox / "escape";
+    std::string cmd = "mklink /J \"" + link.string() + "\" \"" + outside.string() + "\" >nul 2>&1";
+    if (std::system(cmd.c_str()) != 0 || !std::filesystem::exists(link)) {
+        GTEST_SKIP() << "cannot create a junction in this environment";
+    }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_EQ(org.code, 0) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(outside / "keep.txt")) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "mine.txt")) << org.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "txt" / "keep.txt")) << org.out;
+    std::filesystem::current_path(original_cwd);
+}
+#endif
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

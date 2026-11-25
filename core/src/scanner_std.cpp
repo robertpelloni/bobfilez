@@ -1,5 +1,6 @@
 #include "fo/core/interfaces.hpp"
 #include "fo/core/registry.hpp"
+#include "fo/core/fs_walk.hpp"
 #include <filesystem>
 #include <algorithm>
 
@@ -68,7 +69,10 @@ public:
                     const auto& de = *it;
                     std::error_code fec;
                     if (de.is_directory(fec) && !fec) {
-                        if (!follow_symlinks && de.is_symlink(fec)) continue;
+                        // is_symlink misses NTFS junctions on
+                        // MSVC; is_link_like also checks the
+                        // reparse-point attribute.
+                        if (!follow_symlinks && is_link_like(de.path())) continue;
                         stack.push_back(de.path());
                         continue;
                     }

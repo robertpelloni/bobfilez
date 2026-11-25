@@ -1,4 +1,5 @@
-/// @file self_healing.cpp
+/// @file self_healing.cpp
+#include "fo/core/fs_walk.hpp"
 /// @brief Implementation of the background data scrubbing and healing engine.
 
 #include "fo/core/self_healing_interface.hpp"
@@ -130,7 +131,7 @@ public:
                 if (dec) { dec.clear(); break; }
                 std::error_code fec;
                 if (it->is_directory(fec) && !fec) {
-                    if (!it->is_symlink(fec)) stack.push_back(it->path());
+                    if (!fo::core::is_link_like(it->path())) stack.push_back(it->path());
                     continue;
                 }
                 if (!it->is_regular_file(fec) || fec) continue;

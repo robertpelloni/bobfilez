@@ -2,8 +2,35 @@
 
 #include <filesystem>
 #include <vector>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace fo::core {
+
+// True for anything that aliases another location: a symlink
+// or (Windows) any reparse point. std::filesystem's
+// is_symlink does NOT report NTFS junctions on MSVC — they
+// surface only via FILE_ATTRIBUTE_REPARSE_POINT — and a
+// junction inside a scanned root otherwise lets walkers
+// escape the root (observed: organize moved a file through
+// an ancestor junction out of tree).
+inline bool is_link_like(const std::filesystem::path& p) {
+    std::error_code ec;
+    if (std::filesystem::is_symlink(p, ec)) return true;
+#ifdef _WIN32
+    DWORD attrs = GetFileAttributesW(p.c_str());
+    if (attrs != INVALID_FILE_ATTRIBUTES &&
+        (attrs & FILE_ATTRIBUTE_REPARSE_POINT)) return true;
+#endif
+    return false;
+}
 
 // Collect every regular file under `root` with a manual stack
 // DFS (per-level directory_iterator, error codes only).
@@ -39,7 +66,7 @@ inline std::vector<std::filesystem::path> collect_regular_files(
             if (dec) { dec.clear(); break; }
             std::error_code fec;
             if (it->is_directory(fec) && !fec) {
-                if (follow_dir_symlinks || !it->is_symlink(fec)) {
+                if (follow_dir_symlinks || !is_link_like(it->path())) {
                     stack.push_back(it->path());
                 }
                 continue;

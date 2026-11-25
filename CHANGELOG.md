@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.104] - 2026-11-25 — Organize Escaped Its Root Through a Junction
+
+### Fixed
+- **Junction escape (data loss class)**: a junction inside
+  the scanned root pointing outside it let organize move
+  the target's files out of tree — MSVC's
+  `std::filesystem::is_symlink` does not report NTFS
+  junctions, so every `is_symlink` descend guard was blind
+  to them. New shared `fo::core::is_link_like` (symlink OR
+  Windows reparse-point attribute) now guards every
+  directory descent: std scanner, the shared walk
+  collector (watch/integrity/rename-batch/C API), linter,
+  pruner, treemap, copy engine, self-healing, watcher.
+  New `OrganizeDoesNotEscapeThroughJunction` CLI test
+  failed with the escape, passes after. Suites: lean
+  **114/114**, MSVC **114/114**, wiring **32/32**, JUCE
+  **109 + 2 designed skips**.
+
 ## [6.5.103] - 2026-11-25 — Hardlink Twins Are Not Duplicates
 
 ### Fixed

@@ -1,4 +1,5 @@
 /// @file treemap_engine.cpp
+#include "fo/core/fs_walk.hpp"
 /// @brief Implementation of the Treemap generator and layout algorithm.
 
 #include "fo/core/treemap_engine_interface.hpp"
@@ -46,7 +47,7 @@ public:
                             if (dec) { dec.clear(); break; }
                             std::error_code fec;
                             if (it->is_directory(fec) && !fec) {
-                                if (!it->is_symlink(fec)) stack.push_back(it->path());
+                                if (!fo::core::is_link_like(it->path())) stack.push_back(it->path());
                             } else if (it->is_regular_file(fec) && !fec) {
                                 auto sz = it->file_size(fec);
                                 if (!fec) node.size += sz;

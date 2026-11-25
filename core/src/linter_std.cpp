@@ -1,4 +1,5 @@
 #include "fo/core/lint_interface.hpp"
+#include "fo/core/fs_walk.hpp"
 #include "fo/core/registry.hpp"
 #include <filesystem>
 #include <regex>
@@ -46,7 +47,7 @@ public:
                 std::error_code ec;
                 int depth = frame.depth + 1;
                 std::error_code sec;
-                if (entry.is_directory(ec) && !ec && !entry.is_symlink(sec)) {
+                if (entry.is_directory(ec) && !ec && !fo::core::is_link_like(path)) {
                     stack.push_back({path, depth});
                 }
 

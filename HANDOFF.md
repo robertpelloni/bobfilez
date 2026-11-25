@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.104 (Junction Escape)
+
+## What landed (2026-11-25, continuation)
+- **Junction escape fixed**: MSVC `is_symlink` misses
+  NTFS junctions; organize moved an outside file through
+  an in-root junction. Shared `is_link_like` (symlink or
+  reparse-point) now guards every directory descent in
+  the tree. CLI test pins it end to end.
+- Version **6.5.104**: lean **114/114**, MSVC **114/114**,
+  wiring **32/32**, JUCE **109 + 2 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.103 (Hardlink Twins)
 
 ## What landed (2026-11-25, continuation)

@@ -2818,7 +2818,7 @@ int main(int argc, char** argv) {
                              it != end; it.increment(dec)) {
                             if (dec) { dec.clear(); break; }
                             std::error_code xec;
-                            if (it->is_directory(xec) && !xec && !it->is_symlink(xec)) {
+                            if (it->is_directory(xec) && !xec && !fo::core::is_link_like(it->path())) {
                                 stack.push_back(it->path());
                             }
                         }

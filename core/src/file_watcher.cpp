@@ -1,4 +1,5 @@
-/// @file file_watcher.cpp
+/// @file file_watcher.cpp
+#include "fo/core/fs_walk.hpp"
 /// @brief Native file watcher implementation using ReadDirectoryChangesW (Windows) / inotify (Linux).
 ///
 /// The "Shadow Sorter" — monitors directories in real time and fires callbacks
@@ -253,7 +254,7 @@ class NativeFileWatcher : public IFileWatcher {
                         if (dec) { dec.clear(); break; }
                         std::error_code fec;
                         if (it->is_directory(fec) && !fec) {
-                            if (!it->is_symlink(fec)) stack.push_back(it->path());
+                            if (!fo::core::is_link_like(it->path())) stack.push_back(it->path());
                             int swd = inotify_add_watch(inotify_fd_, it->path().string().c_str(), mask);
                             if (swd >= 0) wd_to_path[swd] = it->path();
                         }
