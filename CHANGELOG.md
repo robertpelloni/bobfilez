@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.75] - 2026-11-24 — Undo Verifies Content, Not Just Size
+
+### Fixed
+- **Same-size content edits slipped past undo's identity
+  check**: organize/rename journals now record the
+  destination's fast64 in `file_hash` at journal time, and
+  undo compares content (via the shared `verify_identity`
+  gate for Move/Rename/Copy) before moving or deleting
+  anything. A same-size edit with a backdated mtime is refused
+  with "content differs" and the user's edit is left untouched.
+  New `UndoRefusesSameSizeContentEdit` unit test failed before,
+  passes after. Suites: lean **80/80**; other lanes rebuilt at
+  this version.
+
 ## [6.5.74] - 2026-11-24 — Root Hygiene + Copy-Undo Guard (Claude Round 3)
 
 ### Fixed

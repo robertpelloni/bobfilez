@@ -1329,6 +1329,9 @@ int main(int argc, char** argv) {
             // undo restores every move this invocation made.
             fo::core::OperationRepository batch_repo(engine.database());
             const int64_t op_batch_id = batch_repo.allocate_batch_id();
+            // Journal-time content hash: undo verifies the file at
+            // the destination is still the file that was moved.
+            auto journal_hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             int failed_moves = 0;
 
             for (const auto& f : files) {
@@ -1379,6 +1382,9 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
+                                if (journal_hasher) {
+                                    try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
+                                }
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {
                                 ++failed_moves;
@@ -1625,6 +1631,7 @@ int main(int argc, char** argv) {
             std::vector<std::pair<std::string, std::string>> renames;
             fo::core::OperationRepository batch_repo(engine.database());
             const int64_t op_batch_id = batch_repo.allocate_batch_id();
+            auto journal_hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             int failed_renames = 0;
 
             for (const auto& f : files) {
@@ -1666,6 +1673,9 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
+                                if (journal_hasher) {
+                                    try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
+                                }
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {
                                 ++failed_renames;

@@ -2,7 +2,10 @@
 #include <gtest/gtest.h>
 
 #include "fo/core/database.hpp"
+#include "fo/core/interfaces.hpp"
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/provider_registration.hpp"
+#include "fo/core/registry.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -198,6 +201,39 @@ TEST_F(OperationFixture, GetByIdFindsOldRecords) {
     auto found = repo->get_by_id(first_id);
     ASSERT_TRUE(found.has_value());
     EXPECT_EQ(found->id, first_id);
+}
+
+TEST_F(OperationFixture, UndoRefusesSameSizeContentEdit) {
+    // Writers now store the destination's fast64 in file_hash at
+    // journal time, so undo verifies CONTENT, not just size: a
+    // same-size edit with a backdated mtime after a move must
+    // still be refused.
+    fo::core::register_all_providers();
+    auto hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
+    ASSERT_NE(hasher, nullptr);
+
+    auto src = dir / "orig.txt";
+    auto dst = dir / "moved.txt";
+    { std::ofstream(src) << "abc"; }
+    auto orig_mtime = std::filesystem::last_write_time(src);
+    std::filesystem::rename(src, dst);
+    auto rec = record(fo::core::OperationType::Rename, src.string(), dst.string());
+    rec.file_hash = hasher->fast64(dst);
+    ASSERT_FALSE(rec.file_hash.empty());
+    repo->log_operation(rec);
+
+    { std::ofstream(dst, std::ios::trunc) << "xyz"; } // same size, new bytes
+    std::error_code ec;
+    std::filesystem::last_write_time(dst, orig_mtime, ec); // backdated
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.undone.empty());
+    ASSERT_EQ(outcome.skipped.size(), 1u);
+    EXPECT_NE(outcome.skipped[0].second.find("changed"), std::string::npos);
+    EXPECT_TRUE(std::filesystem::exists(dst));
+    std::ifstream in(dst);
+    std::stringstream ss; ss << in.rdbuf();
+    EXPECT_EQ(ss.str(), "xyz"); // user's edit untouched
 }
 
 TEST_F(OperationFixture, CopyUndoRefusesCopyEditedAfterCopying) {

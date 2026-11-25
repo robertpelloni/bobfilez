@@ -1,4 +1,6 @@
 #include "fo/core/operation_repository.hpp"
+#include "fo/core/interfaces.hpp"
+#include "fo/core/registry.hpp"
 #include <sqlite3.h>
 #include <stdexcept>
 #include <filesystem>
@@ -210,6 +212,35 @@ void OperationRepository::clear_old(int days) {
 }
 
 namespace {
+// fast64 of a file via the registered hasher, or "" when no
+// hasher is registered in this process (verification then falls
+// back to size/mtime only, as pre-hash journals require).
+std::string content_fast64(const std::filesystem::path& p) {
+    static auto hasher = Registry<IHasher>::instance().create("fast64");
+    if (!hasher) return "";
+    try { return hasher->fast64(p); } catch (...) { return ""; }
+}
+
+// Shared identity gate for Move/Rename/Copy: size first, then —
+// when the journal carries a content hash (writers record the
+// destination's fast64 since v6.5.75) — content. Either mismatch
+// means the file was modified after the operation.
+std::optional<std::string> verify_identity(const OperationRecord& rec,
+                                           const std::filesystem::path& dest) {
+    std::error_code ec;
+    if (rec.file_size > 0 && std::filesystem::is_regular_file(dest, ec) &&
+        std::filesystem::file_size(dest, ec) != static_cast<std::uintmax_t>(rec.file_size)) {
+        return "file changed since the operation (size differs)";
+    }
+    if (!rec.file_hash.empty() && std::filesystem::is_regular_file(dest, ec)) {
+        auto now = content_fast64(dest);
+        if (!now.empty() && now != rec.file_hash) {
+            return "file changed since the operation (content differs)";
+        }
+    }
+    return std::nullopt;
+}
+
 // Attempt to reverse one journal record. Returns nullopt on
 // success, otherwise a human-readable refusal reason. Identity is
 // verified before touching anything: a destination whose size no
@@ -225,10 +256,7 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
             case OperationType::Rename: {
                 if (!std::filesystem::exists(dest, ec)) return "destination no longer exists";
                 if (std::filesystem::exists(src, ec)) return "source path was recreated";
-                if (rec.file_size > 0 && std::filesystem::is_regular_file(dest, ec) &&
-                    std::filesystem::file_size(dest, ec) != static_cast<std::uintmax_t>(rec.file_size)) {
-                    return "file changed since the operation (size differs)";
-                }
+                if (auto bad = verify_identity(rec, dest)) return bad;
                 // The source's parent may have been removed after
                 // the move; recreate it instead of failing stale.
                 if (src.has_parent_path()) {
@@ -239,10 +267,7 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
             }
             case OperationType::Copy: {
                 if (!std::filesystem::exists(dest, ec)) return "destination no longer exists";
-                if (rec.file_size > 0 && std::filesystem::is_regular_file(dest, ec) &&
-                    std::filesystem::file_size(dest, ec) != static_cast<std::uintmax_t>(rec.file_size)) {
-                    return "file changed since the operation (size differs)";
-                }
+                if (auto bad = verify_identity(rec, dest)) return bad;
                 // Same-size edits are invisible to the size check,
                 // and Copy undo DELETES the destination: refuse
                 // when the copy's mtime postdates the journal

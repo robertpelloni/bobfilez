@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.75 (Undo Verifies Content)
+
+## What landed (2026-11-24, continuation)
+- **Content-verified undo**: organize/rename record fast64 of
+  the destination at journal time; `verify_identity` compares
+  size then content before undo acts. Same-size/backdated-mtime
+  tamper test added. Lean ctest **80/80**.
+- Version **6.5.75**.
+
+## Still open (roast triage)
+- Lean production checkout: owner authorization needed.
+- History purge decision for root DBs in old commits (owner).
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 4 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.74 (Root Hygiene + Copy-Undo Guard)
 
 ## What landed (2026-11-24, continuation)
