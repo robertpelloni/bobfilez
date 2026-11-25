@@ -99,6 +99,14 @@ public:
 
                 bool is_dir = (stbuf.st_mode & S_IFDIR) != 0;
                 if (is_dir) {
+                    // Do not descend symlinked directories: an
+                    // ancestor link cycles the walk (same rule
+                    // as the std/win32 scanners). This scanner's
+                    // interface ignores follow_symlinks.
+#ifndef _WIN32
+                    struct stat lst{};
+                    if (lstat(p.string().c_str(), &lst) == 0 && S_ISLNK(lst.st_mode)) continue;
+#endif
                     stack.push_back(p);
                 } else {
                     if (!accept_ext(p)) continue;

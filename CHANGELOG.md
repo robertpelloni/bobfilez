@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.102] - 2026-11-25 — Win32 Scanner Junction Cycles
+
+### Fixed
+- **Win32 scanner followed junction cycles**: a junction
+  pointing at an ancestor made it re-scan the same subtree
+  until path-length failure (one file reported 41 times),
+  and the phantom copies polluted the file index that
+  duplicate detection trusts. It now skips directory
+  reparse points unless `follow_symlinks` is set — the
+  rule the std scanner already had. The POSIX dirent walk
+  got the matching lstat guard. New
+  `Win32ScannerDoesNotFollowJunctionCycles` test failed
+  before, passes after. Suites: lean **112/112**, MSVC
+  **112/112**, wiring **32/32**, JUCE **107 + 2 designed
+  skips**.
+
 ## [6.5.101] - 2026-11-25 — Watch: Pruned Polling, Dead --debounce
 
 ### Fixed

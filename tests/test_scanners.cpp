@@ -51,6 +51,30 @@ TEST_F(ScannerFixture, DirentScannerAcceptsFileRoot) {
 }
 
 #ifdef _WIN32
+TEST_F(ScannerFixture, Win32ScannerDoesNotFollowJunctionCycles) {
+    // A junction pointing at an ancestor makes the win32
+    // scanner re-scan the same subtree until path-length
+    // failure (observed: one file reported 41 times). Like
+    // the std scanner, directory reparse points are not
+    // descended unless follow_symlinks is set.
+    auto link = dir / "loop";
+    std::string cmd = "mklink /J \"" + link.string() + "\" \"" + dir.string() + "\" >nul 2>&1";
+    if (std::system(cmd.c_str()) != 0 || !std::filesystem::exists(link)) {
+        GTEST_SKIP() << "cannot create a junction in this environment";
+    }
+    auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("win32");
+    ASSERT_NE(scanner, nullptr);
+    auto found = scanner->scan({dir}, {}, false);
+    int real_count = 0;
+    for (const auto& f : found) {
+        if (std::filesystem::path(f.uri).filename() == "one.txt") ++real_count;
+    }
+    EXPECT_EQ(real_count, 1) << "one.txt reported " << real_count << " times";
+    EXPECT_EQ(found.size(), 1u);
+}
+#endif
+
+#ifdef _WIN32
 TEST_F(ScannerFixture, Win32ScannerAcceptsFileRoot) {
     auto scanner = fo::core::Registry<fo::core::IFileScanner>::instance().create("win32");
     ASSERT_NE(scanner, nullptr);

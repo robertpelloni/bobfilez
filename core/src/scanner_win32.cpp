@@ -27,7 +27,7 @@ public:
 
     std::vector<FileInfo> scan(const std::vector<std::filesystem::path>& roots,
                                const std::vector<std::string>& include_exts,
-                               bool /*follow_symlinks*/) override {
+                               bool follow_symlinks) override {
         std::vector<FileInfo> out;
 
         auto to_lower = [](std::string s){
@@ -90,7 +90,13 @@ public:
                 std::filesystem::path p = join_path(cur, name);
 
                 if (is_dir) {
-                    stack.push_back(p);
+                    // Never descend a reparse point (junction /
+                    // symlink) unless asked: an ancestor-pointing
+                    // junction makes the walk re-scan the same
+                    // subtree until path-length failure, and the
+                    // phantom copies pollute the file index.
+                    bool reparse = (ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+                    if (!reparse || follow_symlinks) stack.push_back(p);
                 } else {
                     if (!accept_ext(p)) continue;
 

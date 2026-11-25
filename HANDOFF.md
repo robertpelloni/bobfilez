@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.102 (Junction Cycles)
+
+## What landed (2026-11-25, continuation)
+- **Win32 scanner junction cycles**: reparse-point dirs
+  are no longer descended (unless follow_symlinks); one
+  file was being reported 41x through an ancestor
+  junction, polluting the dedupe index. POSIX dirent
+  walk got the lstat twin. Test added.
+- Version **6.5.102**: lean **112/112**, MSVC **112/112**,
+  wiring **32/32**, JUCE **107 + 2 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited on all three threads
+  (Muse `6d2f6927`, ChatGPT `6b04ebe2`, Gemini
+  `49b11b21` — all briefed through v6.5.101).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.101 (Watch Pruned Polling)
 
 ## What landed (2026-11-25, continuation)
