@@ -664,7 +664,7 @@ std::string make_history_json(const std::vector<fo::core::OperationRecord>& oper
             << "\", \"source\": \"" << fo::core::Exporter::json_escape(operation.source_path)
             << "\", \"dest\": \"" << fo::core::Exporter::json_escape(operation.dest_path)
             << "\", \"timestamp\": \"" << format_operation_timestamp(operation.timestamp)
-            << "\", \"undone\": " << (operation.undone ? "true" : "false")
+            << "\", \"status\": \"" << operation.status << "\", \"undone\": " << (operation.undone ? "true" : "false")
             << "}";
         if (i + 1 < operations.size()) {
             out << ",";

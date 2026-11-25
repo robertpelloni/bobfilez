@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.119 (Locked/Read-Only Pinned)
+
+## What landed (2026-11-25, continuation)
+- **Locked/read-only class pinned** (Gemini): exclusive-
+  handle locked file and ACL-sealed destination already
+  refused cleanly; now locked in by test. C API history
+  JSON gained `status` parity with the CLI.
+- Version **6.5.119**: lean/MSVC **128 + 1 skip**,
+  wiring **32/32**, JUCE **121 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.118 (Recovered Ops Audited)
 
 ## What landed (2026-11-25, continuation)

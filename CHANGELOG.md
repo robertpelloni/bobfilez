@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.119] - 2026-11-25 — Locked Files and Read-Only Destinations Pinned
+
+### Added
+- **Locked/read-only coverage** (Gemini's next class):
+  a file held open with an exclusive handle and an
+  ACL-sealed destination directory both already refuse
+  cleanly (named per-file failure, sibling files still
+  move, sources byte-intact) — now pinned by
+  `LockedFileAndReadOnlyDestFailCleanly` instead of
+  being true by accident. C API history JSON also
+  gained the `status` field for CLI parity. Suites:
+  lean/MSVC **128 + 1 skip**, wiring **32/32**, JUCE
+  **121 + 5 skips**.
+
 ## [6.5.118] - 2026-11-25 — Recovered Operations Reach the Audit Ledger
 
 ### Fixed

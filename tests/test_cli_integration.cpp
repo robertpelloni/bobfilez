@@ -1402,6 +1402,55 @@ TEST_F(CliFixture, RecoveredMovesAppearInAuditLedger) {
     std::filesystem::current_path(original_cwd);
 }
 
+#ifdef _WIN32
+TEST_F(CliFixture, LockedFileAndReadOnlyDestFailCleanly) {
+    // Gemini locked/read-only class: a file held open with
+    // an exclusive handle, and a destination directory that
+    // refuses writes, must both produce clean named refusals
+    // — sources byte-intact, nothing half-moved, no crash.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "locked.txt") << "locked-bytes"; }
+    { std::ofstream(inbox / "free.txt") << "free-bytes"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+
+    HANDLE hold = CreateFileW((inbox / "locked.txt").c_str(), GENERIC_READ, 0,
+                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT_NE(hold, INVALID_HANDLE_VALUE);
+    auto org = run_cli("organize --rule={ext}/{filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    CloseHandle(hold);
+    EXPECT_NE(org.out.find("locked.txt"), std::string::npos) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "locked.txt")) << org.out;
+    {
+        std::ifstream in(inbox / "locked.txt");
+        std::string c((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        EXPECT_EQ(c, "locked-bytes");
+    }
+    EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "free.txt")) << org.out;
+
+    // Read-only destination directory (ACL deny write).
+    auto sealed = dir / "sealed";
+    std::filesystem::create_directories(sealed);
+    auto inbox2 = dir / "inbox2";
+    std::filesystem::create_directories(inbox2);
+    { std::ofstream(inbox2 / "third.txt") << "third"; }
+    std::string who = std::getenv("USERNAME") ? std::getenv("USERNAME") : "";
+    ASSERT_FALSE(who.empty());
+    std::string deny = "icacls \"" + sealed.string() + "\" /deny " + who + ":(W) >nul 2>&1";
+    ASSERT_EQ(std::system(deny.c_str()), 0);
+    auto org2 = run_cli("organize --rule=sealed/{filename} --format=json --db=" + db +
+                            " \"" + inbox2.string() + "\"", dir);
+    std::string allow = "icacls \"" + sealed.string() + "\" /remove:d " + who + " >nul 2>&1";
+    std::system(allow.c_str());
+    EXPECT_NE(org2.out.find("\"failed\": 1"), std::string::npos) << org2.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox2 / "third.txt")) << org2.out;
+    EXPECT_FALSE(std::filesystem::exists(sealed / "third.txt")) << org2.out;
+    std::filesystem::current_path(original_cwd);
+}
+#endif
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries
