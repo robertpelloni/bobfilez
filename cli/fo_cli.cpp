@@ -1472,6 +1472,7 @@ int main(int argc, char** argv) {
                                     if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
                                         std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
+                                rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {
                                 ++failed_moves;
@@ -1769,6 +1770,7 @@ int main(int argc, char** argv) {
                                     if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
                                         std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
+                                rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {
                                 ++failed_renames;

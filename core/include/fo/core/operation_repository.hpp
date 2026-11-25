@@ -32,9 +32,13 @@ struct OperationRecord {
     int64_t batch_id = 0;
     // Destination mtime (unix seconds) at journal time
     // (Migration 11); 0 = not recorded. Undo compares it for
-    // every file, including ones too large to hash. Last field
-    // on purpose: aggregate initializers must not shift.
+    // every file, including ones too large to hash.
     int64_t dest_mtime = 0;
+    // Destination file identity at journal time (Migration 12):
+    // "volume:index" (NTFS) or "dev:inode" (POSIX); empty = not
+    // recorded. Last field on purpose: aggregate initializers
+    // elsewhere must not shift.
+    std::string dest_file_id;
 };
 
 class OperationRepository {
@@ -98,6 +102,11 @@ public:
     void clear_old(int days = 30);
 
     static OperationType string_to_operation_type(const std::string& str);
+
+    // Platform file identity that survives renames but not
+    // replacement: "volume:index" on Windows, "dev:inode" on
+    // POSIX, "" when it cannot be determined.
+    static std::string file_identity(const std::filesystem::path& path);
 
 private:
     DatabaseManager& db_;

@@ -227,6 +227,15 @@ static const char* MIGRATION_11 = R"(
 ALTER TABLE operation_log ADD COLUMN dest_mtime INTEGER NOT NULL DEFAULT 0;
 )";
 
+/// Migration 12: destination file identity (volume serial +
+/// NTFS file index, or device+inode on POSIX) at journal time.
+/// Renames preserve it; a replaced file gets a new one, so undo
+/// can refuse to move back a different file wearing the same
+/// path, size, and forged mtime.
+static const char* MIGRATION_12 = R"(
+ALTER TABLE operation_log ADD COLUMN dest_file_id TEXT NOT NULL DEFAULT '';
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -358,6 +367,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 11) {
         apply_migration(11, MIGRATION_11);
+    }
+    if (current_ver < 12) {
+        apply_migration(12, MIGRATION_12);
     }
 }
 

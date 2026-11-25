@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.83 (Undo Verifies File Identity)
+
+## What landed (2026-11-24, continuation)
+- **File-ID identity**: Migration 12 `dest_file_id` recorded
+  by organize/rename; `verify_identity` compares it (after
+  size, before mtime/content). Replaced-file-with-forged-
+  size+mtime now refused. Unit test added. Lean **87/87**.
+- Version **6.5.83**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.82 (Journal Rollback Fault Injection)
 
 ## What landed (2026-11-24, continuation)

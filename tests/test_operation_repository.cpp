@@ -265,6 +265,35 @@ TEST_F(OperationFixture, UndoPrunesOnlyJournaledCreatedDirs) {
     EXPECT_TRUE(std::filesystem::exists(dir));           // root: survives
 }
 
+TEST_F(OperationFixture, UndoRefusesReplacedFileWithForgedSizeAndMtime) {
+    // Round-6/8 residual: a destination REPLACED by a different
+    // file with forged size and mtime passes size+mtime+hash-cap
+    // checks. The recorded file identity (volume+index / inode)
+    // survives renames but not replacement — undo must refuse.
+    auto src = dir / "orig.bin";
+    auto dst = dir / "moved.bin";
+    { std::ofstream(src) << "abc"; }
+    auto orig_mtime = std::filesystem::last_write_time(src);
+    std::filesystem::rename(src, dst);
+    auto rec = record(fo::core::OperationType::Move, src.string(), dst.string());
+    rec.dest_file_id = fo::core::OperationRepository::file_identity(dst);
+    ASSERT_FALSE(rec.dest_file_id.empty());
+    repo->log_operation(rec);
+
+    // Replace the destination with a different same-size file
+    // and forge the original mtime onto it.
+    std::filesystem::remove(dst);
+    { std::ofstream(dst) << "xyz"; }
+    std::error_code ec;
+    std::filesystem::last_write_time(dst, orig_mtime, ec);
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.undone.empty());
+    ASSERT_EQ(outcome.skipped.size(), 1u);
+    EXPECT_NE(outcome.skipped[0].second.find("identity differs"), std::string::npos);
+    EXPECT_TRUE(std::filesystem::exists(dst));
+}
+
 TEST_F(OperationFixture, UndoRefusesMtimeOnlyEditAboveHashCap) {
     // Round-6 review: above the journal-hash cap, identity was
     // size-only. dest_mtime (Migration 11) is recorded for every

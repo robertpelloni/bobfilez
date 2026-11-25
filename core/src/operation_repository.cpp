@@ -3,12 +3,45 @@
 #include "fo/core/registry.hpp"
 #include <sqlite3.h>
 #include <algorithm>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <sys/stat.h>
+#endif
 #include <stdexcept>
 #include <filesystem>
 
 namespace fo::core {
 
 OperationRepository::OperationRepository(DatabaseManager& db) : db_(db) {}
+
+std::string OperationRepository::file_identity(const std::filesystem::path& path) {
+#ifdef _WIN32
+    HANDLE h = CreateFileW(path.c_str(), FILE_READ_ATTRIBUTES,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                           nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return "";
+    BY_HANDLE_FILE_INFORMATION info{};
+    std::string out;
+    if (GetFileInformationByHandle(h, &info)) {
+        uint64_t index = (static_cast<uint64_t>(info.nFileIndexHigh) << 32) | info.nFileIndexLow;
+        out = std::to_string(info.dwVolumeSerialNumber) + ":" + std::to_string(index);
+    }
+    CloseHandle(h);
+    return out;
+#else
+    struct stat st {};
+    if (::stat(path.c_str(), &st) != 0) return "";
+    return std::to_string(static_cast<uint64_t>(st.st_dev)) + ":" +
+           std::to_string(static_cast<uint64_t>(st.st_ino));
+#endif
+}
 
 std::string OperationRepository::operation_type_to_string(OperationType type) {
     switch (type) {
@@ -59,8 +92,8 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     sqlite3* db = db_.get_db();
 
     const char* sql = R"(
-        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime, dest_file_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     )";
 
     sqlite3_stmt* stmt;
@@ -88,6 +121,7 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     // their own batch so undo_last_batch treats them singly.
     sqlite3_bind_int64(stmt, 9, record.batch_id > 0 ? record.batch_id : allocate_batch_id());
     sqlite3_bind_int64(stmt, 10, record.dest_mtime);
+    sqlite3_bind_text(stmt, 11, record.dest_file_id.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
@@ -103,7 +137,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
     sqlite3* db = db_.get_db();
     std::vector<OperationRecord> results;
 
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime "
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime, dest_file_id "
                       "FROM operation_log ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
@@ -124,6 +158,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
         rec.batch_id = sqlite3_column_int64(stmt, 9);
         rec.dest_mtime = sqlite3_column_int64(stmt, 10);
+        if (sqlite3_column_text(stmt, 11)) rec.dest_file_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
         results.push_back(rec);
     }
 
@@ -142,7 +177,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
     // id order, not timestamp: timestamps are second-resolution, so
     // same-second records of different batches could interleave and
     // break undo_last_batch's contiguous grouping.
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime "
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime, dest_file_id "
                       "FROM operation_log WHERE undone = 0 AND status = 'completed' AND operation_type != 'delete' ORDER BY id DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
@@ -163,6 +198,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
         rec.batch_id = sqlite3_column_int64(stmt, 9);
         rec.dest_mtime = sqlite3_column_int64(stmt, 10);
+        if (sqlite3_column_text(stmt, 11)) rec.dest_file_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
         results.push_back(rec);
     }
 
@@ -189,11 +225,12 @@ OperationRecord read_record(sqlite3_stmt* stmt) {
     rec.undone = sqlite3_column_int(stmt, 8) != 0;
     rec.batch_id = sqlite3_column_int64(stmt, 9);
     rec.dest_mtime = sqlite3_column_int64(stmt, 10);
+    if (sqlite3_column_text(stmt, 11)) rec.dest_file_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
     return rec;
 }
 
 const char* kRecordCols =
-    "id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime";
+    "id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime, dest_file_id";
 } // namespace
 
 std::optional<OperationRecord> OperationRepository::get_by_id(int64_t id) {
@@ -241,6 +278,15 @@ std::optional<std::string> verify_identity(const OperationRecord& rec,
         auto now = content_fast64(dest);
         if (!now.empty() && now != rec.file_hash) {
             return "file changed since the operation (content differs)";
+        }
+    }
+    // File identity (Migration 12): survives renames, not
+    // replacement — catches a different file wearing the same
+    // path with forged size and mtime.
+    if (!rec.dest_file_id.empty() && std::filesystem::is_regular_file(dest, ec)) {
+        auto now_id = OperationRepository::file_identity(dest);
+        if (!now_id.empty() && now_id != rec.dest_file_id) {
+            return "file changed since the operation (identity differs)";
         }
     }
     // Mtime identity (Migration 11): recorded for every file,

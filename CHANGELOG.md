@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.83] - 2026-11-24 — Undo Verifies File Identity
+
+### Fixed
+- **A replaced destination passed every undo identity check**
+  (round-6/8 residual): a different file wearing the moved
+  file's path, with forged size and mtime, was moved back as
+  if it were the original. Migration 12 records the platform
+  file identity at journal time (NTFS volume+file index, or
+  POSIX dev+inode — both survive renames, not replacement);
+  undo now refuses when the identity differs. New
+  `UndoRefusesReplacedFileWithForgedSizeAndMtime` unit test
+  failed before, passes after. Suites: lean **87/87**; other
+  lanes rebuilt at this version.
+
 ## [6.5.82] - 2026-11-24 — Journal Rollback Proven By Fault Injection
 
 ### Tests
