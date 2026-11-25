@@ -45,6 +45,42 @@ CliResult run_cli(const std::string& args, const std::filesystem::path& workdir)
     return {code, ss.str()};
 }
 
+#ifdef _WIN32
+// Runs the CLI through CreateProcessW so the argument reaches the
+// process as UTF-16, exactly as a user (or the Node bridge, which
+// spawns via CreateProcess) delivers it. run_cli's cmd.exe route
+// would ANSI-mangle non-ASCII arguments before the CLI sees them.
+CliResult run_cli_wide(const std::wstring& args, const std::filesystem::path& workdir) {
+    auto out_file = workdir / "cli-out-wide.txt";
+    SECURITY_ATTRIBUTES sa{sizeof(sa), nullptr, TRUE};
+    HANDLE h = CreateFileW(out_file.c_str(), GENERIC_WRITE, FILE_SHARE_READ, &sa,
+                           CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return {-1, "CreateFileW failed"};
+    std::wstring cmd = L"\"" + cli_path().wstring() + L"\" " + args;
+    std::vector<wchar_t> buf(cmd.begin(), cmd.end());
+    buf.push_back(L'\0');
+    STARTUPINFOW si{};
+    si.cb = sizeof(si);
+    si.hStdOutput = h;
+    si.hStdError = h;
+    si.dwFlags = STARTF_USESTDHANDLES;
+    PROCESS_INFORMATION pi{};
+    BOOL ok = CreateProcessW(nullptr, buf.data(), nullptr, nullptr, TRUE, 0,
+                             nullptr, workdir.c_str(), &si, &pi);
+    CloseHandle(h);
+    if (!ok) return {-1, "CreateProcessW failed"};
+    WaitForSingleObject(pi.hProcess, 60000);
+    DWORD code = 0;
+    GetExitCodeProcess(pi.hProcess, &code);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    std::ifstream in(out_file, std::ios::binary);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return {static_cast<int>(code), ss.str()};
+}
+#endif
+
 struct CliFixture : ::testing::Test {
     std::filesystem::path dir;
     std::filesystem::path original_cwd;
@@ -334,6 +370,22 @@ TEST_F(CliFixture, HelpCoversEveryPathCommand) {
     }
     EXPECT_GT(checked, 20);
 }
+
+#ifdef _WIN32
+TEST_F(CliFixture, ScanFindsCjkRootPassedAsArgument) {
+    // Muse review: a CJK root passed as an argument arrived at
+    // the CRT narrow main as "????" (ANSI code page), so the real
+    // shipped binary rejected a directory that exists. Arguments
+    // must be sourced from the wide command line as UTF-8.
+    auto root = dir / L"\x4e2d\x6587\x76ee\x5f55";
+    std::filesystem::create_directories(root);
+    { std::ofstream(root / "inner.txt") << "inner"; }
+    auto r = run_cli_wide(L"scan --db=" + (dir / "t.db").wstring() +
+                          L" \"" + root.wstring() + L"\"", dir);
+    ASSERT_EQ(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("inner.txt"), std::string::npos) << r.out;
+}
+#endif
 
 TEST_F(CliFixture, OrganizeUndoPreservesTreeExactly) {
     // The data-loss invariant: organize followed by undo must

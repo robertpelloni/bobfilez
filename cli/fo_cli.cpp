@@ -33,6 +33,17 @@
 #include <thread>
 #include <mutex>
 #include <regex>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <shellapi.h>
+#include <locale>
+#endif
 
 // Parse size string with optional K/M/G suffix (e.g., "1M" -> 1048576)
 static std::uintmax_t parse_size_string(const std::string& s) {
@@ -218,6 +229,34 @@ namespace fo::core {
 #endif
 
 int main(int argc, char** argv) {
+#ifdef _WIN32
+    // Source arguments from the wide command line, converted to
+    // UTF-8: the CRT's narrow argv is ANSI-code-page encoded, so
+    // a path outside that code page (CJK, emoji) arrives as
+    // "????" before any of our code runs — the shipped binary
+    // then reports an existing directory as missing. The UTF-8
+    // locale (set here and in Engine) makes every downstream
+    // path conversion speak UTF-8 consistently.
+    std::vector<std::string> utf8_args;
+    std::vector<char*> utf8_argv;
+    {
+        int wargc = 0;
+        if (auto* wargv = CommandLineToArgvW(GetCommandLineW(), &wargc)) {
+            for (int i = 0; i < wargc; ++i) {
+                int len = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, nullptr, 0, nullptr, nullptr);
+                std::string s(len > 1 ? static_cast<size_t>(len - 1) : 0, '\0');
+                if (len > 1) WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, s.data(), len, nullptr, nullptr);
+                utf8_args.push_back(std::move(s));
+            }
+            LocalFree(wargv);
+            utf8_argv.reserve(utf8_args.size());
+            for (auto& s : utf8_args) utf8_argv.push_back(s.data());
+            argc = static_cast<int>(utf8_argv.size());
+            argv = utf8_argv.data();
+        }
+        try { std::locale::global(std::locale(".UTF-8")); } catch (...) {}
+    }
+#endif
 #ifdef FO_HAVE_S3
     struct AwsLifecycle {
         AwsLifecycle() { fo::core::init_aws_api(); }

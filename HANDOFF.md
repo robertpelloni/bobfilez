@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.76 (Non-ASCII Paths Through argv)
+
+## What landed (2026-11-24, continuation)
+- **Wide argv**: fo_cli sources args from CommandLineToArgvW
+  as UTF-8 (+ UTF-8 locale before parsing; shell32 linked).
+  CJK root via argv verified on the shipped binary + a
+  CreateProcessW regression test. Lean ctest **81/81**.
+- **Secrets check (Muse round 4)**: metamcp.db/index.db/
+  session files hold NO credentials (sensitive tables empty);
+  fo.db has 3,156 scanned paths (privacy, not secrets).
+- Version **6.5.76**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Kill-test of journal under hard kill (Muse round 4) — argued
+  safe by per-file autocommit journaling; empirical probe owed.
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 5 in chat `fd6d6d5b`.
+
+---
 # Session Handoff - v6.5.75 (Undo Verifies Content)
 
 ## What landed (2026-11-24, continuation)

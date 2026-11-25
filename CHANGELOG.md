@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.76] - 2026-11-24 — Non-ASCII Paths Work Through argv (Claude Round 4)
+
+### Fixed
+- **CJK paths passed as arguments arrived as `????`**: the
+  CRT's narrow `argv` is ANSI-code-page encoded, so the shipped
+  binary rejected existing CJK directories as missing (Muse
+  review; the UTF-8 locale alone could not fix bytes that were
+  already mangled). `main` now sources arguments from
+  `CommandLineToArgvW` converted to UTF-8 and sets the UTF-8
+  locale before parsing. Verified on the real binary via a
+  CreateProcessW test (`ScanFindsCjkRootPassedAsArgument`),
+  not just the ctest harness. Also confirmed this round:
+  `metamcp.db` and the session files contain **no credentials**
+  (all sensitive tables empty; public catalog only), while
+  `fo.db` holds 3,156 scanned file paths — a privacy note for
+  the owner's history-purge decision, nothing to rotate.
+  Suites: lean **81/81**; other lanes rebuilt at this version.
+
 ## [6.5.75] - 2026-11-24 — Undo Verifies Content, Not Just Size
 
 ### Fixed
