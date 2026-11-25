@@ -786,6 +786,32 @@ TEST_F(CliFixture, UndoToleratesTwoSecondMtimeRounding) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, ScanSurvivesOverLongPaths) {
+    // Paths past MAX_PATH (260): the std scanner's recursive
+    // walk used to die with an access violation when a subtree
+    // crossed the limit mid-iteration. The contract is boring:
+    // exit 0, shallow files listed, unenterable depth skipped —
+    // never a crash (a scanner AV takes down every command
+    // that scans, including organize and undo-adjacent flows).
+    { std::ofstream(dir / "root.txt") << "shallow"; }
+    std::error_code ec;
+    auto cur = dir;
+    const std::string seg(40, 'd');
+    for (int i = 0; i < 6; ++i) {
+        cur /= seg;
+        // Create through the verbatim prefix: plain Win32 calls
+        // refuse >260 while creation is exactly what we test.
+        auto verbatim = std::filesystem::path("\\\\?\\" + cur.string());
+        std::filesystem::create_directories(verbatim, ec);
+        ASSERT_FALSE(ec) << "fixture cannot create long path: " << ec.message();
+    }
+    { std::ofstream(std::filesystem::path("\\\\?\\" + (cur / "deep.txt").string())) << "deep"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("scan --format=json --db=" + db + " \"" + dir.string() + "\"", dir);
+    EXPECT_EQ(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("root.txt"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

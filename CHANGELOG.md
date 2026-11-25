@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.96] - 2026-11-25 — Long-Path Scanner Access Violation
+
+### Fixed
+- **Scanning a tree containing >260-char paths crashed the
+  process** (0xC0000005): the std scanner's
+  `recursive_directory_iterator` walk faults inside the
+  iterator when a subtree crosses MAX_PATH mid-walk (both
+  the old throwing `++it`-in-catch form and the error-code
+  increment form). Replaced with a manual stack DFS over
+  per-level `directory_iterator` (all error-code based,
+  mirroring the win32 scanner): an unenterable deep subtree
+  is skipped, siblings still scan, exit stays 0. New
+  `ScanSurvivesOverLongPaths` test failed with the AV before,
+  passes after. Suites: lean **104/104**, MSVC **104/104**
+  (one load-flake failure each on first full run, clean on
+  re-run — same pattern as earlier recorded flakes), wiring
+  **31/31**, JUCE **99 + 2 designed skips**.
+
 ## [6.5.95] - 2026-11-25 — Reserved-Name Data Loss, Vault Failure Trail
 
 ### Fixed

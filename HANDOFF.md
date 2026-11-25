@@ -1,3 +1,32 @@
+# Session Handoff - v6.5.96 (Long-Path Scanner AV)
+
+## What landed (2026-11-25, continuation)
+- **Long-path crash fixed**: scan/organize over trees with
+  >260-char paths died 0xC0000005 inside the std scanner's
+  recursive iterator. Now a manual stack DFS (per-level
+  `directory_iterator`, error-code only): deep unenterable
+  subtrees skip, siblings scan, exit 0. Organize into a
+  >260 destination now fails per-file by name rather than
+  crashing. `ScanSurvivesOverLongPaths` pins it.
+- Version **6.5.96**: lean **104/104**, MSVC **104/104**,
+  wiring **31/31**, JUCE **99 + 2 skips**. Two first-run
+  load flakes (vault/MSVC single failures) cleared on
+  re-run — watch for a third occurrence to root-cause.
+- Process note: crashed probe processes can hold
+  `build-lean/cli/fo_cli.exe` (LNK1104 on relink); the
+  rename-aside workaround was needed once this session.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Other recursive_directory_iterator users (treemap,
+  data_pruner) throw rather than crash on deep trees —
+  exit-3 class, not AV class; fix on demand.
+- Muse review in chats `fd6d6d5b` / `ad74257e` (rounds
+  9/10 replies still generating at last check).
+
+---
 # Session Handoff - v6.5.95 (Reserved Names + Vault Trail)
 
 ## What landed (2026-11-25, continuation)
