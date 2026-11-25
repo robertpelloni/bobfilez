@@ -6,6 +6,10 @@
   gains `"success"` on ignore actions. CLI test added. Lean
   ctest **94/94**.
 - Version **6.5.90**.
+- Also verified at v6.5.90: Qt (MinGW) and JUCE demos rebuilt
+  against current core and launch-verified (Qt offscreen, JUCE
+  live process check); quad concurrent scans on one fresh DB
+  all succeed (v6.5.87 fixes).
 
 ## Still open (roast triage)
 - History purge decision for root DBs in old commits (owner).
