@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.88 (Bad Numeric Options Are Usage Errors)
+
+## What landed (2026-11-24, continuation)
+- **Strict numeric parsing**: all numeric CLI options go
+  through `parse_int_strict`/validated sizes; bad values are
+  named exit-2 usage errors (were process aborts). CLI test
+  added. Lean ctest **92/92**.
+- Note: four orphaned fo_cli processes (57100, 32200, 49472,
+  35360; parents exited, access denied) hold renamed-aside
+  lean exes; delete `build-lean/cli/fo_cli.exe.orphan-*` once
+  they clear (untracked build artifacts).
+- Version **6.5.88**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.87 (Concurrent Invocations On One Database)
 
 ## What landed (2026-11-24, continuation)

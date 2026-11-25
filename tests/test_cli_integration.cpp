@@ -419,6 +419,27 @@ TEST_F(CliFixture, MalformedTemplatesAndRegexAreUsageErrors) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt"));
 }
 
+TEST_F(CliFixture, BadNumericOptionsAreUsageErrors) {
+    // --threshold=abc / --threads=abc used to abort the process
+    // via uncaught std::invalid_argument (0xC0000409, no message).
+    // Every numeric option must be a named usage error (exit 2).
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto in = "\"" + inbox.string() + "\"";
+    const std::string cmds[] = {
+        "similar --threshold=abc", "scan --threads=abc",
+        "search x --max-results=abc", "convert --quality=abc --to=mp4",
+        "scan --min-size=abc", "scan --hash-limit-mb=abc",
+    };
+    for (const auto& c : cmds) {
+        auto r = run_cli(c + " --db=" + db + " " + in, dir);
+        EXPECT_EQ(r.code, 2) << c << ": " << r.out;
+        EXPECT_NE(r.out.find("Invalid"), std::string::npos) << c << ": " << r.out;
+    }
+}
+
 TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
     // Crash-injection (round-6/7): replace operation_log with a
     // view so the journal insert throws AFTER the rename. The

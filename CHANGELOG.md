@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.88] - 2026-11-24 — Bad Numeric Options Are Usage Errors
+
+### Fixed
+- **`--threshold=abc` aborted the process** (uncaught
+  `std::invalid_argument` → 0xC0000409, no message). Every
+  numeric option now parses strictly (`parse_int_strict` /
+  validated size strings): `--threshold`, `--threads`,
+  `--min-size`, `--max-size`, `--quality`, `--max-results`,
+  `--debounce` (plus the existing `--hash-limit-mb` and audit
+  `--limit`) produce a named usage error with exit 2. New
+  `BadNumericOptionsAreUsageErrors` CLI test failed (abort)
+  before, passes after. Suites: lean **92/92**; other lanes
+  rebuilt at this version.
+
 ## [6.5.87] - 2026-11-24 — Concurrent Invocations On One Database
 
 ### Fixed

@@ -45,16 +45,36 @@
 #include <locale>
 #endif
 
+// Strict integer parse for CLI option values: nullopt on any
+// trailing garbage or non-numeric input. Raw std::stoi here used
+// to abort the process (uncaught invalid_argument) on values
+// like --threshold=abc.
+static std::optional<int> parse_int_strict(const std::string& s) {
+    try {
+        size_t pos = 0;
+        int v = std::stoi(s, &pos);
+        if (pos != s.size()) return std::nullopt;
+        return v;
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 // Parse size string with optional K/M/G suffix (e.g., "1M" -> 1048576)
+// Throws std::invalid_argument on malformed input (callers turn
+// that into a usage error).
 static std::uintmax_t parse_size_string(const std::string& s) {
-    if (s.empty()) return 0;
+    if (s.empty()) throw std::invalid_argument("empty size");
     char suffix = s.back();
     std::uintmax_t multiplier = 1;
     std::string num_part = s;
     if (suffix == 'K' || suffix == 'k') { multiplier = 1024ULL; num_part.pop_back(); }
     else if (suffix == 'M' || suffix == 'm') { multiplier = 1024ULL * 1024; num_part.pop_back(); }
     else if (suffix == 'G' || suffix == 'g') { multiplier = 1024ULL * 1024 * 1024; num_part.pop_back(); }
-    return static_cast<std::uintmax_t>(std::stoull(num_part)) * multiplier;
+    size_t pos = 0;
+    auto v = std::stoull(num_part, &pos);
+    if (pos != num_part.size()) throw std::invalid_argument("bad size: " + s);
+    return static_cast<std::uintmax_t>(v) * multiplier;
 }
 
 // ── Watcher status heartbeat ─────────────────────────────────────────────
@@ -500,7 +520,11 @@ int main(int argc, char** argv) {
         else if (a == "--use-ads-cache") cfg.use_ads_cache = true;
         else if (a == "--thumbnails") include_thumbnails = true;
         else if (a.rfind("--lang=", 0) == 0) lang = a.substr(7);
-        else if (a.rfind("--threshold=", 0) == 0) threshold = std::stoi(a.substr(12));
+        else if (a.rfind("--threshold=", 0) == 0) {
+            auto v = parse_int_strict(a.substr(12));
+            if (!v) { std::cerr << "Invalid --threshold value: " << a.substr(12) << " (expected a number)\n"; return 2; }
+            threshold = *v;
+        }
         else if (a.rfind("--ext=", 0) == 0) {
             auto list = a.substr(6);
             size_t pos = 0;
@@ -515,9 +539,11 @@ int main(int argc, char** argv) {
         } else if (a == "--follow-symlinks") {
             follow_symlinks = true;
         } else if (a.rfind("--min-size=", 0) == 0) {
-            min_size = parse_size_string(a.substr(11));
+            try { min_size = parse_size_string(a.substr(11)); }
+            catch (...) { std::cerr << "Invalid --min-size value: " << a.substr(11) << "\n"; return 2; }
         } else if (a.rfind("--max-size=", 0) == 0) {
-            max_size = parse_size_string(a.substr(11));
+            try { max_size = parse_size_string(a.substr(11)); }
+            catch (...) { std::cerr << "Invalid --max-size value: " << a.substr(11) << "\n"; return 2; }
         } else if (a.rfind("--exclude=", 0) == 0) {
             exclude_patterns.push_back(a.substr(10));
         } else if (a.rfind("--mode=", 0) == 0) {
@@ -548,7 +574,9 @@ int main(int argc, char** argv) {
         } else if (a == "--dismiss") {
             // Parsed by the undo command handler below; accept silently here.
         } else if (a.rfind("--threads=", 0) == 0) {
-            num_threads = std::stoi(a.substr(10));
+            auto v = parse_int_strict(a.substr(10));
+            if (!v) { std::cerr << "Invalid --threads value: " << a.substr(10) << " (expected a number)\n"; return 2; }
+            num_threads = *v;
             if (num_threads < 1) num_threads = 1;
         } else if (a.rfind("--hash-limit-mb=", 0) == 0) {
             try { journal_hash_limit_mb = std::stoi(a.substr(16)); } catch (...) {
@@ -2273,7 +2301,11 @@ int main(int argc, char** argv) {
             for (auto& a : args) {
                 if (a.rfind("--to=", 0) == 0) target_format = a.substr(5);
                 else if (a.rfind("--output=", 0) == 0) requested_output_path = a.substr(9);
-                else if (a.rfind("--quality=", 0) == 0) quality = std::stoi(a.substr(10));
+                else if (a.rfind("--quality=", 0) == 0) {
+                    auto qv = parse_int_strict(a.substr(10));
+                    if (!qv) { std::cerr << "Invalid --quality value: " << a.substr(10) << " (expected a number)\n"; return 2; }
+                    quality = *qv;
+                }
             }
 
             if (target_format.empty()) {
@@ -2371,7 +2403,11 @@ int main(int argc, char** argv) {
                 else if (a == "--case-sensitive") case_sensitive = true;
                 else if (a == "--whole-word") whole_word = true;
                 else if (a == "--invert") invert_match = true;
-                else if (a.rfind("--max-results=", 0) == 0) max_results = std::stoi(a.substr(14));
+                else if (a.rfind("--max-results=", 0) == 0) {
+                    auto mv = parse_int_strict(a.substr(14));
+                    if (!mv) { std::cerr << "Invalid --max-results value: " << a.substr(14) << " (expected a number)\n"; return 2; }
+                    max_results = *mv;
+                }
             }
             for (size_t i = 2; i < pargs.size(); ++i) search_paths.push_back(pargs[i]);
             {
@@ -2583,8 +2619,11 @@ int main(int argc, char** argv) {
 
             int debounce_ms = 500;
             for (auto& a : args) {
-                if (a.rfind("--debounce=", 0) == 0)
-                    debounce_ms = std::stoi(a.substr(11));
+                if (a.rfind("--debounce=", 0) == 0) {
+                    auto dv = parse_int_strict(a.substr(11));
+                    if (!dv) { std::cerr << "Invalid --debounce value: " << a.substr(11) << " (expected a number)\n"; return 2; }
+                    debounce_ms = *dv;
+                }
             }
 
             std::cout << "Watching " << paths.size() << " path(s) for changes (Ctrl+C to stop)...\n";
