@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.108] - 2026-11-25 — Generated Build Markers Untracked
+
+### Fixed
+- **Generated artifacts in git**: five component
+  `.build_success` stamp files (benchmarks, cli, core,
+  fuzz, gui) were tracked, and the ignore rule only
+  covered the root one, so every build dirtied the tree.
+  Untracked (kept on disk) and the rule now matches at
+  any depth — recurrence prevented, per the standing
+  generated-artifact exclusion item. No code change.
+
 ## [6.5.107] - 2026-11-25 — Cross-Volume Moves, Recovery-in-Recovery, FULL Sync
 
 ### Fixed

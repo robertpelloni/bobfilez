@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.108 (Build Markers Untracked)
+
+## What landed (2026-11-25, continuation)
+- **Generated-artifact exclusion**: five component
+  `.build_success` stamps untracked; `.gitignore` rule
+  generalized to any depth. No code change; suites
+  unchanged from v6.5.107 (lean/MSVC 118+1, JUCE 113+3).
+- Version **6.5.108**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- History purge (owner; evidence in
+  `docs/SECRETS_HISTORY_SCAN.md`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+
+---
 # Session Handoff - v6.5.107 (Cross-Volume + Recovery-in-Recovery)
 
 ## What landed (2026-11-25, continuation)

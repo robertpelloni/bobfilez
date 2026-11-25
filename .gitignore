@@ -405,7 +405,7 @@ undefined/
 /build_log*.txt
 /build_fuzz_log.txt
 /fuzzer_gcc_output.txt
-/.build_success
+.build_success
 /.tormentnexus_startup_marker
 /.hypercode-session.json
 /.tormentnexus-session.json
