@@ -329,6 +329,14 @@ bool VaultManager::lock_file(const std::filesystem::path& file_path) {
 }
 
 bool VaultManager::unlock_file(const std::string& vault_id, const std::filesystem::path& dest_path) {
+    // Entry ids are generated flat names ("vault_<ms>_<hex>").
+    // Anything carrying separators or dot segments would escape
+    // the vault — and a successful decrypt DELETES the source,
+    // so a traversal id could erase files outside the vault.
+    if (vault_id.empty() ||
+        std::filesystem::path(vault_id).filename().string() != vault_id) {
+        return false;
+    }
     std::filesystem::path src_path = vault_path_ / vault_id;
     if (!std::filesystem::exists(src_path)) return false;
 

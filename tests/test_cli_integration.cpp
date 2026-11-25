@@ -352,6 +352,39 @@ void write_minimal_exif_jpeg(const std::filesystem::path& path) {
     (void)tiff;
 }
 
+TEST_F(CliFixture, VaultUnlockRejectsTraversalId) {
+    // unlock_file joined the vault id unchecked: "../x" escaped
+    // the vault, and a successful decrypt DELETED the outside
+    // file. Entry ids are generated names; anything containing
+    // separators must be refused before touching the filesystem.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "secret.txt") << "topsecret"; }
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123", dir).code, 0);
+    ASSERT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "secret.txt").string() + "\"", dir).code, 0);
+
+    // Copy the entry outside the vault, then attack via ../
+    std::string entry;
+    for (auto& e : std::filesystem::directory_iterator(vault)) {
+        auto n = e.path().filename().string();
+        if (n.rfind("vault_", 0) == 0 && n.find(".meta") == std::string::npos) entry = n;
+    }
+    ASSERT_FALSE(entry.empty());
+    auto outside = dir / "outside-copy";
+    std::filesystem::copy_file(vault / entry, outside);
+
+    auto attack = run_cli("vault-unlock \"" + vault.string() + "\" pw123 \"../outside-copy\" \"" + (dir / "loot.txt").string() + "\"", dir);
+    EXPECT_NE(attack.code, 0) << attack.out;
+    EXPECT_TRUE(std::filesystem::exists(outside)) << attack.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "loot.txt"));
+
+    // Normal unlock still works.
+    auto ok = run_cli("vault-unlock \"" + vault.string() + "\" pw123 \"" + entry + "\" \"" + (dir / "back.txt").string() + "\"", dir);
+    ASSERT_EQ(ok.code, 0) << ok.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "back.txt"));
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, VaultListRejectsWrongPassword) {
     // vault-list took a password but never checked it: any
     // password listed entry names and sizes. A vault verifier

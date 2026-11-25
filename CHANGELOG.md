@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.89] - 2026-11-24 — Vault Unlock Path Traversal
+
+### Fixed
+- **`vault-unlock` accepted traversal ids**: the entry id was
+  joined to the vault path unchecked, so `../outside-copy`
+  escaped the vault — and since a successful unlock deletes
+  its source, it could decrypt *and erase* a file outside the
+  vault. Entry ids are generated flat names; anything with
+  separators or dot segments is now refused before touching
+  the filesystem. New `VaultUnlockRejectsTraversalId` CLI
+  test (copied entry attacked via `../`) failed before,
+  passes after. Suites: lean **93/93**; other lanes rebuilt
+  at this version.
+
 ## [6.5.88] - 2026-11-24 — Bad Numeric Options Are Usage Errors
 
 ### Fixed
