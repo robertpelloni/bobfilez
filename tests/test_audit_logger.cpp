@@ -18,7 +18,8 @@ struct AuditFixture : ::testing::Test {
     void SetUp() override {
         dir = std::filesystem::temp_directory_path() /
               ("bobfilez-audit-test-" + std::to_string(::testing::UnitTest::GetInstance()->random_seed()) +
-               "-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+               "-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+        { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
         std::filesystem::create_directories(dir);
         db = std::make_unique<fo::core::DatabaseManager>();
         db->open(dir / "test.db");

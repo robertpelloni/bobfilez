@@ -111,7 +111,8 @@ struct CliFixture : ::testing::Test {
         }
         original_cwd = std::filesystem::current_path();
         dir = std::filesystem::temp_directory_path() /
-              ("bobfilez-cli-test-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+              ("bobfilez-cli-test-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+        { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
         std::filesystem::create_directories(dir);
     }
 

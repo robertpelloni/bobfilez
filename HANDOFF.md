@@ -1,3 +1,29 @@
+# Session Handoff - v6.5.99 (Flake Class Removed)
+
+## What landed (2026-11-25, continuation)
+- **Flake root-caused (test harness)**: fixture SetUp
+  never cleaned its dir, so killed runs left residue
+  (files + DB/WAL) the next run inherited — caught as
+  "failed to hash 2 of 5" on a 3-file fixture. Dirs were
+  also pointer-named (allocator reuse across tests).
+  All fixtures now test-name their dirs and remove_all
+  before creating; planted-residue proof passes.
+  Lean/MSVC **108/108**, JUCE **103 + 2**, wiring **31/31**.
+- **Reviewer thread moved**: `ad74257e` wedged mid-
+  generation (3 queued reports); fresh thread
+  **`6d2f6927`** opened with a full catch-up (round 12).
+- Version **6.5.99**; counts confirmed at commit time.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Muse review: new thread `6d2f6927` (reply pending);
+  `ad74257e`/`fd6d6d5b` wedged, read-only history.
+- If full-suite flakes recur despite unique fixture dirs,
+  root-cause child-process timing under load next.
+
+---
 # Session Handoff - v6.5.98 (Deep-Tree Walks Complete)
 
 ## What landed (2026-11-25, continuation)

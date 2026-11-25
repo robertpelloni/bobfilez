@@ -87,7 +87,8 @@ TEST_F(RegistryFixture, FlowFailurePropagates) {
     auto flow = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
     ASSERT_NE(flow, nullptr);
     const auto dir = std::filesystem::temp_directory_path() /
-                     ("bobfilez-flow-test-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+                     ("bobfilez-flow-test-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+    { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
     std::filesystem::create_directories(dir);
     const auto payload = dir / "payload.txt";
     { std::ofstream(payload) << "x"; }
@@ -118,7 +119,8 @@ TEST_F(RegistryFixture, FlowMoveToRefusesExistingDestination) {
     auto flow = fo::core::Registry<fo::core::IOmniFlowEngine>::instance().create("default");
     ASSERT_NE(flow, nullptr);
     const auto dir = std::filesystem::temp_directory_path() /
-                     ("bobfilez-flow-guard-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+                     ("bobfilez-flow-guard-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+    { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
     std::filesystem::create_directories(dir / "dest");
     const auto payload = dir / "report.txt";
     { std::ofstream(payload) << "new-bytes"; }

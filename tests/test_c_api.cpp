@@ -20,7 +20,8 @@ struct CApiFixture : ::testing::Test {
 
     void SetUp() override {
         dir = std::filesystem::temp_directory_path() /
-              ("bobfilez-capi-test-" + std::to_string(reinterpret_cast<uintptr_t>(this)));
+              ("bobfilez-capi-test-" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()));
+        { std::error_code ec0; std::filesystem::remove_all(dir, ec0); }
         std::filesystem::create_directories(dir);
     }
 

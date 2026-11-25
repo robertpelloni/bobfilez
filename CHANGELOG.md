@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.99] - 2026-11-25 — Test-Harness Flake Class Removed
+
+### Fixed
+- **Intermittent full-suite flakes (root-caused)**: fixture
+  `SetUp` created its temp dir but never cleaned it. Any
+  interrupted run (killed suite, crashed child) left files
+  and DB/WAL state behind, and the next run silently
+  inherited them — captured red-handed when `hash` reported
+  "failed to hash 2 of 5" on a 3-file fixture (two stale
+  non-image files from a killed run). Worse, dirs were named
+  from the raw `this` pointer, so allocator reuse could hand
+  one test another's residue. All fixtures now (a) name dirs
+  from the gtest test name and (b) `remove_all` before
+  creating. Proof: planting stale files in the fixture dir
+  fails the test pre-fix and passes after. Suites after the
+  fix: lean **108/108**, MSVC **108/108**, wiring **31/31**,
+  JUCE **103 + 2 designed skips**, all clean on first run.
+
 ## [6.5.98] - 2026-11-25 — Deep-Tree Walks: Copy Engine, Self-Healing, Watcher
 
 ### Fixed
