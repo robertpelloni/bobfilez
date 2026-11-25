@@ -1429,6 +1429,17 @@ TEST_F(CliFixture, LockedFileAndReadOnlyDestFailCleanly) {
         EXPECT_EQ(c, "locked-bytes");
     }
     EXPECT_TRUE(std::filesystem::exists(dir / "txt" / "free.txt")) << org.out;
+    // Journal/audit accuracy for the partial batch: the
+    // moved file is journaled and audited; the locked one
+    // appears in neither as a completed move.
+    {
+        auto hist = run_cli("history --format=json --db=" + db, dir);
+        EXPECT_NE(hist.out.find("free.txt"), std::string::npos) << hist.out;
+        EXPECT_EQ(hist.out.find("locked.txt"), std::string::npos) << hist.out;
+        auto audit = run_cli("audit --format=json --db=" + db, dir);
+        EXPECT_NE(audit.out.find("free.txt"), std::string::npos) << audit.out;
+        EXPECT_EQ(audit.out.find("locked.txt"), std::string::npos) << audit.out;
+    }
 
     // Read-only destination directory (ACL deny write).
     auto sealed = dir / "sealed";
@@ -1483,6 +1494,32 @@ TEST_F(CliFixture, ReadOnlySourceHandling) {
     EXPECT_TRUE(std::filesystem::exists(inbox / "ro.txt")) << del.out;
     EXPECT_TRUE(std::filesystem::exists(inbox / "twin.txt")) << del.out;
     std::filesystem::current_path(original_cwd);
+}
+#endif
+
+#ifdef _WIN32
+TEST_F(CliFixture, LockedConvertSourceFailsCleanly) {
+    // Permission class, convert surface: a source held open
+    // with an exclusive handle must fail its conversion by
+    // name (nonzero exit, no output file, source intact) —
+    // not hang, crash, or report success.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_tone_wav(inbox / "tone.wav");
+    auto db = (dir / "t.db").string();
+    // Baseline: unlocked conversion must work in this lane,
+    // otherwise the locked assertion proves nothing.
+    auto ok = run_cli("convert --to=flac --db=" + db + " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    if (ok.code != 0) GTEST_SKIP() << "convert backend unavailable in this lane: " << ok.out;
+    std::filesystem::remove(inbox / "tone.flac");
+    HANDLE hold = CreateFileW((inbox / "tone.wav").c_str(), GENERIC_READ, 0,
+                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT_NE(hold, INVALID_HANDLE_VALUE);
+    auto r = run_cli("convert --to=flac --db=" + db + " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    CloseHandle(hold);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "tone.flac")) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "tone.wav")) << r.out;
 }
 #endif
 
