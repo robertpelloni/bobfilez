@@ -27,18 +27,27 @@ public:
         for (const auto& root : roots) {
             if (!std::filesystem::exists(root)) continue;
 
-            for (auto it = std::filesystem::recursive_directory_iterator(root, std::filesystem::directory_options::skip_permission_denied);
-                 it != std::filesystem::recursive_directory_iterator(); ++it) {
-                
-                std::error_code ec;
+            // Manual stack DFS with per-level error codes: the
+            // throwing recursive walk died outright (exit 3) on
+            // trees containing >260 paths, and the recursive
+            // iterator form faults outright in the std scanner.
+            // Unenterable subtrees are skipped; the rest lints.
+            struct Frame { std::filesystem::path dir; int depth; };
+            std::vector<Frame> stack{{root, 0}};
+            while (!stack.empty()) {
+                auto frame = stack.back();
+                stack.pop_back();
+                std::error_code dec;
+                for (std::filesystem::directory_iterator it(frame.dir, std::filesystem::directory_options::skip_permission_denied, dec), end;
+                     it != end; it.increment(dec)) {
+                if (dec) { dec.clear(); break; }
                 const auto& entry = *it;
                 const auto& path = entry.path();
-
-                // Calculate nesting depth
-                int depth = 0;
-                auto relative = std::filesystem::relative(path, root, ec);
-                if (!ec) {
-                    for (auto it_rel = relative.begin(); it_rel != relative.end(); ++it_rel) ++depth;
+                std::error_code ec;
+                int depth = frame.depth + 1;
+                std::error_code sec;
+                if (entry.is_directory(ec) && !ec && !entry.is_symlink(sec)) {
+                    stack.push_back({path, depth});
                 }
 
                 // 1. Broken Symlinks
@@ -86,7 +95,7 @@ public:
                 }
 
                 // 4. Empty Directories
-                if (entry.is_directory()) {
+                if (entry.is_directory(ec) && !ec) {
                     if (std::filesystem::is_empty(path, ec) && !ec) {
                         results.push_back({path, LintType::EmptyDirectory, "Directory is empty"});
                     }
@@ -96,7 +105,8 @@ public:
                         results.push_back({path, LintType::DeepNesting, "Nested " + std::to_string(depth) + " levels deep (threshold: " + std::to_string(DEFAULT_DEEP_NESTING_THRESHOLD) + ")"});
                     }
                 }
-            }
+                } // per-entry
+            } // stack
         }
 
         // 6. Duplicate Names (same filename in different directories)

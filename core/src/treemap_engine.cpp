@@ -19,19 +19,39 @@ public:
         try {
             if (std::filesystem::is_directory(root)) {
                 if (max_depth > 0) {
-                    for (auto const& entry : std::filesystem::directory_iterator(root)) {
-                        if (entry.is_directory()) {
-                            auto child = build_tree(entry.path(), max_depth - 1);
+                    std::error_code dec;
+                    for (std::filesystem::directory_iterator it(root, dec), end;
+                         it != end; it.increment(dec)) {
+                        if (dec) { dec.clear(); break; }
+                        std::error_code fec;
+                        if (it->is_directory(fec) && !fec) {
+                            auto child = build_tree(it->path(), max_depth - 1);
                             node.size += child.size;
                             node.children.push_back(std::move(child));
-                        } else {
-                            node.size += entry.file_size();
+                        } else if (it->is_regular_file(fec) && !fec) {
+                            node.size += it->file_size(fec);
                         }
                     }
                 } else {
-                    // Just count size at max depth
-                    for (auto const& entry : std::filesystem::recursive_directory_iterator(root)) {
-                        if (entry.is_regular_file()) node.size += entry.file_size();
+                    // Just count size at max depth. Manual stack
+                    // DFS: the throwing recursive walk aborted
+                    // the whole sizing on >260-char subtrees.
+                    std::vector<std::filesystem::path> stack{root};
+                    while (!stack.empty()) {
+                        auto cur = stack.back();
+                        stack.pop_back();
+                        std::error_code dec;
+                        for (std::filesystem::directory_iterator it(cur, dec), end;
+                             it != end; it.increment(dec)) {
+                            if (dec) { dec.clear(); break; }
+                            std::error_code fec;
+                            if (it->is_directory(fec) && !fec) {
+                                if (!it->is_symlink(fec)) stack.push_back(it->path());
+                            } else if (it->is_regular_file(fec) && !fec) {
+                                auto sz = it->file_size(fec);
+                                if (!fec) node.size += sz;
+                            }
+                        }
                     }
                 }
             } else {

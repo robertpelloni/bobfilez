@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.97] - 2026-11-25 — Deep-Tree Walks: Linter, Pruner, Treemap
+
+### Fixed
+- **Same deep-tree class in three more walkers**:
+  `lint` died outright (exit 3) on trees containing >260
+  paths because the std linter's recursive walk throws; the
+  data pruner's identical walk silently truncated analysis
+  mid-tree behind a catch-all; the treemap engine's sizing
+  walk aborted the same way. All three now use the manual
+  stack DFS (per-level `directory_iterator`, error codes
+  only) proven in the scanner fix: unenterable subtrees are
+  skipped, everything else is processed. New
+  `LintSurvivesOverLongPaths` test failed before, passes
+  after. Suites: lean **105/105**, MSVC **105/105**, wiring
+  **31/31**, JUCE **100 + 2 designed skips**.
+
 ## [6.5.96] - 2026-11-25 — Long-Path Scanner Access Violation
 
 ### Fixed

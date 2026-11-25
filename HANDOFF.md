@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.97 (Deep-Tree Walks Fixed)
+
+## What landed (2026-11-25, continuation)
+- **Remaining deep-tree walkers fixed**: linter (was
+  exit-3 on >260 trees), data pruner (silently truncated),
+  treemap sizing (aborted) all use the stack-DFS walk.
+  `LintSurvivesOverLongPaths` pins the linter.
+- Version **6.5.97**: lean **105/105**, MSVC **105/105**,
+  wiring **31/31**, JUCE **100 + 2 skips**. Pushed.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- enhanced_fileops/self_healing/file_watcher walks use
+  `recursive_directory_iterator` with error codes (no crash
+  observed; same iterator class as the std-scanner fault —
+  convert on first symptom).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round
+  9/10 replies still generating; rounds 10/11 posted).
+
+---
 # Session Handoff - v6.5.96 (Long-Path Scanner AV)
 
 ## What landed (2026-11-25, continuation)

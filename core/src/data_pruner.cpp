@@ -33,12 +33,36 @@ public:
         auto now = std::chrono::system_clock::now();
 
         try {
-            for (auto const& entry : std::filesystem::recursive_directory_iterator(root)) {
-                if (!entry.is_regular_file()) continue;
+            // Manual stack DFS, error codes only: the throwing
+            // recursive walk aborted analysis mid-tree on >260
+            // paths (swallowed by the catch below, returning
+            // silently partial suggestions).
+            std::vector<std::filesystem::path> stack{root};
+            std::vector<std::filesystem::directory_entry> entries;
+            while (!stack.empty()) {
+                auto cur = stack.back();
+                stack.pop_back();
+                std::error_code dec;
+                for (std::filesystem::directory_iterator it(cur, dec), end;
+                     it != end; it.increment(dec)) {
+                    if (dec) { dec.clear(); break; }
+                    std::error_code fec;
+                    if (it->is_directory(fec) && !fec) {
+                        if (!it->is_symlink(fec)) stack.push_back(it->path());
+                        continue;
+                    }
+                    entries.push_back(*it);
+                }
+            }
+            for (auto const& entry : entries) {
+                std::error_code fec;
+                if (!entry.is_regular_file(fec) || fec) continue;
 
                 std::string fname = entry.path().filename().string();
-                uintmax_t size = entry.file_size();
-                auto mtime = entry.last_write_time();
+                uintmax_t size = entry.file_size(fec);
+                if (fec) continue;
+                auto mtime = entry.last_write_time(fec);
+                if (fec) continue;
                 auto sys_mtime = std::chrono::clock_cast<std::chrono::system_clock>(mtime);
                 
                 double confidence = 0.0;

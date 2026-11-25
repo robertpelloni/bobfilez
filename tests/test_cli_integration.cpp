@@ -812,6 +812,28 @@ TEST_F(CliFixture, ScanSurvivesOverLongPaths) {
     EXPECT_NE(r.out.find("root.txt"), std::string::npos) << r.out;
 }
 
+TEST_F(CliFixture, LintSurvivesOverLongPaths) {
+    // Same deep-tree discipline for the linter: its throwing
+    // recursive walk died (exit 3) on trees containing >260
+    // paths, linting nothing. Now: exit 0, shallow findings
+    // reported, unenterable depth skipped.
+    { std::ofstream(dir / "empty.txt") << ""; }
+    std::error_code ec;
+    auto cur = dir;
+    const std::string seg(40, 'd');
+    for (int i = 0; i < 6; ++i) {
+        cur /= seg;
+        auto verbatim = std::filesystem::path("\\\\?\\" + cur.string());
+        std::filesystem::create_directories(verbatim, ec);
+        ASSERT_FALSE(ec) << "fixture cannot create long path: " << ec.message();
+    }
+    { std::ofstream(std::filesystem::path("\\\\?\\" + (cur / "deep.txt").string())) << "deep"; }
+    auto db = (dir / "t.db").string();
+    auto r = run_cli("lint --format=json --db=" + db + " \"" + dir.string() + "\"", dir);
+    EXPECT_EQ(r.code, 0) << r.out;
+    EXPECT_NE(r.out.find("empty.txt"), std::string::npos) << r.out;
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries
