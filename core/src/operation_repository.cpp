@@ -509,16 +509,37 @@ OperationRepository::UndoOutcome OperationRepository::undo_last_batch() {
         }
 
         size_t undone_before = outcome.undone.size();
+        // Batch the status transitions (one fsync per batch,
+        // not two per record — bulk undo was ~13ms/file of
+        // pure journal sync). Crash safety is unchanged: the
+        // whole batch sits in 'undoing' while its renames run,
+        // and reconcile resolves each record from the tree
+        // (restored -> undone, untouched -> completed).
+        {
+            sqlite3_exec(raw, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr);
+            for (const auto& rec : members) {
+                if (rec.type == OperationType::Delete) continue;
+                set_status(rec.id, "undoing");
+            }
+            sqlite3_exec(raw, "COMMIT;", nullptr, nullptr, nullptr);
+        }
+        std::vector<OperationRecord> batch_undone;
+        std::vector<OperationRecord> batch_skipped;
         for (const auto& rec : members) {
             if (rec.type == OperationType::Delete) continue; // older delete batches: skip silently in the walk
-            set_status(rec.id, "undoing");
             if (auto reason = try_undo_record(rec)) {
-                set_status(rec.id, "completed");
+                batch_skipped.push_back(rec);
                 outcome.skipped.push_back({rec, *reason});
             } else {
-                mark_undone(rec.id);
+                batch_undone.push_back(rec);
                 outcome.undone.push_back(rec);
             }
+        }
+        {
+            sqlite3_exec(raw, "BEGIN IMMEDIATE;", nullptr, nullptr, nullptr);
+            for (const auto& rec : batch_undone) mark_undone(rec.id);
+            for (const auto& rec : batch_skipped) set_status(rec.id, "completed");
+            sqlite3_exec(raw, "COMMIT;", nullptr, nullptr, nullptr);
         }
         if (outcome.undone.size() > undone_before) {
             prune_created_dirs(db_, batch);

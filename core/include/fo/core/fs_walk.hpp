@@ -69,7 +69,11 @@ inline bool rename_no_replace(const std::filesystem::path& src,
         return false;
     }
 #ifdef _WIN32
-    if (MoveFileExW(src.c_str(), dst.c_str(), MOVEFILE_WRITE_THROUGH)) {
+    // No MOVEFILE_WRITE_THROUGH: it forces a per-rename disk
+    // flush (~6ms/file measured on bulk organizes). NTFS
+    // journals the rename metadata itself; the intent journal
+    // (synchronous=FULL) carries the durability promise.
+    if (MoveFileExW(src.c_str(), dst.c_str(), 0)) {
         return true;
     }
     ec = std::error_code(static_cast<int>(GetLastError()), std::system_category());

@@ -1,5 +1,39 @@
 # Changelog
 
+## [6.5.110] - 2026-11-25 — Bulk Undo Status Transitions Batched
+
+### Fixed
+- **Bulk undo paid two fsync'd status transitions per
+  record** (undoing, then undone): 2,000-file undo took
+  ~27s. The batch now marks all members `undoing` in one
+  transaction, runs the renames, and settles
+  undone/completed in a second transaction. Crash safety
+  is unchanged — reconcile already resolves `undoing`
+  records from the tree. Measured ~13s, the remainder
+  being per-file identity verification (content hash +
+  file ID), which is the safety property, not overhead.
+  Suites: lean/MSVC **118 + 1 skip**, wiring **32/32**,
+  JUCE **113 + 3 skips**.
+
+## [6.5.109] - 2026-11-25 — Bulk Organize fsync Cost Halved
+
+### Fixed
+- **2,000-file organize took 27.3s** after the FULL-sync
+  durability change: three fsync'd transactions per file
+  (intent, completion, audit). Organize now works in
+  128-file chunks — one intent transaction commits BEFORE
+  any of the chunk's moves (the intent-before-move promise
+  holds per chunk), completions+audit commit in a second
+  transaction. Crash semantics unchanged (reconcile
+  completes moved files, drops un-moved intents).
+  Measured: 27.3s → ~14s for 2,000 files; the host's raw
+  rename floor for the same set is 6.2s, so the remainder
+  is host I/O latency, not journaling. Also dropped
+  MOVEFILE_WRITE_THROUGH from the rename primitive (NTFS
+  journals renames; the FULL-sync journal carries the
+  durability promise). Suites: lean/MSVC **118 + 1 skip**,
+  wiring **32/32**, JUCE **113 + 3 skips**.
+
 ## [6.5.108] - 2026-11-25 — Generated Build Markers Untracked
 
 ### Fixed
