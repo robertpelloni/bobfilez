@@ -1,3 +1,19 @@
+# Session Handoff - v6.5.84 (Malformed Patterns Are Usage Errors)
+
+## What landed (2026-11-24, continuation)
+- **Template validation**: `RuleEngine::validate_template`
+  wired into rename/organize/YAML rules; rename-batch regex
+  pre-validated. CLI test added. Lean ctest **88/88**.
+- Version **6.5.84**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.83 (Undo Verifies File Identity)
 
 ## What landed (2026-11-24, continuation)

@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.84] - 2026-11-24 — Malformed Patterns Are Usage Errors
+
+### Fixed
+- **Garbage patterns "succeeded"**: `rename --pattern="{name"`
+  renamed a file to a literal `{name`, an unknown `{bogus}`
+  placeholder became a literal organize folder, and an invalid
+  rename-batch `--regex` silently renamed 0 files with exit 0.
+  `RuleEngine::validate_template` now rejects unbalanced braces
+  and unknown placeholders (rename, organize `--rule`, and YAML
+  rule destinations, exit 2 naming the problem), and
+  rename-batch validates its regex once up front. New
+  `MalformedTemplatesAndRegexAreUsageErrors` CLI test failed
+  before, passes after. Suites: lean **88/88**; other lanes
+  rebuilt at this version.
+
 ## [6.5.83] - 2026-11-24 — Undo Verifies File Identity
 
 ### Fixed

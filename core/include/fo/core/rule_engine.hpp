@@ -28,8 +28,16 @@ public:
     // Returns true on success
     bool load_rules_from_yaml(const std::filesystem::path& yaml_path);
 
+    const std::vector<OrganizationRule>& rules() const { return rules_; }
+
     // Returns the new path if a rule matches, otherwise std::nullopt
     std::optional<std::filesystem::path> apply_rules(const FileInfo& file, const std::vector<std::string>& tags);
+
+    // Why a destination template is malformed (unbalanced braces
+    // or an unknown {placeholder}), or nullopt when valid.
+    // Malformed templates otherwise expand literally: a file
+    // renamed with "{name" became a file actually named "{name".
+    static std::optional<std::string> validate_template(const std::string& tmpl);
 
 private:
     std::vector<OrganizationRule> rules_;

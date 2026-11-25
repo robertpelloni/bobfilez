@@ -1370,6 +1370,16 @@ int main(int argc, char** argv) {
                 }
             }
 
+            // Malformed templates expand literally (a "{bogus}"
+            // folder of renamed files); reject them as usage
+            // errors before touching anything.
+            for (const auto& r : rule_engine.rules()) {
+                if (auto bad = fo::core::RuleEngine::validate_template(r.destination_template)) {
+                    std::cerr << "Invalid rule template \"" << r.destination_template << "\": " << *bad << "\n";
+                    return 2;
+                }
+            }
+
             std::vector<std::pair<std::string, std::string>> moves;
             // One journal batch for the whole command, so a single
             // undo restores every move this invocation made.
@@ -1712,6 +1722,10 @@ int main(int argc, char** argv) {
                 files.erase(std::remove_if(files.begin(), files.end(),
                                            [&](const fo::core::FileInfo& fi) { return is_own_db(fi.uri); }),
                             files.end());
+            }
+            if (auto bad = fo::core::RuleEngine::validate_template(rename_pattern)) {
+                std::cerr << "Invalid rename pattern \"" << rename_pattern << "\": " << *bad << "\n";
+                return 2;
             }
             fo::core::RuleEngine rule_engine;
             rule_engine.add_rule({"rename_rule", "", rename_pattern});
@@ -2474,6 +2488,19 @@ int main(int argc, char** argv) {
             if (find_str.empty()) {
                 std::cerr << "Error: --find=<str> is required\n";
                 return 1;
+            }
+
+            // Validate the regex once, up front: an invalid one
+            // used to be swallowed per file ("0 file(s) renamed",
+            // exit 0).
+            if (use_regex_rb) {
+                try {
+                    std::regex probe(find_str);
+                    (void)probe;
+                } catch (const std::regex_error& e) {
+                    std::cerr << "Invalid regex \"" << find_str << "\": " << e.what() << "\n";
+                    return 2;
+                }
             }
 
             int renamed_count = 0;

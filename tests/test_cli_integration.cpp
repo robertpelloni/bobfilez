@@ -322,6 +322,36 @@ static const std::string kMissingRootCmds[] = {
     "search needle", "convert --to=mp4",
 };
 
+TEST_F(CliFixture, MalformedTemplatesAndRegexAreUsageErrors) {
+    // Garbage patterns used to "succeed": rename --pattern="{name"
+    // renamed a file to a literal "{name", an unknown {bogus}
+    // placeholder became a literal folder, and an invalid
+    // --regex silently renamed 0 files with exit 0.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    auto in = "\"" + inbox.string() + "\"";
+
+    auto unclosed = run_cli("rename --pattern=\"{name\" --db=" + db + " " + in, dir);
+    EXPECT_NE(unclosed.code, 0) << unclosed.out;
+    EXPECT_NE(unclosed.out.find("Invalid rename pattern"), std::string::npos) << unclosed.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt"));
+
+    auto unknown = run_cli("rename --pattern=\"{bogus}\" --db=" + db + " " + in, dir);
+    EXPECT_NE(unknown.code, 0) << unknown.out;
+    EXPECT_NE(unknown.out.find("Unknown placeholder"), std::string::npos) << unknown.out;
+
+    auto org = run_cli("organize --dry-run --rule=\"{bogus}/{filename}\" --db=" + db + " " + in, dir);
+    EXPECT_NE(org.code, 0) << org.out;
+    EXPECT_NE(org.out.find("Unknown placeholder"), std::string::npos) << org.out;
+
+    auto rx = run_cli("rename-batch --find=\"([\" --replace=x --regex --db=" + db + " " + in, dir);
+    EXPECT_NE(rx.code, 0) << rx.out;
+    EXPECT_NE(rx.out.find("Invalid regex"), std::string::npos) << rx.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt"));
+}
+
 TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
     // Crash-injection (round-6/7): replace operation_log with a
     // view so the journal insert throws AFTER the rename. The

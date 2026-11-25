@@ -145,6 +145,33 @@ std::optional<std::filesystem::path> RuleEngine::apply_rules(const FileInfo& fil
     return std::nullopt;
 }
 
+std::optional<std::string> RuleEngine::validate_template(const std::string& tmpl) {
+    static const std::string kKnown[] = {
+        "year", "month", "day", "ext", "extension", "name", "filename", "parent",
+    };
+    for (size_t i = 0; i < tmpl.size();) {
+        if (tmpl[i] == '{') {
+            auto close = tmpl.find('}', i);
+            if (close == std::string::npos) {
+                return "unclosed '{' at position " + std::to_string(i);
+            }
+            auto tok = tmpl.substr(i + 1, close - i - 1);
+            bool known = false;
+            for (const auto& k : kKnown) if (tok == k) { known = true; break; }
+            if (!known) {
+                return "Unknown placeholder {" + tok +
+                       "} (known: {name} {filename} {ext} {extension} {parent} {year} {month} {day})";
+            }
+            i = close + 1;
+        } else if (tmpl[i] == '}') {
+            return "unopened '}' at position " + std::to_string(i);
+        } else {
+            ++i;
+        }
+    }
+    return std::nullopt;
+}
+
 std::string RuleEngine::expand_template(const std::string& tmpl, const FileInfo& file, const std::vector<std::string>& tags) {
     std::string result = tmpl;
     
