@@ -1472,173 +1472,185 @@ int main(int argc, char** argv) {
             auto journal_hasher = fo::core::Registry<fo::core::IHasher>::instance().create("fast64");
             int failed_moves = 0;
 
-            for (const auto& f : files) {
+            struct MovePlan {
+                const fo::core::FileInfo* f;
+                std::filesystem::path new_path;
+                int64_t intent_id = 0;
+                fo::core::OperationRecord rec;
+            };
+            // Plan one move: resolve the destination, create and
+            // journal its directories, refuse unsafe names and
+            // occupied destinations. Shared by the dry-run pass
+            // and the chunked real run below.
+            auto make_plan = [&](const fo::core::FileInfo& f) -> std::optional<MovePlan> {
                 std::vector<std::string> tags;
                 if (f.id != 0) {
                     auto tag_pairs = engine.file_repository().get_tags(f.id);
                     for (const auto& p : tag_pairs) tags.push_back(p.first);
                 }
-
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
-                if (new_path_opt && new_path_opt->string() != f.uri) {
-                    auto new_path = *new_path_opt;
-                    // Journal (and perform) the move with an absolute
-                    // destination: CWD-relative records made undo
-                    // silently do nothing from any other directory.
-                    if (new_path.is_relative()) {
-                        std::error_code aec;
-                        auto abs_path = std::filesystem::absolute(new_path, aec);
-                        if (!aec) new_path = abs_path;
-                    }
-                    if (destination_name_is_unsafe(new_path)) {
+                if (!new_path_opt || new_path_opt->string() == f.uri) return std::nullopt;
+                auto new_path = *new_path_opt;
+                // Journal (and perform) the move with an absolute
+                // destination: CWD-relative records made undo
+                // silently do nothing from any other directory.
+                if (new_path.is_relative()) {
+                    std::error_code aec;
+                    auto abs_path = std::filesystem::absolute(new_path, aec);
+                    if (!aec) new_path = abs_path;
+                }
+                if (destination_name_is_unsafe(new_path)) {
+                    ++failed_moves;
+                    std::cerr << "Failed to move " << f.uri
+                              << ": unsafe destination name " << new_path.filename() << "\n";
+                    return std::nullopt;
+                }
+                if (!dry_run) {
+                    try {
+                        if (!new_path.parent_path().empty()) {
+                            // Create missing ancestors one segment
+                            // at a time, journaling only segments
+                            // THIS run actually created
+                            // (create-then-journal: a directory
+                            // another process created first is
+                            // never journaled, so undo can never
+                            // prune somebody else's dir).
+                            std::vector<std::filesystem::path> missing;
+                            for (auto p = new_path.parent_path();
+                                 !p.empty() && !std::filesystem::exists(p);) {
+                                missing.push_back(p);
+                                auto parent = p.parent_path();
+                                if (parent == p) break;
+                                p = parent;
+                            }
+                            std::vector<std::string> created_dirs;
+                            std::error_code dir_ec;
+                            for (auto it = missing.rbegin(); it != missing.rend(); ++it) {
+                                if (std::filesystem::create_directory(*it, dir_ec)) {
+                                    created_dirs.push_back(std::filesystem::absolute(*it).string());
+                                }
+                                dir_ec.clear();
+                            }
+                            if (!created_dirs.empty()) {
+                                fo::core::OperationRepository dir_repo(engine.database());
+                                dir_repo.log_created_dirs(op_batch_id, created_dirs);
+                            }
+                            // Any remainder (race, perms) gets the
+                            // bulk call; its failure surfaces at
+                            // the rename below.
+                            std::filesystem::create_directories(new_path.parent_path());
+                        }
+                        fo::core::fault_checkpoint("organize.after-mkdir");
+                        // MSVC's rename replaces existing files:
+                        // never silently overwrite a destination.
+                        if (std::filesystem::exists(new_path)) {
+                            throw std::runtime_error("destination exists: " + new_path.string());
+                        }
+                    } catch (const std::exception& e) {
                         ++failed_moves;
-                        std::cerr << "Failed to move " << f.uri
-                                  << ": unsafe destination name " << new_path.filename() << "\n";
+                        std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
+                        return std::nullopt;
+                    }
+                }
+                MovePlan p;
+                p.f = &f;
+                p.new_path = new_path;
+                p.rec.timestamp = std::chrono::system_clock::now();
+                p.rec.type = fo::core::OperationType::Move;
+                p.rec.source_path = std::filesystem::path(f.uri).is_relative()
+                    ? std::filesystem::absolute(f.uri).string() : f.uri;
+                p.rec.dest_path = new_path.string();
+                p.rec.file_size = f.size;
+                p.rec.batch_id = op_batch_id;
+                p.rec.status = "pending";
+                return p;
+            };
+
+            if (dry_run) {
+                for (const auto& f : files) {
+                    if (auto p = make_plan(f)) moves.push_back({f.uri, p->new_path.string()});
+                }
+            } else {
+                // Chunked execution (durability vs fsync cost):
+                // intents for a whole chunk commit in ONE
+                // transaction BEFORE any of its moves, so the
+                // intent-before-move promise holds per chunk,
+                // not per fsync. Completions+audit commit in a
+                // second transaction after the chunk's moves.
+                // A crash anywhere reconciles: un-moved intents
+                // drop, moved ones complete (identity fields
+                // may be absent; undo falls back to size).
+                fo::core::OperationRepository op_repo(engine.database());
+                constexpr size_t kChunk = 128;
+                for (size_t base = 0; base < files.size(); base += kChunk) {
+                    std::vector<MovePlan> plans;
+                    size_t chunk_end = std::min(base + kChunk, files.size());
+                    for (size_t i = base; i < chunk_end; ++i) {
+                        if (auto p = make_plan(files[i])) plans.push_back(std::move(*p));
+                    }
+                    if (plans.empty()) continue;
+                    try {
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (auto& p : plans) p.intent_id = op_repo.log_operation(p.rec);
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        for (auto& p : plans) {
+                            ++failed_moves;
+                            std::cerr << "Failed to move " << p.f->uri
+                                      << ": journal intent write failed (" << je.what()
+                                      << "); move not attempted\n";
+                        }
                         continue;
                     }
-                    if (dry_run) {
-                        moves.push_back({f.uri, new_path.string()});
+                    fo::core::fault_checkpoint("organize.after-intent");
+                    std::vector<MovePlan*> done;
+                    for (auto& p : plans) {
+                        std::error_code ren_ec;
+                        if (!fo::core::move_file_no_replace(p.f->uri, p.new_path, ren_ec)) {
+                            ++failed_moves;
+                            std::cerr << "Failed to move " << p.f->uri << ": " << ren_ec.message() << "\n";
+                            try { op_repo.delete_operation(p.intent_id); } catch (...) {}
+                            continue;
+                        }
+                        fo::core::fault_checkpoint("organize.after-rename");
+                        moves.push_back({p.f->uri, p.new_path.string()});
+                        // Destination identity for undo, filled
+                        // into the intent row at completion.
+                        if (journal_hasher && p.f->size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
+                            try { p.rec.file_hash = journal_hasher->fast64(p.new_path); } catch (...) {}
+                        }
+                        {
+                            std::error_code mec;
+                            auto mt = std::filesystem::last_write_time(p.new_path, mec);
+                            if (!mec) p.rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
+                                std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
+                        }
+                        p.rec.dest_file_id = fo::core::OperationRepository::file_identity(p.new_path);
+                        done.push_back(&p);
                     }
-                    if (!dry_run) {
-                        try {
-                            if (!new_path.parent_path().empty()) {
-                                // Create missing ancestors one
-                                // segment at a time, journaling only
-                                // segments THIS run actually created
-                                // (create-then-journal: a directory
-                                // another process created first is
-                                // never journaled, so undo can never
-                                // prune somebody else's dir).
-                                std::vector<std::filesystem::path> missing;
-                                for (auto p = new_path.parent_path();
-                                     !p.empty() && !std::filesystem::exists(p);) {
-                                    missing.push_back(p);
-                                    auto parent = p.parent_path();
-                                    if (parent == p) break;
-                                    p = parent;
-                                }
-                                std::vector<std::string> created_dirs;
-                                std::error_code dir_ec;
-                                for (auto it = missing.rbegin(); it != missing.rend(); ++it) {
-                                    if (std::filesystem::create_directory(*it, dir_ec)) {
-                                        created_dirs.push_back(std::filesystem::absolute(*it).string());
-                                    }
-                                    dir_ec.clear();
-                                }
-                                if (!created_dirs.empty()) {
-                                    fo::core::OperationRepository dir_repo(engine.database());
-                                    dir_repo.log_created_dirs(op_batch_id, created_dirs);
-                                }
-                                // Any remainder (race, perms) gets
-                                // the bulk call; its failure surfaces
-                                // at the rename below.
-                                std::filesystem::create_directories(new_path.parent_path());
-                            }
-                            fo::core::fault_checkpoint("organize.after-mkdir");
-                            // MSVC's rename replaces existing files:
-                            // never silently overwrite a destination.
-                            if (std::filesystem::exists(new_path)) {
-                                throw std::runtime_error("destination exists: " + new_path.string());
-                            }
-                            // Intent BEFORE the rename (roast 6/8):
-                            // a 'pending' journal row is durable
-                            // evidence of the planned move. If the
-                            // process dies now, the next invocation
-                            // reconciles it (file home -> drop the
-                            // intent; file at dest -> complete it).
-                            // If the intent itself cannot be
-                            // written, the move is not attempted at
-                            // all — strictly stronger than the old
-                            // move-then-journal rollback.
-                            fo::core::OperationRepository op_repo(engine.database());
-                            fo::core::OperationRecord rec;
-                            rec.timestamp = std::chrono::system_clock::now();
-                            rec.type = fo::core::OperationType::Move;
-                            rec.source_path = std::filesystem::path(f.uri).is_relative()
-                                ? std::filesystem::absolute(f.uri).string() : f.uri;
-                            rec.dest_path = new_path.string();
-                            rec.file_size = f.size;
-                            rec.batch_id = op_batch_id;
-                            rec.status = "pending";
-                            int64_t intent_id = 0;
-                            try {
-                                intent_id = op_repo.log_operation(rec);
-                            } catch (const std::exception& je) {
-                                ++failed_moves;
-                                std::cerr << "Failed to move " << f.uri
-                                          << ": journal intent write failed (" << je.what()
-                                          << "); move not attempted\n";
-                                continue;
-                            }
-                            fo::core::fault_checkpoint("organize.after-intent");
-                            {
-                                // No-replace move (cross-volume
-                                // copy fallback): the exists check
-                                // above is stale the moment it
-                                // passes.
-                                std::error_code ren_ec;
-                                if (!fo::core::move_file_no_replace(f.uri, new_path, ren_ec)) {
-                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                    throw std::runtime_error(ren_ec.message());
-                                }
-                            }
-                            fo::core::fault_checkpoint("organize.after-rename");
-                            // Complete the intent with the
-                            // destination's post-move identity. If
-                            // completion fails, roll the rename
-                            // back and drop the intent; if rollback
-                            // also fails, name the residue loudly.
-                            try {
-                                // Hash only files up to the limit
-                                // at journal time: hashing makes an
-                                // O(1) rename read every byte, which
-                                // on cold storage dwarfs the move
-                                // for huge files (round-5/6 review).
-                                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
-                                    try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
-                                }
-                                {
-                                    std::error_code mec;
-                                    auto mt = std::filesystem::last_write_time(new_path, mec);
-                                    if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
-                                        std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
-                                }
-                                rec.dest_file_id = fo::core::OperationRepository::file_identity(new_path);
-                                op_repo.complete_operation(intent_id, rec);
-                            } catch (const std::exception& je) {
-                                ++failed_moves;
-                                try {
-                                    std::filesystem::rename(new_path, f.uri);
-                                    try { op_repo.delete_operation(intent_id); } catch (...) {}
-                                    std::cerr << "Failed to move " << f.uri
-                                              << ": journal completion failed (" << je.what()
-                                              << "); move rolled back\n";
-                                } catch (const std::exception& re) {
-                                    std::cerr << "ERROR: " << f.uri << " was moved to " << new_path
-                                              << " but could not be journaled (" << je.what()
-                                              << ") or rolled back (" << re.what()
-                                              << "). Undo will not know about this file.\n";
-                                    record_journal_residue(cfg.db_path, f.uri, new_path.string(),
-                                        std::string("journal failed: ") + je.what() +
-                                        "; rollback failed: " + re.what());
-                                }
-                                continue;
-                            }
-                            fo::core::fault_checkpoint("organize.after-complete");
-                            // Only completed moves are reported as moves.
-                            moves.push_back({f.uri, new_path.string()});
+                    try {
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (auto* p : done) {
+                            op_repo.complete_operation(p->intent_id, p->rec);
                             try {
                                 fo::core::make_audit_logger(engine.database())
-                                    ->log("move", f.uri, new_path.string(), f.size, "");
+                                    ->log("move", p->f->uri, p->new_path.string(), p->f->size, "");
                             } catch (const std::exception& ae) {
-                                std::cerr << "Warning: audit write failed for " << f.uri
+                                std::cerr << "Warning: audit write failed for " << p->f->uri
                                           << ": " << ae.what() << "\n";
                             }
-                        } catch (const std::exception& e) {
-                            ++failed_moves;
-                            std::cerr << "Failed to move " << f.uri << ": " << e.what() << "\n";
                         }
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        // Moves stand (rolling them back would
+                        // risk more than it saves); their rows
+                        // stay pending and reconcile at startup.
+                        std::cerr << "Warning: journal completion failed (" << je.what()
+                                  << "); moves stand and reconcile on next run\n";
                     }
+                    fo::core::fault_checkpoint("organize.after-complete");
                 }
             }
 
