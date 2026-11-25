@@ -134,7 +134,7 @@ std::vector<fo::core::FileInfo> collect_files(const std::filesystem::path& root)
 std::string make_scan_json(const std::vector<fo::core::FileInfo>& files)
 {
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     for (size_t i = 0; i < files.size(); ++i) {
         out << "  {\"path\": \"" << fo::core::Exporter::json_escape(files[i].uri)
             << "\", \"size\": " << files[i].size
@@ -144,14 +144,14 @@ std::string make_scan_json(const std::vector<fo::core::FileInfo>& files)
         }
         out << "\n";
     }
-    out << "]\n";
+    out << "]}\n";
     return out.str();
 }
 
 std::string make_duplicates_json(const std::vector<fo::core::DuplicateGroup>& groups)
 {
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     for (size_t i = 0; i < groups.size(); ++i) {
         const auto& group = groups[i];
         out << "  {\"size\": " << group.size
@@ -174,7 +174,7 @@ std::string make_duplicates_json(const std::vector<fo::core::DuplicateGroup>& gr
         }
         out << "\n";
     }
-    out << "]\n";
+    out << "]}\n";
     return out.str();
 }
 
@@ -228,6 +228,7 @@ std::string make_stats_json(const std::vector<fo::core::FileInfo>& files)
 
     std::ostringstream out;
     out << "{\n"
+        << "  \"schema_version\": 2,\n"
         << "  \"total_files\": " << file_count << ",\n"
         << "  \"total_directories\": " << directory_count << ",\n"
         << "  \"total_size\": " << total_size << ",\n"
@@ -269,7 +270,7 @@ std::string make_hash_json(const std::vector<fo::core::FileInfo>& files)
     }
 
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
 
     bool first = true;
     for (const auto& file : files) {
@@ -287,7 +288,7 @@ std::string make_hash_json(const std::vector<fo::core::FileInfo>& files)
             << "\"}";
     }
 
-    out << "\n]\n";
+    out << "\n]}\n";
     return out.str();
 }
 
@@ -299,7 +300,7 @@ std::string make_metadata_json(const std::vector<fo::core::FileInfo>& files)
     }
 
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     bool first = true;
 
     for (const auto& file : files) {
@@ -337,7 +338,7 @@ std::string make_metadata_json(const std::vector<fo::core::FileInfo>& files)
         out << "}";
     }
 
-    out << "\n]\n";
+    out << "\n]}\n";
     return out.str();
 }
 
@@ -576,7 +577,7 @@ std::vector<fo::core::LintResult> run_lint(const std::filesystem::path& root)
 std::string make_lint_json(const std::vector<fo::core::LintResult>& results)
 {
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     for (size_t i = 0; i < results.size(); ++i) {
         out << "  {\"path\": \"" << fo::core::Exporter::json_escape(results[i].path.string())
             << "\", \"type\": \"" << lint_type_name(results[i].type)
@@ -586,7 +587,7 @@ std::string make_lint_json(const std::vector<fo::core::LintResult>& results)
         }
         out << "\n";
     }
-    out << "]\n";
+    out << "]}\n";
     return out.str();
 }
 
@@ -654,7 +655,7 @@ std::string format_operation_timestamp(std::chrono::system_clock::time_point tim
 std::string make_history_json(const std::vector<fo::core::OperationRecord>& operations)
 {
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     for (size_t i = 0; i < operations.size(); ++i) {
         const auto& operation = operations[i];
         out << "  {\"id\": " << operation.id
@@ -669,7 +670,7 @@ std::string make_history_json(const std::vector<fo::core::OperationRecord>& oper
         }
         out << "\n";
     }
-    out << "]\n";
+    out << "]}\n";
     return out.str();
 }
 
@@ -717,7 +718,7 @@ std::string make_history_summary_text(const std::vector<fo::core::OperationRecor
 std::string make_ignore_json(const std::vector<fo::core::IgnoreRule>& rules)
 {
     std::ostringstream out;
-    out << "[\n";
+    out << "{\"schema_version\": 2, \"items\": [\n";
     for (size_t i = 0; i < rules.size(); ++i) {
         out << "  {\"id\": " << rules[i].id
             << ", \"pattern\": \"" << fo::core::Exporter::json_escape(rules[i].pattern)
@@ -728,7 +729,7 @@ std::string make_ignore_json(const std::vector<fo::core::IgnoreRule>& rules)
         }
         out << "\n";
     }
-    out << "]\n";
+    out << "]}\n";
     return out.str();
 }
 
@@ -763,6 +764,7 @@ std::string make_ignore_action_json(const char* action,
 {
     std::ostringstream out;
     out << "{\n"
+        << "  \"schema_version\": 2,\n"
         << "  \"action\": \"" << action << "\",\n"
         << "  \"success\": " << (success ? "true" : "false") << ",\n"
         << "  \"pattern\": \"" << fo::core::Exporter::json_escape(pattern) << "\",\n"
@@ -976,7 +978,7 @@ extern "C" char* fo_bobfilez_search_json(const char* root_path, const char* quer
 {
     return execute_search_request(root_path, query, [](const auto& root, const char* q) {
         std::ostringstream out;
-        out << "[\n";
+        out << "{\"schema_version\": 2, \"items\": [\n";
         bool first = true;
         std::error_code ec;
         std::string query_lower = q;
@@ -994,7 +996,7 @@ extern "C" char* fo_bobfilez_search_json(const char* root_path, const char* quer
                 out << "  {\"path\": \"" << fo::core::Exporter::json_escape(entry.path().string()) << "\"}";
             }
         }
-        out << "\n]\n";
+        out << "\n]}\n";
         return out.str();
     });
 }
@@ -1026,12 +1028,12 @@ extern "C" char* fo_bobfilez_undo_json(const char* reserved)
 
         std::ostringstream out;
         if (outcome.refused_delete_batch) {
-            out << "{\"success\": false, \"message\": \"The last operation deleted "
+            out << "{\"schema_version\": 2, \"success\": false, \"message\": \"The last operation deleted "
                 << outcome.delete_batch_records
                 << " file(s); deletions cannot be undone\"}";
         } else if (!outcome.undone.empty()) {
             const auto& undone = outcome.undone;
-            out << "{\"success\": true"
+            out << "{\"schema_version\": 2, \"success\": true"
                 << ", \"count\": " << undone.size()
                 << ", \"skipped\": " << outcome.skipped.size()
                 << ", \"type\": \"" << operation_type_name(undone[0].type) << "\""
@@ -1039,7 +1041,7 @@ extern "C" char* fo_bobfilez_undo_json(const char* reserved)
                 << ", \"dest\": \"" << fo::core::Exporter::json_escape(undone[0].dest_path) << "\""
                 << "}";
         } else {
-            out << "{\"success\": false, \"message\": \"No operations to undo\"}";
+            out << "{\"schema_version\": 2, \"success\": false, \"message\": \"No operations to undo\"}";
         }
         return out.str();
     });
@@ -1259,6 +1261,7 @@ std::string make_organize_dry_run_json(const std::vector<fo::core::FileInfo>& fi
 
     std::ostringstream out;
     out << "{\n"
+        << "  \"schema_version\": 2,\n"
         << "  \"dry_run\": true,\n"
         << "  \"template\": \"" << fo::core::Exporter::json_escape(destination_template) << "\",\n"
         << "  \"total_files\": " << files.size() << ",\n"
@@ -1349,6 +1352,7 @@ std::string make_count_json(const std::vector<fo::core::FileInfo>& files,
 
     std::ostringstream out;
     out << "{\n"
+        << "  \"schema_version\": 2,\n"
         << "  \"files\": " << file_count << ",\n"
         << "  \"directories\": " << dir_count << ",\n"
         << "  \"total_size\": " << total_size << ",\n"

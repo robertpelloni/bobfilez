@@ -38,7 +38,7 @@ function cliError(res, e) {
     const status = e.timedOut ? 504 : e.cliCode === 2 ? 400 : e.cliCode === 1 ? 422 : 500;
     const code = e.timedOut ? 'TIMEOUT' : e.cliCode === 2 ? 'USAGE' : e.cliCode === 1 ? 'FAILED' : 'INTERNAL';
     res.status(status).json({
-        schema_version: 1,
+        schema_version: 2,
         error: e.message,
         error_code: code,
         retryable: e.timedOut === true,
@@ -130,7 +130,7 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/scan', async (req, res) => {
     try {
         const { paths = [], exts, minSize, maxSize, exclude, recursive = true } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['scan', '--format=json', ...paths];
         if (exts) args.push(`--ext=${exts}`);
         if (minSize) args.push(`--min-size=${minSize}`);
@@ -138,7 +138,7 @@ app.post('/api/scan', async (req, res) => {
         if (exclude) exclude.forEach(p => args.push(`--exclude=${p}`));
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -146,7 +146,7 @@ app.post('/api/scan', async (req, res) => {
 app.post('/api/duplicates', async (req, res) => {
     try {
         const { paths = [], mode = 'fast', threads = 1, exts, minSize, maxSize, exclude, recursive = true } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['duplicates', '--format=json', `--mode=${mode}`, `--threads=${threads}`, ...paths];
         if (exts) args.push(`--ext=${exts}`);
         if (minSize) args.push(`--min-size=${minSize}`);
@@ -154,7 +154,7 @@ app.post('/api/duplicates', async (req, res) => {
         if (exclude) exclude.forEach(p => args.push(`--exclude=${p}`));
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -162,7 +162,7 @@ app.post('/api/duplicates', async (req, res) => {
 app.post('/api/stats', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['stats', '--format=json', ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{}'));
@@ -173,10 +173,10 @@ app.post('/api/stats', async (req, res) => {
 app.post('/api/hash', async (req, res) => {
     try {
         const { paths = [], threads = 1 } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['hash', '--format=json', `--threads=${threads}`, ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -184,11 +184,11 @@ app.post('/api/hash', async (req, res) => {
 app.post('/api/metadata', async (req, res) => {
     try {
         const { paths = [], exts } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['metadata', '--format=json', ...paths];
         if (exts) args.push(`--ext=${exts}`);
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -203,7 +203,7 @@ app.get('/api/history', async (req, res) => {
     try {
         const args = ['history', '--format=json'];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -211,14 +211,14 @@ app.get('/api/history', async (req, res) => {
 app.get('/api/ignore', async (req, res) => {
     try {
         const { stdout } = await runCli(['ignore', '--format=json']);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/ignore/add', async (req, res) => {
     try {
         const { pattern, reason = '' } = req.body;
-        if (!pattern) return res.status(400).json({ schema_version: 1, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
+        if (!pattern) return res.status(400).json({ schema_version: 2, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['ignore', 'add', pattern];
         if (reason) args.push(reason);
         await runCli(args);
@@ -229,7 +229,7 @@ app.post('/api/ignore/add', async (req, res) => {
 app.post('/api/ignore/remove', async (req, res) => {
     try {
         const { pattern } = req.body;
-        if (!pattern) return res.status(400).json({ schema_version: 1, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
+        if (!pattern) return res.status(400).json({ schema_version: 2, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
         await runCli(['ignore', 'remove', pattern]);
         res.json({ success: true, pattern });
     } catch (e) { cliError(res, e); }
@@ -239,10 +239,10 @@ app.post('/api/ignore/remove', async (req, res) => {
 app.post('/api/lint', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['lint', '--format=json', ...paths];
         const { stdout } = await runCli(args);
-        res.json(JSON.parse(extractJson(stdout) || '[]'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -250,7 +250,7 @@ app.post('/api/lint', async (req, res) => {
 app.post('/api/count', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['scan', '--count', ...paths]);
         res.json({ count: parseInt(extractJson(stdout), 10) || 0 });
     } catch (e) { cliError(res, e); }
@@ -260,7 +260,7 @@ app.post('/api/count', async (req, res) => {
 app.post('/api/prune', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['stats', '--prune', ...paths]);
         res.json({ success: true, details: stdout });
     } catch (e) { cliError(res, e); }
@@ -271,7 +271,7 @@ app.get('/api/audit', async (req, res) => {
     try {
         const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 1000);
         const { stdout } = await runCli(['audit', '--format=json', `--limit=${limit}`], 30000);
-        res.json(JSON.parse(extractJson(stdout) || '{"verified":false,"count":0,"entries":[]}'));
+        res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"verified":false,"count":0,"entries":[]}'));
     } catch (e) { cliError(res, e); }
 });
 
@@ -286,7 +286,7 @@ app.get('/api/flow/list', async (req, res) => {
 app.post('/api/flow/run', async (req, res) => {
     try {
         const { workflow_id, payload_path } = req.body;
-        if (!workflow_id || !payload_path) return res.status(400).json({ schema_version: 1, error: 'workflow_id and payload_path required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!workflow_id || !payload_path) return res.status(400).json({ schema_version: 2, error: 'workflow_id and payload_path required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['flow', 'run', workflow_id, payload_path, '--format=json']);
         res.json(JSON.parse(extractJson(stdout) || '{"success":false}'));
     } catch (e) { cliError(res, e); }
@@ -296,7 +296,7 @@ app.post('/api/flow/run', async (req, res) => {
 app.post('/api/scrub', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['scrub', '--format=json', ...paths]);
         res.json(JSON.parse(extractJson(stdout) || '{"scanned":0,"corrupted":0}'));
     } catch (e) { cliError(res, e); }
@@ -306,7 +306,7 @@ app.post('/api/scrub', async (req, res) => {
 app.post('/api/search', async (req, res) => {
     try {
         const { query, paths = [], content = false, regex = false, wildcard = false, caseSensitive = false, wholeWord = false, invert = false, maxResults } = req.body;
-        if (!query) return res.status(400).json({ schema_version: 1, error: 'No query provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!query) return res.status(400).json({ schema_version: 2, error: 'No query provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['search', query, '--format=json'];
         if (content) args.push('--content');
         if (regex) args.push('--regex');
@@ -325,7 +325,7 @@ app.post('/api/search', async (req, res) => {
 app.post('/api/export', async (req, res) => {
     try {
         const { paths = [], format = 'json' } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['export', `--format=${format}`, ...paths];
         const { stdout } = await runCli(args);
         if (format === 'json') {
@@ -340,7 +340,7 @@ app.post('/api/export', async (req, res) => {
 app.post('/api/organize', async (req, res) => {
     try {
         const { paths = [], rule = '' } = req.body;
-        if (!paths.length || !rule) return res.status(400).json({ schema_version: 1, error: 'paths and rule required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length || !rule) return res.status(400).json({ schema_version: 2, error: 'paths and rule required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['organize', '--rule=' + rule, '--dry-run', '--format=json', ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}'));
@@ -359,7 +359,7 @@ async function vaultRun(res, cliArgs) {
 app.post('/api/vault/init', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
-        if (!vaultPath || !password) return res.status(400).json({ schema_version: 1, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!vaultPath || !password) return res.status(400).json({ schema_version: 2, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-init', vaultPath, password]);
     } catch (e) { cliError(res, e); }
 });
@@ -367,7 +367,7 @@ app.post('/api/vault/init', async (req, res) => {
 app.post('/api/vault/lock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', file = '' } = req.body;
-        if (!vaultPath || !password || !file) return res.status(400).json({ schema_version: 1, error: 'vaultPath, password, and file required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!vaultPath || !password || !file) return res.status(400).json({ schema_version: 2, error: 'vaultPath, password, and file required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-lock', vaultPath, password, file]);
     } catch (e) { cliError(res, e); }
 });
@@ -375,7 +375,7 @@ app.post('/api/vault/lock', async (req, res) => {
 app.post('/api/vault/unlock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', vaultId = '', dest = '' } = req.body;
-        if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ schema_version: 1, error: 'vaultPath, password, vaultId, and dest required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ schema_version: 2, error: 'vaultPath, password, vaultId, and dest required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-unlock', vaultPath, password, vaultId, dest]);
     } catch (e) { cliError(res, e); }
 });
@@ -383,7 +383,7 @@ app.post('/api/vault/unlock', async (req, res) => {
 app.post('/api/vault/list', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
-        if (!vaultPath || !password) return res.status(400).json({ schema_version: 1, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!vaultPath || !password) return res.status(400).json({ schema_version: 2, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-list', vaultPath, password]);
     } catch (e) { cliError(res, e); }
 });
@@ -392,7 +392,7 @@ app.post('/api/vault/list', async (req, res) => {
 app.post('/api/delete-duplicates', async (req, res) => {
   try {
     const { path: dirPath, dryRun = true } = req.body;
-    if (!dirPath) return res.status(400).json({ schema_version: 1, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
+    if (!dirPath) return res.status(400).json({ schema_version: 2, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
     const args = ['delete-duplicates', '--format=json', dirPath];
     if (dryRun) args.push('--dry-run');
     const { stdout } = await runCli(args);
@@ -410,47 +410,47 @@ app.get('/api/modules', async (req, res) => {
 app.post('/api/ocr', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['ocr', '--format=json', ...paths]);
-        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
 });
 app.post('/api/similar', async (req, res) => {
     try {
         const { paths = [], threshold = 10 } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['similar', '--format=json', `--threshold=${threshold}`, ...paths]);
-        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
 });
 app.post('/api/vhash', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['vhash', '--format=json', ...paths]);
-        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
 });
 app.post('/api/afingerprint', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['afingerprint', '--format=json', ...paths]);
-        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
 });
 app.post('/api/classify', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['classify', '--format=json', ...paths]);
-        try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
+        try { res.json(JSON.parse(extractJson(stdout) || '{"schema_version":2,"items":[]}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
 });
 app.post('/api/rename', async (req, res) => {
     try {
         const { paths = [], pattern = '', dryRun = true } = req.body;
-        if (!paths.length || !pattern) return res.status(400).json({ schema_version: 1, error: 'paths and pattern required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length || !pattern) return res.status(400).json({ schema_version: 2, error: 'paths and pattern required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['rename', '--pattern=' + pattern, '--format=json', ...paths];
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
@@ -460,8 +460,8 @@ app.post('/api/rename', async (req, res) => {
 app.post('/api/rename-batch', async (req, res) => {
     try {
         const { paths = [], find = '', replace = '', regex = false, dryRun = true } = req.body;
-        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
-        if (!find) return res.status(400).json({ schema_version: 1, error: 'find text required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!paths.length) return res.status(400).json({ schema_version: 2, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!find) return res.status(400).json({ schema_version: 2, error: 'find text required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['rename-batch', '--format=json', `--find=${find}`, `--replace=${replace}`, ...paths];
         if (regex) args.push('--regex');
         if (dryRun) args.push('--dry-run');
@@ -472,7 +472,7 @@ app.post('/api/rename-batch', async (req, res) => {
 app.post('/api/convert', async (req, res) => {
     try {
         const { files = [], to = '' } = req.body;
-        if (!files.length || !to) return res.status(400).json({ schema_version: 1, error: 'files and target format required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!files.length || !to) return res.status(400).json({ schema_version: 2, error: 'files and target format required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['convert', '--to=' + to, '--format=json', ...files]);
         try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
     } catch (e) { cliError(res, e); }
@@ -496,7 +496,7 @@ app.post('/api/clerk', async (req, res) => {
 app.post('/api/oracle', async (req, res) => {
     try {
         const { question = '', paths = [] } = req.body;
-        if (!question) return res.status(400).json({ schema_version: 1, error: 'question required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!question) return res.status(400).json({ schema_version: 2, error: 'question required', error_code: 'BAD_REQUEST', retryable: false });
         // fo_cli oracle takes a bare query and prints plain text (no JSON
         // mode, no path args); forward only the question.
         const { stdout } = await runCli(['oracle', question], 300000);
@@ -555,7 +555,7 @@ app.get('/api/sync/status', async (req, res) => {
 app.post('/api/sync/history', async (req, res) => {
     try {
         const { path: syncPath = '' } = req.body;
-        if (!syncPath) return res.status(400).json({ schema_version: 1, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
+        if (!syncPath) return res.status(400).json({ schema_version: 2, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['sync', 'history', syncPath], 30000);
         res.json({ raw: stdout });
     } catch (e) { cliError(res, e); }

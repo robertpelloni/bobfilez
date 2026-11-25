@@ -570,10 +570,11 @@ TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
 }
 
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
-    // Dashboard contract (round-5/6): every object-shaped
-    // --format=json payload carries "schema_version": 1 as its
-    // first field, so bridge shape drift fails here instead of
-    // silently changing under the dashboard.
+    // Dashboard contract (round-5/6, v2 in v6.5.93): every
+    // object-shaped --format=json payload carries
+    // "schema_version": 2 as its first field, so bridge shape
+    // drift fails here instead of silently changing under the
+    // dashboard.
     auto inbox = dir / "inbox";
     std::filesystem::create_directories(inbox);
     { std::ofstream(inbox / "a.txt") << "a"; }
@@ -585,18 +586,54 @@ TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     };
     for (const auto& c : cmds) {
         auto r = run_cli(c + " --db=" + db + " \"" + inbox.string() + "\"", dir);
-        EXPECT_TRUE(r.out.find("\"schema_version\": 1") != std::string::npos ||
-                    r.out.find("\"schema_version\":1") != std::string::npos)
+        EXPECT_TRUE(r.out.find("\"schema_version\": 2") != std::string::npos ||
+                    r.out.find("\"schema_version\":2") != std::string::npos)
             << c << ": " << r.out;
     }
     auto sim = run_cli("similar --format=json --db=" + db + " \"" + (inbox / "a.txt").string() + "\"", dir);
     if (sim.code == 0) { // provider lanes only; others fail honestly first
-        EXPECT_NE(sim.out.find("\"schema_version\": 1"), std::string::npos) << sim.out;
+        EXPECT_NE(sim.out.find("\"schema_version\": 2"), std::string::npos) << sim.out;
     }
     auto flow = run_cli("flow list --format=json --db=" + db, dir);
-    EXPECT_NE(flow.out.find("\"schema_version\": 1"), std::string::npos) << flow.out;
+    EXPECT_NE(flow.out.find("\"schema_version\": 2"), std::string::npos) << flow.out;
     auto watch = run_cli("watch-status --format=json --db=" + db, dir);
-    EXPECT_NE(watch.out.find("\"schema_version\":1"), std::string::npos) << watch.out;
+    EXPECT_NE(watch.out.find("\"schema_version\":2"), std::string::npos) << watch.out;
+}
+
+TEST_F(CliFixture, JsonArrayRootsAreWrappedV2) {
+    // Schema v2 (reviewer round 6): a bare JSON array root can
+    // never gain a version field, so array-shaped payloads are
+    // wrapped as {"schema_version": 2, "items": [...]}. Every
+    // array command must follow; a leading '[' is a contract
+    // break the dashboard cannot version-negotiate with.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    { std::ofstream(inbox / "b.txt") << "b"; }
+    auto db = (dir / "t.db").string();
+    const std::string cmds[] = {
+        "scan --format=json", "duplicates --format=json", "hash --format=json",
+        "metadata --format=json", "lint --format=json", "search --format=json a",
+    };
+    for (const auto& c : cmds) {
+        auto r = run_cli(c + " --db=" + db + " \"" + inbox.string() + "\"", dir);
+        ASSERT_EQ(r.code, 0) << c << ": " << r.out;
+        auto first = r.out.find_first_not_of(" \t\r\n");
+        ASSERT_NE(first, std::string::npos) << c;
+        EXPECT_EQ(r.out[first], '{') << c << ": " << r.out;
+        EXPECT_NE(r.out.find("\"schema_version\": 2"), std::string::npos) << c << ": " << r.out;
+        EXPECT_NE(r.out.find("\"items\": ["), std::string::npos) << c << ": " << r.out;
+    }
+    // Path-free array commands follow the same wrapped contract.
+    for (const auto& c : {"history --format=json", "ignore --format=json"}) {
+        auto r = run_cli(std::string(c) + " --db=" + db, dir);
+        ASSERT_EQ(r.code, 0) << c << ": " << r.out;
+        auto first = r.out.find_first_not_of(" \t\r\n");
+        ASSERT_NE(first, std::string::npos) << c;
+        EXPECT_EQ(r.out[first], '{') << c << ": " << r.out;
+        EXPECT_NE(r.out.find("\"schema_version\": 2"), std::string::npos) << c << ": " << r.out;
+        EXPECT_NE(r.out.find("\"items\": ["), std::string::npos) << c << ": " << r.out;
+    }
 }
 
 TEST_F(CliFixture, MissingRootFailsEveryPathCommand) {

@@ -1,5 +1,29 @@
 # Changelog
 
+## [6.5.93] - 2026-11-25 — Schema v2: Array Roots Wrapped
+
+### Changed (breaking, versioned)
+- **JSON schema v1 → v2**: bare array roots are gone. Every
+  array-shaped `--format=json` payload (scan, duplicates,
+  hash, metadata, lint, classify, vhash, afingerprint,
+  search, history, ignore list) and every `fo_c_api` JSON
+  string is now wrapped as
+  `{"schema_version": 2, "items": [...]}`; object payloads
+  carry `"schema_version": 2` as their first field (reviewer
+  round 6: a bare array can never gain a version field).
+  All in-repo consumers moved in the same commit: the bridge
+  relays the wrapped shape (fallbacks updated), the unified
+  dashboard renders it verbatim, and the legacy React lane
+  unwraps `items` in `fetchJson`/`fetchGetJson`. Bridge error
+  envelopes are versioned 2 as well. `docs/JSON_SCHEMA.md`
+  now states the breaking-change policy explicitly
+  (remove/rename/retype/root-shape ⇒ bump; additions free).
+  New `JsonArrayRootsAreWrappedV2` conformance test asserts
+  the wrapped shape on every array command; the object-side
+  `JsonOutputsCarrySchemaVersion` now pins v2. Suites: lean
+  **97/97**, MSVC **97/97**, wiring **29/29**; JUCE lane
+  rebuilt at this version.
+
 ## [6.5.92] - 2026-11-25 — Vault Ops Reach the Forensic Audit Ledger
 
 ### Fixed

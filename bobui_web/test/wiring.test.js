@@ -151,7 +151,7 @@ test('organize card teaches the extension-preserving template', () => {
   assert.match(html, /\{name\} \(drops extension!\)/);
 });
 
-test('dashboard JSON payloads carry schema_version 1', async () => {
+test('dashboard JSON payloads carry schema_version 2', async () => {
   // Golden contract (round-5/6): object-shaped bridge payloads
   // are schema-versioned so CLI shape drift fails here instead
   // of silently changing under the dashboard.
@@ -162,7 +162,7 @@ test('dashboard JSON payloads carry schema_version 1', async () => {
   });
   assert.equal(stats.status, 200);
   const sj = await stats.json();
-  assert.equal(sj.schema_version, 1);
+  assert.equal(sj.schema_version, 2);
   assert.equal(typeof sj.total_files, 'number');
 
   const org = await fetch('http://localhost:3199/api/organize', {
@@ -172,7 +172,7 @@ test('dashboard JSON payloads carry schema_version 1', async () => {
   });
   assert.equal(org.status, 200);
   const oj = await org.json();
-  assert.equal(oj.schema_version, 1);
+  assert.equal(oj.schema_version, 2);
   assert.ok(Array.isArray(oj.moves));
 });
 
@@ -189,7 +189,7 @@ test('CLI failures surface as typed errors, not empty successes', async () => {
   });
   assert.equal(r.status, 422);
   const j = await r.json();
-  assert.equal(j.schema_version, 1);
+  assert.equal(j.schema_version, 2);
   assert.equal(j.error_code, 'FAILED');
   assert.equal(j.retryable, false);
   assert.match(j.error, /failed/i);
@@ -286,7 +286,21 @@ test('hash accepts a single file path (scanner file roots)', async () => {
   });
   assert.equal(r.status, 200);
   const j = await r.json();
-  assert.ok(Array.isArray(j) && j.length >= 1, 'expected at least one hash result for a file path');
+  // Schema v2: array payloads are wrapped, never bare roots.
+  assert.equal(j.schema_version, 2);
+  assert.ok(Array.isArray(j.items) && j.items.length >= 1, 'expected at least one hash result for a file path');
+});
+
+test('scan bridge returns wrapped items, not a bare array', async () => {
+  const r = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.ok(!Array.isArray(j), 'bare array root is a schema-v1 contract break');
+  assert.equal(j.schema_version, 2);
+  assert.ok(Array.isArray(j.items));
 });
 
 test('audit bridge queries the persistent ledger via fo_cli', async () => {

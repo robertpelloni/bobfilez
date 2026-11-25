@@ -197,6 +197,14 @@ function normalizeIgnoreRules(data) {
   });
 }
 
+function unwrapItems(data) {
+  // Schema v2: array payloads arrive wrapped as
+  // {schema_version: 2, items: [...]}; hand callers the bare
+  // array they have always mapped over. Object payloads (and
+  // error envelopes) pass through untouched.
+  return (data && !Array.isArray(data) && Array.isArray(data.items)) ? data.items : data;
+}
+
 function fetchJson(url, body) {
   return fetch(url, {
     method: 'POST',
@@ -204,13 +212,13 @@ function fetchJson(url, body) {
     body: JSON.stringify(body)
   }).then(function (response) {
     return response.json();
-  });
+  }).then(unwrapItems);
 }
 
 function fetchGetJson(url) {
   return fetch(url).then(function (response) {
     return response.json();
-  });
+  }).then(unwrapItems);
 }
 
 function App() {

@@ -55,7 +55,7 @@ void lint_command(const std::vector<std::string>& paths, bool json_output) {
     auto results = linter->lint(fs_paths);
 
     if (json_output) {
-        std::cout << "[";
+        std::cout << "{\"schema_version\": 2, \"items\": [";
         bool first = true;
         for (const auto& res : results) {
             if (!first) std::cout << ",";
@@ -64,7 +64,7 @@ void lint_command(const std::vector<std::string>& paths, bool json_output) {
                       << "\",\"type\":\"" << lint_type_name(res.type)
                       << "\",\"details\":\"" << json_escape(res.details) << "\"}";
         }
-        std::cout << "]";
+        std::cout << "]}";
         return;
     }
 

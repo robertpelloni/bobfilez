@@ -104,7 +104,7 @@ void Exporter::to_json(std::ostream& out,
                        const std::vector<DuplicateGroup>& duplicates,
                        const ScanStats& stats) {
     out << "{\n";
-    out << "  \"schema_version\": 1,\n";
+    out << "  \"schema_version\": 2,\n";
     out << "  \"stats\": {\n";
     out << "    \"total_files\": " << stats.total_files << ",\n";
     out << "    \"total_directories\": " << stats.total_directories << ",\n";
