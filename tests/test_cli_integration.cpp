@@ -1180,6 +1180,31 @@ TEST_F(CliFixture, DeleteDuplicatesCrashWindowsLoseNothing) {
     EXPECT_EQ(left, 1) << fin.out; // only the keeper remains
 }
 
+TEST_F(CliFixture, OrganizeRefusesTrailingDotSpaceSegments) {
+    // Gemini filename class, segment edition: the reserved/
+    // trailing-dot guard used to check only the final path
+    // segment. A generated DIRECTORY segment ending in a dot
+    // or space is silently stripped by Win32, so the file
+    // lands somewhere the journal does not say (and undo
+    // then cannot find it). Any bad segment refuses the file.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "seg"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule=sub./{filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(org.out.find("\"failed\": 1"), std::string::npos) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "sub" / "a.txt")) << org.out;
+    // A reserved DIRECTORY segment is refused the same way.
+    auto org2 = run_cli("organize --rule=CON/{filename} --format=json --db=" + db +
+                            " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(org2.out.find("\"failed\": 1"), std::string::npos) << org2.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org2.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

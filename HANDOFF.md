@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.113 (Segment Guard)
+
+## What landed (2026-11-25, continuation)
+- **Unsafe-name guard covers every segment**: raw
+  rule-output string check (path normalization hid
+  `sub.`-style segments from the old final-segment
+  check) in organize + rename; path check as backstop.
+- Version **6.5.113**: lean/MSVC **120 + 1 skip**,
+  wiring **32/32**, JUCE **115 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.112 (Delete Batching)
 
 ## What landed (2026-11-25, continuation)

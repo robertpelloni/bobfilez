@@ -131,23 +131,66 @@ static void write_watch_status(long long started, const std::vector<std::string>
 // NUL, AUX, COM1... "succeeds" into a device and the bytes are
 // gone. Names ending in a dot or space are silently stripped by
 // Win32, landing somewhere other than the journal says. Refuse
-// such destinations per-file before anything moves.
+// such destinations per-file before anything moves. EVERY
+// segment is checked, not just the filename: a generated
+// directory segment like "sub." or "CON" fails the same way.
 static bool destination_name_is_unsafe(const std::filesystem::path& dest) {
-    std::string name = dest.filename().string();
-    if (name.empty()) return true;
-    if (name.back() == '.' || name.back() == ' ') return true;
 #ifdef _WIN32
-    std::string stem = name.substr(0, name.find('.'));
-    for (auto& c : stem) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     static const char* reserved[] = {"CON", "PRN", "AUX", "NUL",
         "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
         "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
-    for (const char* r : reserved) if (stem == r) return true;
 #endif
-    return false;
+    bool any_segment = false;
+    for (const auto& seg_path : dest) {
+        std::string seg = seg_path.string();
+        if (seg.empty() || seg == "/" || seg == "\\") continue;
+        any_segment = true;
+        if (seg.back() == '.' || seg.back() == ' ') {
+            // A trailing dot/space is only meaningful on a
+            // generated segment; the drive/root and "." are
+            // structural. Any real segment qualifies.
+            if (seg != "." && seg != "..") return true;
+        }
+#ifdef _WIN32
+        std::string stem = seg.substr(0, seg.find('.'));
+        for (auto& c : stem) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        for (const char* r : reserved) if (stem == r) return true;
+#endif
+    }
+    return !any_segment;
 }
 
 // record_journal_residue was removed in v6.5.111: its last callers (move/rename completion rollbacks) were replaced by pending-intent reconciliation, which is strictly stronger - residue is now a journal state, not a side log.
+
+// Raw-string twin of destination_name_is_unsafe, run on the
+// rule output BEFORE it becomes a std::filesystem::path:
+// path construction normalizes segments like "sub." away,
+// which would hide exactly the names this guard exists for.
+static bool destination_string_is_unsafe(const std::string& raw) {
+    std::string cur;
+    auto check_seg = [&](const std::string& seg) {
+        if (seg.empty() || seg == "." || seg == "..") return false;
+        if (seg.back() == '.' || seg.back() == ' ') return true;
+#ifdef _WIN32
+        std::string stem = seg.substr(0, seg.find('.'));
+        for (auto& c : stem) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        static const char* reserved[] = {"CON", "PRN", "AUX", "NUL",
+            "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
+        for (const char* r : reserved) if (stem == r) return true;
+#endif
+        return false;
+    };
+    for (char c : raw) {
+        if (c == '/' || c == '\\') {
+            if (check_seg(cur)) return true;
+            cur.clear();
+        } else {
+            cur += c;
+        }
+    }
+    return check_seg(cur);
+}
 
 // Simple glob matching (supports * and ? wildcards against filename only)
 static bool glob_match(const std::string& pattern, const std::string& text) {
@@ -1484,6 +1527,12 @@ int main(int argc, char** argv) {
                 }
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (!new_path_opt || new_path_opt->string() == f.uri) return std::nullopt;
+                if (destination_string_is_unsafe(new_path_opt->string())) {
+                    ++failed_moves;
+                    std::cerr << "Failed to move " << f.uri
+                              << ": unsafe destination name in " << *new_path_opt << "\n";
+                    return std::nullopt;
+                }
                 auto new_path = *new_path_opt;
                 // Journal (and perform) the move with an absolute
                 // destination: CWD-relative records made undo
@@ -1933,6 +1982,12 @@ int main(int argc, char** argv) {
                 }
                 auto new_path_opt = rule_engine.apply_rules(f, tags);
                 if (!new_path_opt || new_path_opt->string() == f.uri) return std::nullopt;
+                if (destination_string_is_unsafe(new_path_opt->string())) {
+                    ++failed_renames;
+                    std::cerr << "Failed to rename " << f.uri
+                              << ": unsafe destination name in " << *new_path_opt << "\n";
+                    return std::nullopt;
+                }
                 auto new_path = *new_path_opt;
                 // Absolute destination for the journal, as in organize.
                 if (new_path.is_relative()) {

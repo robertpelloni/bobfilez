@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.113] - 2026-11-25 — Unsafe-Name Guard Covers Every Segment
+
+### Fixed
+- **Segment-level name evasion**: the reserved/trailing-
+  dot guard checked only the destination's final segment,
+  and path construction normalized segments like `sub.`
+  away before even that check saw them. A rule producing
+  a `sub.` or `CON` directory segment landed files
+  somewhere the journal did not say. The guard now runs
+  on the raw rule-output string (every segment) in both
+  organize and rename, with the path-level check kept as
+  backstop. New `OrganizeRefusesTrailingDotSpaceSegments`
+  test. Suites: lean/MSVC **120 + 1 skip**, wiring
+  **32/32**, JUCE **115 + 3 skips**.
+
 ## [6.5.112] - 2026-11-25 — Delete-Duplicates Batched With Delete Intents
 
 ### Fixed
