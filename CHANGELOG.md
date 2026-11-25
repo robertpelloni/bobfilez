@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.80] - 2026-11-24 — Mtime Identity + Dir-Journal Order (Round 6)
+
+### Fixed
+- **Above the 64 MB hash cap, undo identity was size-only**:
+  Migration 11 records destination mtime at journal time for
+  every file, and undo compares it — a same-size in-place edit
+  is refused without reading a byte. The cap is now
+  configurable via `--hash-limit-mb=<N>` (default 64).
+  **Created-dir journaling order**: organize now creates
+  missing ancestors segment-by-segment and journals only the
+  segments it actually created (a directory another process
+  created first is never journaled, so undo can never prune
+  somebody else's dir); a crash between mkdir and journal
+  leaves at worst an unjournaled empty dir — harmless residue,
+  accepted and documented. User content later added to a
+  journaled dir provably survives undo. Schema breaking-change
+  policy written down in `docs/JSON_SCHEMA.md`. Suites: lean
+  **85/85**; other lanes rebuilt at this version.
+
 ## [6.5.79] - 2026-11-24 — Schema-Versioned JSON Contract
 
 ### Added

@@ -59,8 +59,8 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     sqlite3* db = db_.get_db();
 
     const char* sql = R"(
-        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO operation_log (timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     )";
 
     sqlite3_stmt* stmt;
@@ -87,6 +87,7 @@ int64_t OperationRepository::log_operation(const OperationRecord& record) {
     // Unbatched writes (legacy callers, single ops) each become
     // their own batch so undo_last_batch treats them singly.
     sqlite3_bind_int64(stmt, 9, record.batch_id > 0 ? record.batch_id : allocate_batch_id());
+    sqlite3_bind_int64(stmt, 10, record.dest_mtime);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
@@ -102,7 +103,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
     sqlite3* db = db_.get_db();
     std::vector<OperationRecord> results;
 
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id "
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime "
                       "FROM operation_log ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
@@ -122,6 +123,7 @@ std::vector<OperationRecord> OperationRepository::get_all(int limit) {
         if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
         rec.batch_id = sqlite3_column_int64(stmt, 9);
+        rec.dest_mtime = sqlite3_column_int64(stmt, 10);
         results.push_back(rec);
     }
 
@@ -140,7 +142,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
     // id order, not timestamp: timestamps are second-resolution, so
     // same-second records of different batches could interleave and
     // break undo_last_batch's contiguous grouping.
-    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id "
+    std::string sql = "SELECT id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime "
                       "FROM operation_log WHERE undone = 0 AND status = 'completed' AND operation_type != 'delete' ORDER BY id DESC LIMIT " + std::to_string(limit);
 
     sqlite3_stmt* stmt;
@@ -160,6 +162,7 @@ std::vector<OperationRecord> OperationRepository::get_undoable(int limit) {
         if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
         rec.undone = sqlite3_column_int(stmt, 8) != 0;
         rec.batch_id = sqlite3_column_int64(stmt, 9);
+        rec.dest_mtime = sqlite3_column_int64(stmt, 10);
         results.push_back(rec);
     }
 
@@ -185,11 +188,12 @@ OperationRecord read_record(sqlite3_stmt* stmt) {
     if (sqlite3_column_text(stmt, 7)) rec.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
     rec.undone = sqlite3_column_int(stmt, 8) != 0;
     rec.batch_id = sqlite3_column_int64(stmt, 9);
+    rec.dest_mtime = sqlite3_column_int64(stmt, 10);
     return rec;
 }
 
 const char* kRecordCols =
-    "id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id";
+    "id, timestamp, operation_type, source_path, dest_path, file_size, file_hash, status, undone, batch_id, dest_mtime";
 } // namespace
 
 std::optional<OperationRecord> OperationRepository::get_by_id(int64_t id) {
@@ -237,6 +241,20 @@ std::optional<std::string> verify_identity(const OperationRecord& rec,
         auto now = content_fast64(dest);
         if (!now.empty() && now != rec.file_hash) {
             return "file changed since the operation (content differs)";
+        }
+    }
+    // Mtime identity (Migration 11): recorded for every file,
+    // including ones too large for journal-time hashing, so a
+    // same-size in-place edit is caught without reading a byte.
+    if (rec.dest_mtime > 0 && std::filesystem::is_regular_file(dest, ec)) {
+        std::error_code mec;
+        auto mt = std::filesystem::last_write_time(dest, mec);
+        if (!mec) {
+            auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
+            if (secs != rec.dest_mtime) {
+                return "file changed since the operation (mtime differs)";
+            }
         }
     }
     return std::nullopt;

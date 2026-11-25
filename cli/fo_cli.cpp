@@ -416,6 +416,7 @@ int main(int argc, char** argv) {
     bool count_only = false;
     int threshold = 10;
     int num_threads = 1;
+    int journal_hash_limit_mb = 64;
     std::uintmax_t min_size = 0;
     std::uintmax_t max_size = std::numeric_limits<std::uintmax_t>::max();
     std::vector<std::string> exclude_patterns;
@@ -549,6 +550,12 @@ int main(int argc, char** argv) {
         } else if (a.rfind("--threads=", 0) == 0) {
             num_threads = std::stoi(a.substr(10));
             if (num_threads < 1) num_threads = 1;
+        } else if (a.rfind("--hash-limit-mb=", 0) == 0) {
+            try { journal_hash_limit_mb = std::stoi(a.substr(16)); } catch (...) {
+                std::cerr << "Invalid --hash-limit-mb value: " << a.substr(16) << "\n";
+                return 2;
+            }
+            if (journal_hash_limit_mb < 0) journal_hash_limit_mb = 0;
         } else if (!a.empty() && a[0] == '-') {
             std::cerr << "Unknown option: " << a << "\n";
             return 2;
@@ -1397,23 +1404,37 @@ int main(int argc, char** argv) {
                     if (!dry_run) {
                         try {
                             if (!new_path.parent_path().empty()) {
-                                // Journal each ancestor this run
-                                // actually creates, so undo prunes
-                                // exactly those (never pre-existing
-                                // directories it merely emptied).
-                                std::vector<std::string> fresh_dirs;
+                                // Create missing ancestors one
+                                // segment at a time, journaling only
+                                // segments THIS run actually created
+                                // (create-then-journal: a directory
+                                // another process created first is
+                                // never journaled, so undo can never
+                                // prune somebody else's dir).
+                                std::vector<std::filesystem::path> missing;
                                 for (auto p = new_path.parent_path();
                                      !p.empty() && !std::filesystem::exists(p);) {
-                                    fresh_dirs.push_back(std::filesystem::absolute(p).string());
+                                    missing.push_back(p);
                                     auto parent = p.parent_path();
                                     if (parent == p) break;
                                     p = parent;
                                 }
-                                std::filesystem::create_directories(new_path.parent_path());
-                                if (!fresh_dirs.empty()) {
-                                    fo::core::OperationRepository dir_repo(engine.database());
-                                    dir_repo.log_created_dirs(op_batch_id, fresh_dirs);
+                                std::vector<std::string> created_dirs;
+                                std::error_code dir_ec;
+                                for (auto it = missing.rbegin(); it != missing.rend(); ++it) {
+                                    if (std::filesystem::create_directory(*it, dir_ec)) {
+                                        created_dirs.push_back(std::filesystem::absolute(*it).string());
+                                    }
+                                    dir_ec.clear();
                                 }
+                                if (!created_dirs.empty()) {
+                                    fo::core::OperationRepository dir_repo(engine.database());
+                                    dir_repo.log_created_dirs(op_batch_id, created_dirs);
+                                }
+                                // Any remainder (race, perms) gets
+                                // the bulk call; its failure surfaces
+                                // at the rename below.
+                                std::filesystem::create_directories(new_path.parent_path());
                             }
                             // MSVC's rename replaces existing files:
                             // never silently overwrite a destination.
@@ -1437,14 +1458,19 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
-                                // Hash only files up to 64 MB at
-                                // journal time: hashing makes an O(1)
-                                // rename read every byte, which on
-                                // cold storage dwarfs the move for
-                                // huge files (round-5 review). Big
-                                // files keep size-based identity.
-                                if (journal_hasher && f.size <= 64ull * 1024 * 1024) {
+                                // Hash only files up to the limit
+                                // at journal time: hashing makes an
+                                // O(1) rename read every byte, which
+                                // on cold storage dwarfs the move
+                                // for huge files (round-5/6 review).
+                                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
                                     try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
+                                }
+                                {
+                                    std::error_code mec;
+                                    auto mt = std::filesystem::last_write_time(new_path, mec);
+                                    if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
+                                        std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {
@@ -1734,8 +1760,14 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
-                                if (journal_hasher && f.size <= 64ull * 1024 * 1024) {
+                                if (journal_hasher && f.size <= static_cast<std::uintmax_t>(journal_hash_limit_mb) * 1024 * 1024) {
                                     try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
+                                }
+                                {
+                                    std::error_code mec;
+                                    auto mt = std::filesystem::last_write_time(new_path, mec);
+                                    if (!mec) rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
+                                        std::chrono::clock_cast<std::chrono::system_clock>(mt).time_since_epoch()).count();
                                 }
                                 op_repo.log_operation(rec);
                             } catch (const std::exception& je) {

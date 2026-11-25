@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.80 (Mtime Identity + Dir-Journal Order)
+
+## What landed (2026-11-24, continuation)
+- **Round-6 review acted on**: create-then-journal per segment
+  for created dirs (+ user-content survival test); Migration
+  11 `dest_mtime` identity for all files + configurable
+  `--hash-limit-mb`; `docs/JSON_SCHEMA.md` breaking-change
+  policy; git history verified in reported order. Lean
+  **85/85**.
+- Next: typed bridge error envelope (4xx/5xx split).
+- Version **6.5.80**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 7 in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.79 (Schema-Versioned JSON Contract)
 
 ## What landed (2026-11-24, continuation)

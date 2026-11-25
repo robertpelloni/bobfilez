@@ -265,6 +265,57 @@ TEST_F(OperationFixture, UndoPrunesOnlyJournaledCreatedDirs) {
     EXPECT_TRUE(std::filesystem::exists(dir));           // root: survives
 }
 
+TEST_F(OperationFixture, UndoRefusesMtimeOnlyEditAboveHashCap) {
+    // Round-6 review: above the journal-hash cap, identity was
+    // size-only. dest_mtime (Migration 11) is recorded for every
+    // file, so a same-size in-place edit with a new mtime is
+    // refused without reading a byte.
+    auto src = dir / "big.bin";
+    auto dst = dir / "big-moved.bin";
+    { std::ofstream(src) << "abc"; }
+    auto orig_mtime = std::filesystem::last_write_time(src);
+    std::filesystem::rename(src, dst);
+    auto rec = record(fo::core::OperationType::Move, src.string(), dst.string());
+    rec.dest_mtime = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::clock_cast<std::chrono::system_clock>(orig_mtime).time_since_epoch()).count();
+    repo->log_operation(rec);
+
+    { std::ofstream(dst, std::ios::trunc) << "xyz"; } // same size
+    std::error_code ec;
+    std::filesystem::last_write_time(dst, orig_mtime + std::chrono::hours(2), ec);
+
+    auto outcome = repo->undo_last_batch();
+    EXPECT_TRUE(outcome.undone.empty());
+    ASSERT_EQ(outcome.skipped.size(), 1u);
+    EXPECT_NE(outcome.skipped[0].second.find("mtime differs"), std::string::npos);
+    EXPECT_TRUE(std::filesystem::exists(dst));
+}
+
+TEST_F(OperationFixture, UndoKeepsJournaledDirWithUserContent) {
+    // Round-6 review: if the user drops their own file into a
+    // journaled category dir after organize, the empty-only
+    // prune must leave that directory (and their file) alone.
+    auto batch = repo->allocate_batch_id();
+    auto created = dir / "cats";
+    std::filesystem::create_directories(created);
+    repo->log_created_dirs(batch, {created.string()});
+
+    auto src = dir / "a.txt";
+    auto dst = created / "a.txt";
+    { std::ofstream(src) << "abc"; }
+    std::filesystem::rename(src, dst);
+    auto rec = record(fo::core::OperationType::Move, src.string(), dst.string());
+    rec.batch_id = batch;
+    repo->log_operation(rec);
+
+    { std::ofstream(created / "user-file.txt") << "mine"; }
+
+    auto outcome = repo->undo_last_batch();
+    ASSERT_EQ(outcome.undone.size(), 1u);
+    EXPECT_TRUE(std::filesystem::exists(created / "user-file.txt"));
+    EXPECT_TRUE(std::filesystem::exists(created));
+}
+
 TEST_F(OperationFixture, CopyUndoRefusesCopyEditedAfterCopying) {
     // Muse review: same-size edits slip past the size check,
     // and Copy undo deletes the destination. A copy whose mtime

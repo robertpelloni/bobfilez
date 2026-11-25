@@ -28,9 +28,13 @@ struct OperationRecord {
     bool undone = false;
     // Command batch this record belongs to (Migration 8). Records
     // from one multi-file command share a batch; 0 = legacy row,
-    // treated as its own batch. Last field on purpose: aggregate
-    // initializers elsewhere must not shift.
+    // treated as its own batch.
     int64_t batch_id = 0;
+    // Destination mtime (unix seconds) at journal time
+    // (Migration 11); 0 = not recorded. Undo compares it for
+    // every file, including ones too large to hash. Last field
+    // on purpose: aggregate initializers must not shift.
+    int64_t dest_mtime = 0;
 };
 
 class OperationRepository {

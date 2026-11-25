@@ -219,6 +219,14 @@ CREATE TABLE IF NOT EXISTS created_dirs (
 CREATE INDEX IF NOT EXISTS idx_created_dirs_batch ON created_dirs(batch_id);
 )";
 
+/// Migration 11: destination mtime (seconds) recorded at journal
+/// time. Undo compares it for every file — including files too
+/// large for journal-time hashing — so same-size in-place edits
+/// are caught without reading a byte.
+static const char* MIGRATION_11 = R"(
+ALTER TABLE operation_log ADD COLUMN dest_mtime INTEGER NOT NULL DEFAULT 0;
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -347,6 +355,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 10) {
         apply_migration(10, MIGRATION_10);
+    }
+    if (current_ver < 11) {
+        apply_migration(11, MIGRATION_11);
     }
 }
 
