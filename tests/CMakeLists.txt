@@ -17,6 +17,7 @@ add_executable(fo_tests
     test_operation_repository.cpp
     test_provider_registry.cpp
     test_scanners.cpp
+    test_deep_walks.cpp
 )
 target_link_libraries(fo_tests PRIVATE fo_core GTest::gtest_main)
 if(TARGET fo_c_api)

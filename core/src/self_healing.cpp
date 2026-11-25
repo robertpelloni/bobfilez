@@ -118,15 +118,29 @@ public:
 
     int scrub_directory(const std::filesystem::path& root) override {
         int corrupted = 0;
-        std::error_code ec;
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
-            if (!entry.is_regular_file()) continue;
-            auto it = baselines_.find(entry.path().string());
-            if (it == baselines_.end()) continue;
+        // Manual stack DFS, error codes only: the recursive
+        // iterator throws/aborts mid-scrub on >260-char subtrees.
+        std::vector<std::filesystem::path> stack{root};
+        while (!stack.empty()) {
+            auto cur = stack.back();
+            stack.pop_back();
+            std::error_code dec;
+            for (std::filesystem::directory_iterator it(cur, dec), end;
+                 it != end; it.increment(dec)) {
+                if (dec) { dec.clear(); break; }
+                std::error_code fec;
+                if (it->is_directory(fec) && !fec) {
+                    if (!it->is_symlink(fec)) stack.push_back(it->path());
+                    continue;
+                }
+                if (!it->is_regular_file(fec) || fec) continue;
+                auto bit = baselines_.find(it->path().string());
+                if (bit == baselines_.end()) continue;
 
-            auto report = verify_file(entry.path(), it->second);
-            if (!report.actual_hash.empty() && report.actual_hash != report.expected_hash) {
-                ++corrupted;
+                auto report = verify_file(it->path(), bit->second);
+                if (!report.actual_hash.empty() && report.actual_hash != report.expected_hash) {
+                    ++corrupted;
+                }
             }
         }
         return corrupted;

@@ -160,16 +160,29 @@ void EnhancedCopyEngine::run_job(TransferJob& job, ErrorHandlerCb error_cb,
         if (std::filesystem::is_directory(src, ec)) {
             add_item(src, job.dest / src.filename(), true, 0);
             if (job.opts.recursive) {
-                for (const auto& entry : std::filesystem::recursive_directory_iterator(src, ec)) {
+                // Manual stack DFS, error codes only: the
+                // recursive iterator throws/aborts the whole job
+                // enumeration on >260-char subtrees.
+                std::vector<std::filesystem::path> stack{src};
+                while (!stack.empty()) {
                     if (paused_all_) { while (paused_all_) std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
                     if (job.state == TransferJob::State::Cancelled) break;
-
-                    auto rel_path = std::filesystem::relative(entry.path(), src);
-                    auto dst_path = job.dest / src.filename() / rel_path;
-                    
-                    bool is_dir = entry.is_directory(ec);
-                    uintmax_t sz = is_dir ? 0 : entry.file_size(ec);
-                    add_item(entry.path(), dst_path, is_dir, sz);
+                    auto cur = stack.back();
+                    stack.pop_back();
+                    std::error_code dec;
+                    for (std::filesystem::directory_iterator it(cur, dec), end;
+                         it != end; it.increment(dec)) {
+                        if (dec) { dec.clear(); break; }
+                        std::error_code fec;
+                        bool is_dir = it->is_directory(fec) && !fec;
+                        if (is_dir && !it->is_symlink(fec)) stack.push_back(it->path());
+                        auto rel_path = std::filesystem::relative(it->path(), src, fec);
+                        if (fec) continue;
+                        auto dst_path = job.dest / src.filename() / rel_path;
+                        uintmax_t sz = is_dir ? 0 : it->file_size(fec);
+                        if (fec && !is_dir) continue;
+                        add_item(it->path(), dst_path, is_dir, sz);
+                    }
                 }
             }
         } else if (std::filesystem::is_regular_file(src, ec)) {
@@ -573,8 +586,23 @@ int64_t EnhancedCopyEngine::estimate(const std::vector<std::filesystem::path>& s
         std::error_code ec;
         if (std::filesystem::is_directory(src, ec)) {
             if (opts.recursive) {
-                for (const auto& entry : std::filesystem::recursive_directory_iterator(src, ec)) {
-                    if (entry.is_regular_file(ec)) total += entry.file_size(ec);
+                // Manual stack DFS, error codes only (see run_job).
+                std::vector<std::filesystem::path> stack{src};
+                while (!stack.empty()) {
+                    auto cur = stack.back();
+                    stack.pop_back();
+                    std::error_code dec;
+                    for (std::filesystem::directory_iterator it(cur, dec), end;
+                         it != end; it.increment(dec)) {
+                        if (dec) { dec.clear(); break; }
+                        std::error_code fec;
+                        if (it->is_directory(fec) && !fec) {
+                            if (!it->is_symlink(fec)) stack.push_back(it->path());
+                        } else if (it->is_regular_file(fec) && !fec) {
+                            auto sz = it->file_size(fec);
+                            if (!fec) total += static_cast<int64_t>(sz);
+                        }
+                    }
                 }
             }
         } else if (std::filesystem::is_regular_file(src, ec)) {

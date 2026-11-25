@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.98] - 2026-11-25 — Deep-Tree Walks: Copy Engine, Self-Healing, Watcher
+
+### Fixed
+- **Last recursive-iterator walkers converted**: the
+  enhanced copy engine's job enumeration and size estimate,
+  the self-healing directory scrub, and the file watcher's
+  recursive watch registration all used
+  `recursive_directory_iterator` (throwing increment form),
+  aborting or escaping on >260-char subtrees. All now use
+  the proven manual stack DFS (per-level
+  `directory_iterator`, error codes only). New committed
+  suite `tests/test_deep_walks.cpp` drives the pruner,
+  treemap engine, and copy estimate against a >260 tree
+  (copy estimate failed pre-fix; the three tests now pin
+  the whole walker family). Suites: lean **108/108**,
+  MSVC **108/108**, wiring **31/31**, JUCE **102 + 2**
+  designed skips (full-run load flakes on vault/similar
+  clear standalone — fourth sighting of the pattern).
+
 ## [6.5.97] - 2026-11-25 — Deep-Tree Walks: Linter, Pruner, Treemap
 
 ### Fixed

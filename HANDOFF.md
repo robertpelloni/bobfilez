@@ -1,3 +1,30 @@
+# Session Handoff - v6.5.98 (Deep-Tree Walks Complete)
+
+## What landed (2026-11-25, continuation)
+- **Walker family fully converted**: copy engine (job
+  enumeration + estimate), self-healing scrub, and the
+  file watcher's recursive registration now stack-DFS.
+  No `recursive_directory_iterator` throwing walks remain
+  outside scanner_dirent (error-code form, verified fine).
+- **New committed suite** `tests/test_deep_walks.cpp`
+  (pruner/treemap/copy-estimate over a >260 tree).
+- Version **6.5.98**: lean **108/108**, MSVC **108/108**,
+  wiring **31/31**, JUCE **102 + 2 skips**. Pushed.
+- **Flake pattern, fourth sighting**: single-test failures
+  in full-suite runs under heavy parallel load (builds +
+  browser CDP), always passing standalone and on re-run.
+  Root-cause candidate: machine saturation, not code; if a
+  fifth sighting lands, run the suite under controlled load
+  before trusting either conclusion.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round
+  9/10 replies still generating; rounds 10/11 posted).
+
+---
 # Session Handoff - v6.5.97 (Deep-Tree Walks Fixed)
 
 ## What landed (2026-11-25, continuation)

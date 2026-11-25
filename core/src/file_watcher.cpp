@@ -238,13 +238,25 @@ class NativeFileWatcher : public IFileWatcher {
                 std::cerr << "[FileWatcher] Failed to watch: " << wp << "\n";
             }
 
-            // If recursive, add all subdirectories
+            // If recursive, add all subdirectories. Stack DFS
+            // with error codes: the throwing recursive walk
+            // would kill the watch thread on an unreadable or
+            // over-long subtree.
             if (config_.recursive) {
-                std::error_code ec;
-                for (auto& entry : std::filesystem::recursive_directory_iterator(wp, ec)) {
-                    if (entry.is_directory()) {
-                        int swd = inotify_add_watch(inotify_fd_, entry.path().string().c_str(), mask);
-                        if (swd >= 0) wd_to_path[swd] = entry.path();
+                std::vector<std::filesystem::path> stack{wp};
+                while (!stack.empty()) {
+                    auto cur = stack.back();
+                    stack.pop_back();
+                    std::error_code dec;
+                    for (std::filesystem::directory_iterator it(cur, dec), end;
+                         it != end; it.increment(dec)) {
+                        if (dec) { dec.clear(); break; }
+                        std::error_code fec;
+                        if (it->is_directory(fec) && !fec) {
+                            if (!it->is_symlink(fec)) stack.push_back(it->path());
+                            int swd = inotify_add_watch(inotify_fd_, it->path().string().c_str(), mask);
+                            if (swd >= 0) wd_to_path[swd] = it->path();
+                        }
                     }
                 }
             }
