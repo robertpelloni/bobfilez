@@ -13,10 +13,17 @@
   non-inheritable stdout handle runs forever writing
   nothing (cout failbit, no crash) — the watch test's
   first implementation hit exactly that.
+- **History secrets scan done (read-only)**:
+  `docs/SECRETS_HISTORY_SCAN.md` — every .db blob in
+  history checked; credential tables in metamcp.db are
+  all 0 rows, zero credential-pattern hits anywhere.
+  Remaining exposure is session transcript content.
 
 ## Still open (roast triage)
-- History purge / full-history secrets scan (owner) —
-  reviewer urges moving this above other owner items.
+- History purge (owner decision): evidence now in
+  `docs/SECRETS_HISTORY_SCAN.md`; what remains in
+  history is session transcripts (privacy call, not a
+  credential emergency).
 - Lean production checkout (owner); submodule pin drift
   (owner); `upstream/master` (owner); BobGUI meson (upstream).
 - Muse review: thread `6d2f6927` (round 13 posted,
