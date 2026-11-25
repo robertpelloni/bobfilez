@@ -151,6 +151,31 @@ test('organize card teaches the extension-preserving template', () => {
   assert.match(html, /\{name\} \(drops extension!\)/);
 });
 
+test('dashboard JSON payloads carry schema_version 1', async () => {
+  // Golden contract (round-5/6): object-shaped bridge payloads
+  // are schema-versioned so CLI shape drift fails here instead
+  // of silently changing under the dashboard.
+  const stats = await fetch('http://localhost:3199/api/stats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(stats.status, 200);
+  const sj = await stats.json();
+  assert.equal(sj.schema_version, 1);
+  assert.equal(typeof sj.total_files, 'number');
+
+  const org = await fetch('http://localhost:3199/api/organize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: [root], rule: '{ext}/{filename}' }),
+  });
+  assert.equal(org.status, 200);
+  const oj = await org.json();
+  assert.equal(oj.schema_version, 1);
+  assert.ok(Array.isArray(oj.moves));
+});
+
 test('CLI failures surface as HTTP 500, not empty successes', async () => {
   // runCli used to resolve whenever stdout was non-empty, so a
   // failed run that printed a partial "[]" payload looked like an

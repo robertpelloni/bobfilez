@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.79] - 2026-11-24 — Schema-Versioned JSON Contract
+
+### Added
+- **`"schema_version": 1` on every object-shaped JSON payload**
+  (round-5/6 agreed contract): stats, organize,
+  delete-duplicates, rename, similar, undo (incl. dismiss and
+  refusal), audit, scrub, flow list/run, watch-status, and the
+  shared Exporter JSON root. Array roots stay arrays (schema 1
+  by convention); pre-schema watcher heartbeats are normalized
+  on re-emit. Pinned on both sides: a CLI conformance test and
+  golden dashboard wiring assertions (`/api/stats`,
+  `/api/organize` payloads). Unknown-field behaviour: bridges
+  relay payloads unchanged (additive fields are safe); a
+  version bump without a bridge update now fails tests.
+  Suites: lean **83/83**, wiring **28/28**; other lanes rebuilt
+  at this version.
+
 ## [6.5.78] - 2026-11-24 — Journaled Dir Pruning + Hash Cap (Round 5)
 
 ### Fixed

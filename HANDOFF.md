@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.79 (Schema-Versioned JSON Contract)
+
+## What landed (2026-11-24, continuation)
+- **Schema v1 JSON contract**: `schema_version: 1` first field
+  on all object-shaped CLI JSON + Exporter root + watch
+  heartbeat (old heartbeats normalized on re-emit). CLI
+  conformance test + golden wiring assertions. Lean **83/83**,
+  wiring **28/28**.
+- Version **6.5.79**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 6 in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.78 (Journaled Dir Pruning + Hash Cap)
 
 ## What landed (2026-11-24, continuation)

@@ -321,6 +321,36 @@ static const std::string kMissingRootCmds[] = {
     "search needle", "convert --to=mp4",
 };
 
+TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
+    // Dashboard contract (round-5/6): every object-shaped
+    // --format=json payload carries "schema_version": 1 as its
+    // first field, so bridge shape drift fails here instead of
+    // silently changing under the dashboard.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    const std::string cmds[] = {
+        "stats --format=json", "organize --dry-run --format=json --rule={ext}/{filename}",
+        "audit --format=json", "scrub --format=json", "undo --format=json",
+        "export --format=json",
+    };
+    for (const auto& c : cmds) {
+        auto r = run_cli(c + " --db=" + db + " \"" + inbox.string() + "\"", dir);
+        EXPECT_TRUE(r.out.find("\"schema_version\": 1") != std::string::npos ||
+                    r.out.find("\"schema_version\":1") != std::string::npos)
+            << c << ": " << r.out;
+    }
+    auto sim = run_cli("similar --format=json --db=" + db + " \"" + (inbox / "a.txt").string() + "\"", dir);
+    if (sim.code == 0) { // provider lanes only; others fail honestly first
+        EXPECT_NE(sim.out.find("\"schema_version\": 1"), std::string::npos) << sim.out;
+    }
+    auto flow = run_cli("flow list --format=json --db=" + db, dir);
+    EXPECT_NE(flow.out.find("\"schema_version\": 1"), std::string::npos) << flow.out;
+    auto watch = run_cli("watch-status --format=json --db=" + db, dir);
+    EXPECT_NE(watch.out.find("\"schema_version\":1"), std::string::npos) << watch.out;
+}
+
 TEST_F(CliFixture, MissingRootFailsEveryPathCommand) {
     // Conformance (per Muse's roast): the missing-path contract
     // — nonzero exit naming the path — must hold for every

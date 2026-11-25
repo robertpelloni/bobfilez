@@ -79,7 +79,7 @@ static void write_watch_status(long long started, const std::vector<std::string>
         s.erase(std::remove(s.begin(), s.end(), '"'), s.end());
         return s;
     };
-    out << "{\"watching\":true,\"started\":" << started
+    out << "{\"schema_version\":1,\"watching\":true,\"started\":" << started
         << ",\"heartbeat\":" << unix_now() << ",\"events\":" << events
         << ",\"last_event\":\"" << esc(last_event) << "\",\"paths\":[";
     for (size_t i = 0; i < paths.size(); ++i) {
@@ -1137,7 +1137,7 @@ int main(int argc, char** argv) {
             auto matches = engine.file_repository().find_similar_images(res->value, threshold);
 
             if (format == "json") {
-                std::cout << "{\"query\": \"" << fo::core::Exporter::json_escape(roots[0].string()) << "\""
+                std::cout << "{\"schema_version\": 1, \"query\": \"" << fo::core::Exporter::json_escape(roots[0].string()) << "\""
                           << ", \"hash\": \"" << res->value << "\""
                           << ", \"algorithm\": \"" << phash_algo << "\""
                           << ", \"threshold\": " << threshold
@@ -1483,7 +1483,7 @@ int main(int argc, char** argv) {
             }
 
             if (format == "json") {
-                std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
+                std::cout << "{\"schema_version\": 1, \"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"total_files\": " << files.size()
                           << ", \"moved\": " << (dry_run ? 0 : static_cast<int>(moves.size()))
                           << ", \"failed\": " << failed_moves
@@ -1620,7 +1620,7 @@ int main(int argc, char** argv) {
             }
 
             if (format == "json") {
-                std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
+                std::cout << "{\"schema_version\": 1, \"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"strategy\": \"" << keep_strategy << "\""
                           << ", \"groups\": " << scoped_groups
                           << ", \"kept\": " << kept_count
@@ -1774,7 +1774,7 @@ int main(int argc, char** argv) {
             }
 
             if (format == "json") {
-                std::cout << "{\"dry_run\": " << (dry_run ? "true" : "false")
+                std::cout << "{\"schema_version\": 1, \"dry_run\": " << (dry_run ? "true" : "false")
                           << ", \"pattern\": \"" << fo::core::Exporter::json_escape(rename_pattern) << "\""
                           << ", \"total_files\": " << files.size()
                           << ", \"renamed\": " << (dry_run ? 0 : static_cast<int>(renames.size()))
@@ -1843,6 +1843,7 @@ int main(int argc, char** argv) {
 
             if (format == "json") {
                 std::cout << "{\n"
+                          << "  \"schema_version\": 1,\n"
                           << "  \"total_files\": " << file_count << ",\n"
                           << "  \"total_directories\": " << dir_count << ",\n"
                           << "  \"total_size\": " << total_size << ",\n"
@@ -1944,7 +1945,7 @@ int main(int argc, char** argv) {
             if (dismiss) {
                 int n = op_repo.dismiss_newest_batch();
                 if (format == "json") {
-                    std::cout << "{\"success\": true, \"dismissed\": " << n << "}\n";
+                    std::cout << "{\"schema_version\": 1, \"success\": true, \"dismissed\": " << n << "}\n";
                 } else if (n > 0) {
                     std::cout << "Dismissed the last operation batch (" << n
                               << " record(s) marked acknowledged; nothing was restored).\n";
@@ -1976,7 +1977,7 @@ int main(int argc, char** argv) {
                     " file(s). Deletions cannot be undone; run `fo undo --dismiss` "
                     "to acknowledge it and make older operations undoable again.";
                 if (format == "json") {
-                    std::cout << "{\"success\": false, \"message\": \"" << msg << "\"}\n";
+                    std::cout << "{\"schema_version\": 1, \"success\": false, \"message\": \"" << msg << "\"}\n";
                 } else {
                     std::cerr << "Error: " << msg << "\n";
                 }
@@ -1985,7 +1986,7 @@ int main(int argc, char** argv) {
 
             if (format == "json") {
                 if (!undone.empty()) {
-                    std::cout << "{\"success\": true"
+                    std::cout << "{\"schema_version\": 1, \"success\": true"
                               << ", \"count\": " << undone.size()
                               << ", \"type\": \"" << type_name(undone[0].type) << "\""
                               << ", \"source\": \"" << fo::core::Exporter::json_escape(undone[0].source_path) << "\""
@@ -2005,7 +2006,7 @@ int main(int argc, char** argv) {
                     }
                     std::cout << "]}\n";
                 } else {
-                    std::cout << "{\"success\": false, \"message\": \"No operations to undo\"}\n";
+                    std::cout << "{\"schema_version\": 1, \"success\": false, \"message\": \"No operations to undo\"}\n";
                 }
             } else if (!undone.empty() || !outcome.skipped.empty()) {
                 for (const auto& rec : undone) {
@@ -2062,7 +2063,7 @@ int main(int argc, char** argv) {
             auto entries = audit->get_history(limit);
             bool verified = audit->verify_ledger();
             if (format == "json") {
-                std::cout << "{\"verified\": " << (verified ? "true" : "false")
+                std::cout << "{\"schema_version\": 1, \"verified\": " << (verified ? "true" : "false")
                           << ", \"count\": " << entries.size() << ", \"entries\": [";
                 for (size_t i = 0; i < entries.size(); ++i) {
                     const auto& e = entries[i];
@@ -2589,7 +2590,7 @@ int main(int argc, char** argv) {
             auto path = watch_status_path();
             std::ifstream in(path);
             if (!in) {
-                if (format == "json") std::cout << "{\"watching\":false,\"reason\":\"no watcher heartbeat found\"}";
+                if (format == "json") std::cout << "{\"schema_version\":1,\"watching\":false,\"reason\":\"no watcher heartbeat found\"}";
                 else std::cout << "Watcher: not running (no heartbeat found)\n";
             } else {
                 std::string raw((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
@@ -2605,6 +2606,12 @@ int main(int argc, char** argv) {
                     // Re-emit with freshness applied (stored watching:true
                     // is only believable while the heartbeat is fresh).
                     auto out = raw;
+                    // Heartbeats written before schema_version
+                    // existed are normalized on the way out.
+                    if (out.find("\"schema_version\"") == std::string::npos) {
+                        auto brace = out.find('{');
+                        if (brace != std::string::npos) out.insert(brace + 1, "\"schema_version\":1,");
+                    }
                     if (!fresh) {
                         auto p = out.find("\"watching\":true");
                         if (p != std::string::npos) out.replace(p, 15, "\"watching\":false,\"stale\":true");
@@ -2630,7 +2637,7 @@ int main(int argc, char** argv) {
             if (pargs.size() < 2 || pargs[1] == "list") {
                 auto workflows = flow_engine->get_workflows();
                 if (format == "json") {
-                    std::cout << "{\"workflows\": [";
+                    std::cout << "{\"schema_version\": 1, \"workflows\": [";
                     for (size_t i = 0; i < workflows.size(); ++i) {
                         const auto& wf = workflows[i];
                         if (i > 0) std::cout << ",";
@@ -2655,7 +2662,7 @@ int main(int argc, char** argv) {
                 const auto& payload = pargs[3];
                 bool ok = flow_engine->execute_workflow(workflow_id, payload);
                 if (format == "json") {
-                    std::cout << "{\"workflow_id\":\"" << workflow_id << "\",";
+                    std::cout << "{\"schema_version\": 1, \"workflow_id\":\"" << workflow_id << "\",";
                     std::cout << "\"payload\":\"" << payload << "\",";
                     std::cout << "\"success\":" << (ok ? "true" : "false") << "}";
                 } else {
@@ -2869,7 +2876,7 @@ int main(int argc, char** argv) {
             const char* status = corrupted > 0 ? "corruption-detected"
                 : (total_files > 0 && baselined == total_files) ? "baseline-established" : "ok";
             if (format == "json") {
-                std::cout << "{\"scanned\":" << total_files
+                std::cout << "{\"schema_version\":1,\"scanned\":" << total_files
                           << ",\"corrupted\":" << corrupted
                           << ",\"baselined\":" << baselined
                           << ",\"status\":\"" << status << "\""
