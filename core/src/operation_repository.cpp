@@ -574,7 +574,14 @@ int OperationRepository::reconcile_pending() {
         auto dst = std::filesystem::path(rec.dest_path);
         bool at_src = !src.empty() && std::filesystem::exists(src, ec);
         bool at_dst = !dst.empty() && std::filesystem::exists(dst, ec);
-        if (rec.status == "pending") {
+        if (rec.status == "pending" && rec.type == OperationType::Delete) {
+            // Delete intents have no destination: the source
+            // still existing means the unlink never ran (drop
+            // the intent); it being gone means it did (complete
+            // the row, so the batch refuses undo truthfully).
+            if (at_src) { delete_operation(rec.id); ++resolved; }
+            else { set_status(rec.id, "completed"); ++resolved; }
+        } else if (rec.status == "pending") {
             // Intent row written before the rename. Rename never
             // ran (file home): drop the intent. Rename landed
             // (file at dest only): the journal becomes truth by

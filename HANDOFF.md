@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.112 (Delete Batching)
+
+## What landed (2026-11-25, continuation)
+- **Delete-duplicates batched**: per-group Delete
+  intent rows commit before any unlink; completions
+  and audit commit after. Reconcile gained the Delete
+  branch (source present → drop intent; gone →
+  complete). Crash-window test kills after intent and
+  after a removal. Stale-authorization re-hash intact.
+- Version **6.5.112**: lean/MSVC **119 + 1 skip**,
+  wiring **32/32**, JUCE **114 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.111 (Bulk Rename Chunked)
 
 ## What landed (2026-11-25, continuation)

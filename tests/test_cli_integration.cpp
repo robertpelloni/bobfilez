@@ -1135,6 +1135,51 @@ TEST_F(CliFixture, ConcurrentOrganizesLoseNothing) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, DeleteDuplicatesCrashWindowsLoseNothing) {
+    // Deletes journal per file today (an fsync pair each).
+    // Batched intents must keep the crash contract: kill
+    // after the intent commit -> nothing deleted, intents
+    // dropped by reconcile; kill after a removal -> that
+    // deletion is journaled-complete, the rest untouched
+    // and still deletable on the next run.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "same-content"; }
+    { std::ofstream(inbox / "b.txt") << "same-content"; }
+    { std::ofstream(inbox / "c.txt") << "same-content"; }
+    auto db = (dir / "t.db").string();
+    ASSERT_EQ(run_cli("duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+
+    auto crash = run_cli_fault("delete-duplicates --format=json --db=" + db +
+                                   " \"" + inbox.string() + "\"",
+                               dir, "delete.after-intent");
+    EXPECT_NE(crash.code, 0) << "fault point did not fire: " << crash.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt"));
+    EXPECT_TRUE(std::filesystem::exists(inbox / "b.txt"));
+    EXPECT_TRUE(std::filesystem::exists(inbox / "c.txt"));
+    auto hist = run_cli("history --format=json --db=" + db, dir);
+    EXPECT_EQ(hist.out.find("pending"), std::string::npos) << hist.out;
+
+    auto crash2 = run_cli_fault("delete-duplicates --format=json --db=" + db +
+                                    " \"" + inbox.string() + "\"",
+                                dir, "delete.after-remove");
+    EXPECT_NE(crash2.code, 0) << "fault point did not fire: " << crash2.out;
+    int remaining = (std::filesystem::exists(inbox / "a.txt") ? 1 : 0) +
+                    (std::filesystem::exists(inbox / "b.txt") ? 1 : 0) +
+                    (std::filesystem::exists(inbox / "c.txt") ? 1 : 0);
+    EXPECT_EQ(remaining, 2) << "exactly one candidate should be gone";
+    auto hist2 = run_cli("history --format=json --db=" + db, dir);
+    EXPECT_EQ(hist2.out.find("pending"), std::string::npos) << hist2.out;
+
+    auto fin = run_cli("delete-duplicates --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_EQ(fin.code, 0) << fin.out;
+    int left = (std::filesystem::exists(inbox / "a.txt") ? 1 : 0) +
+               (std::filesystem::exists(inbox / "b.txt") ? 1 : 0) +
+               (std::filesystem::exists(inbox / "c.txt") ? 1 : 0);
+    EXPECT_EQ(left, 1) << fin.out; // only the keeper remains
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

@@ -1746,46 +1746,94 @@ int main(int argc, char** argv) {
                     keep_hash = recheck_hasher->fast64(keep.uri);
                 }
 
-                for (size_t i = 1; i < members.size(); ++i) {
-                    const auto& del = members[i];
-                    if (dry_run) {
-                        deleted_paths.push_back(del.uri);
-                        continue;
+                // Batched journaling for this group (was one
+                // fsync pair per file): intent rows for every
+                // candidate commit BEFORE any unlink, removals
+                // run, then completions+audit commit together.
+                // Crash windows reconcile via the Delete branch
+                // of reconcile_pending (source present -> drop
+                // intent; source gone -> completed).
+                std::vector<int64_t> intent_ids(members.size(), 0);
+                bool intent_ok = true; // dry-run needs no intents; a failed intent txn clears this
+                if (!dry_run) {
+                    try {
+                        fo::core::OperationRepository op_repo(engine.database());
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (size_t i = 1; i < members.size(); ++i) {
+                            fo::core::OperationRecord rec;
+                            rec.timestamp = std::chrono::system_clock::now();
+                            rec.type = fo::core::OperationType::Delete;
+                            rec.source_path = members[i].uri;
+                            rec.file_size = members[i].size;
+                            rec.batch_id = op_batch_id;
+                            rec.status = "pending";
+                            intent_ids[i] = op_repo.log_operation(rec);
+                        }
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        std::cerr << "Failed to journal delete intents (" << je.what()
+                                  << "); this group was not touched\n";
+                        failed_count += static_cast<int>(members.size()) - 1;
+                        intent_ok = false;
                     }
-                    if (keep_hash.empty() || !recheck_hasher ||
-                        recheck_hasher->fast64(del.uri) != keep_hash) {
-                        ++skipped_count;
-                        std::cerr << "Skipped (content changed since duplicates run): "
-                                  << del.uri << "\n";
-                        continue;
-                    }
-                    {
-                        // std::filesystem::remove reports failure via its
-                        // return value, not an exception: only count (and
-                        // journal) deletions that actually happened.
+                    fo::core::fault_checkpoint("delete.after-intent");
+                }
+                std::vector<size_t> deleted_idx;
+                std::vector<size_t> dropped_idx;
+                if (intent_ok) {
+                    for (size_t i = 1; i < members.size(); ++i) {
+                        const auto& del = members[i];
+                        if (dry_run) {
+                            deleted_paths.push_back(del.uri);
+                            continue;
+                        }
+                        if (keep_hash.empty() || !recheck_hasher ||
+                            recheck_hasher->fast64(del.uri) != keep_hash) {
+                            ++skipped_count;
+                            std::cerr << "Skipped (content changed since duplicates run): "
+                                      << del.uri << "\n";
+                            dropped_idx.push_back(i);
+                            continue;
+                        }
+                        // std::filesystem::remove reports failure
+                        // via its return value, not an exception.
                         std::error_code rec_ec;
                         if (!std::filesystem::remove(del.uri, rec_ec)) {
                             ++failed_count;
                             std::cerr << "Failed to delete " << del.uri
                                       << ": " << rec_ec.message() << "\n";
+                            dropped_idx.push_back(i);
                             continue;
                         }
-                        try {
-                            deleted_paths.push_back(del.uri);
-                            deleted_count++;
-                            fo::core::OperationRepository op_repo(engine.database());
-                            fo::core::OperationRecord rec;
-                            rec.timestamp = std::chrono::system_clock::now();
-                            rec.type = fo::core::OperationType::Delete;
-                            rec.source_path = del.uri;
-                            rec.file_size = del.size;
-                            rec.batch_id = op_batch_id;
-                            op_repo.log_operation(rec);
-                            fo::core::make_audit_logger(engine.database())
-                                ->log("delete", del.uri, "", del.size, rec.file_hash);
-                        } catch (const std::exception& e) {
-                            std::cerr << "Failed to delete: " << e.what() << "\n";
+                        deleted_paths.push_back(del.uri);
+                        deleted_count++;
+                        deleted_idx.push_back(i);
+                        fo::core::fault_checkpoint("delete.after-remove");
+                    }
+                }
+                if (!dry_run && intent_ok) {
+                    try {
+                        fo::core::OperationRepository op_repo(engine.database());
+                        engine.database().execute("BEGIN IMMEDIATE;");
+                        for (size_t i : dropped_idx) op_repo.delete_operation(intent_ids[i]);
+                        for (size_t i : deleted_idx) {
+                            op_repo.set_status(intent_ids[i], "completed");
+                            try {
+                                fo::core::make_audit_logger(engine.database())
+                                    ->log("delete", members[i].uri, "", members[i].size, "");
+                            } catch (const std::exception& ae) {
+                                std::cerr << "Warning: audit write failed for " << members[i].uri
+                                          << ": " << ae.what() << "\n";
+                            }
                         }
+                        engine.database().execute("COMMIT;");
+                    } catch (const std::exception& je) {
+                        try { engine.database().execute("ROLLBACK;"); } catch (...) {}
+                        // Deletions stand; their rows stay
+                        // pending and reconcile at startup.
+                        std::cerr << "Warning: delete journal completion failed (" << je.what()
+                                  << "); deletions stand and reconcile on next run\n";
                     }
                 }
                 results.push_back({keep.uri, deleted_paths});

@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.5.112] - 2026-11-25 — Delete-Duplicates Batched With Delete Intents
+
+### Fixed
+- **Delete-duplicates journaled per file** (an fsync
+  pair per deletion). Candidates now get batched
+  `pending` Delete intent rows committed before any
+  unlink in the group, then completions+audit commit
+  together. Reconcile gained the Delete branch it
+  needed: source present → the unlink never ran, drop
+  the intent; source gone → complete the row (so the
+  batch still refuses undo truthfully). New
+  `DeleteDuplicatesCrashWindowsLoseNothing` kills the
+  process after the intent commit and again after a
+  removal, proving nothing is lost and the rest stays
+  deletable. The stale-authorization re-hash check is
+  unchanged and still runs per candidate. Suites:
+  lean/MSVC **119 + 1 skip**, wiring **32/32**, JUCE
+  **114 + 3 skips**.
+
 ## [6.5.111] - 2026-11-25 — Bulk Rename Chunked Like Organize
 
 ### Fixed
