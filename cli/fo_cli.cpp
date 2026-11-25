@@ -168,9 +168,23 @@ static bool destination_name_is_unsafe(const std::filesystem::path& dest) {
 // which would hide exactly the names this guard exists for.
 static bool destination_string_is_unsafe(const std::string& raw) {
     std::string cur;
+    bool first_seg = true;
     auto check_seg = [&](const std::string& seg) {
         if (seg.empty() || seg == "." || seg == "..") return false;
         if (seg.back() == '.' || seg.back() == ' ') return true;
+#ifdef _WIN32
+        // Win32-illegal characters: a ':' outside the drive
+        // prefix addresses an NTFS alternate data stream
+        // ("name:stream" would hide the file from listings),
+        // the rest fail unpredictably mid-batch. Refuse with
+        // a clear name instead of a cryptic OS error.
+        for (size_t i = 0; i < seg.size(); ++i) {
+            unsigned char c = static_cast<unsigned char>(seg[i]);
+            if (c < 0x20) return true;
+            if (c == '<' || c == '>' || c == '"' || c == '|' || c == '?' || c == '*') return true;
+            if (c == ':' && !(first_seg && i == 1 && seg.size() == 2)) return true;
+        }
+#endif
 #ifdef _WIN32
         std::string stem = seg.substr(0, seg.find('.'));
         for (auto& c : stem) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
@@ -185,6 +199,7 @@ static bool destination_string_is_unsafe(const std::string& raw) {
         if (c == '/' || c == '\\') {
             if (check_seg(cur)) return true;
             cur.clear();
+            first_seg = false;
         } else {
             cur += c;
         }

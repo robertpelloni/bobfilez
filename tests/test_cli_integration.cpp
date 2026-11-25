@@ -1205,6 +1205,47 @@ TEST_F(CliFixture, OrganizeRefusesTrailingDotSpaceSegments) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, OrganizeRefusesIllegalAndAdsSegments) {
+    // Filename class: a generated segment containing ':' is
+    // not just invalid on Windows — "name:stream" addresses
+    // an NTFS alternate data stream, so a file can be moved
+    // INTO a stream and vanish from directory listings. Other
+    // Win32-illegal characters (<>:"|?*, controls) fail
+    // unpredictably mid-batch. Refuse them like reserved
+    // names, before anything moves.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "ads"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule=bad:name/{filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(org.out.find("\"failed\": 1"), std::string::npos) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, OrganizeToDeepDestinationFailsSafely) {
+    // Path-length class: a rule generating a >260-char
+    // destination cannot be created by plain Win32 calls.
+    // The file must fail by name with the source intact —
+    // never crash, never half-move.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "deep-dest"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    const std::string seg(40, 'd');
+    std::string rule;
+    for (int i = 0; i < 6; ++i) rule += seg + "/";
+    rule += "{filename}";
+    auto org = run_cli("organize --rule=" + rule + " --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(org.code, 0) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

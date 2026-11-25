@@ -1,3 +1,25 @@
+# Session Handoff - v6.5.114 (Illegal/ADS Names)
+
+## What landed (2026-11-25, continuation)
+- **Illegal/ADS characters refused**: raw-string
+  segment guard now also rejects `<>:"|?*` and control
+  characters (drive `C:` excepted) with a clear unsafe
+  name error. Deep-destination and ADS behaviors were
+  verified already fail-safe and are now pinned by tests.
+  Gemini acknowledged the junction fix and named the
+  path-length/case/name class; case collisions and
+  long paths were already pinned in earlier versions.
+- Version **6.5.114**: lean/MSVC **122 + 1 skip**,
+  wiring **32/32**, JUCE **117 + 3 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`; Gemini replied, class answered above).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.113 (Segment Guard)
 
 ## What landed (2026-11-25, continuation)

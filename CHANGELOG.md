@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.114] - 2026-11-25 — Illegal/ADS Destination Characters Refused
+
+### Fixed
+- **Generated names with Win32-illegal characters**
+  (Gemini path-length/name class): a `:` in a generated
+  segment addresses an NTFS alternate data stream, and
+  `<>:"|?*` or control characters failed mid-batch with
+  cryptic OS errors. The raw-string segment guard now
+  refuses them up front with a clear "unsafe destination
+  name" (drive prefix `C:` excepted). Deep destinations
+  (>260) were verified to already fail safely per-file;
+  `OrganizeToDeepDestinationFailsSafely` and
+  `OrganizeRefusesIllegalAndAdsSegments` pin both.
+  Suites: lean/MSVC **122 + 1 skip**, wiring **32/32**,
+  JUCE **117 + 3 skips**.
+
 ## [6.5.113] - 2026-11-25 — Unsafe-Name Guard Covers Every Segment
 
 ### Fixed
