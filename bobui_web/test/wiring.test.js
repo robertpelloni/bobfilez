@@ -176,19 +176,33 @@ test('dashboard JSON payloads carry schema_version 1', async () => {
   assert.ok(Array.isArray(oj.moves));
 });
 
-test('CLI failures surface as HTTP 500, not empty successes', async () => {
+test('CLI failures surface as typed errors, not empty successes', async () => {
   // runCli used to resolve whenever stdout was non-empty, so a
   // failed run that printed a partial "[]" payload looked like an
-  // empty success (e.g. vhash on a folder). Nonzero exits must
-  // reject with the CLI's own error text.
+  // empty success (e.g. vhash on a folder). Nonzero exits now
+  // reject with a typed envelope: CLI exit 1 -> HTTP 422 FAILED,
+  // error stays a human string for the legacy React lane.
   const r = await fetch('http://localhost:3199/api/vhash', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ paths: [root] }),
   });
-  assert.equal(r.status, 500);
+  assert.equal(r.status, 422);
   const j = await r.json();
+  assert.equal(j.schema_version, 1);
+  assert.equal(j.error_code, 'FAILED');
+  assert.equal(j.retryable, false);
   assert.match(j.error, /failed/i);
+
+  // Bad input is a 400 BAD_REQUEST envelope, not a bare string.
+  const bad = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  assert.equal(bad.status, 400);
+  const bj = await bad.json();
+  assert.equal(bj.error_code, 'BAD_REQUEST');
 });
 
 test('health endpoint answers over HTTP', async () => {

@@ -11,9 +11,19 @@ additively: unknown fields pass through to consumers.
 
 Removing, renaming, or retyping an existing field is a breaking
 change and bumps `schema_version`. Adding a field does not.
-Error responses from the bridges move to a typed envelope
-(`{schema_version, error: {code, message, retryable}}`) under
-the same breaking-change rule.
+
+## Error envelope (bridges, since v6.5.81)
+
+```json
+{ "schema_version": 1, "error": "<human message>",
+  "error_code": "FAILED", "retryable": false }
+```
+
+`error` stays a string because the legacy React lane renders it
+raw; `error_code` is the stable machine-readable half
+(`BAD_REQUEST` 400, `USAGE` 400, `FAILED` 422, `TIMEOUT` 504
+retryable, `INTERNAL` 500). CLI exit code drives the mapping:
+2 → 400, 1 → 422, timeout → 504, anything else → 500.
 
 ## Pinning
 

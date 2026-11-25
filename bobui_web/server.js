@@ -28,20 +28,43 @@ function pickCli(candidates) {
 }
 const CLI = pickCli(CLI_CANDIDATES);
 
+// Typed error envelope (docs/JSON_SCHEMA.md): `error` stays a
+// human-readable string (the legacy React lane renders it raw),
+// joined by a stable machine-readable error_code, retryable, and
+// schema_version. Status mapping: CLI usage errors (exit 2) ->
+// 400, CLI failures (exit 1) -> 422, timeouts -> 504, anything
+// else (spawn failure, missing CLI) -> 500.
+function cliError(res, e) {
+    const status = e.timedOut ? 504 : e.cliCode === 2 ? 400 : e.cliCode === 1 ? 422 : 500;
+    const code = e.timedOut ? 'TIMEOUT' : e.cliCode === 2 ? 'USAGE' : e.cliCode === 1 ? 'FAILED' : 'INTERNAL';
+    res.status(status).json({
+        schema_version: 1,
+        error: e.message,
+        error_code: code,
+        retryable: e.timedOut === true,
+    });
+}
+
 function runCli(args, timeout = 120000) {
     if (!fs.existsSync(CLI)) {
         return Promise.reject(new Error(`CLI not found. Looked for: ${CLI_CANDIDATES.join(', ')}`));
     }
     return new Promise((resolve, reject) => {
         execFile(CLI, args, { maxBuffer: 50 * 1024 * 1024, timeout }, (err, stdout, stderr) => {
-            if (err && err.killed) return reject(new Error('Command timed out'));
+            if (err && err.killed) {
+                const e = new Error('Command timed out');
+                e.timedOut = true;
+                return reject(e);
+            }
             if (err) {
                 // Nonzero exit: surface the CLI's own error text. The
                 // old resolve-on-any-stdout made failed runs that
                 // printed a partial "[]" payload look like empty
                 // successes (e.g. vhash on a folder -> HTTP 200 []).
                 const detail = (stderr || '').trim() || (stdout || '').trim() || err.message;
-                return reject(new Error(detail));
+                const e = new Error(detail);
+                e.cliCode = (typeof err.code === 'number') ? err.code : null;
+                return reject(e);
             }
             resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
         });
@@ -107,7 +130,7 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/scan', async (req, res) => {
     try {
         const { paths = [], exts, minSize, maxSize, exclude, recursive = true } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['scan', '--format=json', ...paths];
         if (exts) args.push(`--ext=${exts}`);
         if (minSize) args.push(`--min-size=${minSize}`);
@@ -116,14 +139,14 @@ app.post('/api/scan', async (req, res) => {
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Duplicates ──
 app.post('/api/duplicates', async (req, res) => {
     try {
         const { paths = [], mode = 'fast', threads = 1, exts, minSize, maxSize, exclude, recursive = true } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['duplicates', '--format=json', `--mode=${mode}`, `--threads=${threads}`, ...paths];
         if (exts) args.push(`--ext=${exts}`);
         if (minSize) args.push(`--min-size=${minSize}`);
@@ -132,41 +155,41 @@ app.post('/api/duplicates', async (req, res) => {
         if (!recursive) args.push('--no-recursive');
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Stats ──
 app.post('/api/stats', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['stats', '--format=json', ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Hash ──
 app.post('/api/hash', async (req, res) => {
     try {
         const { paths = [], threads = 1 } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['hash', '--format=json', `--threads=${threads}`, ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Metadata ──
 app.post('/api/metadata', async (req, res) => {
     try {
         const { paths = [], exts } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['metadata', '--format=json', ...paths];
         if (exts) args.push(`--ext=${exts}`);
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // NOTE: there is deliberately no raw /api/delete endpoint. It used to
@@ -181,7 +204,7 @@ app.get('/api/history', async (req, res) => {
         const args = ['history', '--format=json'];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Ignore rules ──
@@ -189,58 +212,58 @@ app.get('/api/ignore', async (req, res) => {
     try {
         const { stdout } = await runCli(['ignore', '--format=json']);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/ignore/add', async (req, res) => {
     try {
         const { pattern, reason = '' } = req.body;
-        if (!pattern) return res.status(400).json({ error: 'No pattern' });
+        if (!pattern) return res.status(400).json({ schema_version: 1, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['ignore', 'add', pattern];
         if (reason) args.push(reason);
         await runCli(args);
         res.json({ success: true, pattern });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/ignore/remove', async (req, res) => {
     try {
         const { pattern } = req.body;
-        if (!pattern) return res.status(400).json({ error: 'No pattern' });
+        if (!pattern) return res.status(400).json({ schema_version: 1, error: 'No pattern', error_code: 'BAD_REQUEST', retryable: false });
         await runCli(['ignore', 'remove', pattern]);
         res.json({ success: true, pattern });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Lint ──
 app.post('/api/lint', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['lint', '--format=json', ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '[]'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Count (quick) ──
 app.post('/api/count', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['scan', '--count', ...paths]);
         res.json({ count: parseInt(extractJson(stdout), 10) || 0 });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Prune (v3.0.0 feature) ──
 app.post('/api/prune', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['stats', '--prune', ...paths]);
         res.json({ success: true, details: stdout });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Forensic audit ledger (persistent fo_cli audit query) ──
@@ -249,7 +272,7 @@ app.get('/api/audit', async (req, res) => {
         const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 1000);
         const { stdout } = await runCli(['audit', '--format=json', `--limit=${limit}`], 30000);
         res.json(JSON.parse(extractJson(stdout) || '{"verified":false,"count":0,"entries":[]}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Flow (OmniFlow Automation) ──
@@ -257,33 +280,33 @@ app.get('/api/flow/list', async (req, res) => {
     try {
         const { stdout } = await runCli(['flow', 'list', '--format=json']);
         res.json(JSON.parse(extractJson(stdout) || '{"workflows":[]}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/flow/run', async (req, res) => {
     try {
         const { workflow_id, payload_path } = req.body;
-        if (!workflow_id || !payload_path) return res.status(400).json({ error: 'workflow_id and payload_path required' });
+        if (!workflow_id || !payload_path) return res.status(400).json({ schema_version: 1, error: 'workflow_id and payload_path required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['flow', 'run', workflow_id, payload_path, '--format=json']);
         res.json(JSON.parse(extractJson(stdout) || '{"success":false}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Scrub (Integrity Verification) ──
 app.post('/api/scrub', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['scrub', '--format=json', ...paths]);
         res.json(JSON.parse(extractJson(stdout) || '{"scanned":0,"corrupted":0}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Search ──
 app.post('/api/search', async (req, res) => {
     try {
         const { query, paths = [], content = false, regex = false, wildcard = false, caseSensitive = false, wholeWord = false, invert = false, maxResults } = req.body;
-        if (!query) return res.status(400).json({ error: 'No query provided' });
+        if (!query) return res.status(400).json({ schema_version: 1, error: 'No query provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['search', query, '--format=json'];
         if (content) args.push('--content');
         if (regex) args.push('--regex');
@@ -295,14 +318,14 @@ app.post('/api/search', async (req, res) => {
         args.push(...paths);
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{"results":[]}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Export ──
 app.post('/api/export', async (req, res) => {
     try {
         const { paths = [], format = 'json' } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['export', `--format=${format}`, ...paths];
         const { stdout } = await runCli(args);
         if (format === 'json') {
@@ -310,18 +333,18 @@ app.post('/api/export', async (req, res) => {
         } else {
             res.type(format === 'csv' ? 'text/csv' : 'text/html').send(stdout);
         }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Organize (Dry Run) ──
 app.post('/api/organize', async (req, res) => {
     try {
         const { paths = [], rule = '' } = req.body;
-        if (!paths.length || !rule) return res.status(400).json({ error: 'paths and rule required' });
+        if (!paths.length || !rule) return res.status(400).json({ schema_version: 1, error: 'paths and rule required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['organize', '--rule=' + rule, '--dry-run', '--format=json', ...paths];
         const { stdout } = await runCli(args);
         res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}'));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 
@@ -336,45 +359,45 @@ async function vaultRun(res, cliArgs) {
 app.post('/api/vault/init', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
-        if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
+        if (!vaultPath || !password) return res.status(400).json({ schema_version: 1, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-init', vaultPath, password]);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/vault/lock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', file = '' } = req.body;
-        if (!vaultPath || !password || !file) return res.status(400).json({ error: 'vaultPath, password, and file required' });
+        if (!vaultPath || !password || !file) return res.status(400).json({ schema_version: 1, error: 'vaultPath, password, and file required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-lock', vaultPath, password, file]);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/vault/unlock', async (req, res) => {
     try {
         const { vaultPath = '', password = '', vaultId = '', dest = '' } = req.body;
-        if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ error: 'vaultPath, password, vaultId, and dest required' });
+        if (!vaultPath || !password || !vaultId || !dest) return res.status(400).json({ schema_version: 1, error: 'vaultPath, password, vaultId, and dest required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-unlock', vaultPath, password, vaultId, dest]);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/vault/list', async (req, res) => {
     try {
         const { vaultPath = '', password = '' } = req.body;
-        if (!vaultPath || !password) return res.status(400).json({ error: 'vaultPath and password required' });
+        if (!vaultPath || !password) return res.status(400).json({ schema_version: 1, error: 'vaultPath and password required', error_code: 'BAD_REQUEST', retryable: false });
         await vaultRun(res, ['vault-list', vaultPath, password]);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 
 app.post('/api/delete-duplicates', async (req, res) => {
   try {
     const { path: dirPath, dryRun = true } = req.body;
-    if (!dirPath) return res.status(400).json({ error: 'path required' });
+    if (!dirPath) return res.status(400).json({ schema_version: 1, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
     const args = ['delete-duplicates', '--format=json', dirPath];
     if (dryRun) args.push('--dry-run');
     const { stdout } = await runCli(args);
     res.json(JSON.parse(extractJson(stdout) || '{}'));
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { cliError(res, e); }
 });
 
 // ── Consolidated-UI Phase 1: missing CLI bridges (added 2026-11-03) ──
@@ -382,83 +405,83 @@ app.get('/api/modules', async (req, res) => {
     try {
         const { stdout } = await runCli(['--modules']);
         res.json({ raw: stdout });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/ocr', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['ocr', '--format=json', ...paths]);
         try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/similar', async (req, res) => {
     try {
         const { paths = [], threshold = 10 } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['similar', '--format=json', `--threshold=${threshold}`, ...paths]);
         try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/vhash', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['vhash', '--format=json', ...paths]);
         try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/afingerprint', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['afingerprint', '--format=json', ...paths]);
         try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/classify', async (req, res) => {
     try {
         const { paths = [] } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['classify', '--format=json', ...paths]);
         try { res.json(JSON.parse(extractJson(stdout) || '[]')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/rename', async (req, res) => {
     try {
         const { paths = [], pattern = '', dryRun = true } = req.body;
-        if (!paths.length || !pattern) return res.status(400).json({ error: 'paths and pattern required' });
+        if (!paths.length || !pattern) return res.status(400).json({ schema_version: 1, error: 'paths and pattern required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['rename', '--pattern=' + pattern, '--format=json', ...paths];
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
         try { res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/rename-batch', async (req, res) => {
     try {
         const { paths = [], find = '', replace = '', regex = false, dryRun = true } = req.body;
-        if (!paths.length) return res.status(400).json({ error: 'No paths provided' });
-        if (!find) return res.status(400).json({ error: 'find text required' });
+        if (!paths.length) return res.status(400).json({ schema_version: 1, error: 'No paths provided', error_code: 'BAD_REQUEST', retryable: false });
+        if (!find) return res.status(400).json({ schema_version: 1, error: 'find text required', error_code: 'BAD_REQUEST', retryable: false });
         const args = ['rename-batch', '--format=json', `--find=${find}`, `--replace=${replace}`, ...paths];
         if (regex) args.push('--regex');
         if (dryRun) args.push('--dry-run');
         const { stdout } = await runCli(args);
         try { res.json(JSON.parse(extractJson(stdout) || '{"moves":[]}')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/convert', async (req, res) => {
     try {
         const { files = [], to = '' } = req.body;
-        if (!files.length || !to) return res.status(400).json({ error: 'files and target format required' });
+        if (!files.length || !to) return res.status(400).json({ schema_version: 1, error: 'files and target format required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['convert', '--to=' + to, '--format=json', ...files]);
         try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/undo', async (req, res) => {
     try {
         const { stdout } = await runCli(['undo', '--format=json']);
         try { res.json(JSON.parse(extractJson(stdout) || '{"success":false}')); } catch { res.json({ raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/clerk', async (req, res) => {
     try {
@@ -468,17 +491,17 @@ app.post('/api/clerk', async (req, res) => {
         // usage-errored; map the dashboard card to the honest status probe.
         const { stdout } = await runCli(['clerk', 'status'], 30000);
         res.json({ raw: stdout, note: 'Live filing: run `fo_cli clerk start <inbox> <archive>` in a terminal.' });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/oracle', async (req, res) => {
     try {
         const { question = '', paths = [] } = req.body;
-        if (!question) return res.status(400).json({ error: 'question required' });
+        if (!question) return res.status(400).json({ schema_version: 1, error: 'question required', error_code: 'BAD_REQUEST', retryable: false });
         // fo_cli oracle takes a bare query and prints plain text (no JSON
         // mode, no path args); forward only the question.
         const { stdout } = await runCli(['oracle', question], 300000);
         res.json({ answer: stdout, raw: stdout });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.get('/api/watch/status', async (req, res) => {
     try {
@@ -487,7 +510,7 @@ app.get('/api/watch/status', async (req, res) => {
         const { stdout } = await runCli(['watch-status', '--format=json'], 30000);
         try { res.json(JSON.parse(extractJson(stdout) || '{"watching":false}')); }
         catch { res.json({ watching: false, raw: stdout }); }
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 // ── Provider directory (every --list-* surface in one place) ──
 app.get('/api/providers', async (req, res) => {
@@ -507,13 +530,13 @@ app.get('/api/providers', async (req, res) => {
         }));
         const { stdout: modules } = await runCli(['--modules'], 30000);
         res.json({ providers: Object.fromEntries(entries), modules });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.get('/api/download-models', async (req, res) => {
     try {
         const { stdout } = await runCli(['--download-models'], 30000);
         res.json({ instructions: stdout, note: 'fo_cli prints setup instructions; it does not download models itself. See scripts/download_models.py for CLIP models.' });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 // ── Autonomous service status (start/stop are blocking terminal loops) ──
@@ -521,21 +544,21 @@ app.get('/api/autodev/status', async (req, res) => {
     try {
         const { stdout } = await runCli(['autodev', 'status'], 30000);
         res.json({ raw: stdout, note: 'Start in a terminal: fo_cli autodev start <repo_root>. Status is process-local, so a separately started loop is not visible here.' });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.get('/api/sync/status', async (req, res) => {
     try {
         const { stdout } = await runCli(['sync', 'status'], 30000);
         res.json({ raw: stdout, note: 'Start in a terminal: fo_cli sync start <path>.' });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 app.post('/api/sync/history', async (req, res) => {
     try {
         const { path: syncPath = '' } = req.body;
-        if (!syncPath) return res.status(400).json({ error: 'path required' });
+        if (!syncPath) return res.status(400).json({ schema_version: 1, error: 'path required', error_code: 'BAD_REQUEST', retryable: false });
         const { stdout } = await runCli(['sync', 'history', syncPath], 30000);
         res.json({ raw: stdout });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { cliError(res, e); }
 });
 
 app.post('/api/quit', async (req, res) => {

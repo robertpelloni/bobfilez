@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.81 (Typed Bridge Error Envelope)
+
+## What landed (2026-11-24, continuation)
+- **Error envelope**: `cliError` helper in `server.js` (42
+  catches routed), exit-code → HTTP status mapping, 31
+  validation responses wrapped as `BAD_REQUEST`. Legacy React
+  string contract preserved deliberately. Live dashboard
+  restarted + re-probed (422s with CLI text). Wiring 28/28.
+- Version **6.5.81**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 7 in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.80 (Mtime Identity + Dir-Journal Order)
 
 ## What landed (2026-11-24, continuation)

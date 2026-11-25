@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.5.81] - 2026-11-24 — Typed Bridge Error Envelope
+
+### Added
+- **Dashboard errors are typed, not flat 500s** (round-6):
+  every bridge failure returns
+  `{schema_version: 1, error, error_code, retryable}` with the
+  status driven by the CLI exit code — usage errors (exit 2)
+  → 400 `USAGE`, CLI failures (exit 1) → 422 `FAILED`,
+  timeouts → 504 `TIMEOUT` (retryable), spawn/missing CLI →
+  500 `INTERNAL`; validation failures are 400 `BAD_REQUEST`.
+  `error` deliberately stays a human string because the legacy
+  React lane renders it raw (documented tradeoff in
+  `docs/JSON_SCHEMA.md`). All 42 bridge catches route through
+  one `cliError` helper. Wiring test updated to the envelope
+  contract; live dashboard re-verified (media endpoints now
+  answer 422 with the CLI's message). Suites: lean **85/85**,
+  wiring **28/28**; other lanes rebuilt at this version.
+
 ## [6.5.80] - 2026-11-24 — Mtime Identity + Dir-Journal Order (Round 6)
 
 ### Fixed
