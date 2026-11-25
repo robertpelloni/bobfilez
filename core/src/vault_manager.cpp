@@ -2,6 +2,7 @@
 /// @brief Implementation of the Encrypted Vault.
 
 #include "fo/core/vault_manager.hpp"
+#include "fo/core/fault_injection.hpp"
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -200,17 +201,22 @@ bool VaultManager::encrypt_file(const std::filesystem::path& input, const std::f
     EVP_CIPHER_CTX_free(ctx);
     out.close();
 
+    // Save metadata BEFORE the entry rename: a crash between the
+    // two used to leave a nameless ("Unknown") entry. An orphan
+    // .meta is harmless (listings skip it); a nameless entry is
+    // user-visible damage.
+    std::filesystem::path meta_path = output;
+    meta_path += ".meta";
+    {
+        std::ofstream meta_out(meta_path);
+        if (meta_out) {
+            meta_out << input.filename().string() << "\n";
+        }
+    }
+
     std::error_code rec_ec;
     std::filesystem::rename(tmp, output, rec_ec);
     if (rec_ec) return fail();
-
-    // Save metadata
-    std::filesystem::path meta_path = output;
-    meta_path += ".meta";
-    std::ofstream meta_out(meta_path);
-    if (meta_out) {
-        meta_out << input.filename().string() << "\n";
-    }
 
     return true;
 }
@@ -318,6 +324,10 @@ bool VaultManager::lock_file(const std::filesystem::path& file_path) {
     std::filesystem::path dest_path = vault_path_ / vault_id;
 
     if (encrypt_file(file_path, dest_path)) {
+        // Crash window: entry sealed in the vault, source not
+        // yet removed. "Both present" is the safe outcome;
+        // VaultLockUnlockCrashWindowsLoseNothing pins it.
+        fault_checkpoint("vault.after-encrypt");
         // Only delete if encryption succeeds
         // In a real scenario we'd do secure delete (wiping)
         std::filesystem::remove(file_path);
@@ -361,6 +371,9 @@ bool VaultManager::unlock_file(const std::string& vault_id, const std::filesyste
     if (std::filesystem::exists(actual_dest)) return false;
 
     if (decrypt_file(src_path, actual_dest)) {
+        // Crash window: plaintext restored (tag-verified),
+        // entry not yet removed — a retry-safe duplicate.
+        fault_checkpoint("vault.after-decrypt");
         std::filesystem::remove(src_path);
 
         std::filesystem::path meta_path = src_path;

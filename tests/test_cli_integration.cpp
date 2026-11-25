@@ -389,6 +389,102 @@ TEST_F(CliFixture, VaultOpsAppearInAuditLedger) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, VaultFailedAttemptsAreAudited) {
+    // A forensic trail that only records successes is a
+    // brochure. Failed lock/unlock attempts (bad id, traversal,
+    // wrong password, missing file) must reach the ledger too —
+    // never with password material in the entry.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "s.txt") << "x"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+    EXPECT_NE(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" +
+                          (dir / "missing.txt").string() + "\" --db=" + db, dir).code, 0);
+    EXPECT_NE(run_cli("vault-unlock \"" + vault.string() + "\" pw123 ../escape \"" +
+                          (dir / "out.txt").string() + "\" --db=" + db, dir).code, 0);
+    EXPECT_NE(run_cli("vault-list \"" + vault.string() + "\" wrongpw --db=" + db, dir).code, 0);
+    auto audit = run_cli("audit --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("vault-lock-failed"), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("vault-unlock-failed"), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("vault-initialize-failed"), std::string::npos) << audit.out;
+    EXPECT_EQ(audit.out.find("pw123"), std::string::npos) << audit.out;
+    EXPECT_EQ(audit.out.find("wrongpw"), std::string::npos) << audit.out;
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, VaultLockUnlockCrashWindowsLoseNothing) {
+    // vault-lock/unlock are destructive two-step operations.
+    // Hard-kill between encrypt and source removal (and between
+    // decrypt and entry removal): the result must be "both
+    // present" or "fully done", never neither.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "s.txt") << "precious"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+
+    auto crash = run_cli_fault("vault-lock \"" + vault.string() + "\" pw123 \"" +
+                                   (dir / "s.txt").string() + "\" --db=" + db,
+                               dir, "vault.after-encrypt");
+    EXPECT_NE(crash.code, 0) << "fault point did not fire: " << crash.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "s.txt")) << crash.out;
+    auto list1 = run_cli("vault-list \"" + vault.string() + "\" pw123 --db=" + db, dir);
+    EXPECT_NE(list1.out.find("(1 entries)"), std::string::npos) << list1.out;
+
+    // Complete the lock normally, then crash the unlock.
+    ASSERT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" +
+                          (dir / "s.txt").string() + "\" --db=" + db, dir).code, 0);
+    EXPECT_FALSE(std::filesystem::exists(dir / "s.txt"));
+    auto lst = run_cli("vault-list \"" + vault.string() + "\" pw123 --db=" + db, dir);
+    auto id_pos = lst.out.find("vault_");
+    ASSERT_NE(id_pos, std::string::npos) << lst.out;
+    auto id_end = lst.out.find(' ', id_pos);
+    std::string id = lst.out.substr(id_pos, id_end - id_pos);
+    auto crash2 = run_cli_fault("vault-unlock \"" + vault.string() + "\" pw123 " + id +
+                                    " \"" + (dir / "back.txt").string() + "\" --db=" + db,
+                                dir, "vault.after-decrypt");
+    EXPECT_NE(crash2.code, 0) << "fault point did not fire: " << crash2.out;
+    ASSERT_TRUE(std::filesystem::exists(dir / "back.txt")) << crash2.out;
+    std::ifstream in(dir / "back.txt");
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(content, "precious");
+    auto list2 = run_cli("vault-list \"" + vault.string() + "\" pw123 --db=" + db, dir);
+    EXPECT_NE(list2.out.find(id), std::string::npos) << list2.out; // entry survives for retry
+    std::filesystem::current_path(original_cwd);
+}
+
+TEST_F(CliFixture, OrganizeCaseCollisionAndReservedNameFailSafely) {
+    // Windows path edges: two sources mapping to destinations
+    // that differ only by case collide on NTFS (second must
+    // fail, not overwrite), and a reserved device name (CON)
+    // as a rename target must fail per-file, never crash or
+    // silently "succeed".
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox / "x");
+    std::filesystem::create_directories(inbox / "y");
+    { std::ofstream(inbox / "x" / "Report.txt") << "one"; }
+    { std::ofstream(inbox / "y" / "report.txt") << "two"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={filename} --format=json --db=" + db +
+                           " \"" + inbox.string() + "\"", dir);
+    EXPECT_NE(org.out.find("\"failed\": 1"), std::string::npos) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "Report.txt") ||
+                std::filesystem::exists(dir / "report.txt")) << org.out;
+    int remaining = (std::filesystem::exists(inbox / "x" / "Report.txt") ? 1 : 0) +
+                    (std::filesystem::exists(inbox / "y" / "report.txt") ? 1 : 0);
+    EXPECT_EQ(remaining, 1) << org.out; // loser stays home, intact
+
+    { std::ofstream(dir / "ok.txt") << "ok"; }
+    auto ren = run_cli("rename --pattern=CON --format=json --db=" + db +
+                           " \"" + (dir / "ok.txt").string() + "\"", dir);
+    EXPECT_NE(ren.out.find("\"failed\": 1"), std::string::npos) << ren.out;
+    EXPECT_TRUE(std::filesystem::exists(dir / "ok.txt")) << ren.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, ConvertRefusesExistingOutputAndQuoteInjection) {
     // convert used to overwrite existing outputs silently
     // (ffmpeg -y) while every other command refuses, and it

@@ -1,5 +1,36 @@
 # Changelog
 
+## [6.5.95] - 2026-11-25 — Reserved-Name Data Loss, Vault Failure Trail
+
+### Fixed
+- **Renaming onto a Windows device name destroyed the file**
+  (found by the round-9 collision probe): `rename --pattern=CON`
+  reported success and the source vanished into the CON
+  device. Organize/rename now refuse destinations whose final
+  segment is a Win32 reserved name (CON, PRN, AUX, NUL,
+  COM0-9, LPT0-9, any extension) or ends in a dot/space, as a
+  named per-file failure before anything moves.
+  `OrganizeCaseCollisionAndReservedNameFailSafely` also pins
+  the NTFS case-collision case (two sources flattening to
+  case-variants of one dest: one moves, one fails, loser
+  stays home intact).
+- **Vault failures were invisible**: wrong-password access,
+  failed lock (missing file) and failed unlock (bad/traversal
+  id) now write `vault-initialize-failed` / `vault-lock-
+  failed` / `vault-unlock-failed` audit entries — paths only,
+  never password material. Vault crypto reviewed for round 9:
+  PBKDF2-HMAC-SHA256 (100k), per-entry random salt + 12-byte
+  GCM IV via RAND_bytes, `.part`+rename atomicity both
+  directions; metadata is now written before the entry rename
+  so a crash cannot leave a nameless entry. New
+  `vault.after-encrypt` / `vault.after-decrypt` fault
+  checkpoints + `VaultLockUnlockCrashWindowsLoseNothing`
+  prove both-present-or-done in each window.
+- **Wiring goldens** now cover every array bridge route
+  (duplicates, metadata, lint, history, ignore in addition
+  to scan/hash). Suites: lean **103/103**, MSVC **103/103**,
+  wiring **31/31**, JUCE **98 passed + 2 designed skips**.
+
 ## [6.5.94] - 2026-11-25 — True Crash Recovery: Intent Before Move
 
 ### Fixed

@@ -1,3 +1,31 @@
+# Session Handoff - v6.5.95 (Reserved Names + Vault Trail)
+
+## What landed (2026-11-25, continuation)
+- **Reserved-name data loss fixed**: rename/organize onto
+  CON/NUL/AUX/COMn/LPTn (or trailing dot/space) used to
+  "succeed" into the device — source gone. Now a named
+  per-file refusal before any move. Case-collision pinned.
+- **Vault**: failed initialize/lock/unlock now audited
+  (paths only); `.meta` written before entry rename;
+  `vault.after-encrypt`/`vault.after-decrypt` crash
+  checkpoints prove both-present-or-done. Crypto verified:
+  PBKDF2-HMAC-SHA256 100k, random per-entry salt+IV.
+- **Wiring goldens** cover all array bridge routes (31/31).
+- Version **6.5.95**: lean **103/103**, MSVC **103/103**,
+  JUCE **98 + 2 designed skips**. Pushed.
+- Round-9 reply triaged; round-10 report posted to
+  `ad74257e`. Secrets-in-history: current-tree clean only —
+  full-history scan + purge stays owner-gated.
+
+## Still open (roast triage)
+- History purge / full-history secrets scan (owner).
+- Long-path (>260) organize destinations: untested; probe
+  before promising support.
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- Muse review in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.94 (True Crash Recovery)
 
 ## What landed (2026-11-25, continuation)

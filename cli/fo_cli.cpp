@@ -114,6 +114,26 @@ static void write_watch_status(long long started, const std::vector<std::string>
 // write failed AND rollback failed). Appended next to the database
 // so the residue survives the session and can be reconciled by
 // hand; stderr alone evaporates (Muse review).
+// Win32 reserved destination names: renaming a file onto CON,
+// NUL, AUX, COM1... "succeeds" into a device and the bytes are
+// gone. Names ending in a dot or space are silently stripped by
+// Win32, landing somewhere other than the journal says. Refuse
+// such destinations per-file before anything moves.
+static bool destination_name_is_unsafe(const std::filesystem::path& dest) {
+    std::string name = dest.filename().string();
+    if (name.empty()) return true;
+    if (name.back() == '.' || name.back() == ' ') return true;
+#ifdef _WIN32
+    std::string stem = name.substr(0, name.find('.'));
+    for (auto& c : stem) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    static const char* reserved[] = {"CON", "PRN", "AUX", "NUL",
+        "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+        "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
+    for (const char* r : reserved) if (stem == r) return true;
+#endif
+    return false;
+}
+
 static void record_journal_residue(const std::string& db_path, const std::string& src,
                                    const std::string& dst, const std::string& why) {
     try {
@@ -1452,6 +1472,12 @@ int main(int argc, char** argv) {
                         auto abs_path = std::filesystem::absolute(new_path, aec);
                         if (!aec) new_path = abs_path;
                     }
+                    if (destination_name_is_unsafe(new_path)) {
+                        ++failed_moves;
+                        std::cerr << "Failed to move " << f.uri
+                                  << ": unsafe destination name " << new_path.filename() << "\n";
+                        continue;
+                    }
                     if (dry_run) {
                         moves.push_back({f.uri, new_path.string()});
                     }
@@ -1825,6 +1851,12 @@ int main(int argc, char** argv) {
                         std::error_code aec;
                         auto abs_path = std::filesystem::absolute(new_path, aec);
                         if (!aec) new_path = abs_path;
+                    }
+                    if (destination_name_is_unsafe(new_path)) {
+                        ++failed_renames;
+                        std::cerr << "Failed to rename " << f.uri
+                                  << ": unsafe destination name " << new_path.filename() << "\n";
+                        continue;
                     }
                     if (dry_run) {
                         renames.push_back({f.uri, new_path.string()});
@@ -2946,6 +2978,12 @@ int main(int argc, char** argv) {
             }
             fo::core::VaultManager vault;
             if (!vault.initialize(pargs[1], pargs[2])) {
+                // Failed access (wrong password, missing OpenSSL,
+                // corrupt vault) is exactly what a forensic trail
+                // exists to record. Paths only — never passwords.
+                if (auto audit = fo::core::make_audit_logger(engine.database())) {
+                    audit->log("vault-initialize-failed", pargs[1]);
+                }
                 std::cerr << "Error: vault unavailable (built without OpenSSL, wrong password, or corrupted vault).\n";
                 return 1;
             }
@@ -2953,7 +2991,12 @@ int main(int argc, char** argv) {
                 std::cout << "Vault initialized at " << pargs[1] << "\n";
             } else if (command == "vault-lock") {
                 if (pargs.size() < 4) { std::cerr << "Usage: fo vault-lock <vaultPath> <password> <file>\n"; return 1; }
-                if (!vault.lock_file(pargs[3])) { std::cerr << "Error: failed to lock file into vault.\n"; return 1; }
+                if (!vault.lock_file(pargs[3])) {
+                    if (auto audit = fo::core::make_audit_logger(engine.database())) {
+                        audit->log("vault-lock-failed", pargs[3]);
+                    }
+                    std::cerr << "Error: failed to lock file into vault.\n"; return 1;
+                }
                 // Lock consumes the source file; the forensic ledger
                 // must show it like every other destructive op.
                 if (auto audit = fo::core::make_audit_logger(engine.database())) {
@@ -2962,7 +3005,12 @@ int main(int argc, char** argv) {
                 std::cout << "Locked " << pargs[3] << " into vault.\n";
             } else if (command == "vault-unlock") {
                 if (pargs.size() < 5) { std::cerr << "Usage: fo vault-unlock <vaultPath> <password> <vaultId> <dest>\n"; return 1; }
-                if (!vault.unlock_file(pargs[3], pargs[4])) { std::cerr << "Error: failed to unlock vault entry.\n"; return 1; }
+                if (!vault.unlock_file(pargs[3], pargs[4])) {
+                    if (auto audit = fo::core::make_audit_logger(engine.database())) {
+                        audit->log("vault-unlock-failed", pargs[3] + " -> " + pargs[4]);
+                    }
+                    std::cerr << "Error: failed to unlock vault entry.\n"; return 1;
+                }
                 if (auto audit = fo::core::make_audit_logger(engine.database())) {
                     audit->log("vault-unlock", pargs[3] + " -> " + pargs[4]);
                 }

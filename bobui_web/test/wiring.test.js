@@ -325,6 +325,33 @@ test('partial success keeps its per-file payload on failure', async () => {
   }
 });
 
+test('every array bridge route returns the wrapped v2 shape', async () => {
+  // Round 9: goldens previously pinned only /api/scan and
+  // /api/hash, so other array routes could drift back to bare
+  // arrays unnoticed. All of them must be {schema_version: 2,
+  // items: [...]}.
+  const posts = ['/api/duplicates', '/api/metadata', '/api/lint'];
+  for (const route of posts) {
+    const r = await fetch('http://localhost:3199' + route, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths: [root] }),
+    });
+    assert.equal(r.status, 200, route);
+    const j = await r.json();
+    assert.ok(!Array.isArray(j), route + ' returned a bare array');
+    assert.equal(j.schema_version, 2, route);
+    assert.ok(Array.isArray(j.items), route);
+  }
+  for (const route of ['/api/history', '/api/ignore']) {
+    const r = await fetch('http://localhost:3199' + route);
+    assert.equal(r.status, 200, route);
+    const j = await r.json();
+    assert.ok(!Array.isArray(j), route + ' returned a bare array');
+    assert.equal(j.schema_version, 2, route);
+    assert.ok(Array.isArray(j.items), route);
+  }
+});
+
 test('scan bridge returns wrapped items, not a bare array', async () => {
   const r = await fetch('http://localhost:3199/api/scan', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
