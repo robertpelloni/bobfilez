@@ -352,6 +352,29 @@ void write_minimal_exif_jpeg(const std::filesystem::path& path) {
     (void)tiff;
 }
 
+TEST_F(CliFixture, VaultListRejectsWrongPassword) {
+    // vault-list took a password but never checked it: any
+    // password listed entry names and sizes. A vault verifier
+    // (written at init) must gate initialize() for list/lock/
+    // unlock on vaults that have one.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "secret.txt") << "topsecret"; }
+    std::filesystem::current_path(dir);
+    auto init = run_cli("vault-init \"" + vault.string() + "\" pw123", dir);
+    ASSERT_EQ(init.code, 0) << init.out;
+    auto lock = run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "secret.txt").string() + "\"", dir);
+    ASSERT_EQ(lock.code, 0) << lock.out;
+
+    auto wrong = run_cli("vault-list \"" + vault.string() + "\" wrongpw", dir);
+    EXPECT_NE(wrong.code, 0) << wrong.out;
+    EXPECT_EQ(wrong.out.find("secret.txt"), std::string::npos) << wrong.out;
+
+    auto right = run_cli("vault-list \"" + vault.string() + "\" pw123", dir);
+    ASSERT_EQ(right.code, 0) << right.out;
+    EXPECT_NE(right.out.find("secret.txt"), std::string::npos) << right.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, MetadataOmitsBogusGps) {
     // A JPEG with EXIF Make but no GPS used to print
     // "GPS: 1.79769e+308, 1.79769e+308" — TinyEXIF's absent-GPS

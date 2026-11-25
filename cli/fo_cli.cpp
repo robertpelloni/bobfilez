@@ -2803,7 +2803,7 @@ int main(int argc, char** argv) {
             }
             fo::core::VaultManager vault;
             if (!vault.initialize(pargs[1], pargs[2])) {
-                std::cerr << "Error: vault unavailable (built without OpenSSL) or bad vault path.\n";
+                std::cerr << "Error: vault unavailable (built without OpenSSL, wrong password, or corrupted vault).\n";
                 return 1;
             }
             if (command == "vault-init") {

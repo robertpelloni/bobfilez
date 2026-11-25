@@ -1,3 +1,20 @@
+# Session Handoff - v6.5.86 (Vault List Verifies The Password)
+
+## What landed (2026-11-24, continuation)
+- **Vault password gate**: `.vault_verify` HMAC verifier at
+  init; wrong passwords rejected in `initialize()`; legacy
+  vaults (no verifier) deliberately ungated. Verifier excluded
+  from listings. CLI test added. Lean ctest **90/90**.
+- Version **6.5.86**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e` (round 8 posted).
+
+---
 # Session Handoff - v6.5.85 (Bogus GPS Sentinels + Flow JSON Exit)
 
 ## What landed (2026-11-24, continuation)

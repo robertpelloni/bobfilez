@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.5.86] - 2026-11-24 — Vault List Verifies The Password
+
+### Fixed
+- **`vault-list` accepted any password**: `initialize()` never
+  checked it, so entry names and sizes listed for whoever
+  asked. Vaults now carry a `.vault_verify` (salt + HMAC under
+  the PBKDF2 key, written at init for fresh vaults);
+  `initialize()` rejects wrong passwords up front for
+  list/lock/unlock. Legacy vaults without a verifier stay
+  ungated (their contents remain encrypted; the owner re-inits
+  to opt in) rather than letting a first-come password claim
+  them. The verifier file itself briefly listed as an entry —
+  bookkeeping dotfiles are now skipped. New
+  `VaultListRejectsWrongPassword` CLI test failed before,
+  passes after. Suites: lean **90/90**; other lanes rebuilt at
+  this version.
+
 ## [6.5.85] - 2026-11-24 — Bogus GPS Sentinels + Flow JSON Exit
 
 ### Fixed

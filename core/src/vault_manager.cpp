@@ -10,6 +10,8 @@
 #ifdef FO_HAVE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <openssl/hmac.h>
+#include <openssl/crypto.h>
 #endif
 
 #ifdef FO_HAVE_OPENSSL
@@ -43,7 +45,79 @@ bool VaultManager::initialize(const std::filesystem::path& vault_path, const std
     vault_path_ = vault_path;
     password_ = password;
     std::filesystem::create_directories(vault_path);
-    // std::cout << "[Vault] Initialized at " << vault_path << "\n";
+
+    // Password verifier (".vault_verify": salt + HMAC of a known
+    // constant under the PBKDF2 key). initialize() used to accept
+    // ANY password, so vault-list leaked entry names/sizes to
+    // whoever asked. Vaults with a verifier now reject wrong
+    // passwords up front for list/lock/unlock alike.
+    const auto verify_path = vault_path / ".vault_verify";
+    auto hex_of = [](const unsigned char* p, size_t n) {
+        std::string s;
+        for (size_t i = 0; i < n; ++i) {
+            char buf[3];
+            std::snprintf(buf, sizeof(buf), "%02x", p[i]);
+            s += buf;
+        }
+        return s;
+    };
+    auto unhex = [](const std::string& s, unsigned char* out, size_t maxn) -> size_t {
+        size_t n = 0;
+        for (size_t i = 0; i + 1 < s.size() && n < maxn; i += 2) {
+            out[n++] = static_cast<unsigned char>(std::stoi(s.substr(i, 2), nullptr, 16));
+        }
+        return n;
+    };
+    const char* kVerifierMsg = "bobfilez-vault-verify-v1";
+    auto compute_hmac = [&](const unsigned char* salt, std::string& out_hex) {
+        unsigned char key[AES_256_KEY_SIZE];
+        if (!derive_key(password, salt, key)) return false;
+        unsigned char mac[EVP_MAX_MD_SIZE];
+        unsigned int mac_len = 0;
+        if (!HMAC(EVP_sha256(), key, AES_256_KEY_SIZE,
+                  reinterpret_cast<const unsigned char*>(kVerifierMsg),
+                  std::strlen(kVerifierMsg), mac, &mac_len)) return false;
+        out_hex = hex_of(mac, mac_len);
+        return true;
+    };
+
+    std::error_code ec;
+    if (std::filesystem::exists(verify_path)) {
+        std::ifstream in(verify_path);
+        std::string salt_hex, mac_hex;
+        std::getline(in, salt_hex);
+        std::getline(in, mac_hex);
+        unsigned char salt[SALT_SIZE];
+        if (unhex(salt_hex, salt, SALT_SIZE) != SALT_SIZE) return false;
+        std::string expected;
+        if (!compute_hmac(salt, expected)) return false;
+        if (expected.size() != mac_hex.size() ||
+            CRYPTO_memcmp(expected.data(), mac_hex.data(), expected.size()) != 0) {
+            return false; // wrong password (or corrupt verifier)
+        }
+        return true;
+    }
+
+    // No verifier yet: write one only for a fresh vault (no
+    // entries). A legacy vault with entries gets none — whichever
+    // password arrived first must not be able to claim it; its
+    // listing stays ungated (contents remain encrypted) until
+    // the owner re-inits.
+    bool has_entries = false;
+    for (auto& e : std::filesystem::directory_iterator(vault_path, ec)) {
+        auto name = e.path().filename().string();
+        if (name.rfind("vault_", 0) == 0) { has_entries = true; break; }
+    }
+    if (!has_entries) {
+        unsigned char salt[SALT_SIZE];
+        if (RAND_bytes(salt, sizeof(salt)) == 1) {
+            std::string mac_hex;
+            if (compute_hmac(salt, mac_hex)) {
+                std::ofstream out(verify_path);
+                out << hex_of(salt, SALT_SIZE) << "\n" << mac_hex << "\n";
+            }
+        }
+    }
     return true;
 }
 
@@ -306,6 +380,11 @@ std::vector<VaultEntry> VaultManager::list_contents() {
             if (id.length() > 5 && id.substr(id.length() - 5) == ".meta") {
                 continue;
             }
+            // Skip vault bookkeeping (the password verifier) and
+            // temp residue: only generated vault_<id> entries are
+            // contents. The verifier briefly listed itself here.
+            if (!id.empty() && id[0] == '.') continue;
+            if (id.length() > 5 && id.substr(id.length() - 5) == ".part") continue;
 
             VaultEntry ve;
             ve.id = id;
