@@ -10,8 +10,13 @@
 ## Still open (roast triage)
 - Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
   `6b04ebe2`, Gemini `49b11b21`).
-- History purge (owner; evidence in
-  `docs/SECRETS_HISTORY_SCAN.md`).
+- History purge: **CLOSED — never purge.** The scan in
+  `docs/SECRETS_HISTORY_SCAN.md` found zero credential
+  material in any historical `.db` blob (all credential-
+  shaped tables empty; zero credential-pattern hits).
+  What remains is the owner's own session/transcript and
+  file-path history. Rewriting it would destroy provenance
+  for no security gain. Owner confirmed 2026-11-25.
 - Lean production checkout (owner); submodule pin drift
   (owner); `upstream/master` (owner); BobGUI meson (upstream).
 

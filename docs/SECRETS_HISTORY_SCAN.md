@@ -51,6 +51,12 @@ Limits, stated plainly: the pattern set is high-signal, not
 exhaustive, and `imported_session_memories` holds transcript
 text that could contain incidental secrets pasted into
 chats. Ruling that out would mean reading the content,
-which this scan deliberately did not do. Whether to purge
-9 MB of session history from a public repo remains the
-owner's privacy call — it is not a credential emergency.
+which this scan deliberately did not do.
+
+**Disposition (owner, 2026-11-25): CLOSED — never purge.**
+No credential material was found; what remains is the
+owner's own session/transcript and file-path history in the
+owner's own repository. Rewriting history would destroy
+provenance and auditability for no security gain. This
+question must not be reopened without new evidence of an
+actual credential in history.
