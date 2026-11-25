@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.5.121] - 2026-11-25 — Locked Convert Source Fails Cleanly
+
+### Added
+- **Convert under lock** (Gemini permission class,
+  convert surface): a source held open with an
+  exclusive handle fails its conversion by name —
+  nonzero exit, no output file, source intact.
+  `LockedConvertSourceFailsCleanly` proves the unlocked
+  baseline converts first (flac; the bundled ffmpeg has
+  no mp3 encoder), so the locked failure is attributable
+  to the lock, then pins the refusal. Suites:
+  lean/MSVC **130 + 1 skip**, wiring **32/32**, JUCE
+  **123 + 5 skips**.
+
 ## [6.5.120] - 2026-11-25 — Delete-Duplicates Refuses Read-Only Files
 
 ### Fixed

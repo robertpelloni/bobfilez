@@ -1486,6 +1486,32 @@ TEST_F(CliFixture, ReadOnlySourceHandling) {
 }
 #endif
 
+#ifdef _WIN32
+TEST_F(CliFixture, LockedConvertSourceFailsCleanly) {
+    // Permission class, convert surface: a source held open
+    // with an exclusive handle must fail its conversion by
+    // name (nonzero exit, no output file, source intact) —
+    // not hang, crash, or report success.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_tone_wav(inbox / "tone.wav");
+    auto db = (dir / "t.db").string();
+    // Baseline: unlocked conversion must work in this lane,
+    // otherwise the locked assertion proves nothing.
+    auto ok = run_cli("convert --to=flac --db=" + db + " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    if (ok.code != 0) GTEST_SKIP() << "convert backend unavailable in this lane: " << ok.out;
+    std::filesystem::remove(inbox / "tone.flac");
+    HANDLE hold = CreateFileW((inbox / "tone.wav").c_str(), GENERIC_READ, 0,
+                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT_NE(hold, INVALID_HANDLE_VALUE);
+    auto r = run_cli("convert --to=flac --db=" + db + " \"" + (inbox / "tone.wav").string() + "\"", dir);
+    CloseHandle(hold);
+    EXPECT_NE(r.code, 0) << r.out;
+    EXPECT_FALSE(std::filesystem::exists(inbox / "tone.flac")) << r.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "tone.wav")) << r.out;
+}
+#endif
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries
