@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.82] - 2026-11-24 — Journal Rollback Proven By Fault Injection
+
+### Tests
+- **Fault-injection for the journal** (round-6/7): a new CLI
+  test replaces `operation_log` with a view so the journal
+  insert throws *after* the rename, and asserts the move is
+  rolled back, reported ("move rolled back"), and the file is
+  back at its source — the moved-but-unjournaled branch is now
+  exercised end-to-end instead of argued. Suites: lean
+  **86/86**; other lanes rebuilt at this version.
+
 ## [6.5.81] - 2026-11-24 — Typed Bridge Error Envelope
 
 ### Added

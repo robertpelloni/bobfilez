@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <map>
 #include <set>
+#include <sqlite3.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -320,6 +321,38 @@ static const std::string kMissingRootCmds[] = {
     "rename-batch --find=a --replace=b", "scrub",
     "search needle", "convert --to=mp4",
 };
+
+TEST_F(CliFixture, OrganizeRollsBackWhenJournalWriteFails) {
+    // Crash-injection (round-6/7): replace operation_log with a
+    // view so the journal insert throws AFTER the rename. The
+    // move must be rolled back and reported — never left moved
+    // but unjournaled (undo would not know the file).
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    { std::ofstream(inbox / "a.txt") << "a"; }
+    auto db = (dir / "t.db").string();
+    ASSERT_EQ(run_cli("scan --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+
+    sqlite3* h = nullptr;
+    ASSERT_EQ(sqlite3_open(db.c_str(), &h), SQLITE_OK);
+    char* err = nullptr;
+    const char* mangle =
+        "DROP TABLE operation_log;"
+        "CREATE VIEW operation_log AS SELECT 0 AS id, 0 AS timestamp,"
+        " '' AS operation_type, '' AS source_path, '' AS dest_path,"
+        " 0 AS file_size, '' AS file_hash, '' AS status, 0 AS undone,"
+        " 0 AS batch_id, 0 AS dest_mtime;";
+    ASSERT_EQ(sqlite3_exec(h, mangle, nullptr, nullptr, &err), SQLITE_OK) << (err ? err : "");
+    sqlite3_close(h);
+
+    std::filesystem::current_path(dir);
+    auto org = run_cli("organize --rule={ext}/{filename} --db=" + db + " \"" + inbox.string() + "\"", dir);
+    std::filesystem::current_path(original_cwd);
+    EXPECT_NE(org.code, 0) << org.out;
+    EXPECT_NE(org.out.find("rolled back"), std::string::npos) << org.out;
+    EXPECT_TRUE(std::filesystem::exists(inbox / "a.txt")) << org.out;
+    EXPECT_FALSE(std::filesystem::exists(dir / "txt" / "a.txt")) << org.out;
+}
 
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6): every object-shaped
