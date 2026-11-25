@@ -593,7 +593,7 @@ int OperationRepository::reconcile_pending() {
             // that is no longer the one that was moved.
             if (at_src && !at_dst) { delete_operation(rec.id); ++resolved; }
             else if (at_dst && !at_src) {
-                bool drifted = false;
+                bool drifted = !std::filesystem::is_regular_file(dst, ec);
                 std::error_code sec;
                 auto sz = std::filesystem::file_size(dst, sec);
                 if (!sec && rec.file_size != 0 &&

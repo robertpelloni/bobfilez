@@ -1343,6 +1343,40 @@ TEST_F(CliFixture, IndexFollowsMovesAndUndo) {
     std::filesystem::current_path(original_cwd);
 }
 
+TEST_F(CliFixture, SimilarDoesNotReportDeletedFiles) {
+    // Repository hygiene: delete-duplicates removed files
+    // but left their hash rows behind, so `similar` kept
+    // reporting paths that no longer exist. Deletions now
+    // remove the repository rows in the same transaction.
+    auto inbox = dir / "inbox";
+    std::filesystem::create_directories(inbox);
+    write_gradient_bmp(inbox / "imgA.bmp", 0);
+    std::filesystem::copy_file(inbox / "imgA.bmp", inbox / "imgB.bmp");
+    auto db = (dir / "t.db").string();
+    auto hashed = run_cli("hash --hasher=dhash --db=" + db + " \"" + inbox.string() + "\"", dir);
+    if (hashed.out.find("hasher not found") != std::string::npos) {
+        GTEST_SKIP() << "dhash hasher not registered in this lane";
+    }
+    ASSERT_EQ(hashed.code, 0) << hashed.out;
+    ASSERT_EQ(run_cli("duplicates --format=json --db=" + db + " \"" + inbox.string() + "\"", dir).code, 0);
+    auto del = run_cli("delete-duplicates --db=" + db + " \"" + inbox.string() + "\"", dir);
+    ASSERT_EQ(del.code, 0) << del.out;
+    int remaining = (std::filesystem::exists(inbox / "imgA.bmp") ? 1 : 0) +
+                    (std::filesystem::exists(inbox / "imgB.bmp") ? 1 : 0);
+    ASSERT_EQ(remaining, 1) << del.out;
+    auto kept = std::filesystem::exists(inbox / "imgA.bmp") ? inbox / "imgA.bmp" : inbox / "imgB.bmp";
+    auto sim = run_cli("similar --db=" + db + " \"" + kept.string() + "\"", dir);
+    if (sim.out.find("Perceptual hasher") != std::string::npos &&
+        sim.out.find("not found") != std::string::npos) {
+        GTEST_SKIP() << "perceptual hasher not registered in this lane";
+    }
+    ASSERT_EQ(sim.code, 0) << sim.out;
+    // The deleted twin must not be reported: only existing
+    // files may be named as similar.
+    auto deleted = (kept == inbox / "imgA.bmp") ? "imgB.bmp" : "imgA.bmp";
+    EXPECT_EQ(sim.out.find(deleted), std::string::npos) << sim.out;
+}
+
 TEST_F(CliFixture, JsonOutputsCarrySchemaVersion) {
     // Dashboard contract (round-5/6, v2 in v6.5.93): every
     // object-shaped --format=json payload carries

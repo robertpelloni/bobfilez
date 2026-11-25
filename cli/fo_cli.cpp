@@ -1894,6 +1894,22 @@ int main(int argc, char** argv) {
                         fo::core::OperationRepository op_repo(engine.database());
                         engine.database().execute("BEGIN IMMEDIATE;");
                         for (size_t i : dropped_idx) op_repo.delete_operation(intent_ids[i]);
+                        {
+                            // Repository hygiene: deleted files
+                            // leave the index in the same txn, or
+                            // hash consumers keep reporting them.
+                            std::vector<int64_t> gone_ids;
+                            for (size_t i : deleted_idx) {
+                                if (members[i].id != 0) {
+                                    gone_ids.push_back(members[i].id);
+                                } else if (auto row = engine.file_repository().get_by_path(members[i].uri)) {
+                                    gone_ids.push_back(row->id);
+                                }
+                            }
+                            if (!gone_ids.empty()) {
+                                try { engine.file_repository().delete_files(gone_ids); } catch (...) {}
+                            }
+                        }
                         for (size_t i : deleted_idx) {
                             op_repo.set_status(intent_ids[i], "completed");
                             try {

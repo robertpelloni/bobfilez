@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.117 (Index Leaves Deleted)
+
+## What landed (2026-11-25, continuation)
+- **Deleted files leave the index**: delete-duplicates
+  removes repository rows in its completion txn, so
+  `similar` never reports deleted phantoms. Reconcile
+  refuses non-regular destinations. Test added.
+- Version **6.5.117**: lean/MSVC **126 + 1 skip**,
+  wiring **32/32**, JUCE **119 + 5 skips**. Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`; Gemini recovery/index items answered).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.116 (Index Follows Moves)
 
 ## What landed (2026-11-25, continuation)

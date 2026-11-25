@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.117] - 2026-11-25 — Deleted Files Leave the Index Too
+
+### Fixed
+- **Phantom similar results after deletion**: the other
+  direction of the stale-index bug — delete-duplicates
+  removed files but left their hash rows, so `similar`
+  kept reporting paths that no longer exist. Deleted
+  files' repository rows are now removed in the same
+  completion transaction. Reconcile also refuses to
+  adopt a non-regular destination (e.g. a directory
+  swapped in during the crash window) as a moved file.
+  New `SimilarDoesNotReportDeletedFiles` test. Suites:
+  lean/MSVC **126 + 1 skip**, wiring **32/32**, JUCE
+  **119 + 5 skips**.
+
 ## [6.5.116] - 2026-11-25 — File Index Follows Moves and Undo
 
 ### Fixed
