@@ -2,6 +2,7 @@
 #include "fo/core/interfaces.hpp"
 #include "fo/core/registry.hpp"
 #include <sqlite3.h>
+#include <algorithm>
 #include <stdexcept>
 #include <filesystem>
 
@@ -263,19 +264,6 @@ std::optional<std::string> try_undo_record(const OperationRecord& rec) {
                     std::filesystem::create_directories(src.parent_path(), ec);
                 }
                 std::filesystem::rename(dest, src);
-                // Prune destination parents the organize created
-                // and this move-back just emptied (category dirs
-                // like txt/, log/). remove() only succeeds on
-                // empty directories, so user content is never at
-                // risk; stop at the first non-empty ancestor.
-                {
-                    auto parent = dest.parent_path();
-                    for (int i = 0; i < 8 && !parent.empty(); ++i) {
-                        std::error_code rec_ec;
-                        if (!std::filesystem::remove(parent, rec_ec)) break;
-                        parent = parent.parent_path();
-                    }
-                }
                 return std::nullopt;
             }
             case OperationType::Copy: {
@@ -336,6 +324,10 @@ std::vector<OperationRecord> open_batch_members(DatabaseManager& db, const Opera
     sqlite3_finalize(stmt);
     return results;
 }
+} // namespace
+
+namespace {
+void prune_created_dirs(DatabaseManager& db, int64_t batch_id);
 } // namespace
 
 std::optional<OperationRecord> OperationRepository::undo_last() {
@@ -403,13 +395,61 @@ OperationRepository::UndoOutcome OperationRepository::undo_last_batch() {
                 outcome.undone.push_back(rec);
             }
         }
-        if (outcome.undone.size() > undone_before) return outcome;
+        if (outcome.undone.size() > undone_before) {
+            prune_created_dirs(db_, batch);
+            return outcome;
+        }
         ++outcome.skipped_batches; // wholly stale batch: report + fall through
         first_batch = false;
         i = j;
     }
     return outcome;
 }
+
+void OperationRepository::log_created_dirs(int64_t batch_id, const std::vector<std::string>& dirs) {
+    sqlite3* db = db_.get_db();
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, "INSERT INTO created_dirs (batch_id, path) VALUES (?, ?);", -1, &stmt, nullptr) != SQLITE_OK) return;
+    for (const auto& d : dirs) {
+        sqlite3_bind_int64(stmt, 1, batch_id);
+        sqlite3_bind_text(stmt, 2, d.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(stmt);
+        sqlite3_reset(stmt);
+        sqlite3_clear_bindings(stmt);
+    }
+    sqlite3_finalize(stmt);
+}
+
+namespace {
+// Prune one batch's journaled created dirs, deepest first. Only
+// empty directories are removed (remove() fails otherwise), and
+// only journaled ones — a pre-existing directory the batch
+// merely emptied is user state, never undo's to delete.
+void prune_created_dirs(DatabaseManager& db, int64_t batch_id) {
+    if (batch_id == 0) return;
+    sqlite3* raw = db.get_db();
+    sqlite3_stmt* stmt;
+    std::vector<std::string> dirs;
+    if (sqlite3_prepare_v2(raw, "SELECT path FROM created_dirs WHERE batch_id = ?;", -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int64(stmt, 1, batch_id);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            if (auto* t = sqlite3_column_text(stmt, 0)) dirs.emplace_back(reinterpret_cast<const char*>(t));
+        }
+        sqlite3_finalize(stmt);
+    }
+    auto depth = [](const std::string& s) {
+        return std::count_if(s.begin(), s.end(), [](char c) { return c == '/' || c == '\\'; });
+    };
+    std::sort(dirs.begin(), dirs.end(), [&](const std::string& a, const std::string& b) {
+        return depth(a) > depth(b);
+    });
+    for (const auto& d : dirs) {
+        std::error_code ec;
+        std::filesystem::remove(std::filesystem::path(d), ec); // empty only
+    }
+    db.execute("DELETE FROM created_dirs WHERE batch_id = " + std::to_string(batch_id) + ";");
+}
+} // namespace
 
 int OperationRepository::dismiss_newest_batch() {
     auto anchor = newest_open_record(db_);

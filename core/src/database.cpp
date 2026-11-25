@@ -208,6 +208,17 @@ INSERT OR IGNORE INTO batch_counter (id, value)
     SELECT 1, COALESCE(MAX(batch_id), 0) FROM operation_log;
 )";
 
+/// Migration 10: directories a batch created (organize target
+/// parents). Undo prunes only these (deepest first, only when
+/// empty) — never pre-existing directories it merely emptied.
+static const char* MIGRATION_10 = R"(
+CREATE TABLE IF NOT EXISTS created_dirs (
+    batch_id INTEGER NOT NULL,
+    path TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_created_dirs_batch ON created_dirs(batch_id);
+)";
+
 // ------------------
 
 DatabaseManager::DatabaseManager() : db_(nullptr) {}
@@ -333,6 +344,9 @@ void DatabaseManager::migrate() {
     }
     if (current_ver < 9) {
         apply_migration(9, MIGRATION_9);
+    }
+    if (current_ver < 10) {
+        apply_migration(10, MIGRATION_10);
     }
 }
 

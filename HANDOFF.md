@@ -1,3 +1,23 @@
+# Session Handoff - v6.5.78 (Journaled Dir Pruning + Hash Cap)
+
+## What landed (2026-11-24, continuation)
+- **Round-5 review acted on**: Migration 10 `created_dirs`
+  journaling replaces the generic prune climb (pre-existing
+  dirs now provably survive undo); journal-time hashing capped
+  at 64 MB (big files keep size identity). Repo test added.
+  Lean ctest **82/82**.
+- Next: schema-versioned dashboard JSON (biggest agreed
+  unstarted item).
+- Version **6.5.78**.
+
+## Still open (roast triage)
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review round 6 in chat `fd6d6d5b` / fresh chat.
+
+---
 # Session Handoff - v6.5.77 (Undo Leaves No Empty Category Dirs)
 
 ## What landed (2026-11-24, continuation)

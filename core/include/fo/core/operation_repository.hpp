@@ -52,6 +52,11 @@ public:
     // Allocate a fresh batch id for one multi-file command.
     int64_t allocate_batch_id();
 
+    // Record directories a batch created (organize target
+    // parents). Batch undo prunes exactly these (deepest first,
+    // only when empty); pre-existing dirs are never pruned.
+    void log_created_dirs(int64_t batch_id, const std::vector<std::string>& dirs);
+
     // Undo the most recent undoable operation
     std::optional<OperationRecord> undo_last();
 

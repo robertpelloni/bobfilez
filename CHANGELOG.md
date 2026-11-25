@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.78] - 2026-11-24 — Journaled Dir Pruning + Hash Cap (Round 5)
+
+### Fixed
+- **Dir pruning could delete pre-existing directories**
+  (round-5 review): the v6.5.77 parent-climb prune could not
+  distinguish organize-created dirs from pre-existing empty
+  ones and could climb above the organize root. Migration 10
+  journals exactly the directories each batch creates
+  (`created_dirs`); undo prunes only those, deepest first,
+  only when empty. **Journal hash capped at 64 MB**: hashing
+  turns an O(1) rename into a full read — on cold storage that
+  dwarfs the move for huge files, which keep size-based
+  identity instead. (fast64 identity is accidental-change
+  detection, not tamper proof.) Suites: lean **82/82**; other
+  lanes rebuilt at this version.
+
 ## [6.5.77] - 2026-11-24 — Undo Leaves No Empty Category Dirs
 
 ### Fixed

@@ -1397,7 +1397,23 @@ int main(int argc, char** argv) {
                     if (!dry_run) {
                         try {
                             if (!new_path.parent_path().empty()) {
+                                // Journal each ancestor this run
+                                // actually creates, so undo prunes
+                                // exactly those (never pre-existing
+                                // directories it merely emptied).
+                                std::vector<std::string> fresh_dirs;
+                                for (auto p = new_path.parent_path();
+                                     !p.empty() && !std::filesystem::exists(p);) {
+                                    fresh_dirs.push_back(std::filesystem::absolute(p).string());
+                                    auto parent = p.parent_path();
+                                    if (parent == p) break;
+                                    p = parent;
+                                }
                                 std::filesystem::create_directories(new_path.parent_path());
+                                if (!fresh_dirs.empty()) {
+                                    fo::core::OperationRepository dir_repo(engine.database());
+                                    dir_repo.log_created_dirs(op_batch_id, fresh_dirs);
+                                }
                             }
                             // MSVC's rename replaces existing files:
                             // never silently overwrite a destination.
@@ -1421,7 +1437,13 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
-                                if (journal_hasher) {
+                                // Hash only files up to 64 MB at
+                                // journal time: hashing makes an O(1)
+                                // rename read every byte, which on
+                                // cold storage dwarfs the move for
+                                // huge files (round-5 review). Big
+                                // files keep size-based identity.
+                                if (journal_hasher && f.size <= 64ull * 1024 * 1024) {
                                     try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
                                 }
                                 op_repo.log_operation(rec);
@@ -1712,7 +1734,7 @@ int main(int argc, char** argv) {
                                 rec.dest_path = new_path.string();
                                 rec.file_size = f.size;
                                 rec.batch_id = op_batch_id;
-                                if (journal_hasher) {
+                                if (journal_hasher && f.size <= 64ull * 1024 * 1024) {
                                     try { rec.file_hash = journal_hasher->fast64(new_path); } catch (...) {}
                                 }
                                 op_repo.log_operation(rec);

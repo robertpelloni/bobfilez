@@ -236,6 +236,35 @@ TEST_F(OperationFixture, UndoRefusesSameSizeContentEdit) {
     EXPECT_EQ(ss.str(), "xyz"); // user's edit untouched
 }
 
+TEST_F(OperationFixture, UndoPrunesOnlyJournaledCreatedDirs) {
+    // Round-5 review: pruning by climbing parents can delete a
+    // pre-existing empty directory and climb above the organize
+    // root. Only directories journaled as created by the batch
+    // (log_created_dirs) may be pruned, deepest first.
+    auto batch = repo->allocate_batch_id();
+    auto created = dir / "cats" / "txt";
+    std::filesystem::create_directories(created);
+    repo->log_created_dirs(batch, {created.string(), (dir / "cats").string()});
+    auto preexisting = dir / "preexisting-empty";
+    std::filesystem::create_directories(preexisting);
+
+    auto src = dir / "a.txt";
+    auto dst = created / "a.txt";
+    { std::ofstream(src) << "abc"; }
+    std::filesystem::rename(src, dst);
+    auto rec = record(fo::core::OperationType::Move, src.string(), dst.string());
+    rec.batch_id = batch;
+    repo->log_operation(rec);
+
+    auto outcome = repo->undo_last_batch();
+    ASSERT_EQ(outcome.undone.size(), 1u);
+    EXPECT_TRUE(std::filesystem::exists(src));
+    EXPECT_FALSE(std::filesystem::exists(created));      // journaled: pruned
+    EXPECT_FALSE(std::filesystem::exists(dir / "cats")); // journaled: pruned
+    EXPECT_TRUE(std::filesystem::exists(preexisting));   // not journaled: survives
+    EXPECT_TRUE(std::filesystem::exists(dir));           // root: survives
+}
+
 TEST_F(OperationFixture, CopyUndoRefusesCopyEditedAfterCopying) {
     // Muse review: same-size edits slip past the size check,
     // and Copy undo deletes the destination. A copy whose mtime
