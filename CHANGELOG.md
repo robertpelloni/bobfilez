@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.92] - 2026-11-25 — Vault Ops Reach the Forensic Audit Ledger
+
+### Fixed
+- **Vault lock/unlock never appeared in the audit ledger**:
+  `vault-lock` consumes the source file and `vault-unlock`
+  writes plaintext back out, yet neither wrote to the
+  Migration 5 forensic ledger, leaving a vault-shaped hole
+  in the tamper-evident trail every other destructive op
+  feeds. Both now log `vault-lock`/`vault-unlock` entries
+  (source → vault / entry → dest) via
+  `make_audit_logger(engine.database())` on success.
+  New `VaultOpsAppearInAuditLedger` CLI test failed before,
+  passes after. Suites: lean **96/96**, MSVC **96/96**,
+  wiring **28/28**; JUCE lane rebuilt at this version.
+
 ## [6.5.91] - 2026-11-24 — Convert: No Silent Overwrite, No Shell Injection
 
 ### Fixed

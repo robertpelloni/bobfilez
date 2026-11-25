@@ -2876,10 +2876,18 @@ int main(int argc, char** argv) {
             } else if (command == "vault-lock") {
                 if (pargs.size() < 4) { std::cerr << "Usage: fo vault-lock <vaultPath> <password> <file>\n"; return 1; }
                 if (!vault.lock_file(pargs[3])) { std::cerr << "Error: failed to lock file into vault.\n"; return 1; }
+                // Lock consumes the source file; the forensic ledger
+                // must show it like every other destructive op.
+                if (auto audit = fo::core::make_audit_logger(engine.database())) {
+                    audit->log("vault-lock", pargs[3] + " -> vault:" + pargs[1]);
+                }
                 std::cout << "Locked " << pargs[3] << " into vault.\n";
             } else if (command == "vault-unlock") {
                 if (pargs.size() < 5) { std::cerr << "Usage: fo vault-unlock <vaultPath> <password> <vaultId> <dest>\n"; return 1; }
                 if (!vault.unlock_file(pargs[3], pargs[4])) { std::cerr << "Error: failed to unlock vault entry.\n"; return 1; }
+                if (auto audit = fo::core::make_audit_logger(engine.database())) {
+                    audit->log("vault-unlock", pargs[3] + " -> " + pargs[4]);
+                }
                 std::cout << "Unlocked " << pargs[3] << " to " << pargs[4] << "\n";
             } else { // vault-list
                 auto entries = vault.list_contents();

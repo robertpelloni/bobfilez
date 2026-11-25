@@ -352,6 +352,25 @@ void write_minimal_exif_jpeg(const std::filesystem::path& path) {
     (void)tiff;
 }
 
+TEST_F(CliFixture, VaultOpsAppearInAuditLedger) {
+    // Vault lock/unlock are file-destructive (lock consumes the
+    // source) but never reached the forensic audit ledger, so
+    // the audit trail had a vault-shaped hole. They must appear
+    // like every other destructive op.
+    auto vault = dir / "vault";
+    { std::ofstream(dir / "secret.txt") << "topsecret"; }
+    auto db = (dir / "t.db").string();
+    std::filesystem::current_path(dir);
+    ASSERT_EQ(run_cli("vault-init \"" + vault.string() + "\" pw123 --db=" + db, dir).code, 0);
+    ASSERT_EQ(run_cli("vault-lock \"" + vault.string() + "\" pw123 \"" + (dir / "secret.txt").string() + "\" --db=" + db, dir).code, 0);
+
+    auto audit = run_cli("audit --db=" + db, dir);
+    ASSERT_EQ(audit.code, 0) << audit.out;
+    EXPECT_NE(audit.out.find("vault-lock"), std::string::npos) << audit.out;
+    EXPECT_NE(audit.out.find("secret.txt"), std::string::npos) << audit.out;
+    std::filesystem::current_path(original_cwd);
+}
+
 TEST_F(CliFixture, ConvertRefusesExistingOutputAndQuoteInjection) {
     // convert used to overwrite existing outputs silently
     // (ffmpeg -y) while every other command refuses, and it
