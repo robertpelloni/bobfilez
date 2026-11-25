@@ -1,3 +1,41 @@
+# Session Handoff - v6.5.93 (Schema v2: Array Roots Wrapped)
+
+## What landed (2026-11-25, continuation)
+- **Schema v2**: every array-shaped CLI `--format=json`
+  payload and every `fo_c_api` JSON string is wrapped as
+  `{"schema_version": 2, "items": [...]}`; object payloads
+  carry v2. Bridge fallbacks + error envelopes bumped; legacy
+  React unwraps `items` in its fetch helpers; unified page
+  renders verbatim. `docs/JSON_SCHEMA.md` rewritten for v2
+  with the explicit breaking-change policy. New
+  `JsonArrayRootsAreWrappedV2` conformance test. Lean
+  **97/97**, MSVC **97/97**, wiring **29/29**, JUCE rebuilt.
+- Version **6.5.93** (`012d8ee59`, pushed; tree in sync).
+- Verified live: http://localhost:3131 `unified.html` 200;
+  `/api/scan` returns `schema_version=2` with wrapped items
+  through the pre-existing tray server (it relays the newest
+  `fo_cli` per request). NOTE: that tray server still runs
+  the pre-v6.5.93 `server.js`, so bridge-generated error
+  envelopes stay v1 until the owner restarts it from the
+  tray (Restart menu) — CLI payloads are already v2.
+- Muse reviewer: read thread `ad74257e` — no round-8 reply
+  yet; round-6 challenges all addressed (file-ID v6.5.83,
+  envelope v6.5.81, arrays now). Round-8 report posted.
+
+## Still open (roast triage)
+- Crash-injection per-step test (kill between each journal
+  write and its filesystem op) — reviewer suggestion, needs
+  a harness hook; the 5,000-file kill test + v6.5.82 fault
+  injection cover the realistic windows today.
+- History purge decision for root DBs in old commits (owner).
+- Lean production checkout: owner authorization needed.
+- Submodule gitlink drift (161 of ~173): commit new pins or
+  restore recorded pins (owner).
+- Omni* QML-demo mocks remain behind unbuilt GUI lanes.
+- `upstream/master` decision (owner); BobGUI meson fix (bobgui repo).
+- Muse review in chats `fd6d6d5b` / `ad74257e`.
+
+---
 # Session Handoff - v6.5.92 (Vault Ops Reach the Audit Ledger)
 
 ## What landed (2026-11-25, continuation)
