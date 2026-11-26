@@ -403,6 +403,24 @@ test('bridge refuses cross-origin and non-loopback callers', async () => {
   assert.match(srv, /CLI_MAX_IN_FLIGHT/);
 });
 
+test('bridge rejects dash-prefixed path entries (argument injection)', async () => {
+  // A "path" of --db=... would be consumed by fo_cli's
+  // global option parser and reprogram the command. The
+  // bridge must refuse it as a bad request, and normal
+  // paths must keep working.
+  const bad = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['--db=C:/evil.db', root] }),
+  });
+  assert.equal(bad.status, 400);
+  const bj = await bad.json();
+  assert.equal(bj.error_code, 'BAD_REQUEST');
+  // No destructive GET endpoints exist: quit is POST-only.
+  const srv = read('server.js');
+  assert.match(srv, /app\.post\('\/api\/quit'/);
+  assert.doesNotMatch(srv, /app\.get\('\/api\/quit'/);
+});
+
 test('scan bridge returns wrapped items, not a bare array', async () => {
   const r = await fetch('http://localhost:3199/api/scan', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },

@@ -1,3 +1,21 @@
+# Session Handoff - v6.5.125 (Argument-Injection Guard)
+
+## What landed (2026-11-25, continuation)
+- **Bridge argument-injection guard**: dash-prefixed
+  `path`/`paths` entries are now 400 BAD_REQUEST
+  before any spawn (they would reach `fo_cli`'s
+  global option parser); a wiring test also pins
+  POST-only `/api/quit`. Wiring **34/34**; C++ trees
+  unchanged (135 + 1 skip from 6.5.124). Pushed.
+
+## Still open (roast triage)
+- Reviewer replies awaited (Muse `6d2f6927`, ChatGPT
+  `6b04ebe2`, Gemini `49b11b21`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.124 (Vault Suite + Qualification Doc)
 
 ## What landed (2026-11-25, continuation)

@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.125] - 2026-11-25 — Dashboard Argument-Injection Guard
+
+### Fixed
+- **Argument injection through bridge "paths"**: a
+  `paths[]` entry starting with `-` reaches the
+  `fo_cli` global option parser as an option (e.g. a
+  smuggled `--db=` redirecting the journal database).
+  The bridge now rejects dash-prefixed `path`/`paths`
+  entries as 400 BAD_REQUEST before any spawn. Also
+  pinned by test that the bridge exposes no destructive
+  GET endpoints (`/api/quit` is POST-only). Suites:
+  wiring **34/34**; the C++/JUCE trees are unchanged
+  this release (lean/MSVC 135 + 1 skip last verified
+  in 6.5.124).
+
 ## [6.5.124] - 2026-11-25 — Vault Adversarial Suite + Dashboard Hardening
 
 ### Fixed

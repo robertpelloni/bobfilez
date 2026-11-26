@@ -28,6 +28,20 @@ app.use((req, res, next) => {
             return res.status(403).json({ schema_version: 2, error: 'Forbidden origin', error_code: 'FORBIDDEN', retryable: false });
         }
     }
+    // Argument-injection guard: bridge "paths" become fo_cli
+    // argv, whose global parser would consume a '-'-prefixed
+    // entry as an option (e.g. a smuggled --db=). A real path
+    // never legitimately starts with '-'; reject it as a
+    // bad request rather than let it reprogram the command.
+    const badPath = (v) => typeof v === 'string' && v.startsWith('-');
+    if (req.body && typeof req.body === 'object') {
+        const candidates = [];
+        if (Array.isArray(req.body.paths)) candidates.push(...req.body.paths);
+        if (typeof req.body.path === 'string') candidates.push(req.body.path);
+        if (candidates.some(badPath)) {
+            return res.status(400).json({ schema_version: 2, error: 'Paths must not start with -', error_code: 'BAD_REQUEST', retryable: false });
+        }
+    }
     next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
