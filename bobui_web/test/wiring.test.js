@@ -403,6 +403,46 @@ test('bridge refuses cross-origin and non-loopback callers', async () => {
   assert.match(srv, /CLI_MAX_IN_FLIGHT/);
 });
 
+test('bridge refuses cross-origin browser posts (Gemini rebinding class)', async () => {
+  // A malicious page on another origin gets 403 before any
+  // mutation, a rebinding Host is refused, and a simple
+  // (text/plain) request body is never parsed into paths.
+  const evil = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(evil.status, 403);
+  const opaque = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: 'null' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.equal(opaque.status, 403);
+  const simple = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ paths: [root] }),
+  });
+  assert.notEqual(simple.status, 200);
+});
+
+test('bridge passes quote-bearing paths as one literal argv', async () => {
+  // Gemini quoting class: execFile array-argv means a path
+  // containing `"`, `&`, `%VAR%` reaches fo_cli as a single
+  // literal path and fails cleanly as not-found — it cannot
+  // break out into options or a shell.
+  const weird = 'C:\\definitely-missing\\" --dry-run "&%PATH%';
+  const r = await fetch('http://localhost:3199/api/scan', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: [weird] }),
+  });
+  const j = await r.json();
+  assert.equal(j.schema_version, 2);
+  assert.notEqual(r.status, 200);
+  assert.ok(j.error_code, 'expected a typed error, not success or a hang');
+});
+
 test('bridge rejects dash-prefixed path entries (argument injection)', async () => {
   // A "path" of --db=... would be consumed by fo_cli's
   // global option parser and reprogram the command. The

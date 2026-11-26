@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.5.126] - 2026-11-25 — Bridge Boundary Test Pins (Gemini Classes)
+
+### Verified
+- Fresh Gemini thread (`4f4f07f2`) named two boundary
+  classes; both were already closed by earlier work and
+  are now pinned by wiring tests: cross-origin browser
+  POSTs and opaque `Origin: null` get 403 (Host/Origin
+  boundary), text/plain simple-request bodies are never
+  parsed into paths, and quote/`&`/`%VAR%`-bearing paths
+  reach `fo_cli` as one literal argv via `execFile`
+  (failing cleanly as not-found). Fresh ChatGPT thread
+  (`6b078d2f`) verdict: **freeze stands**, no remaining
+  demonstrated defect. Wiring **36/36**; C++ trees
+  unchanged (135 + 1 skip from 6.5.124).
+
 ## [6.5.125] - 2026-11-25 — Dashboard Argument-Injection Guard
 
 ### Fixed

@@ -1,3 +1,24 @@
+# Session Handoff - v6.5.126 (Bridge Pins; Freeze Confirmed)
+
+## What landed (2026-11-25, continuation)
+- **Reviewer threads replaced**: wedged ChatGPT
+  `6b04ebe2` and Gemini `49b11b21` superseded by fresh
+  `6b078d2f` (ChatGPT) and `4f4f07f2` (Gemini); Claude
+  `6d2f6927` still awaiting Round-12 closure reply.
+- **ChatGPT verdict: FREEZE STANDS** — no remaining
+  demonstrated defect with a verified repro.
+- **Gemini's two classes verified already-closed** and
+  pinned (wiring 36/36): cross-origin/opaque-Origin 403,
+  unparsed text/plain bodies, `execFile` literal argv
+  for quote-bearing paths. C++ trees unchanged.
+
+## Still open (roast triage)
+- Claude reply awaited (`6d2f6927`).
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.125 (Argument-Injection Guard)
 
 ## What landed (2026-11-25, continuation)
