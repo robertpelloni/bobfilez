@@ -255,8 +255,14 @@ std::vector<SearchResult> SearchEngine::search(const SearchOptions& opts, Search
         auto current_dir = dirs.front();
         dirs.pop();
         
+        // Manual iterator with error codes: the range-for
+        // form throws on increment when an entry vanishes or a
+        // subtree denies access mid-walk.
         std::error_code ec;
-        for (const auto& entry : std::filesystem::directory_iterator(current_dir, ec)) {
+        for (std::filesystem::directory_iterator it(current_dir, ec), end;
+             it != end; it.increment(ec)) {
+            if (ec) { ec.clear(); break; }
+            const auto& entry = *it;
             if (impl_->cancelled_) break;
             if (opts.max_results > 0 && impl_->all_results_.size() >= static_cast<size_t>(opts.max_results)) break;
 
@@ -265,14 +271,16 @@ std::vector<SearchResult> SearchEngine::search(const SearchOptions& opts, Search
                 progress_cb(impl_->files_scanned_, impl_->all_results_.size(), entry.path());
             }
 
-            if (entry.is_directory() && opts.recursive) {
+            std::error_code fec;
+            if (entry.is_directory(fec) && !fec && opts.recursive) {
                 dirs.push(entry.path());
-            } else if (entry.is_regular_file()) {
+            } else if (entry.is_regular_file(fec) && !fec) {
                 if (matches_filename(entry.path(), opts) && matches_attributes(entry.path(), opts)) {
                     SearchResult sr;
                     sr.path = entry.path();
-                    sr.size = entry.file_size(ec);
-                    
+                    sr.size = entry.file_size(fec);
+                    if (fec) continue;
+
                     if (opts.search_content) {
                         sr.matches = search_content(entry.path(), opts);
                         sr.match_count = sr.matches.size();

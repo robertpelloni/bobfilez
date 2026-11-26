@@ -1,5 +1,28 @@
 # Changelog
 
+## [6.5.127] - 2026-11-25 — Worker-Thread Exception Containment
+
+### Fixed
+- **Exceptions escaping worker threads were process-fatal**
+  (Claude fresh-thread conditional checks 1–3): the CLI
+  catch-all and C API boundaries only protect their own
+  stacks, so a throw inside a `std::thread` body is
+  `std::terminate`. Proven failing-first: a throwing
+  converter in `batch_convert` killed the test binary
+  (exit 3) before the fix. Contained per item/lambda:
+  `batch_convert` (failed `ConversionResult`), parallel
+  hash threads (empty-hash failure signal), enhanced
+  copy-engine job worker (job Failed + error callback),
+  FileWatcher worker (catch-all + error-code
+  `is_directory`). Remaining throwing walks converted:
+  `SearchEngine` BFS loop and archive repack now use
+  manual iterators with `increment(ec)`; scanner root
+  checks (`std`/`win32`/`dirent`) use `exists(ec)` —
+  GUI lanes call scanners on their own threads. No
+  `noexcept` exists in core (check 3 clean). New suite
+  `tests/test_thread_containment.cpp`. Suites: lean/MSVC
+  **137 + 1 skip**, JUCE **130 + 5 skips**, wiring 36/36.
+
 ## [6.5.126] - 2026-11-25 — Bridge Boundary Test Pins (Gemini Classes)
 
 ### Verified

@@ -138,15 +138,18 @@ bool AdvancedArchiveManager::convert(const std::filesystem::path& src_archive,
                                      const ArchiveCreateOptions& opts) {
     // Requires extracting to temp dir, then creating new archive
     auto temp_dir = std::filesystem::temp_directory_path() / generate_uuid();
-    std::filesystem::create_directories(temp_dir);
+    { std::error_code cec; std::filesystem::create_directories(temp_dir, cec); if (cec) return false; }
 
     ArchiveExtractOptions ex_opts;
     ex_opts.dest_dir = temp_dir;
     if (!ArchiveEngine::extract(src_archive, ex_opts)) return false;
 
     std::vector<std::filesystem::path> files;
-    for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
-        files.push_back(entry.path());
+    std::error_code dec;
+    for (std::filesystem::directory_iterator it(temp_dir, dec), end;
+         it != end; it.increment(dec)) {
+        if (dec) { dec.clear(); break; }
+        files.push_back(it->path());
     }
 
     bool success = ArchiveEngine::create(files, dst_archive, opts);

@@ -82,7 +82,11 @@ class NativeFileWatcher : public IFileWatcher {
         stop_event_ = CreateEventA(nullptr, TRUE, FALSE, nullptr);
 
         for (auto& watch_path : config_.watch_paths) {
-            if (!std::filesystem::is_directory(watch_path)) {
+            // Error-code form on the worker thread: the throwing
+            // overload on an over-long or vanished watch path
+            // would escape the thread and terminate the process.
+            std::error_code wec;
+            if (!std::filesystem::is_directory(watch_path, wec) || wec) {
                 std::cerr << "[FileWatcher] Not a directory: " << watch_path << "\n";
                 continue;
             }
@@ -167,7 +171,7 @@ class NativeFileWatcher : public IFileWatcher {
                         FileChangeEvent evt;
                         evt.path = full_path;
                         evt.timestamp = now;
-                        evt.is_directory = std::filesystem::is_directory(full_path);
+                        { std::error_code iec; evt.is_directory = std::filesystem::is_directory(full_path, iec) && !iec; }
 
                         switch (info->Action) {
                             case FILE_ACTION_ADDED:            evt.type = FileEvent::Created;  break;
@@ -360,7 +364,10 @@ public:
         running_ = true;
 
         worker_thread_ = std::thread([this]() {
-            watch_loop();
+            // Last-resort containment: nothing may escape a
+            // thread body (std::terminate). The loops use
+            // error codes throughout; this guards the rest.
+            try { watch_loop(); } catch (...) {}
             running_ = false;
         });
 

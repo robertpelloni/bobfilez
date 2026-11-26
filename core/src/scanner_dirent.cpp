@@ -43,7 +43,7 @@ public:
 
         std::vector<std::filesystem::path> stack;
         for (auto& r : roots) {
-            if (!std::filesystem::exists(r)) continue;
+            { std::error_code xec; if (!std::filesystem::exists(r, xec) || xec) continue; }
             // A file root scans as itself (Hash/Metadata accept files).
             struct stat root_st{};
             if (stat(r.string().c_str(), &root_st) == 0 && (root_st.st_mode & S_IFREG)) {

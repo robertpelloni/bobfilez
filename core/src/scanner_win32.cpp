@@ -51,9 +51,9 @@ public:
         // Iterative DFS stack
         std::vector<std::filesystem::path> stack;
         for (auto& r : roots) {
-            if (!std::filesystem::exists(r)) continue;
-            // A file root scans as itself (Hash/Metadata accept files).
             std::error_code ec;
+            if (!std::filesystem::exists(r, ec) || ec) continue;
+            // A file root scans as itself (Hash/Metadata accept files).
             if (std::filesystem::is_regular_file(r, ec)) {
                 if (accept_ext(r)) {
                     FileInfo fi;

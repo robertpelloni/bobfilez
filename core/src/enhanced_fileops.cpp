@@ -116,7 +116,30 @@ std::string EnhancedCopyEngine::enqueue(
             }
         }
         if (target_job) {
-            run_job(*target_job, error_cb, progress_cb, result_cb);
+            // Worker-thread containment: an exception escaping
+            // this lambda is std::terminate. Fail the job and
+            // report through the error callback instead.
+            try {
+                run_job(*target_job, error_cb, progress_cb, result_cb);
+            } catch (const std::exception& e) {
+                target_job->state = TransferJob::State::Failed;
+                target_job->finished_at = std::chrono::system_clock::now();
+                if (error_cb) {
+                    FileError fe;
+                    fe.type = FileError::Type::Other;
+                    fe.message = e.what();
+                    error_cb(fe);
+                }
+            } catch (...) {
+                target_job->state = TransferJob::State::Failed;
+                target_job->finished_at = std::chrono::system_clock::now();
+                if (error_cb) {
+                    FileError fe;
+                    fe.type = FileError::Type::Other;
+                    fe.message = "unknown error during transfer";
+                    error_cb(fe);
+                }
+            }
         }
     });
 

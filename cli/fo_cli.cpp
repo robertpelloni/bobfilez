@@ -1106,10 +1106,19 @@ int main(int argc, char** argv) {
                     if (start >= files.size()) break;
 
                     threads.emplace_back([&, start, end]() {
-                        // Each thread gets its own hasher instance to avoid contention
+                        // Each thread gets its own hasher instance to avoid contention.
+                        // Per-item catch: an exception escaping a
+                        // thread body is std::terminate. Hashers
+                        // signal failure with an empty hash (see
+                        // the accounting below), so a vanishing or
+                        // unreadable file degrades to "" here too.
                         auto thread_hasher = fo::core::Registry<fo::core::IHasher>::instance().create(hasher.name());
                         for (size_t i = start; i < end; ++i) {
-                            results[i] = { i, thread_hasher->fast64(std::filesystem::path(files[i].uri)) };
+                            try {
+                                results[i] = { i, thread_hasher->fast64(std::filesystem::path(files[i].uri)) };
+                            } catch (...) {
+                                results[i] = { i, std::string() };
+                            }
                         }
                     });
                 }

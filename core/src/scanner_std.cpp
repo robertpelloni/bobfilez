@@ -36,8 +36,11 @@ public:
         };
 
         for (auto& root : roots) {
-            if (!std::filesystem::exists(root)) continue;
+            // Error-code form: callers may run scan on worker
+            // threads (GUI lanes), where a throwing stat on a
+            // denied/over-long root would terminate the process.
             std::error_code ec;
+            if (!std::filesystem::exists(root, ec) || ec) continue;
             // A file root scans as itself (Hash/Metadata accept files).
             if (std::filesystem::is_regular_file(root, ec)) {
                 if (accept_ext(root)) {

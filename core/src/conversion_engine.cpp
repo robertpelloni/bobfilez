@@ -739,7 +739,26 @@ std::vector<ConversionResult> ConversionEngine::batch_convert(
 
     auto work = [&](size_t start, size_t end) {
         for (size_t i = start; i < end; ++i) {
-            results[i] = convert(inputs[i], out_ext, out_dir, options, preferred);
+            // Per-item containment: this lambda runs on worker
+            // threads, where an escaping exception is
+            // std::terminate, not a catchable error. A backend
+            // that throws (vanishing input, throwing stat call)
+            // degrades to a failed result for that file only.
+            try {
+                results[i] = convert(inputs[i], out_ext, out_dir, options, preferred);
+            } catch (const std::exception& e) {
+                ConversionResult r;
+                r.input = inputs[i];
+                r.success = false;
+                r.error = e.what();
+                results[i] = std::move(r);
+            } catch (...) {
+                ConversionResult r;
+                r.input = inputs[i];
+                r.success = false;
+                r.error = "unknown conversion error";
+                results[i] = std::move(r);
+            }
             int d = ++done;
             if (progress_cb) {
                 std::lock_guard<std::mutex> lk(mtx);

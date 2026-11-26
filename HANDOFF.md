@@ -1,3 +1,26 @@
+# Session Handoff - v6.5.127 (Worker-Thread Containment)
+
+## What landed (2026-11-25, continuation)
+- **Claude fresh thread `06cd7d42`** (old `6d2f6927`
+  composer is blocked by a failed-send message; resend
+  attempts and Retry did not clear it). Claude closed
+  Round 12 *conditionally* on checks 1–3; all three ran:
+  checks 1–2 found real thread escapes, check 3 clean
+  (no `noexcept` in core).
+- **v6.5.127 containment train** (failing-first proven:
+  throwing-converter test terminated the binary, exit 3):
+  per-item catches in `batch_convert`, parallel hash,
+  copy-engine worker, watcher thread; ec conversions in
+  SearchEngine/archive walks and all scanner root checks.
+  Suites: lean/MSVC **137 + 1**, JUCE **130 + 5**, wiring 36/36.
+
+## Still open (roast triage)
+- Claude `06cd7d42` closure confirmation awaited.
+- Lean production checkout (owner); submodule pin drift
+  (owner); `upstream/master` (owner); BobGUI meson (upstream).
+- History purge: CLOSED — never purge (owner, 2026-11-25).
+
+---
 # Session Handoff - v6.5.126 (Bridge Pins; Freeze Confirmed)
 
 ## What landed (2026-11-25, continuation)
